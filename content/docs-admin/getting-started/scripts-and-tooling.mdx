@@ -1,0 +1,55 @@
+---
+title: Scripts and tooling
+description: Every package.json script, the lint and format setup, the git hook, and CI.
+---
+
+## package.json scripts
+
+| Script           | Command                             | What it does                                                                                                                                                                             |
+| ---------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dev`            | `next dev`                          | Dev server with HMR. Fumadocs watches `content/` and regenerates `.source/`.                                                                                                             |
+| `build`          | `pnpm registry:build && next build` | Builds the registry JSON first, then the Next.js production build.                                                                                                                       |
+| `start`          | `next start`                        | Serves the production build.                                                                                                                                                             |
+| `typecheck`      | `tsc --noEmit`                      | Type-checks the whole project.                                                                                                                                                           |
+| `registry:build` | `node scripts/build-registry.mjs`   | Sets the registry `homepage` from `NEXT_PUBLIC_SITE_URL`, then runs `shadcn build` to compile every `registry.json` item into `public/r/<name>.json` and write `public/r/registry.json`. |
+| `postinstall`    | `fumadocs-mdx`                      | Generates `.source/` from `source.config.ts`.                                                                                                                                            |
+| `check`          | `ultracite check`                   | Runs oxlint and oxfmt in check mode.                                                                                                                                                     |
+| `fix`            | `ultracite fix`                     | Auto-fixes lint issues and formats files.                                                                                                                                                |
+| `prepare`        | `lefthook install`                  | Installs git hooks.                                                                                                                                                                      |
+
+## Lint and format
+
+`ultracite` is a preset wrapper around two Rust tools:
+
+- **oxlint** (`oxlint.config.ts`) extends the ultracite `core`, `react`, `next` and `vitest` rule sets.
+- **oxfmt** (`oxfmt.config.ts`) formats with an 80-column width, double quotes, semicolons, ES5 trailing commas, and sorted imports with a blank line between groups.
+
+Both ignore `public/r/**`, `.agents/**`, `.cursor/**`, `.claude/**`, `.web-kits/**` and `audio/**`, which are generated or vendored.
+
+<Callout title="Import order is enforced">
+  Imports are sorted alphabetically with groups separated by a blank line:
+  external packages first, then `@/` aliases. `pnpm fix` will reorder them for
+  you.
+</Callout>
+
+## Git hook (lefthook)
+
+`lefthook.yml` runs `pnpm fix` on every staged `js, jsx, ts, tsx, json, jsonc, css` file before each commit and re-stages the fixed files (`stage_fixed: true`). If a commit fails, it's usually a lint error that `fix` can't auto-resolve.
+
+## CI (`.github/workflows/ci.yml`)
+
+Runs on pull requests, pushes to `main`, merge queues, and manual dispatch. Two parallel jobs share the setup action at `.github/actions/setup/action.yml` (pnpm from `packageManager`, Node 22, `pnpm install --frozen-lockfile`):
+
+1. **lint-and-format**: `pnpm check`
+2. **typecheck**: `pnpm build` then `pnpm typecheck`. The build runs first because `.next/types` and `.source/` must exist for the type check to pass.
+
+## Editor and agent config
+
+| Path                    | Purpose                                                           |
+| ----------------------- | ----------------------------------------------------------------- |
+| `.vscode/settings.json` | Editor defaults for the repo                                      |
+| `.cursor/hooks.json`    | Cursor agent hooks                                                |
+| `.agents/skills/*`      | Vendored agent skills (`launch-shadcn-registry`, `libraries-dev`) |
+| `.claude/skills/*`      | Claude Code skill links                                           |
+| `skills-lock.json`      | Source and hash pins for the vendored skills                      |
+| `.web-kits/config.json` | `@web-kits/audio` CLI config (output goes to `audio/`)            |

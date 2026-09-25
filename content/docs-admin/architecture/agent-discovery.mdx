@@ -1,0 +1,27 @@
+---
+title: Agent discovery
+description: The machine-readable surface that lets AI agents find, read and install components.
+---
+
+The template is "agent ready". Everything below exists so that an LLM or browser agent can discover the docs and install components without scraping HTML.
+
+## Layers
+
+| Layer                 | Where                                                                                        | What it gives an agent                                                                                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Directive             | `lib/agent-discovery/directive.ts`                                                           | One paragraph telling agents about `llms.txt`, `.md` URLs and the skill. Rendered as a screen-reader-only `<blockquote>` in `app/(app)/layout.tsx` and prepended to every markdown page by `getLLMText`. |
+| `llms.txt`            | `app/llms.txt/route.ts`                                                                      | Docs index (from `llms(source).index()`) with links rewritten to `.md` URLs, plus a list of machine-readable resources                                                                                   |
+| `llms-full.txt`       | `app/llms-full.txt/route.ts`                                                                 | Every docs page as markdown in one file                                                                                                                                                                  |
+| Markdown mirrors      | `app/llms.md/**` + `proxy.ts`                                                                | Any docs URL + `.md`, or `Accept: text/markdown`                                                                                                                                                         |
+| Agent skill           | `lib/agent-discovery/site-agent-skill.ts`                                                    | `SITE_AGENT_SKILL_MD`, a SKILL.md explaining how to install from this registry. Served with a sha256 digest in the discovery index.                                                                      |
+| API catalog + OpenAPI | `app/.well-known/api-catalog`, `app/openapi.json`, `lib/agent-discovery/openapi-document.ts` | Standard descriptions of the public endpoints                                                                                                                                                            |
+| `Link` header         | `next.config.mjs`                                                                            | Advertises all of the above from `/`                                                                                                                                                                     |
+| WebMCP                | `components/web-mcp-tools.tsx`                                                               | If the browser exposes `navigator.modelContext`, registers tools such as `<site>_open_docs` so an in-browser agent can navigate                                                                          |
+
+## Branding
+
+The skill text and the discovery index use `SITE.NAME`, and the skill is named `craftui-pro`. WebMCP tool names are also derived from `SITE.NAME`, so a rename only needs `constants/site.ts`.
+
+## Adding a page to the LLM surface
+
+Nothing to do: any page under `content/docs/` is automatically included in `llms.txt`, `llms-full.txt` and the markdown mirrors. `/docs-admin` pages are **not** included, by design.

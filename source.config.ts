@@ -6,7 +6,7 @@ import {
 } from "fumadocs-mdx/config";
 import { rehypePrettyCode } from "rehype-pretty-code";
 
-import { DOCS_DIR } from "@/lib/docs";
+import { DOCS_ADMIN_DIR, DOCS_DIR } from "@/lib/docs";
 import { transformers } from "@/lib/highlight-code";
 
 export default defineConfig({
@@ -35,6 +35,17 @@ export const docs = defineDocs({
     postprocess: {
       includeProcessedMarkdown: true,
     },
+    schema: frontmatterSchema,
+  },
+  meta: {
+    schema: metaSchema,
+  },
+});
+
+// Internal, dev-only handbook served at /docs-admin (see lib/flags.ts).
+export const docsAdmin = defineDocs({
+  dir: DOCS_ADMIN_DIR,
+  docs: {
     schema: frontmatterSchema,
   },
   meta: {

@@ -1,45 +1,26 @@
 ---
 title: Introduction
-description: A template for building and publishing your own shadcn registry components.
+description: Crafted, production-ready components for shadcn/ui.
 ---
 
-A **ready-to-use template** for creating and publishing custom components to the [shadcn registry](https://ui.shadcn.com/docs/registry).
+**craftUI Pro** is a collection of crafted React components built on top of [shadcn/ui](https://ui.shadcn.com). Every component is distributed through a [shadcn registry](https://ui.shadcn.com/docs/registry), so you install it with the shadcn CLI and the source code lands directly in your project.
 
-## What You Get
+## Why craftUI Pro
 
-- 📦 **Simple structure** - One component file + one config file
-- 📚 **Documentation site** - Powered by Fumadocs
-- 🎨 **Registry compatible** - Works with `npx shadcn add`
-- 🤖 **[Agent ready](https://www.mintlify.com/score/startercn)** - Ships with `llms.txt`, `llms-full.txt`, API catalog routes, and agent skill discovery endpoints
-- 🔊 **[Web audio feedback](https://audio.raphaelsalaja.com/)** - Built-in interaction sounds powered by `@web-kits/audio`
-- 📳 **[Web haptics](https://haptics.lochie.me/)** - Optional haptic feedback for supported devices via `web-haptics`
-- ✨ **[Motion animations](https://motion.dev/)** - Uses `motion` for animated UI states and transitions
-- 🎯 **[Animated icons](https://lucide-animated.com/)** - Includes reusable animated icons for buttons, sharing, and navigation
-- 🔄 **[View transitions](https://nextjs.org/docs/app/api-reference/config/next-config-js/viewTransition)** - Uses Next.js view transitions for smoother page changes
-- 🚀 **Deploy ready** - Deploy anywhere
+- **You own the code.** Components are copied into your project, not hidden inside a package. Change anything.
+- **Works with your theme.** Components use shadcn's CSS variables (`bg-primary`, `text-muted-foreground` and so on), so they pick up your existing colours, radius and dark mode.
+- **One command to install.** `npx shadcn add` installs the component, its npm dependencies and any shadcn primitives it needs.
+- **Built with** React 19, TypeScript and Tailwind CSS v4.
 
-## Tech Stack
+## How it works
 
-- `Next.js 16` + App Router
-- `React 19`
-- `Tailwind CSS 4`
-- `Fumadocs`
-- `motion`
-- `@web-kits/audio`
-- `web-haptics`
-- `shiki` + `rehype-pretty-code`
+1. Set up shadcn/ui in your project (see [Installation](/docs/installation)).
+2. Pick a component from the [Components](/docs/components) page.
+3. Run its install command:
 
-## How It Works
+<InstallCommand name="<component>" />
 
-1. Edit your component at `registry/new-york/your-component.tsx`
-2. Update `registry.json` with your component name and details
-3. Run `pnpm registry:build`
-
-That's it. Deploy your app and users can install your component:
-
-```bash
-npx shadcn@latest add https://your-site.com/r/your-component.json
-```
+4. Import it from your components folder and use it.
 
 ## FAQ
 
@@ -47,11 +28,11 @@ npx shadcn@latest add https://your-site.com/r/your-component.json
 
 <AccordionItem value="faq-1">
 <AccordionTrigger>
-Why copy/paste instead of npm packages?
+Why copy the source instead of installing an npm package?
 </AccordionTrigger>
 <AccordionContent>
 
-The shadcn philosophy gives you **ownership** of the code. You can customize components to your exact needs without fighting library constraints.
+The shadcn approach gives you **ownership** of the code. You can adapt components to your exact needs without fighting a library's API or waiting for upstream releases.
 
 </AccordionContent>
 </AccordionItem>
@@ -62,18 +43,18 @@ Which frameworks are supported?
 </AccordionTrigger>
 <AccordionContent>
 
-Any React framework: Next.js, Remix, Astro, Gatsby, Vite, etc.
+Any React framework that shadcn/ui supports: Next.js, React Router, Astro, Vite, TanStack Start and others.
 
 </AccordionContent>
 </AccordionItem>
 
 <AccordionItem value="faq-3">
 <AccordionTrigger>
-Can I publish multiple components?
+Do I need to use Tailwind CSS?
 </AccordionTrigger>
 <AccordionContent>
 
-Yes! Add more files to `registry/new-york/` and list them in `registry.json`.
+Yes. Components are styled with Tailwind CSS utility classes and shadcn's CSS variables, the same as shadcn/ui itself.
 
 </AccordionContent>
 </AccordionItem>

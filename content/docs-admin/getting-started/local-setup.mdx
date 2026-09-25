@@ -1,0 +1,70 @@
+---
+title: Local setup
+description: Install, configure the environment, and run the site locally.
+---
+
+## Requirements
+
+- **Node.js 22**, which is the version CI uses (`.github/actions/setup/action.yml`).
+- **pnpm 10**. The version is pinned by `packageManager` in `package.json` (`pnpm@10.28.2`). Run `corepack enable` once and Node provides that exact pnpm. CI reads the same field and installs with `--frozen-lockfile`.
+
+<Callout title="Use pnpm, not npm">
+  Running `npm install` creates a `package-lock.json` that drifts from
+  `pnpm-lock.yaml`. Every script, the git hook and CI assume pnpm.
+</Callout>
+
+## Steps
+
+<Steps>
+
+<Step>Install dependencies</Step>
+
+```bash
+pnpm install
+```
+
+Two things run automatically:
+
+- `postinstall` runs `fumadocs-mdx`, which generates the `.source/` folder (typed imports for every MDX and `meta.json` file). If you ever see errors about `@/.source/server`, run `pnpm fumadocs-mdx` again.
+- `prepare` runs `lefthook install`, which sets up the pre-commit hook.
+
+<Step>Create your `.env`</Step>
+
+Copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+| Variable               | Used by                          | Effect                                                                                                |
+| ---------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `environment`          | `lib/flags.ts` (`showDocsAdmin`) | Set it to `development` to show and enable `/docs-admin`.                                             |
+| `NEXT_PUBLIC_SITE_URL` | `constants/site.ts`              | The site's public address. `http://localhost:3000` locally; your real domain in the Vercel dashboard. |
+
+`.env` is gitignored. `.env.example` is committed.
+
+<Step>Run the dev server</Step>
+
+```bash
+pnpm dev
+```
+
+Open `http://localhost:3000`. `SITE.URL` comes from `NEXT_PUBLIC_SITE_URL` (see `constants/site.ts`). After changing `.env`, restart `pnpm dev`: `NEXT_PUBLIC_` values are read at startup.
+
+<Step>Build the registry once</Step>
+
+```bash
+pnpm registry:build
+```
+
+This writes `public/r/*.json`. `pnpm dev` does **not** rebuild the registry, so re-run this after you change `registry.json` or any registry source file if you want to test `npx shadcn add` against your local server.
+
+</Steps>
+
+## Verifying your setup
+
+```bash
+pnpm check      # lint and format check (what CI runs)
+pnpm typecheck  # tsc --noEmit
+pnpm build      # registry:build + next build
+```

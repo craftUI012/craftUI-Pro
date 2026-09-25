@@ -13,7 +13,7 @@ import { createPageMetadata } from "@/seo/metadata";
 
 export const metadata: Metadata = createPageMetadata({
   description:
-    "Support startercn — a template for building your own shadcn/ui registry. Sponsor tiers, stargazers, and how to contribute.",
+    "Support craftUI Pro, a collection of crafted components for shadcn/ui. Sponsor tiers, stargazers, and how to contribute.",
   path: ROUTES.SPONSOR,
   title: "Sponsor",
 });
@@ -29,19 +29,13 @@ const SponsorPage = async () => {
             Support the project
           </h1>
           <p className="text-base text-muted-foreground text-balance">
-            startercn is a template for building your own shadcn/ui registry.
-            Every component is free and that&apos;s not changing.
+            craftUI Pro is a collection of crafted components for shadcn/ui,
+            built in the open.
           </p>
           <p className="text-sm text-muted-foreground text-balance">
-            I&apos;m not going to paywall features or gate components behind a
-            sponsorship tier. But if startercn made your project better, or you
-            just like that this exists in the open, sponsoring is a nice way to
-            say so. It helps me justify spending real time on it instead of
-            treating it like a side-of-desk thing.
-          </p>
-          <p className="text-sm text-muted-foreground text-balance">
-            Any amount is genuinely appreciated. And if money&apos;s not your
-            thing, starring the repo or sharing something you liked works too.
+            If it made your project better, sponsoring helps fund new components
+            and keeps the existing ones polished. Starring the repo or sharing
+            something you liked helps too.
           </p>
           <ExternalLinkButton
             sound="heart"

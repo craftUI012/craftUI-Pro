@@ -25,10 +25,10 @@ const TOP_LEVEL_SECTIONS = [
   { href: ROUTES.LLMS, name: "llms.txt" },
 ];
 
-const MENU_BUTTON_CLS =
+export const MENU_BUTTON_CLS =
   "relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48";
 
-const SidebarPageGroup = ({
+export const SidebarPageGroup = ({
   label,
   pages,
   pathname,

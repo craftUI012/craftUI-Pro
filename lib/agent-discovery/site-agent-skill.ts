@@ -8,11 +8,11 @@ export const SITE_AGENT_SKILL_MD = `# ${SITE.NAME}
 
 ## Summary
 
-Help users discover, inspect, and install components from this public shadcn registry starter and its documentation site.
+Help users discover, inspect, and install ${SITE.NAME} components from this shadcn registry and its documentation site.
 
 ## Registry
 
-- Registry JSON: \`${ROUTES.REGISTRY}\`
+- Registry JSON: \`${ROUTES.REGISTRY}\` (lists every component name)
 - Docs: ${ROUTES.DOCS}
 
 ## MCP
@@ -22,7 +22,7 @@ This site is a shadcn-compatible registry. For MCP workflows, use the maintained
 ## Install
 
 \`\`\`bash
-npx shadcn@latest add ${SITE.URL}/r/your-component.json
+npx shadcn@latest add ${SITE.URL}/r/<component>.json
 \`\`\`
 
 Prefer following the on-site installation guide: ${ROUTES.DOCS_INSTALLATION}

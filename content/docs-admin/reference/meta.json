@@ -1,0 +1,10 @@
+{
+  "title": "Reference",
+  "pages": [
+    "registry-json",
+    "mdx-components",
+    "configuration",
+    "docs-admin",
+    "known-issues"
+  ]
+}

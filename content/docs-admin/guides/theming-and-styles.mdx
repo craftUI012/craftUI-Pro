@@ -1,0 +1,70 @@
+---
+title: Theming and styles
+description: Tailwind v4 tokens, light and dark mode, colour themes, fonts and custom utilities.
+---
+
+## Files
+
+| File                 | Contents                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `styles/globals.css` | Tailwind import, custom variants, the `@theme inline` token map, `:root` and `.dark` values, base layer, custom utilities |
+| `styles/themes.css`  | Optional colour themes (`.theme-blue`, `.theme-rose`, `.theme-scaled` and others) scoped to `.theme-container`            |
+| `postcss.config.mjs` | `@tailwindcss/postcss`                                                                                                    |
+| `lib/fonts.ts`       | Geist (`--font-sans`), Geist Mono (`--font-mono`), Inter (`--font-inter`)                                                 |
+
+There is **no `tailwind.config.js`**. Tailwind v4 is configured in CSS.
+
+## Token system
+
+`globals.css` declares semantic variables on `:root` (light) and `.dark` in **oklch**, then maps them to Tailwind colours in `@theme inline`:
+
+```css
+@theme inline {
+  --color-background: var(--background);
+  --color-primary: var(--primary);
+  --color-surface: var(--surface);
+  --color-code: var(--code);
+  /* ... */
+}
+```
+
+So `bg-surface`, `text-code-foreground` and similar classes all work. Beyond the standard shadcn tokens, this site adds:
+
+| Token                                                      | Used for                            |
+| ---------------------------------------------------------- | ----------------------------------- |
+| `surface`, `surface-foreground`                            | Callouts, linked cards, soft panels |
+| `code`, `code-foreground`, `code-highlight`, `code-number` | Code blocks and line numbers        |
+| `selection`, `selection-foreground`                        | `::selection`                       |
+
+Radius scale: `--radius-sm/md/lg/xl` are derived from `--radius`.
+
+## Custom variants and utilities
+
+| Name                          | Definition                       | Use                                                          |
+| ----------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| `dark:`                       | `&:is(.dark *)`                  | Class-based dark mode (next-themes sets `.dark` on `<html>`) |
+| `fixed:`                      | `&:is(.layout-fixed *)`          | Styles for a fixed-width layout mode                         |
+| `3xl:`, `4xl:`                | breakpoints at 1600px and 2000px | Very wide screens                                            |
+| `container-wrapper`           | utility                          | Outer page width wrapper                                     |
+| `container`                   | utility                          | Inner content width (max 1400px)                             |
+| `no-scrollbar`                | utility                          | Hides scrollbars                                             |
+| `border-grid`, `section-soft` | utilities                        | Subtle borders and gradients                                 |
+
+## Light and dark mode
+
+- `components/theme-provider.tsx` wraps `next-themes` with `attribute="class"`, `defaultTheme="system"` and `disableTransitionOnChange`.
+- `hooks/use-theme-toggle.ts` toggles between light and dark and binds the **`d`** hotkey.
+- `components/mode-switcher.tsx` is the header button.
+- `META_THEME_COLORS` in `constants/site.ts` sets the browser chrome colour. An inline script in `app/layout.tsx` applies it before hydration.
+
+## Colour themes (currently dormant)
+
+`styles/themes.css` defines colour themes, and `components/active-theme.tsx` exports `ActiveThemeProvider`, which adds `theme-<name>` to `<body>`. **Neither is mounted anywhere yet**, and the themes only apply inside a `.theme-container` element. To enable them:
+
+1. Wrap `children` in `app/layout.tsx` with `<ActiveThemeProvider>`.
+2. Add `theme-container` to the element that should pick up the theme.
+3. Build a picker using `useThemeConfig()` and `THEMES` from `lib/themes.ts`.
+
+## Changing the brand colour
+
+Edit `--primary`, `--primary-foreground` and `--ring` (plus the `sidebar-*` equivalents) in **both** `:root` and `.dark` in `styles/globals.css`. Registry components should keep using semantic classes (`bg-primary`) so they inherit each **user's** theme, not this site's.

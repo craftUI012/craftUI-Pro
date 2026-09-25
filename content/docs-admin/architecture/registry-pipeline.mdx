@@ -1,0 +1,97 @@
+---
+title: Registry pipeline
+description: How a .tsx file becomes something anyone can install with npx shadcn add.
+---
+
+## The three artefacts
+
+| Artefact                                         | Committed?      | Written by            | Read by                                                          |
+| ------------------------------------------------ | --------------- | --------------------- | ---------------------------------------------------------------- |
+| `registry/new-york/<name>.tsx`                   | yes             | you                   | `shadcn build`, the docs site (`ComponentSource`), the home page |
+| `registry.json`                                  | yes             | you                   | `shadcn build`, `components/command-box.tsx` (item names)        |
+| `public/r/<name>.json`, `public/r/registry.json` | yes (currently) | `pnpm registry:build` | the shadcn CLI on users' machines                                |
+
+## What `pnpm registry:build` does
+
+It runs `scripts/build-registry.mjs`, which copies `registry.json` to `node_modules/.cache/registry/`, sets its `homepage` from `NEXT_PUBLIC_SITE_URL` (ignored if localhost), and then runs:
+
+```bash
+shadcn build node_modules/.cache/registry/registry.json --output ./public/r
+```
+
+The committed `registry.json` is never modified. See [Changing the domain](/docs-admin/guides/changing-the-domain).
+
+### What `shadcn build` does
+
+For every item in `registry.json`, it:
+
+1. Reads each `files[].path` from disk.
+2. Inlines the file **contents** into the item.
+3. Adds `$schema: https://ui.shadcn.com/schema/registry-item.json`.
+4. Writes `public/r/<item.name>.json`.
+
+It also writes `public/r/registry.json`, the index of all items. Because `public/` is served statically, the files are available at `https://<site>/r/<name>.json`.
+
+A built item looks like this:
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "your-component",
+  "title": "Your Component",
+  "description": "A placeholder component...",
+  "files": [
+    {
+      "path": "registry/new-york/your-component.tsx",
+      "content": "import type { HTMLAttributes } from \"react\";\n...",
+      "type": "registry:ui",
+      "target": "components/ui/your-component.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}
+```
+
+## What happens on the user's machine
+
+```bash
+npx shadcn@latest add https://<site>/r/<name>.json
+```
+
+1. The CLI fetches the JSON.
+2. It installs `dependencies` and `devDependencies` with the user's package manager.
+3. It recursively installs `registryDependencies` (shadcn names like `button`, or full URLs).
+4. It **rewrites imports** such as `@/lib/utils` to match the user's own `components.json` aliases.
+5. It writes each file to its `target`, or to the default folder for its `type`.
+6. It merges any `cssVars` and `css` into the user's global CSS.
+
+<Callout title="Write imports against this repo's aliases">
+  Inside `registry/new-york/*`, import helpers as `@/lib/utils`, and
+  shadcn primitives as `@/components/ui/<x>` (declared in
+  `registryDependencies`). The CLI rewrites these for each user. Never import
+  site-only code like `@/hooks/use-feedback` or `@/constants/*` from a
+  registry file, because it won't exist in the user's project.
+</Callout>
+
+## How the site reads the source
+
+`lib/registry.ts`:
+
+```ts
+getRegistryUiSourceCandidates({ name }); // → ["registry/new-york/<name>.tsx"]
+getDemoSource(name); // → examples/<name>.tsx, or null
+getRegistrySource(name); // → first candidate that exists, or null
+```
+
+`components/component-source.tsx` resolves code in this order:
+
+1. `examples/<name>.tsx`, the demo file (the `examples/` folder doesn't exist yet).
+2. `registry/new-york/<name>.tsx`, the component itself.
+3. Or the explicit `src="path/to/file.tsx"` prop, which wins if you pass it.
+
+The code is then formatted (`lib/format-code.ts`) and highlighted (`lib/highlight-code.ts`) on the server.
+
+## Registry install buttons on the site
+
+- **`CommandBox`** (home page) shows `<pm> shadcn add` followed by flipping item names taken from `registry.json`.
+- **`RegistryAddButton`** shows `shadcn registry add <registryName>`, which is the command for adding the whole namespaced registry once it's listed in the shadcn directory.

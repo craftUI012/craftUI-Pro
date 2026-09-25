@@ -1,0 +1,124 @@
+---
+title: registry.json reference
+description: Every field of the registry manifest and its items, with examples.
+---
+
+`registry.json` at the repo root is the **input** to `shadcn build`. Official schema: `https://ui.shadcn.com/schema/registry.json`.
+
+## Top level
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "craftui-pro",
+  "homepage": "https://your-domain.com",
+  "items": []
+}
+```
+
+| Field      | Required         | Notes                                                                             |
+| ---------- | ---------------- | --------------------------------------------------------------------------------- |
+| `$schema`  | no (recommended) | Enables editor validation and autocomplete                                        |
+| `name`     | yes              | Registry name. Used in `shadcn registry add <name>` once listed in the directory. |
+| `homepage` | yes              | Your site URL                                                                     |
+| `items`    | yes              | Array of registry items                                                           |
+
+## Item fields
+
+| Field                  | Type     | Notes                                                                                                                                                                           |
+| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                 | string   | **Unique**. Becomes `public/r/<name>.json`. Must match the source filename for the docs lookup (`registry/new-york/<name>.tsx`).                                                |
+| `type`                 | string   | `registry:ui`, `registry:component`, `registry:block`, `registry:hook`, `registry:lib`, `registry:page`, `registry:file`, `registry:style`, `registry:theme` or `registry:item` |
+| `title`                | string   | Human-readable name                                                                                                                                                             |
+| `description`          | string   | Short description (shown by the CLI and directories)                                                                                                                            |
+| `author`               | string   | For example `"craftUI Pro <you@example.com>"`                                                                                                                                   |
+| `dependencies`         | string[] | npm packages to install, with optional versions: `"motion@^12"`                                                                                                                 |
+| `devDependencies`      | string[] | npm dev dependencies                                                                                                                                                            |
+| `registryDependencies` | string[] | shadcn item names (`"button"`), full URLs to other registry items, or namespaced names (`"@craftui/x"`)                                                                         |
+| `files`                | object[] | See below                                                                                                                                                                       |
+| `cssVars`              | object   | `{ "theme": {}, "light": {}, "dark": {} }`, merged into the user's CSS variables                                                                                                |
+| `css`                  | object   | Raw CSS rules (`@keyframes`, `@layer` and so on) merged into the user's CSS                                                                                                     |
+| `docs`                 | string   | Message printed by the CLI after installing                                                                                                                                     |
+| `categories`           | string[] | For directory and search grouping                                                                                                                                               |
+| `meta`                 | object   | Free-form metadata                                                                                                                                                              |
+
+## `files[]`
+
+| Field    | Notes                                                                                                                                                           |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`   | Path **in this repo**, relative to the root                                                                                                                     |
+| `type`   | Same set as item types. Controls the default install folder.                                                                                                    |
+| `target` | Destination path **in the user's project**. Required for `registry:page` and `registry:file`, and recommended for everything else. `~/` means the project root. |
+
+## Example: animation-heavy component
+
+```json
+{
+  "name": "shimmer-text",
+  "type": "registry:ui",
+  "title": "Shimmer Text",
+  "description": "Text with an animated shimmer highlight.",
+  "dependencies": ["motion"],
+  "files": [
+    {
+      "path": "registry/new-york/shimmer-text.tsx",
+      "type": "registry:ui",
+      "target": "components/ui/shimmer-text.tsx"
+    }
+  ],
+  "cssVars": {
+    "theme": { "animate-shimmer": "shimmer 2s linear infinite" }
+  },
+  "css": {
+    "@keyframes shimmer": {
+      "from": { "background-position": "0 0" },
+      "to": { "background-position": "-200% 0" }
+    }
+  }
+}
+```
+
+## Example: depending on another item in this registry
+
+```json
+{
+  "name": "pricing-card",
+  "type": "registry:component",
+  "registryDependencies": [
+    "card",
+    "button",
+    "https://your-domain.com/r/status-badge.json"
+  ],
+  "files": [
+    {
+      "path": "registry/new-york/pricing-card.tsx",
+      "type": "registry:component"
+    }
+  ]
+}
+```
+
+## Output (`public/r/`)
+
+| File                     | Contents                                                                                |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| `public/r/registry.json` | Index of all items (without file contents)                                              |
+| `public/r/<name>.json`   | The full item, with `files[].content` inlined and `$schema` set to `registry-item.json` |
+
+<Callout title="Stale output">
+  `shadcn build` doesn't delete JSON for items you removed. Delete old
+  `public/r/*.json` files by hand.
+</Callout>
+
+## `components.json` (not the same thing)
+
+`components.json` configures the **shadcn CLI for this repo** (for when you run `shadcn add button` here). It isn't part of what you publish:
+
+| Field                | Value here                                                                      |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `style`              | `new-york`                                                                      |
+| `rsc` / `tsx`        | `true` / `true`                                                                 |
+| `tailwind.css`       | path to the global CSS (see [Known issues](/docs-admin/reference/known-issues)) |
+| `tailwind.baseColor` | `neutral`                                                                       |
+| `aliases`            | `components`, `ui`, `lib`, `utils`, `hooks` all point to `@/...`                |
+| `iconLibrary`        | `lucide`                                                                        |

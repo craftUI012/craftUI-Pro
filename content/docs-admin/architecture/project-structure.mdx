@@ -1,0 +1,133 @@
+---
+title: Project structure
+description: Every folder and notable file, and what it's for.
+---
+
+## Top level
+
+```text
+.
+├── app/                    Next.js App Router: pages, route handlers, metadata routes
+├── audio/                  Generated sound definitions (@web-kits/audio), do not edit
+├── components/             Site components (shell, docs chrome) + components/ui (shadcn primitives)
+├── constants/              Single sources of truth: routes, links, site identity
+├── content/
+│   ├── docs/               Public docs (MDX + meta.json), served at /docs
+│   └── docs-admin/         This handbook, served at /docs-admin (dev only)
+├── hooks/                  Client hooks (jotai atoms, media queries, feedback, clipboard)
+├── lib/                    Server and shared logic: docs loaders, registry readers, highlighting
+├── public/                 Static assets; public/r/ is the BUILT registry output
+├── registry/new-york/      Component SOURCE published through the registry
+├── scripts/                build-registry.mjs: runs shadcn build with the homepage from NEXT_PUBLIC_SITE_URL
+├── seo/                    Metadata builder and JSON-LD helpers
+├── styles/                 globals.css (Tailwind v4 tokens) + themes.css (colour themes)
+├── mdx-components.tsx      Components available inside every MDX file
+├── proxy.ts                Next.js 16 proxy (formerly middleware): markdown negotiation
+├── registry.json           Registry manifest: what gets published
+├── components.json         shadcn CLI config for THIS repo (aliases, style, CSS path)
+├── source.config.ts        Fumadocs collections (docs, docsAdmin) + rehype plugins
+└── next.config.mjs         Next config: MDX, view transitions, Link headers, redirects
+```
+
+## `app/`
+
+```text
+app/
+├── layout.tsx                          Root: <html>, fonts, providers, Toaster, Analytics
+├── manifest.ts                         PWA manifest (/manifest.webmanifest)
+├── sitemap.ts                          /sitemap.xml from home, /sponsor and all /docs pages
+├── (app)/                              Route group: pages with header and footer
+│   ├── layout.tsx                      SiteHeader + main + SiteFooter + WebMcpTools
+│   ├── (root)/page.tsx                 Landing page (/): hero, CommandBox, HomeCtas, showcase
+│   ├── docs/layout.tsx                 SidebarProvider + DocsSidebar(source.pageTree)
+│   ├── docs/[[...slug]]/page.tsx       Docs page renderer (static)
+│   ├── docs-admin/layout.tsx           Dev-only gate + DocsAdminSidebar(adminSource.pageTree)
+│   ├── docs-admin/[[...slug]]/page.tsx This handbook's renderer
+│   └── sponsor/page.tsx                Sponsor tiers page (uses lib/sponsors.ts)
+├── api/status/route.ts                 GET /api/status, returns { status: "ok" }
+├── llms.txt/route.ts                   Docs index for LLMs
+├── llms-full.txt/route.ts              Every doc concatenated as markdown
+├── llms.md/content.md/route.ts         Homepage as markdown
+├── llms.md/docs/[[...slug]]/route.ts   Each doc page as markdown (GET + HEAD)
+├── og/route.tsx                        Default OpenGraph image (1200×630)
+├── og/docs/[...slug]/route.tsx         Per-doc OpenGraph image
+├── openapi.json/route.ts               OpenAPI description of the public endpoints
+├── robots.txt/route.ts                 robots.txt (disallows /docs-admin)
+├── rss.xml/route.ts                    RSS of /docs/changelog/* pages (none yet)
+└── .well-known/
+    ├── api-catalog/route.ts            RFC 9727 API catalog
+    ├── agent-skills/index.json/route.ts Agent skill discovery index
+    └── agent-skills/site-skill.md/route.ts The skill markdown itself
+```
+
+<Callout title="Route groups">
+  Folders in parentheses, such as `(app)` and `(root)`, are **route groups**.
+  They organise layouts without adding a URL segment, so
+  `app/(app)/(root)/page.tsx` is served at `/`.
+</Callout>
+
+## `components/`
+
+| File                                                                                         | Kind         | Role                                                                                                                                 |
+| -------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `site-header.tsx`                                                                            | server       | Sticky header: mobile nav, logo, `MainNav`, `CommandMenu`, GitHub, sponsor, mode switcher, settings. **Nav items are defined here.** |
+| `site-footer.tsx`                                                                            | server       | Footer                                                                                                                               |
+| `main-nav.tsx` / `mobile-nav.tsx`                                                            | client       | Desktop and mobile navigation                                                                                                        |
+| `command-menu.tsx`                                                                           | client       | cmdk palette (⌘K) over nav items and the page tree                                                                                   |
+| `docs-sidebar.tsx`                                                                           | client       | Left sidebar for `/docs`. Exports `SidebarPageGroup`, which is reused by the admin sidebar.                                          |
+| `docs-admin-sidebar.tsx`                                                                     | client       | Left sidebar for `/docs-admin`                                                                                                       |
+| `docs-toc.tsx`, `docs-toc-footer.tsx`                                                        | client       | Right-hand table of contents and "Edit this page"                                                                                    |
+| `docs-copy-page.tsx`, `docs-share-menu.tsx`                                                  | client       | Copy page as markdown, share links                                                                                                   |
+| `docs-nav-link.tsx`, `docs-keyboard-shortcuts.tsx`                                           | client       | Prev and next links and arrow-key navigation                                                                                         |
+| `component-preview.tsx`                                                                      | server       | MDX `<ComponentPreview>`: renders its children, then `ComponentSource`                                                               |
+| `component-source.tsx`                                                                       | async server | Reads, formats and highlights source from disk                                                                                       |
+| `components-list.tsx`                                                                        | server       | MDX `<ComponentsList>`: grid of pages in the Components folder                                                                       |
+| `install-command.tsx`                                                                        | server       | MDX `<InstallCommand name="x">`: install command built from `SITE.URL`                                                               |
+| `command-box.tsx`                                                                            | client       | Landing-page install command with package-manager tabs and flipping item names                                                       |
+| `registry-add-button.tsx`                                                                    | client       | Dialog or drawer with `shadcn registry add <name>`                                                                                   |
+| `code-block-command.tsx`, `code-tabs.tsx`, `code-collapsible-wrapper.tsx`, `copy-button.tsx` | client       | Code block chrome                                                                                                                    |
+| `callout.tsx`                                                                                | server       | MDX `<Callout>`                                                                                                                      |
+| `site-settings.tsx`                                                                          | client       | Sound and haptics toggles (⌘S)                                                                                                       |
+| `mode-switcher.tsx`, `theme-provider.tsx`, `active-theme.tsx`                                | client       | Light/dark and colour theme                                                                                                          |
+| `page-transition.tsx`                                                                        | client       | View-transition wrapper for page content                                                                                             |
+| `web-mcp-tools.tsx`                                                                          | client       | Registers WebMCP tools on `navigator.modelContext`                                                                                   |
+| `logo.tsx`, `icons.tsx`, `animated-icons/*`                                                  |              | Brand mark, icon sets, motion icons                                                                                                  |
+| `ui/*`                                                                                       |              | This site's own shadcn primitives (button, dialog, sidebar, tabs and so on). `Button` and `TabsTrigger` accept a `sound` prop.       |
+
+<Callout title="components/ui is not the registry">
+  `components/ui/*` are primitives **used by this website**. What you
+  **publish** lives in `registry/new-york/`. Don't mix them up.
+</Callout>
+
+## `lib/`
+
+| File                                                                      | Role                                                                                                                                       |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `source.ts`                                                               | Fumadocs loaders: `source` (for `/docs`) and `adminSource` (for `/docs-admin`), plus `getPageImage`, `getPageMarkdownUrl` and `getLLMText` |
+| `docs.ts`                                                                 | `DOCS_DIR`, `DOCS_ADMIN_DIR`, excluded sidebar sections, slug-to-title formatting, markdown and OG route prefixes                          |
+| `page-tree.ts`                                                            | Types and helpers for walking the Fumadocs page tree                                                                                       |
+| `registry.ts`                                                             | `getRegistrySource(name)` and `getDemoSource(name)` read component code from disk                                                          |
+| `read-file.ts`                                                            | `readFileFromRoot(path)`, an `fs.readFile` relative to `process.cwd()`                                                                     |
+| `highlight-code.ts`                                                       | Shiki highlighting with an LRU cache, plus the transformer that creates npm/yarn/pnpm/bun variants of commands                             |
+| `format-code.ts`                                                          | Uses shadcn's transformers and ts-morph to normalise displayed source                                                                      |
+| `flags.ts`                                                                | Feature flags: `showMcpDocs`, `showDocsAdmin`                                                                                              |
+| `events.ts`                                                               | `trackEvent()` with an allowlist of event names validated by zod                                                                           |
+| `fonts.ts`                                                                | Geist, Geist Mono and Inter from `next/font/google` as CSS variables                                                                       |
+| `themes.ts`, `colors.ts`, `registry-colors.ts`, `registry-base-colors.ts` | Colour theme names and full Tailwind palettes                                                                                              |
+| `github.ts`                                                               | Cached GitHub stargazers fetch                                                                                                             |
+| `sponsors.ts`                                                             | Sponsor tiers data                                                                                                                         |
+| `changelog.ts`                                                            | Reads `docs/changelog/*` pages and their dates (used by RSS)                                                                               |
+| `url.ts`, `utils.ts`, `api.ts`                                            | `cn`, `absoluteUrl`, query helpers, `markdownResponse`                                                                                     |
+| `agent-discovery/*`                                                       | Agent directive text, OpenAPI document, request origin, site skill markdown                                                                |
+
+## `constants/`
+
+| File        | Exports                                                                                        |
+| ----------- | ---------------------------------------------------------------------------------------------- |
+| `routes.ts` | `ROUTES`: every internal path. **Add new routes here** rather than hard-coding strings.        |
+| `links.ts`  | `GITHUB` (org, repo, branch, user) and `LINK` (Discord, X, sponsor and so on)                  |
+| `site.ts`   | `SITE` (name, description, author, keywords, URL, OG image), `META_THEME_COLORS`, `UTM_PARAMS` |
+
+## `hooks/`
+
+`use-config`, `use-package-manager`, `use-sound-toggle` and `use-haptic-toggle` are persisted jotai atoms. `use-feedback` plays a sound and a haptic together. The rest (`use-copy-to-clipboard`, `use-is-mac`, `use-media-query`, `use-mobile`, `use-mounted`, `use-meta-color`, `use-mutation-observer`, `use-theme-toggle`) are small utilities.

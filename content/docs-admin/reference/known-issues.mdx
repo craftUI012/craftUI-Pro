@@ -1,0 +1,51 @@
+---
+title: Known issues and rebrand status
+description: Issues found in the template and what was done about them, plus the craftUI Pro rebrand and the placeholders still to fill in.
+---
+
+## Issues
+
+| #   | Issue                                                    | Status | Notes                                                                                                                                                                    |
+| --- | -------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `components.json` pointed to `app/globals.css`           | Fixed  | Now `styles/globals.css`                                                                                                                                                 |
+| 2   | Two lockfiles (`package-lock.json` + pnpm)               | Fixed  | `package-lock.json` removed. `packageManager: pnpm@10.28.2` added, and CI reads the version from it.                                                                     |
+| 3   | `app/llms.txt/route.ts` failed `tsc`                     | Fixed  | `llms(source).index()` returns a Promise in the installed fumadocs-core. The route is now async.                                                                         |
+| 4   | `registry.json` had no `$schema`                         | Fixed  | Added                                                                                                                                                                    |
+| 5   | `CONTRIBUTING.md` belonged to another project            | Fixed  | Rewritten for craftUI Pro                                                                                                                                                |
+| 6   | `examples/` folder missing                               | Open   | Not a bug: create `examples/<name>.tsx` when you want demo-specific preview source                                                                                       |
+| 7   | Colour themes not mounted                                | Open   | See [Theming and styles](/docs-admin/guides/theming-and-styles)                                                                                                          |
+| 8   | Client components used the fallback domain in production | Fixed  | Server-only variables are invisible in the browser. The domain now comes from `NEXT_PUBLIC_SITE_URL`, which both can read. The unused `NEXT_PUBLIC_API_URL` was removed. |
+
+## Rebrand (startercn to craftUI Pro)
+
+| File                                                                             | Change                                                                                                  |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `package.json`                                                                   | `name: craftui-pro`, `packageManager`                                                                   |
+| `constants/site.ts`                                                              | `NAME`, `DESCRIPTION`, `AUTHOR` (Indranil Maiti, no Twitter handle), `KEYWORDS`, `FALLBACK_SITE_ORIGIN` |
+| `constants/links.ts`                                                             | GitHub points to `craftUI012/craftUI-Pro`. Discord, X and portfolio links removed; `GITHUB_ORG` added.  |
+| `seo/metadata.ts`, `seo/json-ld.tsx`                                             | Twitter `creator` and `site` removed; author URL is the GitHub org                                      |
+| `components/site-footer.tsx`                                                     | "Built by" links to the GitHub org                                                                      |
+| `components/docs-toc-footer.tsx`                                                 | X and Discord links replaced by "Star on GitHub"                                                        |
+| `registry.json`                                                                  | `name: craftui-pro`, `homepage`                                                                         |
+| `app/(app)/(root)/page.tsx`                                                      | Hero title and tagline                                                                                  |
+| `app/(app)/sponsor/page.tsx`                                                     | Copy rewritten in a neutral voice                                                                       |
+| `content/docs/(root)/index.mdx`, `installation.mdx`                              | Rewritten for people installing craftUI Pro components, not people forking the template                 |
+| `lib/agent-discovery/site-agent-skill.ts`, `.well-known/agent-skills/index.json` | Skill name `craftui-pro`, text uses `SITE.NAME`                                                         |
+| `README.md`, `LICENSE`, `.github/FUNDING.yml`                                    | Rewritten. LICENSE keeps the original Shadcn Labs notice, as MIT requires.                              |
+
+## Placeholders to confirm
+
+| Value                     | Where                                                                                                                                  | Current                                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Production domain         | `NEXT_PUBLIC_SITE_URL` in Vercel; hard-coded copies in `README.md`, `FALLBACK_SITE_ORIGIN` and the fallback `registry.json` `homepage` | `https://craftui-pro.vercel.app` (assumed). See [Changing the domain](/docs-admin/guides/changing-the-domain). |
+| GitHub Sponsors account   | `LINK.SPONSOR`, `.github/FUNDING.yml`                                                                                                  | `craftUI012` (not verified to have Sponsors enabled)                                                           |
+| Logo and favicons         | `components/logo.tsx`, `public/favicon*`, `public/*.png`                                                                               | Still the template's box icon                                                                                  |
+| X, Discord, personal site | `constants/links.ts`                                                                                                                   | Removed. Add them back if you have them.                                                                       |
+
+To check for leftovers:
+
+```bash
+grep -rniE "startercn|shadcn-labs|aniket|alaymanguy|registry-starter" --exclude-dir={node_modules,.next,.source,.git,.agents,.claude} .
+```
+
+Expected matches: the README credit line, LICENSE, `skills-lock.json` (skill provenance) and the handbook itself.

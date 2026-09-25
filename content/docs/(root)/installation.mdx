@@ -1,103 +1,43 @@
 ---
 title: Installation
-description: How to use this template to build your own shadcn component.
+description: Set up your project and add craftUI Pro components.
 ---
 
-## Building Your Component
+## Prerequisites
 
-### 1. Fork the Template
-
-Click "Use this template" on [GitHub](https://github.com/shadcn-labs/startercn).
-
-### 2. Install Dependencies
+craftUI Pro components are installed with the shadcn CLI, so your project needs shadcn/ui set up first. If it isn't already, run:
 
 ```bash
-pnpm install
+npx shadcn@latest init
 ```
 
-### 3. Create Your Component
+This creates a `components.json`, sets up your CSS variables and adds the `cn` helper at `lib/utils.ts`. See the [shadcn/ui installation docs](https://ui.shadcn.com/docs/installation) for framework-specific guides.
 
-Replace the placeholder at `registry/new-york/your-component.tsx`:
+## Add a component
+
+Each component page shows its install command. It looks like this:
+
+<InstallCommand name="<component>" />
+
+The CLI will:
+
+1. Install any npm dependencies the component needs.
+2. Install any shadcn/ui primitives it builds on (for example `button`).
+3. Write the component into your project, usually `components/ui/<component>.tsx`.
+4. Rewrite its imports to match the aliases in your `components.json`.
+
+## Use it
+
+Import the component from your components folder:
 
 ```tsx
-import { forwardRef, HTMLAttributes } from "react";
-import { cn } from "@/lib/utils";
-
-export interface MyButtonProps extends HTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "outline";
-}
-
-const MyButton = forwardRef<HTMLButtonElement, MyButtonProps>(
-  ({ className, variant = "default", ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        className={cn(
-          "rounded-md px-4 py-2 font-medium",
-          variant === "default" && "bg-primary text-primary-foreground",
-          variant === "outline" && "border border-input",
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-
-MyButton.displayName = "MyButton";
-
-export { MyButton };
-```
-
-### 4. Update registry.json
-
-```json
-{
-  "name": "your-name/your-registry",
-  "homepage": "https://your-site.com",
-  "items": [
-    {
-      "name": "my-button",
-      "type": "registry:ui",
-      "title": "My Button",
-      "description": "A custom button component.",
-      "files": [
-        {
-          "path": "registry/new-york/my-button.tsx",
-          "type": "registry:ui",
-          "target": "components/ui/my-button.tsx"
-        }
-      ]
-    }
-  ]
-}
-```
-
-### 5. Build & Deploy
-
-```bash
-pnpm registry:build
-pnpm build
-```
-
-Deploy your app and your component is live!
-
----
-
-## Installing Components
-
-To install a component from any registry built with this template:
-
-```bash
-npx shadcn@latest add https://example.com/r/my-button.json
-```
-
-Then use it:
-
-```tsx
-import { MyButton } from "@/components/ui/my-button";
+import { YourComponent } from "@/components/ui/your-component";
 
 export function Demo() {
-  return <MyButton variant="outline">Click me</MyButton>;
+  return <YourComponent />;
 }
 ```
+
+## Browse all components
+
+The full list is on the [Components](/docs/components) page. The machine-readable index of every component is at [`/r/registry.json`](/r/registry.json).

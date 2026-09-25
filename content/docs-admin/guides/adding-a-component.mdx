@@ -1,0 +1,256 @@
+---
+title: Adding a component
+description: The full checklist, from source file to installable JSON to docs page, using a worked example.
+---
+
+Adding a component means touching **four places**, then rebuilding:
+
+| #          | File                                 | Why                                                                   |
+| ---------- | ------------------------------------ | --------------------------------------------------------------------- |
+| 1          | `registry/new-york/<name>.tsx`       | The component source you publish                                      |
+| 2          | `registry.json`                      | Tells `shadcn build` the component exists                             |
+| 3          | `content/docs/components/<name>.mdx` | Its docs page, with a live preview and source                         |
+| 4          | `content/docs/components/meta.json`  | Makes the page appear in the sidebar                                  |
+| (optional) | `examples/<name>.tsx`                | A usage demo shown as the preview source instead of the raw component |
+
+Then run `pnpm registry:build`.
+
+The walkthrough below adds a `status-badge` component.
+
+<Steps>
+
+<Step>Write the component</Step>
+
+Create `registry/new-york/status-badge.tsx`:
+
+```tsx
+import { cva } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+import type { ComponentProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+const statusBadgeVariants = cva(
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
+  {
+    defaultVariants: { status: "idle" },
+    variants: {
+      status: {
+        error: "bg-destructive/10 text-destructive",
+        idle: "bg-muted text-muted-foreground",
+        live: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      },
+    },
+  }
+);
+
+export type StatusBadgeProps = ComponentProps<"span"> &
+  VariantProps<typeof statusBadgeVariants>;
+
+export const StatusBadge = ({
+  className,
+  status,
+  children,
+  ...props
+}: StatusBadgeProps) => (
+  <span
+    data-slot="status-badge"
+    className={cn(statusBadgeVariants({ status }), className)}
+    {...props}
+  >
+    <span className="size-1.5 rounded-full bg-current" />
+    {children}
+  </span>
+);
+```
+
+Rules for registry source:
+
+- Import only from **npm packages**, **`@/lib/utils`**, or **shadcn primitives** (`@/components/ui/*`). Everything else must be declared (see step 2).
+- **Never** import site-only modules (`@/hooks/use-feedback`, `@/constants/*`, `@/components/<site-component>`). They don't exist in users' projects.
+- Add `"use client"` at the top if you use state, effects, refs or event handlers.
+- Style with Tailwind classes and shadcn tokens (`bg-muted`, `text-foreground`) so the component adapts to each user's theme.
+- Add `data-slot="<name>"` on the root, following shadcn v4 conventions.
+
+<Step>Register it in registry.json</Step>
+
+Add an entry to `items`:
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "craftui-pro",
+  "homepage": "https://your-domain.com",
+  "items": [
+    {
+      "name": "status-badge",
+      "type": "registry:ui",
+      "title": "Status Badge",
+      "description": "A pill badge with idle, live and error states.",
+      "dependencies": ["class-variance-authority"],
+      "files": [
+        {
+          "path": "registry/new-york/status-badge.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/status-badge.tsx"
+        }
+      ]
+    }
+  ]
+}
+```
+
+- `name` **must match** the filename (`status-badge.tsx`). The docs site looks up source by this name.
+- `dependencies` lists npm packages the CLI installs for users.
+- If you depend on shadcn primitives, add `"registryDependencies": ["button", "tooltip"]`.
+- If you depend on **another component in this registry**, use its full URL: `"registryDependencies": ["https://your-domain.com/r/other-thing.json"]`.
+- Full field list: [registry.json reference](/docs-admin/reference/registry-json).
+
+<Step>Build the registry</Step>
+
+```bash
+pnpm registry:build
+```
+
+Check that `public/r/status-badge.json` exists and that its `files[0].content` contains your code.
+
+<Step>(Optional) Add a demo</Step>
+
+If you create `examples/status-badge.tsx`, the preview shows **that file's source** instead of the raw component:
+
+```tsx
+import { StatusBadge } from "@/registry/new-york/status-badge";
+
+export default function StatusBadgeDemo() {
+  return (
+    <div className="flex gap-2">
+      <StatusBadge>Idle</StatusBadge>
+      <StatusBadge status="live">Live</StatusBadge>
+      <StatusBadge status="error">Error</StatusBadge>
+    </div>
+  );
+}
+```
+
+<Step>Write the docs page</Step>
+
+Create `content/docs/components/status-badge.mdx`:
+
+````mdx
+---
+title: Status Badge
+description: A pill badge with idle, live and error states.
+---
+
+import { StatusBadge } from "@/registry/new-york/status-badge";
+
+<ComponentPreview name="status-badge">
+  <div className="flex gap-2">
+    <StatusBadge>Idle</StatusBadge>
+    <StatusBadge status="live">Live</StatusBadge>
+    <StatusBadge status="error">Error</StatusBadge>
+  </div>
+</ComponentPreview>
+
+## Installation
+
+<InstallCommand name="status-badge" />
+
+## Usage
+
+```tsx
+import { StatusBadge } from "@/components/ui/status-badge";
+
+<StatusBadge status="live">Live</StatusBadge>;
+```
+
+## Props
+
+| Prop     | Type                          | Default  |
+| -------- | ----------------------------- | -------- |
+| `status` | `"idle" \| "live" \| "error"` | `"idle"` |
+````
+
+- `<ComponentPreview name="status-badge">` renders the children (the live preview), then the highlighted source for `status-badge`.
+- `<InstallCommand name="status-badge" />` renders the install command with npm, pnpm, yarn and bun tabs. The domain comes from `NEXT_PUBLIC_SITE_URL`, so never hard-code it in a code block. See [Changing the domain](/docs-admin/guides/changing-the-domain).
+- Usage examples should import from `@/components/ui/<name>`, **the path in the user's project**, not `@/registry/...`.
+
+<Step>Add it to the sidebar</Step>
+
+In `content/docs/components/meta.json`:
+
+```json
+{
+  "title": "Components",
+  "pages": ["index", "status-badge"]
+}
+```
+
+Pages not listed in `pages` don't appear in the sidebar or in `<ComponentsList />`.
+
+<Step>Verify</Step>
+
+```bash
+pnpm dev
+```
+
+- `/docs/components/status-badge` shows the preview and source.
+- `/docs/components` lists it.
+- `http://localhost:3000/r/status-badge.json` returns the JSON.
+- In a scratch Next.js app with shadcn initialised, run `npx shadcn@latest add http://localhost:3000/r/status-badge.json`.
+- Run `pnpm check && pnpm typecheck`.
+
+</Steps>
+
+## Other item types
+
+| Type                                | Use for                                               | Default install folder               |
+| ----------------------------------- | ----------------------------------------------------- | ------------------------------------ |
+| `registry:ui`                       | A single primitive-style component                    | `components/ui`                      |
+| `registry:component`                | A composite component                                 | `components`                         |
+| `registry:block`                    | A multi-file section (for example, a pricing section) | `components` (set `target` per file) |
+| `registry:hook`                     | A React hook                                          | `hooks`                              |
+| `registry:lib`                      | Utilities                                             | `lib`                                |
+| `registry:page`                     | A route file (must set `target`)                      | the `target` path                    |
+| `registry:file`                     | Any other file (must set `target`)                    | the `target` path                    |
+| `registry:style` / `registry:theme` | CSS variables and design tokens                       | merged into the user's CSS           |
+
+Multi-file example:
+
+```json
+{
+  "name": "pricing-block",
+  "type": "registry:block",
+  "registryDependencies": ["button", "card"],
+  "files": [
+    {
+      "path": "registry/new-york/blocks/pricing/pricing.tsx",
+      "type": "registry:component",
+      "target": "components/pricing/pricing.tsx"
+    },
+    {
+      "path": "registry/new-york/blocks/pricing/use-billing.ts",
+      "type": "registry:hook",
+      "target": "hooks/use-billing.ts"
+    }
+  ]
+}
+```
+
+<Callout title="Nested files and the docs lookup">
+  `lib/registry.ts` only looks for `registry/new-york/<name>.tsx`. For
+  items in subfolders, pass `src` explicitly:
+  `<ComponentSource src="registry/new-york/blocks/pricing/pricing.tsx" title="pricing.tsx" />`,
+  or extend `getRegistryUiSourceCandidates`.
+</Callout>
+
+## Renaming or removing the placeholder
+
+`your-component` is referenced in:
+
+- `registry/new-york/your-component.tsx`
+- `registry.json`
+- `public/r/your-component.json` (delete it; the build won't remove stale files)
+- `content/docs/components/your-component.mdx` and `content/docs/components/meta.json`
+- `app/(app)/(root)/page.tsx` (imports `YourComponent` for the home page showcase)
+- `lib/agent-discovery/site-agent-skill.ts` (install example)

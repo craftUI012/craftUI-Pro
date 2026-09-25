@@ -1,0 +1,58 @@
+---
+title: MDX components
+description: Everything you can use inside a .mdx file without importing it.
+---
+
+All of these come from `mdx-components.tsx`, which is passed to every page as `components={mdxComponents}`.
+
+## Documentation components
+
+| Component                                                                              | Props                                                        | Renders                                                                                                                       |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `<InstallCommand>`                                                                     | `name` (registry item name)                                  | `npx shadcn@latest add <site>/r/<name>.json` with npm, pnpm, yarn and bun tabs. The domain comes from `NEXT_PUBLIC_SITE_URL`. |
+| `<ComponentPreview>`                                                                   | `name?`, `src?`, `title?`, children                          | The children (live preview), then `ComponentSource` for `name` or `src`                                                       |
+| `<ComponentSource>`                                                                    | `name?`, `src?`, `title?`, `language?`, `collapsible = true` | Highlighted, formatted source read from disk, with a copy button                                                              |
+| `<ComponentsList>`                                                                     | `folderName = "Components"`                                  | Grid of links to every page in that docs folder                                                                               |
+| `<Callout>`                                                                            | `title?`, `icon?`, `variant?`, children                      | A soft `Alert` box                                                                                                            |
+| `<Steps>` + `<Step>`                                                                   | children                                                     | Numbered steps with a left rule. `Step` is an `h3`.                                                                           |
+| `<CodeTabs>`                                                                           |                                                              | Tabs for code variants                                                                                                        |
+| `<Tabs>`, `<TabsList>`, `<TabsTrigger>`, `<TabsContent>`                               | Radix tabs props                                             | Styled tabs                                                                                                                   |
+| `<Accordion>`, `<AccordionItem>`, `<AccordionTrigger>`, `<AccordionContent>`           | Radix accordion props                                        | FAQ-style sections (the trigger plays a click sound)                                                                          |
+| `<FeatureCard>`                                                                        | `icon` (Lucide component), `title`, `description`            | Icon card                                                                                                                     |
+| `<LinkedCard>`                                                                         | `href` and other Link props                                  | Big clickable surface card                                                                                                    |
+| `<Image>`                                                                              | `src`, `width`, `height`, `alt`                              | `next/image` with a border                                                                                                    |
+| `<Alert>`, `<AlertTitle>`, `<AlertDescription>`, `<Button>`, `<AspectRatio>`, `<Link>` |                                                              | shadcn primitives                                                                                                             |
+
+## Examples
+
+```mdx
+<InstallCommand name="status-badge" />
+
+<Callout title="Heads up">Wrap `{braces}` in backticks.</Callout>
+
+<ComponentPreview name="status-badge">
+  <StatusBadge status="live">Live</StatusBadge>
+</ComponentPreview>
+
+<ComponentSource
+  src="registry/new-york/blocks/pricing/pricing.tsx"
+  title="pricing.tsx"
+/>
+
+<Steps>
+  <Step>Install</Step>
+  Run the command.
+  <Step>Use</Step>
+  Import it.
+</Steps>
+```
+
+## Overridden HTML elements
+
+`a`, `blockquote`, `code`, `figure`, `figcaption`, `h1` to `h6`, `hr`, `img`, `li`, `ol`, `p`, `pre`, `strong`, `table`, `td`, `th`, `tr` and `ul` are all restyled. The `pre` and `figure` overrides add copy buttons and package-manager tabs (via `CodeBlockCommand`) for command blocks.
+
+## Code block features
+
+- Adding `title="app/page.tsx"` after the language on a code fence adds a filename caption with a language icon.
+- Commands beginning with `npm install`, `npx`, `npm create` or `npm run` automatically get npm, yarn, pnpm and bun tabs.
+- Themes: `github-light-default` and `github-dark`.

@@ -1,0 +1,11 @@
+{
+  "title": "Architecture",
+  "pages": [
+    "overview",
+    "project-structure",
+    "registry-pipeline",
+    "docs-engine",
+    "routing",
+    "agent-discovery"
+  ]
+}

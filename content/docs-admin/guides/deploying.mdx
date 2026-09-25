@@ -1,0 +1,30 @@
+---
+title: Deploying
+description: Shipping the site and registry to production, and listing the registry publicly.
+---
+
+## Vercel (recommended)
+
+1. Import the repo into Vercel. It detects Next.js and pnpm automatically.
+2. The build command is `pnpm build`, which runs `registry:build` then `next build`.
+3. In **Settings → Environment Variables**, add `NEXT_PUBLIC_SITE_URL=https://your-domain.com` for the Production environment, then redeploy. `constants/site.ts` uses it for `SITE.URL`, and canonical URLs, OG images, the sitemap and the share buttons all follow. It is inlined at build time, so changing it requires a redeploy. Some files hold a hard-coded copy of the domain: see [Changing the domain](/docs-admin/guides/changing-the-domain).
+4. **Don't** set `environment=development` in Vercel's environment variables, or `/docs-admin` will be deployed.
+
+## Other hosts
+
+- Set `NEXT_PUBLIC_SITE_URL=https://your-domain.com` **before** building. Otherwise `SITE.URL` falls back to `FALLBACK_SITE_ORIGIN` in `constants/site.ts`.
+- Run `pnpm build && pnpm start` (Node 22).
+- Make sure `registry/**` is shipped with the server. `outputFileTracingIncludes` handles this for standalone and serverless output.
+
+## Pre-deploy checklist
+
+- `pnpm check && pnpm build && pnpm typecheck` pass locally.
+- `public/r/` is up to date. It's rebuilt in CI anyway, but delete stale JSON files for removed items.
+- `SITE`, `GITHUB` and `LINK` constants point at your project. See [Known issues and rebrand status](/docs-admin/reference/known-issues).
+- Replace the favicons and OG logo in `public/` and `components/logo.tsx`.
+
+## After deploy
+
+- Test: `npx shadcn@latest add https://your-domain.com/r/<name>.json`
+- Check `https://your-domain.com/llms.txt` and `/r/registry.json`.
+- Optionally list the registry in the [shadcn registry directory](https://ui.shadcn.com/docs/directory) so users can run `npx shadcn registry add <name>`. The vendored `launch-shadcn-registry` agent skill in `.agents/skills/` walks you through this.

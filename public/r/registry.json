@@ -1,6 +1,7 @@
 {
-  "name": "startercn",
-  "homepage": "https://github.com/shadcn-labs/startercn",
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "craftui-pro",
+  "homepage": "https://craftui-pro.vercel.app",
   "items": [
     {
       "name": "your-component",

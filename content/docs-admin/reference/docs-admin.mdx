@@ -1,0 +1,49 @@
+---
+title: Docs Admin internals
+description: How this dev-only handbook is wired, gated, and extended.
+---
+
+## Gate
+
+```ts
+// lib/flags.ts
+export const showDocsAdmin = process.env.environment === "development";
+```
+
+This flag is checked in four places:
+
+| Where                                                        | Effect when `false`                                                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `components/site-header.tsx`                                 | "Docs Admin" is left out of `navItems`, so it's also absent from the mobile nav and command menu |
+| `app/(app)/docs-admin/layout.tsx`                            | Calls `notFound()`                                                                               |
+| `app/(app)/docs-admin/[[...slug]]/page.tsx`                  | `generateStaticParams` returns `[]`, and the page and metadata call `notFound()`                 |
+| (always) `app/robots.txt/route.ts`, `noIndex: true` metadata | Never crawled or indexed, even when enabled                                                      |
+
+<Callout title="It's a soft gate">
+  The flag is read on the server, and `.env` is gitignored, so production
+  deployments don't include the handbook unless someone sets
+  `environment=development` on the host. It is **not** authentication. Don't put
+  secrets here. Also note that a local `pnpm build` reads your `.env`, so a
+  local production build will include it.
+</Callout>
+
+## Wiring
+
+| Piece              | File                                                                                                                        |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Collection         | `docsAdmin` in `source.config.ts` (directory `DOCS_ADMIN_DIR = "content/docs-admin"` in `lib/docs.ts`)                      |
+| Loader             | `adminSource` in `lib/source.ts` (`baseUrl: ROUTES.DOCS_ADMIN`)                                                             |
+| Route constant     | `ROUTES.DOCS_ADMIN` in `constants/routes.ts`                                                                                |
+| Layout and sidebar | `app/(app)/docs-admin/layout.tsx` + `components/docs-admin-sidebar.tsx` (reuses `SidebarPageGroup` from `docs-sidebar.tsx`) |
+| Page               | `app/(app)/docs-admin/[[...slug]]/page.tsx`                                                                                 |
+| Content            | `content/docs-admin/**`                                                                                                     |
+
+`adminSource` is deliberately **not** used by `sitemap.ts`, `llms.txt`, `llms-full.txt`, the markdown routes or the OG routes.
+
+## Adding a page to the handbook
+
+1. Create `content/docs-admin/<group>/<slug>.mdx` with `title` and `description` frontmatter.
+2. Add `<slug>` to `content/docs-admin/<group>/meta.json` `pages`.
+3. For a new group, create the folder, give it a `meta.json` with a `title`, and add the folder name to `content/docs-admin/meta.json`.
+
+Sidebar groups follow the folder order in the root `meta.json`. Pages at the root (like `index`) appear under "Docs Admin".

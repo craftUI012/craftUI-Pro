@@ -1,0 +1,62 @@
+---
+title: Writing docs
+description: Adding pages and sections to /docs (and to this handbook).
+---
+
+## Add a page
+
+1. Create an `.mdx` file under `content/docs/`. The file path becomes the URL.
+2. Add frontmatter:
+
+   ```mdx
+   ---
+   title: Theming
+   description: Customise tokens and colour themes.
+   ---
+   ```
+
+3. Add the page's slug to the `pages` array in that folder's `meta.json`.
+
+`pnpm dev` picks it up immediately. There's no need to restart unless you added a brand-new **collection** in `source.config.ts`.
+
+## Add a section (sidebar group)
+
+1. Create a folder, such as `content/docs/guides/`.
+2. Add `content/docs/guides/meta.json`:
+
+   ```json
+   { "title": "Guides", "pages": ["theming", "dark-mode"] }
+   ```
+
+3. Add `"guides"` to the root `content/docs/meta.json`:
+
+   ```json
+   { "root": true, "pages": ["(root)", "components", "guides"] }
+   ```
+
+4. Optionally add it to `TOP_LEVEL_SECTIONS` in `components/docs-sidebar.tsx` and add a route constant.
+
+The sidebar renders each top-level folder as a group automatically, unless its id is in `EXCLUDED_SECTIONS` in `lib/docs.ts`.
+
+## Frontmatter fields
+
+| Field                     | Effect                                                                    |
+| ------------------------- | ------------------------------------------------------------------------- |
+| `title`                   | Page `h1`, `<title>`, sidebar label, OG image title                       |
+| `description`             | Subtitle, meta description, OG description                                |
+| `links.doc` / `links.api` | Show "Docs" and "API Reference" badges under the title (public docs only) |
+| `date`                    | Used by `lib/changelog.ts` for pages under `docs/changelog/` (feeds RSS)  |
+
+## Available MDX components
+
+See [MDX components](/docs-admin/reference/mdx-components). No imports are needed: they're injected via `mdx-components.tsx`. You **do** need to import your own registry components, for example `import { X } from "@/registry/new-york/x"`.
+
+## MDX gotchas
+
+- `{` and `<` in prose are parsed as JSX. Wrap them in backticks.
+- To show a code block that itself contains a code block, fence the outer one with four backticks.
+- `className`, not `class`, on JSX elements.
+
+## Writing in this handbook
+
+The handbook uses the same rules, in `content/docs-admin/`. Folders are sidebar groups and `meta.json` sets the order. See [Docs Admin internals](/docs-admin/reference/docs-admin).

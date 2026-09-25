@@ -1,0 +1,73 @@
+---
+title: Docs engine
+description: How Fumadocs turns content/ into pages, sidebars and markdown.
+---
+
+## Pipeline
+
+```text
+content/docs/**/*.mdx + meta.json
+        │  fumadocs-mdx (runs on postinstall and during next dev/build)
+        ▼
+.source/server.ts        generated, gitignored; typed imports of every file
+        │
+        ▼
+lib/source.ts            loader({ baseUrl: "/docs", source: docs.toFumadocsSource() })
+        │
+        ├── source.getPage(slug)       → page.data.{ title, description, body, toc }
+        ├── source.pageTree            → sidebar, mobile nav, command menu, components list
+        ├── source.generateParams()    → generateStaticParams for the docs route
+        └── source.getPages()          → sitemap, llms.txt, markdown routes
+```
+
+## Collections (`source.config.ts`)
+
+| Export      | Directory            | Served at     | Notes                                                                                 |
+| ----------- | -------------------- | ------------- | ------------------------------------------------------------------------------------- |
+| `docs`      | `content/docs`       | `/docs`       | `includeProcessedMarkdown: true`, so pages can be exported as markdown for LLM routes |
+| `docsAdmin` | `content/docs-admin` | `/docs-admin` | Dev-only handbook. Not included in the sitemap, llms or RSS.                          |
+
+Both use Fumadocs' default `frontmatterSchema` (`title`, `description`, `icon`, `full`) and `metaSchema`.
+
+The MDX options **remove the first default rehype plugin** (Fumadocs' built-in code highlighter) and add `rehype-pretty-code` with `github-dark` and `github-light-default` themes and the shared `transformers` from `lib/highlight-code.ts`. That transformer copies the raw source to `__raw__` for copy buttons, and for commands starting with `npm install`, `npx`, `npm create` or `npm run` it generates yarn, pnpm and bun equivalents. That's how the package-manager tabs on code blocks work.
+
+## File-system routing
+
+| File                                         | URL                               |
+| -------------------------------------------- | --------------------------------- |
+| `content/docs/(root)/index.mdx`              | `/docs`                           |
+| `content/docs/(root)/installation.mdx`       | `/docs/installation`              |
+| `content/docs/components/index.mdx`          | `/docs/components`                |
+| `content/docs/components/your-component.mdx` | `/docs/components/your-component` |
+
+`(root)` is a Fumadocs group folder: it adds no URL segment.
+
+## meta.json
+
+Every folder can contain a `meta.json` that controls the sidebar title and order:
+
+```json
+{
+  "title": "Components",
+  "pages": ["index", "your-component"]
+}
+```
+
+- `"root": true` (in `content/docs/meta.json`) marks the top of the tree.
+- `pages` sets the order. Pages that aren't listed are **hidden** from the tree.
+- Entries can be links, for example `"[Installation](/docs/installation)"`.
+
+## Sidebar logic (`components/docs-sidebar.tsx`)
+
+1. A hard-coded **Sections** group: Introduction, Installation, Components, llms.txt.
+2. Then one group per top-level folder, **skipping** anything in `EXCLUDED_SECTIONS` (`installation`, `(root)`, defined in `lib/docs.ts`).
+3. For the Components folder (`isComponentsFolder`), it flattens every nested page and drops the `/docs/components` index itself.
+
+## Page renderer (`app/(app)/docs/[[...slug]]/page.tsx`)
+
+- Static: `force-static`, `dynamicParams = false`, `revalidate = false`.
+- Metadata: `createPageMetadata` (in `seo/metadata.ts`) adds a canonical URL, a `.md` alternate link and an OG image at `/og/docs/<slug>/image.png`.
+- Header: title, description, copy-page, share menu, previous and next arrows.
+- Optional `links` frontmatter (`links.doc`, `links.api`) renders "Docs" and "API Reference" badges.
+- Body: `<MdxContent components={mdxComponents} />`
+- Right rail: `DocsTableOfContents` and `DocsTocFooter` ("Edit this page" on GitHub, built from `constants/links.ts`).

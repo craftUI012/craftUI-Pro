@@ -1,0 +1,70 @@
+---
+title: Configuration
+description: Site identity, links, routes, feature flags, env vars, analytics and SEO. Where each value lives.
+---
+
+## `constants/site.ts`
+
+| Export                 | Field                         | Used by                                                                            |
+| ---------------------- | ----------------------------- | ---------------------------------------------------------------------------------- |
+| `SITE`                 | `NAME`                        | Header sr-only label, manifest, OG default title, llms.txt, WebMCP tool names, RSS |
+|                        | `DESCRIPTION.LONG` / `.SHORT` | Meta description, OG, manifest, llms.txt                                           |
+|                        | `AUTHOR.NAME`                 | Metadata authors, publisher, JSON-LD, footer                                       |
+|                        | `KEYWORDS`                    | Meta keywords                                                                      |
+|                        | `URL`, `REGISTRY`, `OG_IMAGE` | Derived from the base URL (see below)                                              |
+| `FALLBACK_SITE_ORIGIN` |                               | Production URL when `NEXT_PUBLIC_SITE_URL` is not set                              |
+| `META_THEME_COLORS`    | `light` / `dark`              | `<meta name="theme-color">`, manifest                                              |
+| `UTM_PARAMS`           |                               | Added to outbound links (for example the shadcn directory)                         |
+
+Base URL resolution:
+
+1. `NEXT_PUBLIC_SITE_URL` is set: use it (trailing slash removed)
+2. Not production: `http://localhost:3000`
+3. Otherwise: `FALLBACK_SITE_ORIGIN`
+
+## `constants/links.ts`
+
+| Export   | Fields                                                                                                |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| `GITHUB` | `org`, `repo`, `branch`, `user`. Used for "Edit this page", the stars badge and the stargazers fetch. |
+| `LINK`   | `GITHUB`, `GITHUB_ORG`, `LICENSE`, `SPONSOR`, `SHADCN_MCP_DOCS`                                       |
+
+## `constants/routes.ts`
+
+`ROUTES` holds every internal path. `next.config.mjs` imports it through `jiti`, so it's the single source for both runtime and config.
+
+## `lib/flags.ts`
+
+| Flag            | Value                                       | Effect                                          |
+| --------------- | ------------------------------------------- | ----------------------------------------------- |
+| `showMcpDocs`   | `true`                                      | Toggles MCP documentation references            |
+| `showDocsAdmin` | `process.env.environment === "development"` | Shows the navbar link and enables `/docs-admin` |
+
+## Environment variables
+
+| Variable               | Where read          | Notes                                                          |
+| ---------------------- | ------------------- | -------------------------------------------------------------- |
+| `environment`          | `lib/flags.ts`      | Server-only. `development` enables `/docs-admin`.              |
+| `NODE_ENV`             | `constants/site.ts` | Set by Next.js                                                 |
+| `NEXT_PUBLIC_SITE_URL` | `constants/site.ts` | The site's public address, available to server and client code |
+
+## SEO (`seo/`)
+
+- `seo/metadata.ts`: `baseMetadata` (root) and `createPageMetadata({ title, description, path, ogImage, ogType, noIndex })` for pages. It adds the canonical URL, a markdown alternate for docs, and OG and Twitter cards.
+- `seo/json-ld.tsx`: `JsonLdScripts` (site-wide) and `BreadcrumbJsonLd` (per page).
+
+## Analytics (`lib/events.ts`)
+
+`trackEvent({ name, properties })` validates `name` against a zod enum, then calls `@vercel/analytics` `track`. **To add an event, add its name to the enum first**, or `parse` will throw.
+
+## `next.config.mjs`
+
+| Setting                       | Why                                                                |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `createMDX()` wrapper         | Fumadocs MDX compilation                                           |
+| `experimental.viewTransition` | Page transitions (`transitionTypes` on `Link`)                     |
+| `headers()`                   | `Link` discovery header on `/`                                     |
+| `images.remotePatterns`       | GitHub avatars and Unsplash                                        |
+| `outputFileTracingIncludes`   | Ships `registry/**` so `ComponentSource` can read it in production |
+| `redirects()`                 | `.mdx` URLs go to `.md`                                            |
+| `devIndicators: false`        | Hides the Next.js dev badge                                        |

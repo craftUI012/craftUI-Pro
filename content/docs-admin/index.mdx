@@ -1,0 +1,48 @@
+---
+title: Overview
+description: The internal handbook for this codebase. What it is, how it's put together, and how to ship components from it.
+---
+
+<Callout title="Dev-only route">
+  This handbook lives at `/docs-admin`. It only appears in the navbar, and the
+  route only resolves, when `.env` contains `environment=development`. In any
+  other environment it returns a 404, and `robots.txt` disallows it. See [Docs
+  Admin internals](/docs-admin/reference/docs-admin).
+</Callout>
+
+## What this project is
+
+This repository is a **shadcn component registry plus its documentation site**, built on the
+[startercn](https://github.com/shadcn-labs/startercn) template. It does three jobs:
+
+1. **Hosts component source.** Components live in `registry/new-york/` and are listed in `registry.json`.
+2. **Publishes installable JSON.** `pnpm registry:build` compiles each item to `public/r/<name>.json`, so anyone can run `npx shadcn@latest add https://<site>/r/<name>.json`.
+3. **Documents them.** A Fumadocs-powered site at `/docs` renders MDX pages with live previews and highlighted source.
+
+It also exposes machine-readable versions of the docs (`llms.txt`, markdown mirrors, an agent skill, and an OpenAPI description) so AI agents can find and install components.
+
+## Tech stack
+
+| Layer             | Choice                                                                | Where it's configured                                           |
+| ----------------- | --------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Framework         | Next.js 16 (App Router, experimental view transitions)                | `next.config.mjs`                                               |
+| UI runtime        | React 19, TypeScript 6                                                | `tsconfig.json`                                                 |
+| Styling           | Tailwind CSS v4 (CSS-first config), `tw-animate-css`                  | `styles/globals.css`, `styles/themes.css`, `postcss.config.mjs` |
+| Docs engine       | Fumadocs (`fumadocs-core` + `fumadocs-mdx`)                           | `source.config.ts`, `lib/source.ts`                             |
+| Code highlighting | shiki + rehype-pretty-code                                            | `lib/highlight-code.ts`                                         |
+| Primitives        | `radix-ui`, `vaul` (drawer), `cmdk` (command menu), `sonner` (toasts) | `components/ui/*`                                               |
+| Motion            | `motion` (`motion/react`), animated lucide icons                      | `components/animated-icons/*`                                   |
+| Client state      | `jotai` with `atomWithStorage` (localStorage)                         | `hooks/use-*.ts`                                                |
+| Feedback          | `@web-kits/audio` (sounds), `web-haptics` (vibration)                 | `audio/`, `hooks/use-feedback.ts`                               |
+| Analytics         | `@vercel/analytics` with a zod-validated event list                   | `lib/events.ts`                                                 |
+| Lint and format   | oxlint + oxfmt via `ultracite`                                        | `oxlint.config.ts`, `oxfmt.config.ts`                           |
+| Git hooks         | lefthook (runs `pnpm fix` on staged files)                            | `lefthook.yml`                                                  |
+| CI                | GitHub Actions: `check`, `build`, `typecheck`                         | `.github/workflows/ci.yml`                                      |
+
+## Where to go next
+
+- New here? Start with [Local setup](/docs-admin/getting-started/local-setup).
+- Want the big picture? Read [Architecture overview](/docs-admin/architecture/overview).
+- Shipping a component? Follow [Adding a component](/docs-admin/guides/adding-a-component).
+- Need a field reference? See [registry.json reference](/docs-admin/reference/registry-json).
+- Before you rebrand or deploy, check [Known issues and rebrand status](/docs-admin/reference/known-issues).

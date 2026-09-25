@@ -1,0 +1,58 @@
+---
+title: Routing
+description: Every URL the app serves, the proxy rewrites, redirects and response headers.
+---
+
+## Pages
+
+| URL                            | File                                        | Rendering                                                   |
+| ------------------------------ | ------------------------------------------- | ----------------------------------------------------------- |
+| `/`                            | `app/(app)/(root)/page.tsx`                 | static                                                      |
+| `/docs`, `/docs/*`             | `app/(app)/docs/[[...slug]]/page.tsx`       | static, one page per MDX file                               |
+| `/docs-admin`, `/docs-admin/*` | `app/(app)/docs-admin/[[...slug]]/page.tsx` | static, only when `environment=development` (otherwise 404) |
+| `/sponsor`                     | `app/(app)/sponsor/page.tsx`                | static                                                      |
+
+## Route handlers and metadata routes
+
+| URL                                                                | File                                                                 | Content type                                   |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------- | ---------------------------------------------- |
+| `/r/<name>.json`                                                   | `public/r/` (static file)                                            | JSON (shadcn registry item)                    |
+| `/api/status`                                                      | `app/api/status/route.ts`                                            | JSON `{ status: "ok" }`, cached for 60 seconds |
+| `/llms.txt`                                                        | `app/llms.txt/route.ts`                                              | text, docs index                               |
+| `/llms-full.txt`                                                   | `app/llms-full.txt/route.ts`                                         | text, all docs concatenated                    |
+| `/llms.md/content.md`                                              | `app/llms.md/content.md/route.ts`                                    | markdown, home page                            |
+| `/llms.md/docs/<slug>/content.md`                                  | `app/llms.md/docs/[[...slug]]/route.ts`                              | markdown with an `x-markdown-tokens` header    |
+| `/og`, `/og/docs/<slug>/image.png`                                 | `app/og/**`                                                          | PNG via `next/og`                              |
+| `/openapi.json`                                                    | `app/openapi.json/route.ts`                                          | JSON                                           |
+| `/.well-known/api-catalog`                                         | `app/.well-known/api-catalog/route.ts`                               | linkset JSON                                   |
+| `/.well-known/agent-skills/index.json`                             | route                                                                | JSON                                           |
+| `/.well-known/agent-skills/site-skill.md`                          | route                                                                | markdown                                       |
+| `/robots.txt`, `/sitemap.xml`, `/rss.xml`, `/manifest.webmanifest` | `app/robots.txt`, `app/sitemap.ts`, `app/rss.xml`, `app/manifest.ts` |                                                |
+
+## Proxy (`proxy.ts`)
+
+Next.js 16 renamed `middleware.ts` to `proxy.ts`. This one does **markdown content negotiation** using `fumadocs-core/negotiation`:
+
+| Incoming request                         | Rewritten to                   |
+| ---------------------------------------- | ------------------------------ |
+| `GET /` with `Accept: text/markdown`     | `/llms.md/content.md`          |
+| `/docs/foo.md` (any `Accept`)            | `/llms.md/docs/foo/content.md` |
+| `/docs/foo` with `Accept: text/markdown` | `/llms.md/docs/foo/content.md` |
+
+It's a **rewrite**, so the browser URL stays the same.
+
+## Redirects (`next.config.mjs`)
+
+- `/docs.mdx` goes to `/docs.md` (permanent)
+- `/docs/:path*.mdx` goes to `/docs/:path*.md` (permanent)
+
+## Headers (`next.config.mjs`)
+
+`/` responds with a `Link` header that advertises the API catalog, the OpenAPI description, the docs, the shadcn MCP docs and the agent skills index. This is for agent discovery.
+
+## Adding a new route
+
+1. Add the path to `ROUTES` in `constants/routes.ts`.
+2. Create the folder under `app/(app)/` if it needs the header and footer, or directly under `app/` if it doesn't.
+3. If it should appear in the navbar, add it to `navItems` in `components/site-header.tsx`. That list also feeds `MobileNav` and `CommandMenu`.
+4. If it's public, add it to `app/sitemap.ts`.

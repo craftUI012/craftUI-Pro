@@ -3,6 +3,7 @@ import type { PageTreeFolder } from "@/lib/page-tree";
 import { formatLabelFromSlug } from "@/lib/utils";
 
 export const DOCS_DIR = `content${ROUTES.DOCS}`;
+export const DOCS_ADMIN_DIR = `content${ROUTES.DOCS_ADMIN}`;
 
 export const EXCLUDED_SECTIONS = new Set(["installation", "(root)"]);
 

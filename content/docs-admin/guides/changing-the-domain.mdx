@@ -1,0 +1,111 @@
+---
+title: Changing the domain
+description: Where the site's domain comes from, what follows NEXT_PUBLIC_SITE_URL automatically, and the few files you still edit by hand.
+---
+
+The site's domain is set by **one variable**, `NEXT_PUBLIC_SITE_URL`. Almost everything follows it automatically. Only the README and one safety-net constant hold a hard-coded copy.
+
+The placeholder domain today is `https://craftui-pro.vercel.app`.
+
+## Where you set it
+
+| Where                                                            | Value                          |
+| ---------------------------------------------------------------- | ------------------------------ |
+| `.env` (project root, your computer)                             | `http://localhost:3000`        |
+| Vercel dashboard → Settings → Environment Variables → Production | `https://your-real-domain.com` |
+
+<Callout title="Redeploy after changing it">
+  `NEXT_PUBLIC_` values are baked in when the site is built. After changing it
+  in Vercel, redeploy. After changing `.env`, restart `pnpm dev`.
+</Callout>
+
+## 1. Automatic: follows `NEXT_PUBLIC_SITE_URL`
+
+### Site code (via `SITE.URL` in `constants/site.ts`)
+
+| Folder                 | File                  | What gets the domain                                          |
+| ---------------------- | --------------------- | ------------------------------------------------------------- |
+| `app/`                 | `sitemap.ts`          | Every URL in `/sitemap.xml`                                   |
+| `app/robots.txt/`      | `route.ts`            | The `Sitemap:` line                                           |
+| `app/rss.xml/`         | `route.ts`            | Item links                                                    |
+| `seo/`                 | `metadata.ts`         | Canonical URLs, OpenGraph and Twitter card URLs and images    |
+| `seo/`                 | `json-ld.tsx`         | Structured data `url` fields                                  |
+| `lib/`                 | `utils.ts`            | `absoluteUrl()`, used by the docs copy-page and share buttons |
+| `lib/agent-discovery/` | `site-agent-skill.ts` | The install example in the agent skill                        |
+| `constants/`           | `site.ts`             | `SITE.OG_IMAGE`, `SITE.REGISTRY`, `UTM_PARAMS`                |
+
+`/llms.txt`, `/openapi.json` and `/.well-known/*` take the domain from the incoming request instead, so they're always right.
+
+### Install commands in the docs (`<InstallCommand>`)
+
+Install commands in MDX are written as a component instead of a plain code block:
+
+```mdx
+<InstallCommand name="status-badge" />
+```
+
+`components/install-command.tsx` builds `npx shadcn@latest add <SITE.URL>/r/status-badge.json`, with npm, pnpm, yarn and bun tabs. It's used in:
+
+| Folder                     | File                 |
+| -------------------------- | -------------------- |
+| `content/docs/(root)/`     | `index.mdx`          |
+| `content/docs/(root)/`     | `installation.mdx`   |
+| `content/docs/components/` | `your-component.mdx` |
+
+Use it on every new component page. See [Adding a component](/docs-admin/guides/adding-a-component).
+
+<Callout title="Don't write install commands as code blocks">
+  A bash code block containing a URL is static text and won't follow the
+  variable. Always use the `InstallCommand` component instead.
+</Callout>
+
+### The registry homepage (`scripts/build-registry.mjs`)
+
+`pnpm registry:build` runs `scripts/build-registry.mjs`, which:
+
+1. Reads `NEXT_PUBLIC_SITE_URL` from the environment, or from `.env` locally.
+2. Copies `registry.json` to `node_modules/.cache/registry/registry.json` with `homepage` replaced by that value.
+3. Runs `shadcn build` on the copy, writing `public/r/`.
+
+So `public/r/registry.json` gets the right `homepage`, and **`registry.json` itself is never modified**.
+
+A `localhost` value is ignored, so local builds never publish `http://localhost:3000` as the homepage. In that case the `homepage` written in `registry.json` is kept, acting as a fallback just like `FALLBACK_SITE_ORIGIN`.
+
+## 2. Manual: hard-coded copies
+
+| #   | Folder       | File            | Line                  | What it is                                                             | Why it can't read the variable                                   |
+| --- | ------------ | --------------- | --------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 1   | project root | `README.md`     | line 2                | Banner image: `https://.../og`                                         | GitHub renders the README; it never sees `.env`                  |
+| 2   | project root | `README.md`     | line 16               | Install command                                                        | Same                                                             |
+| 3   | project root | `README.md`     | line 19               | "Browse the components" link                                           | Same                                                             |
+| 4   | `constants/` | `site.ts`       | line 1                | `FALLBACK_SITE_ORIGIN`, used if the variable is missing in production  | It's the safety net for when the variable isn't set              |
+| 5   | project root | `registry.json` | `"homepage"` (line 4) | Fallback homepage, used only when the variable is missing or localhost | Same: a safety net. Keeping it equal to #4 is tidy but optional. |
+
+## Step by step
+
+<Steps>
+
+<Step>Set the variable in Vercel</Step>
+
+`NEXT_PUBLIC_SITE_URL=https://your-real-domain.com` for Production, then redeploy. Install commands, SEO tags, the sitemap and the registry homepage all update.
+
+<Step>Update the hard-coded copies</Step>
+
+From the project root:
+
+```bash
+sed -i '' 's#https://craftui-pro.vercel.app#https://your-real-domain.com#g; s#craftui-pro.vercel.app#your-real-domain.com#g' \
+  README.md constants/site.ts registry.json
+```
+
+(`sed -i ''` is the macOS form. On Linux, use `sed -i`.)
+
+<Step>Check nothing was missed</Step>
+
+```bash
+grep -rn "craftui-pro.vercel.app" --exclude-dir={node_modules,.next,.source,.git} .
+```
+
+The only remaining matches should be in `content/docs-admin/` (this handbook) and in `public/r/registry.json` until the next `pnpm registry:build`.
+
+</Steps>

@@ -6,17 +6,18 @@ import { LogoMark } from "@/components/logo";
 import { MainNav } from "@/components/main-nav";
 import { MobileNav } from "@/components/mobile-nav";
 import { ModeSwitcher } from "@/components/mode-switcher";
-import { NavItemGithub } from "@/components/nav-item-github";
 import { SiteSettings } from "@/components/site-settings";
 import { SponsorLink } from "@/components/sponsor-link";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { SITE } from "@/constants/site";
+import { showDocsAdmin } from "@/lib/flags";
 import { source } from "@/lib/source";
 
 const navItems = [
   { href: ROUTES.DOCS, label: "Docs" },
   { href: ROUTES.DOCS_COMPONENTS, label: "Components" },
+  ...(showDocsAdmin ? [{ href: ROUTES.DOCS_ADMIN, label: "Docs Admin" }] : []),
 ];
 
 export const SiteHeader = () => (
@@ -50,7 +51,7 @@ export const SiteHeader = () => (
           <div className="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
             <CommandMenu navItems={navItems} tree={source.pageTree} />
           </div>
-          <NavItemGithub />
+          {/* <NavItemGithub /> */}
           <SponsorLink />
           <ModeSwitcher />
           <SiteSettings />

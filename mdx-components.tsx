@@ -10,6 +10,7 @@ import { ComponentSource } from "@/components/component-source";
 import { ComponentsList } from "@/components/components-list";
 import { CopyButton } from "@/components/copy-button";
 import { getIconForLanguageExtension } from "@/components/icons";
+import { InstallCommand } from "@/components/install-command";
 import {
   Accordion,
   AccordionContent,
@@ -84,6 +85,7 @@ export const mdxComponents = {
       {...props}
     />
   ),
+  InstallCommand,
   Link: ({ className, ...props }: React.ComponentProps<typeof Link>) => (
     <Link
       className={cn("font-medium underline underline-offset-4", className)}

@@ -1,0 +1,11 @@
+{
+  "title": "Guides",
+  "pages": [
+    "adding-a-component",
+    "writing-docs",
+    "theming-and-styles",
+    "sound-and-haptics",
+    "deploying",
+    "changing-the-domain"
+  ]
+}

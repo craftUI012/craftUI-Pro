@@ -1,96 +1,57 @@
 <p align="center">
-  <img src="https://startercn.vercel.app/og" alt="startercn banner" />
+  <img src="https://craftui-pro.vercel.app/og" alt="craftUI Pro banner" />
 </p>
 
-<h1 align="center">startercn</h1>
+<h1 align="center">craftUI Pro</h1>
 
 <p align="center">
-  A template for building and publishing your own custom shadcn registry components. Includes documentation, landing page, and everything you need to deploy your component registry.
-  <br />
-  <br />
-  <a href="https://github.com/shadcn-labs/startercn"><img src="https://www.shieldcn.dev/github/stars/shadcn-labs/startercn.svg?variant=secondary&size=xs&theme=zinc" alt="GitHub Stars" /></a>
-  <a href="https://github.com/shadcn-labs/startercn/actions"><img src="https://www.shieldcn.dev/github/ci/shadcn-labs/startercn.svg?variant=secondary&size=xs&theme=zinc" alt="CI" /></a>
-  <a href="https://discord.com/invite/N6G36KhYK4"><img src="https://www.shieldcn.dev/discord/online-members/N6G36KhYK4.svg?variant=secondary&size=xs&theme=zinc" alt="Discord Members" /></a>
-  <a href="https://x.com/shadcnlabs"><img src="https://www.shieldcn.dev/x/follow/shadcnlabs.svg?variant=branded&size=xs&theme=zinc" alt="X Follow" /></a>
+  Crafted, production-ready components for shadcn/ui. Install any of them into your project with a single command.
 </p>
-
-## Features
-
-- 📦 **Ready-to-use template** - Fork and start building immediately
-- 📚 **Documentation site** - Beautiful docs powered by Fumadocs
-- 🎨 **Shadcn registry compatible** - Works with `npx shadcn add`
-- 🤖 **[Agent ready](https://www.mintlify.com/score/startercn)** - Includes `llms.txt`, `llms-full.txt`, agent skills discovery routes, and API catalog endpoints
-- 🔊 **[Web audio feedback](https://audio.raphaelsalaja.com/)** - Built-in sound effects powered by `@web-kits/audio`
-- 📳 **[Web haptics](https://haptics.lochie.me/)** - Optional haptic feedback hooks for supported devices via `web-haptics`
-- ✨ **[Motion animations](https://motion.dev/)** - `motion`-powered UI polish for copy states, text transitions, and interactive elements
-- 🎯 **[Animated icons](https://lucide-animated.com/)** - Reusable animated icons for navigation, sharing, sponsorship, and CTAs
-- 🔄 **[View transitions](https://nextjs.org/docs/app/api-reference/config/next-config-js/viewTransition)** - Next.js view transitions enabled for smoother navigation between pages
-- 🚀 **Deploy ready** - Deploy anywhere
-
-## Built In
-
-- `Next.js 16` with the App Router
-- `React 19` and `TypeScript`
-- `Tailwind CSS 4`
-- `Fumadocs` for documentation
-- `shiki` + `rehype-pretty-code` for code blocks
-- `sonner` for toasts
-- `radix-ui` + `vaul` for accessible primitives
-- `@vercel/analytics` for analytics
-
-## Quick Start
-
-1. **Use this template** - Click "Use this template" on GitHub
-
-2. **Install dependencies**:
-
-```bash
-pnpm install
-```
-
-3. **Replace the placeholder component** at `registry/new-york/your-component.tsx`
-
-4. **Update `registry.json`** with your component details
-
-5. **Build the registry**:
-
-```bash
-pnpm registry:build
-```
-
-6. **Start development**:
-
-```bash
-pnpm dev
-```
-
-7. **Deploy** and share your component!
 
 ## Usage
 
-Once deployed, users can install your component with:
+Set up [shadcn/ui](https://ui.shadcn.com/docs/installation) in your project, then add a component:
 
 ```bash
-npx shadcn@latest add https://your-domain.com/r/your-component.json
+npx shadcn@latest add https://craftui-pro.vercel.app/r/<component>.json
 ```
 
-## Project Structure
+Browse the components and their docs at [craftui-pro.vercel.app/docs](https://craftui-pro.vercel.app/docs).
+
+## Development
+
+Requires Node.js 22 and pnpm 10 (`corepack enable` installs pnpm from the version pinned by the project).
+
+```bash
+pnpm install
+cp .env.example .env   # environment=development enables the internal /docs-admin handbook
+pnpm dev
+```
+
+| Script | What it does |
+| --- | --- |
+| `pnpm dev` | Start the dev server |
+| `pnpm registry:build` | Build `public/r/*.json` from `registry.json` |
+| `pnpm build` | Build the registry, then the Next.js app |
+| `pnpm check` / `pnpm fix` | Lint and format |
+| `pnpm typecheck` | Type-check the project |
+
+With `environment=development` set, the internal handbook at `/docs-admin` explains the architecture, the folder structure, and how to add a component.
+
+## Project structure
 
 ```
-├── registry/
-│   └── new-york/           # Your components go here
-│       └── your-component.tsx
-├── registry.json           # Component registry manifest
-├── content/docs/           # Documentation (MDX)
-├── app/                    # Next.js app
-└── public/r/               # Built registry files (auto-generated)
+├── registry/new-york/    # Component source (what gets published)
+├── registry.json         # Registry manifest
+├── public/r/             # Built registry JSON (generated)
+├── content/docs/         # Public documentation (MDX)
+├── content/docs-admin/   # Internal handbook (dev only)
+└── app/                  # Next.js app
 ```
 
-## Scripts
+## Credits
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm registry:build` - Rebuild the component registry
+Built on [startercn](https://github.com/shadcn-labs/startercn) by Shadcn Labs.
 
 ## License
 

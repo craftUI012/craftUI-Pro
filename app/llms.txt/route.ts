@@ -8,24 +8,26 @@ import { source } from "@/lib/source";
 
 export const revalidate = false;
 
-const documentationIndex = (base: string) =>
-  llms(source)
-    .index()
+const documentationIndex = async (base: string) => {
+  const index = await llms(source).index();
+
+  return index
     .replace(/^#\s+(.+)$/m, "## $1")
     .replaceAll(
       /\]\((\/docs(?:\/[^)#\s]+)?)(#[^)]+)?\)/g,
-      (_, pathname, hash = "") => `](${base}${pathname}.md${hash})`
+      (_, pathname: string, hash = "") => `](${base}${pathname}.md${hash})`
     )
     .trim();
+};
 
-const docsIndex = (origin: string) => {
+const docsIndex = async (origin: string) => {
   const base = origin.replace(/\/$/, "");
 
   return `# ${SITE.NAME}
 
 > ${SITE.DESCRIPTION.LONG} Use this index to discover the available documentation pages, markdown mirrors, and registry resources before browsing.
 
-${documentationIndex(base)}
+${await documentationIndex(base)}
 
 ## Machine-readable Resources
 
@@ -38,8 +40,8 @@ ${documentationIndex(base)}
 `;
 };
 
-export const GET = (request: Request) =>
-  new Response(docsIndex(requestOrigin(request)), {
+export const GET = async (request: Request) =>
+  new Response(await docsIndex(requestOrigin(request)), {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
     },

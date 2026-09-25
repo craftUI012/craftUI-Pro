@@ -1,4 +1,5 @@
 import { ROUTES } from "@/constants/routes";
+import { SITE } from "@/constants/site";
 import { requestOrigin } from "@/lib/agent-discovery/request-origin";
 import { siteAgentSkillDigest } from "@/lib/agent-discovery/site-agent-skill";
 
@@ -11,10 +12,9 @@ export const GET = (request: Request) => {
       $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
       skills: [
         {
-          description:
-            "Install and use components from this public shadcn registry starter and documentation site.",
+          description: `Install and use ${SITE.NAME} components from this shadcn registry and its documentation site.`,
           digest: siteAgentSkillDigest(),
-          name: "registry-starter",
+          name: "craftui-pro",
           type: "skill-md",
           url: `${base}${ROUTES.AGENT_SKILLS_SITE_SKILL}`,
         },

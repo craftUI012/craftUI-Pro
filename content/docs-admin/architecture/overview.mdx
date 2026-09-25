@@ -1,0 +1,66 @@
+---
+title: Architecture overview
+description: The four subsystems and how a request moves through them.
+---
+
+The codebase has four subsystems, and they all hang off one Next.js app:
+
+| Subsystem           | Responsibility                                                  | Key files                                                             |
+| ------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Registry**        | Component source, the manifest, and built JSON for `shadcn add` | `registry/`, `registry.json`, `public/r/`, `lib/registry.ts`          |
+| **Docs engine**     | Turns MDX into pages, a sidebar tree and a table of contents    | `content/`, `source.config.ts`, `lib/source.ts`, `mdx-components.tsx` |
+| **Site shell**      | Header, footer, sidebar, command menu, theme, sounds            | `app/(app)/layout.tsx`, `components/`, `hooks/`, `styles/`            |
+| **Agent discovery** | Markdown mirrors, `llms.txt`, agent skill, OpenAPI              | `app/llms*`, `app/.well-known/*`, `lib/agent-discovery/`, `proxy.ts`  |
+
+## High-level flow
+
+```text
+                ┌──────────────────────────────────────────┐
+                │  registry/new-york/<name>.tsx  (source)  │
+                └───────────────┬──────────────────────────┘
+                                │ listed in
+                                ▼
+                         registry.json
+                                │  pnpm registry:build  (shadcn build)
+                                ▼
+                  public/r/<name>.json  ──►  npx shadcn add https://site/r/<name>.json
+                                                         (end users)
+
+  content/docs/**/*.mdx ──► fumadocs-mdx ──► .source/server.ts ──► lib/source.ts (loader)
+                                                                     │
+          ┌──────────────────────────────┬───────────────────────────┼────────────────────────┐
+          ▼                              ▼                           ▼                        ▼
+  app/(app)/docs/[[...slug]]     components/docs-sidebar     app/llms*.txt, llms.md     app/sitemap.ts
+  (HTML page, MDX rendered        (page tree)                (markdown for agents)
+   with mdxComponents)
+          │
+          └─► <ComponentPreview name="x">  ──►  ComponentSource  ──►  reads examples/x.tsx
+                                                                     or registry/new-york/x.tsx
+                                                                     from disk, formats, highlights
+```
+
+## Request lifecycle
+
+1. **`proxy.ts`** runs first (Next.js 16's name for middleware). It rewrites markdown requests: `/docs/foo.md`, or any `/docs/...` request with `Accept: text/markdown`, goes to `/llms.md/docs/foo/content.md`. A markdown request for `/` goes to `/llms.md/content.md`.
+2. **`app/layout.tsx`** (root) sets up fonts, global CSS, JSON-LD, and the provider stack: `SoundProvider`, then `ThemeProvider`, then the page, `Toaster` and `Analytics`.
+3. **`app/(app)/layout.tsx`** wraps every human-facing page with `SiteHeader`, `SiteFooter`, `WebMcpTools`, and a screen-reader-only agent directive.
+4. The **route segment** renders. Docs pages are fully static (`force-static`, `dynamicParams = false`, `generateStaticParams` from the loader).
+
+## Rendering model
+
+- Almost everything is a **React Server Component**. Client components are marked `"use client"`: the sidebar, nav, command menu, copy buttons, settings, theme and sound toggles.
+- **`ComponentSource` is an async server component.** It reads files from disk with `fs` at build time. That's why `next.config.mjs` sets `outputFileTracingIncludes: { "/*": ["./registry/**/*"] }`: it ships the registry sources with the serverless bundle.
+- Syntax highlighting (`lib/highlight-code.ts`) runs on the server with shiki and is cached in an in-memory LRU (500 entries, 1 hour TTL), keyed by a sha256 of language plus code.
+
+## Client state
+
+All persistent UI preferences are `jotai` atoms backed by `localStorage`:
+
+| Hook                | Storage key                        | Default                   |
+| ------------------- | ---------------------------------- | ------------------------- |
+| `usePackageManager` | `package-manager`                  | `pnpm`                    |
+| `useSoundEnabled`   | `sound-enabled`                    | `false`                   |
+| `useHapticsEnabled` | (see `hooks/use-haptic-toggle.ts`) |                           |
+| `useConfig`         | `config`                           | `installationType: "cli"` |
+
+Theme (light, dark, system) is handled separately by `next-themes`. An inline script in `app/layout.tsx` sets the `theme-color` meta tag before hydration to avoid a flash of the wrong colour.
