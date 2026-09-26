@@ -1,3 +1,4 @@
+import { getSessionCookie } from "better-auth/cookies";
 import { isMarkdownPreferred, rewritePath } from "fumadocs-core/negotiation";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -15,6 +16,13 @@ const { rewrite: rewriteSuffix } = rewritePath(
 );
 
 const proxy = (request: NextRequest) => {
+  if (
+    request.nextUrl.pathname === ROUTES.DASHBOARD &&
+    !getSessionCookie(request)
+  ) {
+    return NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+  }
+
   if (
     request.nextUrl.pathname === ROUTES.HOME &&
     (request.method === "GET" || request.method === "HEAD") &&

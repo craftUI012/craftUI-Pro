@@ -28,13 +28,13 @@ cp .env.example .env   # environment=development enables the internal /docs-admi
 pnpm dev
 ```
 
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | Start the dev server |
-| `pnpm registry:build` | Build `public/r/*.json` from `registry.json` |
-| `pnpm build` | Build the registry, then the Next.js app |
-| `pnpm check` / `pnpm fix` | Lint and format |
-| `pnpm typecheck` | Type-check the project |
+| Script                    | What it does                                 |
+| ------------------------- | -------------------------------------------- |
+| `pnpm dev`                | Start the dev server                         |
+| `pnpm registry:build`     | Build `public/r/*.json` from `registry.json` |
+| `pnpm build`              | Build the registry, then the Next.js app     |
+| `pnpm check` / `pnpm fix` | Lint and format                              |
+| `pnpm typecheck`          | Type-check the project                       |
 
 With `environment=development` set, the internal handbook at `/docs-admin` explains the architecture, the folder structure, and how to add a component.
 
