@@ -16,6 +16,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -55,18 +57,193 @@
   --color-code-number: var(--code-number);
   --color-selection: var(--selection);
   --color-selection-foreground: var(--selection-foreground);
+  --shadow-border: var(--surface-border);
+  --shadow-border-hover: var(--surface-border-hover);
+  --shadow-elevated: var(--surface-elevated);
+
+  /* Type scale (see :root) */
+  --text-heading-hero-sm: var(--heading-hero-sm);
+  --text-heading-hero-sm--line-height: var(--heading-hero-sm-leading);
+  --text-heading-hero-sm--letter-spacing: var(--heading-hero-sm-tracking);
+  --text-heading-hero-sm--font-weight: var(--heading-hero-weight);
+  --text-heading-hero-md: var(--heading-hero-md);
+  --text-heading-hero-md--line-height: var(--heading-hero-md-leading);
+  --text-heading-hero-md--letter-spacing: var(--heading-hero-md-tracking);
+  --text-heading-hero-md--font-weight: var(--heading-hero-weight);
+  --text-heading-hero-lg: var(--heading-hero-lg);
+  --text-heading-hero-lg--line-height: var(--heading-hero-lg-leading);
+  --text-heading-hero-lg--letter-spacing: var(--heading-hero-lg-tracking);
+  --text-heading-hero-lg--font-weight: var(--heading-hero-weight);
+  --text-heading-display-sm: var(--heading-display-sm);
+  --text-heading-display-sm--line-height: var(--heading-display-sm-leading);
+  --text-heading-display-sm--letter-spacing: var(--heading-display-sm-tracking);
+  --text-heading-display-sm--font-weight: var(--heading-display-weight);
+  --text-heading-display-md: var(--heading-display-md);
+  --text-heading-display-md--line-height: var(--heading-display-md-leading);
+  --text-heading-display-md--letter-spacing: var(--heading-display-md-tracking);
+  --text-heading-display-md--font-weight: var(--heading-display-weight);
+  --text-heading-display-lg: var(--heading-display-lg);
+  --text-heading-display-lg--line-height: var(--heading-display-lg-leading);
+  --text-heading-display-lg--letter-spacing: var(--heading-display-lg-tracking);
+  --text-heading-display-lg--font-weight: var(--heading-display-weight);
+  --text-heading-section-sm: var(--heading-section-sm);
+  --text-heading-section-sm--line-height: var(--heading-section-sm-leading);
+  --text-heading-section-sm--letter-spacing: var(--heading-section-sm-tracking);
+  --text-heading-section-sm--font-weight: var(--heading-section-weight);
+  --text-heading-section-md: var(--heading-section-md);
+  --text-heading-section-md--line-height: var(--heading-section-md-leading);
+  --text-heading-section-md--letter-spacing: var(--heading-section-md-tracking);
+  --text-heading-section-md--font-weight: var(--heading-section-weight);
+  --text-heading-section-lg: var(--heading-section-lg);
+  --text-heading-section-lg--line-height: var(--heading-section-lg-leading);
+  --text-heading-section-lg--letter-spacing: var(--heading-section-lg-tracking);
+  --text-heading-section-lg--font-weight: var(--heading-section-weight);
+  --text-heading-panel-sm: var(--heading-panel-sm);
+  --text-heading-panel-sm--line-height: var(--heading-panel-sm-leading);
+  --text-heading-panel-sm--letter-spacing: var(--heading-panel-sm-tracking);
+  --text-heading-panel-sm--font-weight: var(--heading-panel-weight);
+  --text-heading-panel-md: var(--heading-panel-md);
+  --text-heading-panel-md--line-height: var(--heading-panel-md-leading);
+  --text-heading-panel-md--letter-spacing: var(--heading-panel-md-tracking);
+  --text-heading-panel-md--font-weight: var(--heading-panel-weight);
+  --text-heading-panel-lg: var(--heading-panel-lg);
+  --text-heading-panel-lg--line-height: var(--heading-panel-lg-leading);
+  --text-heading-panel-lg--letter-spacing: var(--heading-panel-lg-tracking);
+  --text-heading-panel-lg--font-weight: var(--heading-panel-weight);
+  --text-page-lead-sm: var(--page-lead-sm);
+  --text-page-lead-sm--line-height: var(--page-lead-sm-leading);
+  --text-page-lead-sm--letter-spacing: var(--page-lead-sm-tracking);
+  --text-page-lead-sm--font-weight: var(--page-lead-weight);
+  --text-page-lead-md: var(--page-lead-md);
+  --text-page-lead-md--line-height: var(--page-lead-md-leading);
+  --text-page-lead-md--letter-spacing: var(--page-lead-md-tracking);
+  --text-page-lead-md--font-weight: var(--page-lead-weight);
+  --text-page-lead-lg: var(--page-lead-lg);
+  --text-page-lead-lg--line-height: var(--page-lead-lg-leading);
+  --text-page-lead-lg--letter-spacing: var(--page-lead-lg-tracking);
+  --text-page-lead-lg--font-weight: var(--page-lead-weight);
+  --text-card-header-sm: var(--card-header-sm);
+  --text-card-header-sm--line-height: var(--card-header-sm-leading);
+  --text-card-header-sm--letter-spacing: var(--card-header-sm-tracking);
+  --text-card-header-sm--font-weight: var(--card-header-weight);
+  --text-card-header-md: var(--card-header-md);
+  --text-card-header-md--line-height: var(--card-header-md-leading);
+  --text-card-header-md--letter-spacing: var(--card-header-md-tracking);
+  --text-card-header-md--font-weight: var(--card-header-weight);
+  --text-card-header-lg: var(--card-header-lg);
+  --text-card-header-lg--line-height: var(--card-header-lg-leading);
+  --text-card-header-lg--letter-spacing: var(--card-header-lg-tracking);
+  --text-card-header-lg--font-weight: var(--card-header-weight);
+  --text-card-description-sm: var(--card-description-sm);
+  --text-card-description-sm--line-height: var(--card-description-sm-leading);
+  --text-card-description-sm--letter-spacing: var(
+    --card-description-sm-tracking
+  );
+  --text-card-description-sm--font-weight: var(--card-description-weight);
+  --text-card-description-md: var(--card-description-md);
+  --text-card-description-md--line-height: var(--card-description-md-leading);
+  --text-card-description-md--letter-spacing: var(
+    --card-description-md-tracking
+  );
+  --text-card-description-md--font-weight: var(--card-description-weight);
+  --text-card-description-lg: var(--card-description-lg);
+  --text-card-description-lg--line-height: var(--card-description-lg-leading);
+  --text-card-description-lg--letter-spacing: var(
+    --card-description-lg-tracking
+  );
+  --text-card-description-lg--font-weight: var(--card-description-weight);
+  --text-card-body-sm: var(--card-body-sm);
+  --text-card-body-sm--line-height: var(--card-body-sm-leading);
+  --text-card-body-sm--letter-spacing: var(--card-body-sm-tracking);
+  --text-card-body-sm--font-weight: var(--card-body-weight);
+  --text-card-body-md: var(--card-body-md);
+  --text-card-body-md--line-height: var(--card-body-md-leading);
+  --text-card-body-md--letter-spacing: var(--card-body-md-tracking);
+  --text-card-body-md--font-weight: var(--card-body-weight);
+  --text-card-body-lg: var(--card-body-lg);
+  --text-card-body-lg--line-height: var(--card-body-lg-leading);
+  --text-card-body-lg--letter-spacing: var(--card-body-lg-tracking);
+  --text-card-body-lg--font-weight: var(--card-body-weight);
+  --text-card-label-sm: var(--card-label-sm);
+  --text-card-label-sm--line-height: var(--card-label-sm-leading);
+  --text-card-label-sm--letter-spacing: var(--card-label-sm-tracking);
+  --text-card-label-sm--font-weight: var(--card-label-weight);
+  --text-card-label-md: var(--card-label-md);
+  --text-card-label-md--line-height: var(--card-label-md-leading);
+  --text-card-label-md--letter-spacing: var(--card-label-md-tracking);
+  --text-card-label-md--font-weight: var(--card-label-weight);
+  --text-card-label-lg: var(--card-label-lg);
+  --text-card-label-lg--line-height: var(--card-label-lg-leading);
+  --text-card-label-lg--letter-spacing: var(--card-label-lg-tracking);
+  --text-card-label-lg--font-weight: var(--card-label-weight);
+  --text-card-caption-sm: var(--card-caption-sm);
+  --text-card-caption-sm--line-height: var(--card-caption-sm-leading);
+  --text-card-caption-sm--letter-spacing: var(--card-caption-sm-tracking);
+  --text-card-caption-sm--font-weight: var(--card-caption-weight);
+  --text-card-caption-md: var(--card-caption-md);
+  --text-card-caption-md--line-height: var(--card-caption-md-leading);
+  --text-card-caption-md--letter-spacing: var(--card-caption-md-tracking);
+  --text-card-caption-md--font-weight: var(--card-caption-weight);
+  --text-card-caption-lg: var(--card-caption-lg);
+  --text-card-caption-lg--line-height: var(--card-caption-lg-leading);
+  --text-card-caption-lg--letter-spacing: var(--card-caption-lg-tracking);
+  --text-card-caption-lg--font-weight: var(--card-caption-weight);
+  --text-card-eyebrow-sm: var(--card-eyebrow-sm);
+  --text-card-eyebrow-sm--line-height: var(--card-eyebrow-sm-leading);
+  --text-card-eyebrow-sm--letter-spacing: var(--card-eyebrow-sm-tracking);
+  --text-card-eyebrow-sm--font-weight: var(--card-eyebrow-weight);
+  --text-card-eyebrow-md: var(--card-eyebrow-md);
+  --text-card-eyebrow-md--line-height: var(--card-eyebrow-md-leading);
+  --text-card-eyebrow-md--letter-spacing: var(--card-eyebrow-md-tracking);
+  --text-card-eyebrow-md--font-weight: var(--card-eyebrow-weight);
+  --text-card-eyebrow-lg: var(--card-eyebrow-lg);
+  --text-card-eyebrow-lg--line-height: var(--card-eyebrow-lg-leading);
+  --text-card-eyebrow-lg--letter-spacing: var(--card-eyebrow-lg-tracking);
+  --text-card-eyebrow-lg--font-weight: var(--card-eyebrow-weight);
+  --text-card-metric-sm: var(--card-metric-sm);
+  --text-card-metric-sm--line-height: var(--card-metric-sm-leading);
+  --text-card-metric-sm--letter-spacing: var(--card-metric-sm-tracking);
+  --text-card-metric-sm--font-weight: var(--card-metric-weight);
+  --text-card-metric-md: var(--card-metric-md);
+  --text-card-metric-md--line-height: var(--card-metric-md-leading);
+  --text-card-metric-md--letter-spacing: var(--card-metric-md-tracking);
+  --text-card-metric-md--font-weight: var(--card-metric-weight);
+  --text-card-metric-lg: var(--card-metric-lg);
+  --text-card-metric-lg--line-height: var(--card-metric-lg-leading);
+  --text-card-metric-lg--letter-spacing: var(--card-metric-lg-tracking);
+  --text-card-metric-lg--font-weight: var(--card-metric-weight);
+  --text-card-metric-hero-sm: var(--card-metric-hero-sm);
+  --text-card-metric-hero-sm--line-height: var(--card-metric-hero-sm-leading);
+  --text-card-metric-hero-sm--letter-spacing: var(
+    --card-metric-hero-sm-tracking
+  );
+  --text-card-metric-hero-sm--font-weight: var(--card-metric-hero-weight);
+  --text-card-metric-hero-md: var(--card-metric-hero-md);
+  --text-card-metric-hero-md--line-height: var(--card-metric-hero-md-leading);
+  --text-card-metric-hero-md--letter-spacing: var(
+    --card-metric-hero-md-tracking
+  );
+  --text-card-metric-hero-md--font-weight: var(--card-metric-hero-weight);
+  --text-card-metric-hero-lg: var(--card-metric-hero-lg);
+  --text-card-metric-hero-lg--line-height: var(--card-metric-hero-lg-leading);
+  --text-card-metric-hero-lg--letter-spacing: var(
+    --card-metric-hero-lg-tracking
+  );
+  --text-card-metric-hero-lg--font-weight: var(--card-metric-hero-weight);
 }
 
 :root {
   --radius: 0.625rem;
+  --brand: oklch(42.4% 0.199 265.638);
+  --brand-foreground: oklch(0.985 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -84,8 +261,8 @@
   --chart-5: var(--color-blue-800);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
@@ -96,8 +273,219 @@
   --code-foreground: var(--surface-foreground);
   --code-highlight: oklch(0.96 0 0);
   --code-number: oklch(0.56 0 0);
-  --selection: oklch(0.145 0 0);
-  --selection-foreground: oklch(1 0 0);
+  --selection: var(--brand);
+  --selection-foreground: var(--brand-foreground);
+  /* Shadow-as-border: a 1px ring plus soft lift. Used on cards, outline
+     buttons and containers instead of `border` so edges adapt to any ground. */
+  --surface-border:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.06), 0px 1px 2px -1px rgba(0, 0, 0, 0.06),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.04);
+  --surface-border-hover:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.08), 0px 1px 2px -1px rgba(0, 0, 0, 0.08),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.06);
+  --surface-elevated:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.06), 0px 4px 8px -2px rgba(0, 0, 0, 0.08),
+    0px 12px 24px -4px rgba(0, 0, 0, 0.08);
+
+  /* Hero media tone — keeps the hero photos behind the one brand action.
+     Wall-wide pull on every tile, plus a depth fade: tiles nearest the copy
+     start at the "near" values and ramp to full by the far edge, so the
+     photos recede in colour as well as opacity. Used by `hero-media-tone`. */
+  --hero-media-saturation: 0.8;
+  --hero-media-brightness: 1;
+  --hero-media-contrast: 0.95;
+  --hero-media-near-saturation: 0.35;
+  --hero-media-near-brightness: 1.12;
+
+  /* ---------------------------------------------------------------------
+     Type scale — one value per breakpoint, picked in markup with
+     `text-{role}-sm md:text-{role}-md lg:text-{role}-lg` (mobile-first).
+     All sizes in rem.
+
+     Every role is documented in the Design Admin type table
+     (/design-admin), which reads it straight from this file. When you add
+     or change a role, keep all of these in step:
+
+       1. Here in :root —
+            --{role}-usage       "what it is for"   (shown in the table)
+            --{role}-weight      font weight
+            --{role}-sm|md|lg    font size, plus -leading and -tracking
+       2. In @theme inline — register --text-{role}-{size} (+ --line-height,
+          --letter-spacing, --font-weight) so Tailwind generates the class.
+       3. In constants/typography.ts — add the role to TYPE_ROLES and TYPE
+          so cn() / tailwind-merge treat it as a font size.
+
+     The table flags any role that is missing from step 2 or 3.
+     --------------------------------------------------------------------- */
+
+  /* heading-hero — The landing-page hero headline, one per site. */
+  --heading-hero-usage: "Landing-page hero headline only; bigger than heading-display. One per site.";
+  --heading-hero-weight: 600;
+  --heading-hero-sm: 2.25rem;
+  --heading-hero-sm-leading: 2.5rem;
+  --heading-hero-sm-tracking: -0.0675rem;
+  --heading-hero-md: 3rem;
+  --heading-hero-md-leading: 3.25rem;
+  --heading-hero-md-tracking: -0.09rem;
+  --heading-hero-lg: 4rem;
+  --heading-hero-lg-leading: 4.25rem;
+  --heading-hero-lg-tracking: -0.12rem;
+
+  /* heading-display — Page title (h1), one per page. */
+  --heading-display-usage: "Page title (h1). One per page, e.g. the Design Admin header.";
+  --heading-display-weight: 600;
+  --heading-display-sm: 1.875rem;
+  --heading-display-sm-leading: 2.25rem;
+  --heading-display-sm-tracking: -0.0375rem;
+  --heading-display-md: 2.25rem;
+  --heading-display-md-leading: 2.75rem;
+  --heading-display-md-tracking: -0.045rem;
+  --heading-display-lg: 3rem;
+  --heading-display-lg-leading: 3.5rem;
+  --heading-display-lg-tracking: -0.075rem;
+
+  /* heading-section — Section title (h2) grouping a block of cards. */
+  --heading-section-usage: "Section title (h2) that groups a block of cards, e.g. 'Finance kit'.";
+  --heading-section-weight: 600;
+  --heading-section-sm: 1.25rem;
+  --heading-section-sm-leading: 1.75rem;
+  --heading-section-sm-tracking: -0.0125rem;
+  --heading-section-md: 1.5rem;
+  --heading-section-md-leading: 2rem;
+  --heading-section-md-tracking: -0.025rem;
+  --heading-section-lg: 1.875rem;
+  --heading-section-lg-leading: 2.25rem;
+  --heading-section-lg-tracking: -0.0375rem;
+
+  /* heading-panel — Title of a large panel inside a page. */
+  --heading-panel-usage: "Title of a large panel or sub-section inside a page, e.g. 'Design tokens'.";
+  --heading-panel-weight: 600;
+  --heading-panel-sm: 1rem;
+  --heading-panel-sm-leading: 1.5rem;
+  --heading-panel-sm-tracking: 0rem;
+  --heading-panel-md: 1.125rem;
+  --heading-panel-md-leading: 1.625rem;
+  --heading-panel-md-tracking: -0.01rem;
+  --heading-panel-lg: 1.25rem;
+  --heading-panel-lg-leading: 1.75rem;
+  --heading-panel-lg-tracking: -0.0125rem;
+
+  /* page-lead — Intro paragraph under the page title. */
+  --page-lead-usage: "Intro paragraph directly under the page title.";
+  --page-lead-weight: 400;
+  --page-lead-sm: 0.9375rem;
+  --page-lead-sm-leading: 1.5rem;
+  --page-lead-sm-tracking: 0rem;
+  --page-lead-md: 1rem;
+  --page-lead-md-leading: 1.5rem;
+  --page-lead-md-tracking: 0rem;
+  --page-lead-lg: 1.0625rem;
+  --page-lead-lg-leading: 1.625rem;
+  --page-lead-lg-tracking: 0rem;
+
+  /* card-header — Card title in the card header. */
+  --card-header-usage: "Card title in the card header (KitCard title).";
+  --card-header-weight: 500;
+  --card-header-sm: 0.9375rem;
+  --card-header-sm-leading: 1.25rem;
+  --card-header-sm-tracking: 0rem;
+  --card-header-md: 1rem;
+  --card-header-md-leading: 1.375rem;
+  --card-header-md-tracking: -0.01rem;
+  --card-header-lg: 1rem;
+  --card-header-lg-leading: 1.375rem;
+  --card-header-lg-tracking: -0.01rem;
+
+  /* card-description — Supporting line under a card title. */
+  --card-description-usage: "Supporting line under a card title.";
+  --card-description-weight: 400;
+  --card-description-sm: 0.875rem;
+  --card-description-sm-leading: 1.25rem;
+  --card-description-sm-tracking: 0rem;
+  --card-description-md: 0.875rem;
+  --card-description-md-leading: 1.25rem;
+  --card-description-md-tracking: 0rem;
+  --card-description-lg: 0.875rem;
+  --card-description-lg-leading: 1.25rem;
+  --card-description-lg-tracking: 0rem;
+
+  /* card-body — Default reading text inside cards. */
+  --card-body-usage: "Default reading text inside cards: paragraphs, list rows, stat rows.";
+  --card-body-weight: 400;
+  --card-body-sm: 0.875rem;
+  --card-body-sm-leading: 1.375rem;
+  --card-body-sm-tracking: 0rem;
+  --card-body-md: 0.875rem;
+  --card-body-md-leading: 1.25rem;
+  --card-body-md-tracking: 0rem;
+  --card-body-lg: 0.875rem;
+  --card-body-lg-leading: 1.25rem;
+  --card-body-lg-tracking: 0rem;
+
+  /* card-label — Form labels and emphasised item names. */
+  --card-label-usage: "Form labels and emphasised item names (transaction, holding, setting).";
+  --card-label-weight: 500;
+  --card-label-sm: 0.875rem;
+  --card-label-sm-leading: 1.25rem;
+  --card-label-sm-tracking: 0rem;
+  --card-label-md: 0.875rem;
+  --card-label-md-leading: 1.25rem;
+  --card-label-md-tracking: 0rem;
+  --card-label-lg: 0.875rem;
+  --card-label-lg-leading: 1.25rem;
+  --card-label-lg-tracking: 0rem;
+
+  /* card-caption — Secondary meta: dates, hints, helper text. */
+  --card-caption-usage: "Secondary meta: dates, hints, helper text.";
+  --card-caption-weight: 400;
+  --card-caption-sm: 0.75rem;
+  --card-caption-sm-leading: 1rem;
+  --card-caption-sm-tracking: 0rem;
+  --card-caption-md: 0.75rem;
+  --card-caption-md-leading: 1rem;
+  --card-caption-md-tracking: 0rem;
+  --card-caption-lg: 0.75rem;
+  --card-caption-lg-leading: 1rem;
+  --card-caption-lg-tracking: 0rem;
+
+  /* card-eyebrow — Uppercase overline above a value. */
+  --card-eyebrow-usage: "Uppercase overline above a value, e.g. 'UPCOMING'. Pair with the uppercase class.";
+  --card-eyebrow-weight: 500;
+  --card-eyebrow-sm: 0.6875rem;
+  --card-eyebrow-sm-leading: 1rem;
+  --card-eyebrow-sm-tracking: 0.0375rem;
+  --card-eyebrow-md: 0.75rem;
+  --card-eyebrow-md-leading: 1rem;
+  --card-eyebrow-md-tracking: 0.0375rem;
+  --card-eyebrow-lg: 0.75rem;
+  --card-eyebrow-lg-leading: 1rem;
+  --card-eyebrow-lg-tracking: 0.0375rem;
+
+  /* card-metric — Key numbers inside a card. */
+  --card-metric-usage: "Key numbers inside a card: balances, totals, readings.";
+  --card-metric-weight: 500;
+  --card-metric-sm: 1.25rem;
+  --card-metric-sm-leading: 1.75rem;
+  --card-metric-sm-tracking: -0.0125rem;
+  --card-metric-md: 1.375rem;
+  --card-metric-md-leading: 1.875rem;
+  --card-metric-md-tracking: -0.02rem;
+  --card-metric-lg: 1.5rem;
+  --card-metric-lg-leading: 2rem;
+  --card-metric-lg-tracking: -0.025rem;
+
+  /* card-metric-hero — The hero number a card is built around. */
+  --card-metric-hero-usage: "The single hero number a card is built around, e.g. claimable balance or the goal donut.";
+  --card-metric-hero-weight: 500;
+  --card-metric-hero-sm: 2.25rem;
+  --card-metric-hero-sm-leading: 2.5rem;
+  --card-metric-hero-sm-tracking: -0.045rem;
+  --card-metric-hero-md: 2.5rem;
+  --card-metric-hero-md-leading: 2.75rem;
+  --card-metric-hero-md-tracking: -0.05rem;
+  --card-metric-hero-lg: 3rem;
+  --card-metric-hero-lg-leading: 3.25rem;
+  --card-metric-hero-lg-tracking: -0.06rem;
 }
 
 .dark {
@@ -107,8 +495,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.269 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -126,8 +514,8 @@
   --chart-5: var(--color-blue-800);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
@@ -138,8 +526,20 @@
   --code-foreground: var(--surface-foreground);
   --code-highlight: oklch(0.27 0 0);
   --code-number: oklch(0.72 0 0);
-  --selection: oklch(0.922 0 0);
-  --selection-foreground: oklch(0.205 0 0);
+  --selection: var(--brand);
+  --selection-foreground: var(--brand-foreground);
+  /* Layered depth is invisible on dark grounds — a single white ring only. */
+  --surface-border: 0px 0px 0px 1px rgba(255, 255, 255, 0.08);
+  --surface-border-hover: 0px 0px 0px 1px rgba(255, 255, 255, 0.13);
+  --surface-elevated:
+    0px 0px 0px 1px rgba(255, 255, 255, 0.1),
+    0px 8px 24px 0px rgba(0, 0, 0, 0.5);
+  /* Hero media tone — dimmer and calmer on the dark ground; near tiles sink
+     toward black instead of lifting toward white. */
+  --hero-media-saturation: 0.75;
+  --hero-media-brightness: 0.82;
+  --hero-media-contrast: 1;
+  --hero-media-near-brightness: 0.6;
 }
 
 @layer base {
@@ -209,6 +609,143 @@
     @apply border-background bg-muted mr-2 inline-flex size-6 items-center justify-center rounded-full text-center -indent-px font-mono text-sm font-medium md:absolute md:mt-[-4px] md:ml-[-50px] md:size-9 md:border-4;
     content: counter(step);
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Easing gradient masks (https://larsenwork.com/easing-gradients/)
+
+   A linear fade has a visible hard edge where it starts and ends. These masks
+   sample the `ease-in-out` curve, cubic-bezier(0.42, 0, 0.58, 1), into 16
+   stops, so the fade leaves solid and arrives at transparent smoothly.
+   Regenerate the stops with the same curve if you change a start point.
+   --------------------------------------------------------------------------- */
+
+/* Radial: solid to 55% of the radius, eased out to transparent at the edge.
+   Used by the hero fog around the copy. */
+@utility mask-ease-radial {
+  mask-image: radial-gradient(
+    closest-side,
+    rgb(0 0 0 / 1) 55%,
+    rgb(0 0 0 / 0.991) 58%,
+    rgb(0 0 0 / 0.964) 61%,
+    rgb(0 0 0 / 0.918) 64%,
+    rgb(0 0 0 / 0.853) 67%,
+    rgb(0 0 0 / 0.768) 70%,
+    rgb(0 0 0 / 0.668) 73%,
+    rgb(0 0 0 / 0.557) 76%,
+    rgb(0 0 0 / 0.443) 79%,
+    rgb(0 0 0 / 0.332) 82%,
+    rgb(0 0 0 / 0.232) 85%,
+    rgb(0 0 0 / 0.147) 88%,
+    rgb(0 0 0 / 0.082) 91%,
+    rgb(0 0 0 / 0.036) 94%,
+    rgb(0 0 0 / 0.009) 97%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+
+/* Linear: solid to 60%, eased out to transparent at the bottom edge.
+   Used to fade the hero image wall into the page. */
+/* Frame: eased fades on all four edges of a full-bleed layer — left/right over
+   the outer 8%/10%, the top over 6% (so nothing runs under the header), and the
+   bottom from 60%. Two eased gradients, intersected. Used by the hero wall. */
+@utility mask-ease-frame {
+  mask-image:
+    linear-gradient(
+      to right,
+      rgb(0 0 0 / 0) 0%,
+      rgb(0 0 0 / 0.024) 0.9%,
+      rgb(0 0 0 / 0.101) 1.8%,
+      rgb(0 0 0 / 0.232) 2.7%,
+      rgb(0 0 0 / 0.405) 3.6%,
+      rgb(0 0 0 / 0.595) 4.4%,
+      rgb(0 0 0 / 0.768) 5.3%,
+      rgb(0 0 0 / 0.899) 6.2%,
+      rgb(0 0 0 / 0.976) 7.1%,
+      rgb(0 0 0 / 1) 8%,
+      rgb(0 0 0 / 1) 90%,
+      rgb(0 0 0 / 0.976) 91.1%,
+      rgb(0 0 0 / 0.899) 92.2%,
+      rgb(0 0 0 / 0.768) 93.3%,
+      rgb(0 0 0 / 0.595) 94.4%,
+      rgb(0 0 0 / 0.405) 95.6%,
+      rgb(0 0 0 / 0.232) 96.7%,
+      rgb(0 0 0 / 0.101) 97.8%,
+      rgb(0 0 0 / 0.024) 98.9%,
+      rgb(0 0 0 / 0) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0) 0%,
+      rgb(0 0 0 / 0.024) 0.7%,
+      rgb(0 0 0 / 0.101) 1.3%,
+      rgb(0 0 0 / 0.232) 2%,
+      rgb(0 0 0 / 0.405) 2.7%,
+      rgb(0 0 0 / 0.595) 3.3%,
+      rgb(0 0 0 / 0.768) 4%,
+      rgb(0 0 0 / 0.899) 4.7%,
+      rgb(0 0 0 / 0.976) 5.3%,
+      rgb(0 0 0 / 1) 6%,
+      rgb(0 0 0 / 1) 60%,
+      rgb(0 0 0 / 0.976) 64.4%,
+      rgb(0 0 0 / 0.899) 68.9%,
+      rgb(0 0 0 / 0.768) 73.3%,
+      rgb(0 0 0 / 0.595) 77.8%,
+      rgb(0 0 0 / 0.405) 82.2%,
+      rgb(0 0 0 / 0.232) 86.7%,
+      rgb(0 0 0 / 0.101) 91.1%,
+      rgb(0 0 0 / 0.024) 95.6%,
+      rgb(0 0 0 / 0) 100%
+    );
+  mask-composite: intersect;
+}
+
+/* Hero media tone. Applied to each hero photo (not the tile — Motion animates
+   the tile's own `filter` during the reveal). The tile sets --hero-depth from
+   0 (next to the copy) to 1 (far edge); the --hero-media-* tokens above give
+   the wall-wide pull and the near-copy values per theme. */
+@utility hero-media-tone {
+  filter: saturate(
+      calc(
+        var(--hero-media-saturation) *
+          (
+            var(--hero-media-near-saturation) +
+              (1 - var(--hero-media-near-saturation)) * var(--hero-depth, 1)
+          )
+      )
+    )
+    brightness(
+      calc(
+        var(--hero-media-brightness) *
+          (
+            var(--hero-media-near-brightness) +
+              (1 - var(--hero-media-near-brightness)) * var(--hero-depth, 1)
+          )
+      )
+    )
+    contrast(var(--hero-media-contrast));
+}
+
+@utility mask-ease-bottom {
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 1) 60%,
+    rgb(0 0 0 / 0.991) 62.7%,
+    rgb(0 0 0 / 0.964) 65.3%,
+    rgb(0 0 0 / 0.918) 68%,
+    rgb(0 0 0 / 0.853) 70.7%,
+    rgb(0 0 0 / 0.768) 73.3%,
+    rgb(0 0 0 / 0.668) 76%,
+    rgb(0 0 0 / 0.557) 78.7%,
+    rgb(0 0 0 / 0.443) 81.3%,
+    rgb(0 0 0 / 0.332) 84%,
+    rgb(0 0 0 / 0.232) 86.7%,
+    rgb(0 0 0 / 0.147) 89.3%,
+    rgb(0 0 0 / 0.082) 92%,
+    rgb(0 0 0 / 0.036) 94.7%,
+    rgb(0 0 0 / 0.009) 97.3%,
+    rgb(0 0 0 / 0) 100%
+  );
 }
 
 @utility extend-touch-target {
@@ -345,6 +882,16 @@
   --duration-exit: 150ms;
   --duration-enter: 210ms;
   --duration-move: 400ms;
+}
+
+/* Hero image wall — slow drift along its tilted plane. */
+@keyframes hero-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-8%, -6%, 0);
+  }
 }
 
 @keyframes fade {

@@ -11,13 +11,16 @@ import { SponsorLink } from "@/components/sponsor-link";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { SITE } from "@/constants/site";
-import { showDocsAdmin } from "@/lib/flags";
+import { showDesignAdmin, showDocsAdmin } from "@/lib/flags";
 import { source } from "@/lib/source";
 
 const navItems = [
   { href: ROUTES.DOCS, label: "Docs" },
   { href: ROUTES.DOCS_COMPONENTS, label: "Components" },
   ...(showDocsAdmin ? [{ href: ROUTES.DOCS_ADMIN, label: "Docs Admin" }] : []),
+  ...(showDesignAdmin
+    ? [{ href: ROUTES.DESIGN_ADMIN, label: "Design Admin" }]
+    : []),
 ];
 
 export const SiteHeader = () => (
