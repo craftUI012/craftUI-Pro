@@ -6,6 +6,7 @@ export const GET = () => {
     "User-agent: *",
     "Allow: /",
     `Disallow: ${ROUTES.DOCS_ADMIN}`,
+    `Disallow: ${ROUTES.DESIGN_ADMIN}`,
     "Content-Signal: ai-train=yes, search=yes, ai-input=yes",
     "",
     `Sitemap: ${SITE.URL}${ROUTES.SITEMAP}`,

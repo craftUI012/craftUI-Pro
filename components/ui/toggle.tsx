@@ -28,7 +28,7 @@ const toggleVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 data-[state=on]:bg-accent/80 data-[state=on]:text-accent-foreground",
         outline:
-          "border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
+          "bg-transparent shadow-border hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 data-[state=on]:bg-secondary/60",
       },
