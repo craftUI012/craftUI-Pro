@@ -1,0 +1,52 @@
+{
+  "button": [
+    "Plays a click sound and haptic tap on press",
+    "Works as a link or any element with asChild",
+    "Brand shadow that lifts on hover"
+  ],
+  "input": [
+    "Shows an error state when marked invalid",
+    "Clear focus ring for keyboard users",
+    "Styled file picker built in"
+  ],
+  "select": [
+    "Opens the phone's own picker on mobile",
+    "Plays a soft sound when the choice changes",
+    "Comes in default and small sizes"
+  ],
+  "switch": [
+    "Full keyboard and screen reader support",
+    "Comes in default and small sizes",
+    "Submits with forms like a checkbox"
+  ],
+  "slider": [
+    "Arrow, Page and Home/End keys adjust it",
+    "One thumb, or two for a range",
+    "Works horizontally or vertically"
+  ],
+  "toggle-group": [
+    "Single or multiple selection",
+    "Arrow keys move between options",
+    "Outline or plain style in several sizes"
+  ],
+  "checkbox": [
+    "Clicking the label toggles it",
+    "Shows an error state when marked invalid",
+    "Full keyboard and screen reader support"
+  ],
+  "radio-group": [
+    "Arrow keys move and select in one step",
+    "Shows an error state when marked invalid",
+    "Full keyboard and screen reader support"
+  ],
+  "progress": [
+    "Screen readers announce the value",
+    "Glides smoothly to each new value",
+    "Track tint follows your brand color"
+  ],
+  "bar-chart": [
+    "Colors come from your chart tokens",
+    "Separate colors for light and dark",
+    "Tooltip and legend ready to add"
+  ]
+}

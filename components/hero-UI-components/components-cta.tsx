@@ -11,7 +11,7 @@ import { ROUTES } from "@/constants/routes";
 export const ComponentsCta = ({ className }: { className?: string }) => (
   <Button asChild variant="outline" className={className}>
     <Link href={ROUTES.DOCS_COMPONENTS} transitionTypes={["nav-forward"]}>
-      Browse Components
+      See All Components
       <ArrowRight />
     </Link>
   </Button>

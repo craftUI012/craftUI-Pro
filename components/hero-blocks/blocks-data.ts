@@ -1,7 +1,9 @@
 // Blocks shown in the showcase grid, in order. `id` is a kit card from the
 // Design Admin kit (FINANCE_CARDS / APP_CARDS); the rest is the card footer.
 // `title` names what the block is for: the live preview already shows the
-// component's own heading, so the footer shouldn't repeat it.
+// component's own heading, so the footer shouldn't repeat it. `uses` lists the
+// primitives the kit card is really built from; the components strip reads it
+// for "Used in", so keep names in step with STRIP_COMPONENTS.
 export const SHOWCASE_BLOCKS = [
   {
     category: "Finance",
@@ -19,7 +21,7 @@ export const SHOWCASE_BLOCKS = [
     category: "Analytics",
     id: "traffic-channels",
     title: "Traffic by device",
-    uses: ["Bar chart", "Legend"],
+    uses: ["Bar chart", "Legend", "Button"],
   },
   {
     category: "Team",
@@ -31,7 +33,7 @@ export const SHOWCASE_BLOCKS = [
     category: "Payments",
     id: "transfer-funds",
     title: "Account transfer",
-    uses: ["Form", "Select"],
+    uses: ["Input", "Select", "Button"],
   },
   {
     category: "Smart home",

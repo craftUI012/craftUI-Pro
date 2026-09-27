@@ -1,21 +1,18 @@
-import { APP_CARDS } from "@/components/design-admin/app-cards";
-import { FINANCE_CARDS } from "@/components/design-admin/finance-cards";
 import { STRIP_COMPONENTS } from "@/components/hero-UI-components/components-data";
+import { STRIP_PIECES } from "@/components/hero-UI-components/strip-pieces";
 
-// Resolves the strip's placeholder ids to live kit components. Only reached
-// through a dynamic import in components-strip.tsx, so none of this ships with
-// the first paint.
-const KIT_CARDS = [...FINANCE_CARDS, ...APP_CARDS];
-
+// Resolves strip ids to their live examples. Only reached through a dynamic
+// import in components-strip.tsx, so none of this (charts included) ships
+// with the first paint.
 export const STRIP_CARDS: Record<string, React.ComponentType> =
   Object.fromEntries(
     STRIP_COMPONENTS.map(({ id }) => {
-      const card = KIT_CARDS.find((item) => item.id === id);
+      const piece = STRIP_PIECES[id];
 
-      if (!card) {
-        throw new Error(`Components strip: no kit card with id "${id}"`);
+      if (!piece) {
+        throw new Error(`Components strip: no example for "${id}"`);
       }
 
-      return [id, card.Component];
+      return [id, piece];
     })
   );
