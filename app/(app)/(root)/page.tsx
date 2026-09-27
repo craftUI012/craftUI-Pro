@@ -1,4 +1,6 @@
+import { BlocksSection } from "@/components/hero-blocks";
 import { HeroSection } from "@/components/hero-section";
+import { UIComponentsSection } from "@/components/hero-UI-components";
 import { PageTransition } from "@/components/page-transition";
 import { ROUTES } from "@/constants/routes";
 import { YourComponent } from "@/registry/new-york/your-component";
@@ -13,6 +15,8 @@ export default function IndexPage() {
       <BreadcrumbJsonLd items={[{ name: "Home", path: ROUTES.HOME }]} />
       <PageTransition>
         <HeroSection />
+        <BlocksSection />
+        <UIComponentsSection />
 
         <section className="container-wrapper pb-8 lg:pb-12">
           <div className="container flex flex-col items-center gap-6">

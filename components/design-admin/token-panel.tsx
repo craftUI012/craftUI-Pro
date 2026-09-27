@@ -10,7 +10,14 @@ import { cn } from "@/lib/utils";
 const COLOR_GROUPS: { label: string; tokens: string[] }[] = [
   {
     label: "Brand",
-    tokens: ["brand", "brand-foreground", "primary", "primary-foreground"],
+    tokens: [
+      "brand",
+      "brand-foreground",
+      "brand-text",
+      "brand-shimmer",
+      "primary",
+      "primary-foreground",
+    ],
   },
   {
     label: "Surface",
@@ -168,6 +175,24 @@ const SHADOWS = [
   { className: "shadow-border", token: "--surface-border" },
   { className: "shadow-border-hover", token: "--surface-border-hover" },
   { className: "shadow-elevated", token: "--surface-elevated" },
+  { className: "shadow-card", token: "--surface-card" },
+  { className: "shadow-card-hover", token: "--surface-card-hover" },
+  { className: "shadow-floating", token: "--surface-floating" },
+  {
+    className: "shadow-button-primary",
+    surface: "bg-primary",
+    token: "--button-primary-shadow",
+  },
+  {
+    className: "shadow-button-primary-hover",
+    surface: "bg-primary",
+    token: "--button-primary-shadow-hover",
+  },
+  { className: "shadow-button-secondary", token: "--button-secondary-shadow" },
+  {
+    className: "shadow-button-secondary-hover",
+    token: "--button-secondary-shadow-hover",
+  },
 ];
 
 // Browsers serialise resolved colors as lab()/oklab(); paint one pixel to get
@@ -562,13 +587,19 @@ const ShadowTokens = () => (
   <div className="flex flex-col gap-4">
     <SectionLabel index="05">Edges</SectionLabel>
     <p className={cn(TYPE.cardCaption, "text-muted-foreground text-pretty")}>
-      Borders on cards, outline buttons and popovers are box-shadows. Dividers
-      and form fields keep real borders.
+      Borders on cards, buttons and popovers are box-shadows, one family of a
+      ring plus four drops. Dividers and form fields keep real borders.
     </p>
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {SHADOWS.map((shadow) => (
         <div key={shadow.token} className="flex flex-col gap-1.5">
-          <div className={cn("bg-card h-14 rounded-lg", shadow.className)} />
+          <div
+            className={cn(
+              "h-14 rounded-lg",
+              shadow.surface ?? "bg-card",
+              shadow.className
+            )}
+          />
           <span className={cn(TYPE.cardCaption, "font-mono")}>
             {shadow.className}
           </span>

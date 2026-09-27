@@ -18,6 +18,8 @@
   --radius-xl: calc(var(--radius) + 4px);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-brand-text: var(--brand-text);
+  --color-brand-shimmer: var(--brand-shimmer);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -60,6 +62,20 @@
   --shadow-border: var(--surface-border);
   --shadow-border-hover: var(--surface-border-hover);
   --shadow-elevated: var(--surface-elevated);
+  --shadow-floating: var(--surface-floating);
+  --shadow-card: var(--surface-card);
+  --shadow-card-hover: var(--surface-card-hover);
+  --shadow-button-primary: var(--button-primary-shadow);
+  --shadow-button-primary-hover: var(--button-primary-shadow-hover);
+  --shadow-button-secondary: var(--button-secondary-shadow);
+  --shadow-button-secondary-hover: var(--button-secondary-shadow-hover);
+
+  /* Vertical rhythm (see :root). Classes: gap-minor, gap-major-sm, py-section-sm… */
+  --spacing-minor: var(--space-minor);
+  --spacing-major-sm: var(--space-major-sm);
+  --spacing-major-lg: var(--space-major-lg);
+  --spacing-section-sm: calc(var(--space-major-sm) * 2);
+  --spacing-section-lg: calc(var(--space-major-lg) * 2);
 
   /* Type scale (see :root) */
   --text-heading-hero-sm: var(--heading-hero-sm);
@@ -236,6 +252,10 @@
   --radius: 0.625rem;
   --brand: oklch(42.4% 0.199 265.638);
   --brand-foreground: oklch(0.985 0 0);
+  /* Brand as text. Plain brand on white is 8.8:1. Shimmer is the brighter
+     glint that sweeps across animated brand text (hero eyebrow). */
+  --brand-text: var(--brand);
+  --brand-shimmer: color-mix(in oklab, var(--brand) 60%, white);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -275,17 +295,69 @@
   --code-number: oklch(0.56 0 0);
   --selection: var(--brand);
   --selection-foreground: var(--brand-foreground);
-  /* Shadow-as-border: a 1px ring plus soft lift. Used on cards, outline
-     buttons and containers instead of `border` so edges adapt to any ground. */
+  /* Shadow-as-border. Every edge token is one family: a 1px ring plus four
+     drops doubling in distance (1 > 3 > 6 > 12px), only the strength changes.
+     Pairs that transition into each other (border > border-hover, card >
+     card-hover, button > button-hover) keep the same layer count (5 light,
+     7 dark), so hover eases instead of snapping.
+     border: badges, alerts, icon boxes, plain containers. Mostly ring. */
   --surface-border:
-    0px 0px 0px 1px rgba(0, 0, 0, 0.06), 0px 1px 2px -1px rgba(0, 0, 0, 0.06),
-    0px 2px 4px 0px rgba(0, 0, 0, 0.04);
+    0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 1px -0.5px rgba(0, 0, 0, 0.04),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.03), 0 6px 6px -3px rgba(0, 0, 0, 0.02),
+    0 12px 12px -6px rgba(0, 0, 0, 0.01);
   --surface-border-hover:
-    0px 0px 0px 1px rgba(0, 0, 0, 0.08), 0px 1px 2px -1px rgba(0, 0, 0, 0.08),
-    0px 2px 4px 0px rgba(0, 0, 0, 0.06);
+    0 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 1px -0.5px rgba(0, 0, 0, 0.05),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.04), 0 6px 6px -3px rgba(0, 0, 0, 0.03),
+    0 12px 12px -6px rgba(0, 0, 0, 0.02);
+  /* Elevated: popovers, menus, dialogs, tooltips. Same family pushed one step
+     further out (2 > 6 > 12 > 24px) so overlays clear the content below. */
   --surface-elevated:
-    0px 0px 0px 1px rgba(0, 0, 0, 0.06), 0px 4px 8px -2px rgba(0, 0, 0, 0.08),
-    0px 12px 24px -4px rgba(0, 0, 0, 0.08);
+    0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 2px -1px rgba(0, 0, 0, 0.06),
+    0 6px 6px -3px rgba(0, 0, 0, 0.06), 0 12px 12px -6px rgba(0, 0, 0, 0.06),
+    0 24px 24px -12px rgba(0, 0, 0, 0.08);
+  /* Floating: sticky and floating bars (elevation 5). Same ring + four drops
+     doubling in distance as the dark value, at light-ground strength; the white
+     highlights are dropped because they don't show on a white surface.
+     Offsets stay in px: hairline shadows don't scale with text. */
+  --surface-floating:
+    0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 1px -0.5px rgba(0, 0, 0, 0.06),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.06), 0 6px 6px -3px rgba(0, 0, 0, 0.06),
+    0 12px 12px -6px rgba(0, 0, 0, 0.06);
+  /* Card: showcase and content cards at rest. Same layers as floating, much
+     quieter, so a card sits on the page rather than hovering over it. Hover
+     lifts it to the floating elevation; both stacks have the same number of
+     layers, so the change eases instead of snapping. */
+  --surface-card:
+    0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 1px -0.5px rgba(0, 0, 0, 0.04),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.04), 0 6px 6px -3px rgba(0, 0, 0, 0.03),
+    0 12px 12px -6px rgba(0, 0, 0, 0.02);
+  --surface-card-hover: var(--surface-floating);
+  /* Primary button (brand fill): a white top-edge highlight and inner
+     hairline give the fill a pressed-glass edge, an outer ring in a darker
+     brand, then brand-tinted drops. 7 layers in both themes. */
+  --button-primary-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 0 1px color-mix(in oklab, var(--brand) 70%, black),
+    0 1px 1px -0.5px color-mix(in oklab, var(--brand) 24%, transparent),
+    0 3px 3px -1.5px color-mix(in oklab, var(--brand) 20%, transparent),
+    0 6px 6px -3px color-mix(in oklab, var(--brand) 14%, transparent),
+    0 12px 12px -6px color-mix(in oklab, var(--brand) 8%, transparent);
+  --button-primary-shadow-hover:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px color-mix(in oklab, var(--brand) 70%, black),
+    0 1px 1px -0.5px color-mix(in oklab, var(--brand) 30%, transparent),
+    0 3px 3px -1.5px color-mix(in oklab, var(--brand) 26%, transparent),
+    0 6px 6px -3px color-mix(in oklab, var(--brand) 20%, transparent),
+    0 12px 12px -6px color-mix(in oklab, var(--brand) 14%, transparent);
+  /* Secondary button (outline and secondary variants): the floating stack,
+     lifting a step on hover. */
+  --button-secondary-shadow: var(--surface-floating);
+  --button-secondary-shadow-hover:
+    0 0 0 1px rgba(0, 0, 0, 0.1), 0 1px 1px -0.5px rgba(0, 0, 0, 0.08),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.08), 0 6px 6px -3px rgba(0, 0, 0, 0.08),
+    0 12px 12px -6px rgba(0, 0, 0, 0.08);
 
   /* Hero media tone — keeps the hero photos behind the one brand action.
      Wall-wide pull on every tile, plus a depth fade: tiles nearest the copy
@@ -296,6 +368,28 @@
   --hero-media-contrast: 0.95;
   --hero-media-near-saturation: 0.35;
   --hero-media-near-brightness: 1.12;
+
+  /* ---------------------------------------------------------------------
+     Vertical rhythm: one minor and one major unit for every vertical gap in
+     page layout. Default to these two; any third value is a deliberate,
+     documented exception.
+
+       minor  inside a group: eyebrow > heading > paragraph, a card's
+              title > meta, a label > its field
+       major  between groups: header > grid, grid > CTA, block > block
+       section padding = 2 x major (derived, not a third unit)
+
+     Markup is mobile-first, like the type scale:
+       gap-minor
+       gap-major-sm lg:gap-major-lg
+       py-section-sm lg:py-section-lg
+
+     Spacing inside a component (icon > label, button padding, badge gaps)
+     is the component's own business and stays on the regular scale.
+     --------------------------------------------------------------------- */
+  --space-minor: 0.75rem;
+  --space-major-sm: 2.5rem;
+  --space-major-lg: 3rem;
 
   /* ---------------------------------------------------------------------
      Type scale — one value per breakpoint, picked in markup with
@@ -489,6 +583,10 @@
 }
 
 .dark {
+  /* Plain brand on the dark ground is only 2.2:1, too low for small text.
+     A 60% brand / 40% white mix measures 6.2:1; the glint goes brighter. */
+  --brand-text: color-mix(in oklab, var(--brand) 60%, white);
+  --brand-shimmer: color-mix(in oklab, var(--brand) 20%, white);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -528,12 +626,59 @@
   --code-number: oklch(0.72 0 0);
   --selection: var(--brand);
   --selection-foreground: var(--brand-foreground);
-  /* Layered depth is invisible on dark grounds — a single white ring only. */
-  --surface-border: 0px 0px 0px 1px rgba(255, 255, 255, 0.08);
-  --surface-border-hover: 0px 0px 0px 1px rgba(255, 255, 255, 0.13);
+  /* Dark edges: the DM-ELEVATION-5 structure (top-edge highlight, inner
+     hairline, outer ring, four drops) at each token's strength. The inner
+     white hairline is what reads as the border on a dark ground. */
+  --surface-border:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.12),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.08), 0 3px 3px -1.5px rgba(0, 0, 0, 0.08),
+    0 6px 6px -3px rgba(0, 0, 0, 0.06), 0 12px 12px -6px rgba(0, 0, 0, 0.04);
+  --surface-border-hover:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.13), 0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.12), 0 3px 3px -1.5px rgba(0, 0, 0, 0.12),
+    0 6px 6px -3px rgba(0, 0, 0, 0.1), 0 12px 12px -6px rgba(0, 0, 0, 0.08);
   --surface-elevated:
-    0px 0px 0px 1px rgba(255, 255, 255, 0.1),
-    0px 8px 24px 0px rgba(0, 0, 0, 0.5);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.32),
+    0 2px 2px -1px rgba(0, 0, 0, 0.24), 0 6px 6px -3px rgba(0, 0, 0, 0.24),
+    0 12px 12px -6px rgba(0, 0, 0, 0.24), 0 24px 24px -12px rgba(0, 0, 0, 0.28);
+  /* Floating (DM-ELEVATION-5, sticky / floating bar): a top-edge highlight and
+     inner hairline, an outer ring, then four drops doubling in distance. */
+  --surface-floating:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.16),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.18), 0 3px 3px -1.5px rgba(0, 0, 0, 0.18),
+    0 6px 6px -3px rgba(0, 0, 0, 0.18), 0 12px 12px -6px rgba(0, 0, 0, 0.18);
+  /* Card at rest: the floating stack with a softer highlight and lighter
+     drops. Hover lifts it to floating (same 7 layers, so it eases). */
+  --surface-card:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.12), 0 3px 3px -1.5px rgba(0, 0, 0, 0.12),
+    0 6px 6px -3px rgba(0, 0, 0, 0.1), 0 12px 12px -6px rgba(0, 0, 0, 0.08);
+  --surface-card-hover: var(--surface-floating);
+  /* Primary button: same edge, black drops (a brand tint doesn't show on a
+     dark ground). */
+  --button-primary-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 0 1px color-mix(in oklab, var(--brand) 60%, black),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.18), 0 3px 3px -1.5px rgba(0, 0, 0, 0.18),
+    0 6px 6px -3px rgba(0, 0, 0, 0.18), 0 12px 12px -6px rgba(0, 0, 0, 0.18);
+  --button-primary-shadow-hover:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px color-mix(in oklab, var(--brand) 60%, black),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.22), 0 3px 3px -1.5px rgba(0, 0, 0, 0.22),
+    0 6px 6px -3px rgba(0, 0, 0, 0.22), 0 12px 12px -6px rgba(0, 0, 0, 0.22);
+  --button-secondary-shadow: var(--surface-floating);
+  --button-secondary-shadow-hover:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.22), 0 3px 3px -1.5px rgba(0, 0, 0, 0.22),
+    0 6px 6px -3px rgba(0, 0, 0, 0.22), 0 12px 12px -6px rgba(0, 0, 0, 0.22);
   /* Hero media tone — dimmer and calmer on the dark ground; near tiles sink
      toward black instead of lifting toward white. */
   --hero-media-saturation: 0.75;
@@ -755,6 +900,22 @@
 }
 
 @layer components {
+  /* One letter of the hero eyebrow. --i is its index, set inline. The first
+     pass waits until the hero intro has settled (~2.2s); after that the glint
+     returns every 5s. Ease-in-out: the letters are already on screen. */
+  .hero-eyebrow-letter {
+    display: inline-block;
+    color: var(--brand-text);
+    animation: hero-eyebrow-glint 5s ease-in-out infinite;
+    animation-delay: calc(2.2s + var(--i) * 70ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-eyebrow-letter {
+      animation: none;
+    }
+  }
+
   .steps {
     &:first-child {
       @apply !mt-0;
@@ -882,6 +1043,23 @@
   --duration-exit: 150ms;
   --duration-enter: 210ms;
   --duration-move: 400ms;
+}
+
+/* Hero eyebrow — one glint travels across the brand name: each letter lifts
+   slightly and brightens to --brand-shimmer in turn (shimmer + wave in one
+   pass), then rests. Transform for the lift, colour for the glint; the text
+   itself stays --brand-text, so it reads as brand even at rest. */
+@keyframes hero-eyebrow-glint {
+  0%,
+  12%,
+  100% {
+    color: var(--brand-text);
+    transform: translateY(0);
+  }
+  6% {
+    color: var(--brand-shimmer);
+    transform: translateY(-0.12rem);
+  }
 }
 
 /* Hero image wall — slow drift along its tilted plane. */
