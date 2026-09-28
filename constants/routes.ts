@@ -3,6 +3,8 @@ export const ROUTES = {
   AGENT_SKILLS_SITE_SKILL: "/.well-known/agent-skills/site-skill.md",
   API_CATALOG: "/.well-known/api-catalog",
   API_STATUS: "/api/status",
+  // No page yet; linked from the /homepage-new top bar.
+  BLOG: "/blog",
   DASHBOARD: "/dashboard",
   DESIGN_ADMIN: "/design-admin",
   DOCS: "/docs",
@@ -10,6 +12,7 @@ export const ROUTES = {
   DOCS_COMPONENTS: "/docs/components",
   DOCS_INSTALLATION: "/docs/installation",
   HOME: "/",
+  HOME_NEW: "/homepage-new",
   LLMS: "/llms.txt",
   LLMS_FULL: "/llms-full.txt",
   LLMS_MD: "/llms.md",
