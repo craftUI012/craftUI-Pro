@@ -3,7 +3,9 @@
 
 @import "./themes.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark applies under .dark, except inside a .light scope nested in it, so a
+   section can preview light on a dark page (the landing page theme demo). */
+@custom-variant dark (&:is(.dark *):not(:is(.dark .light, .dark .light *)));
 
 @custom-variant fixed (&:is(.layout-fixed *));
 
@@ -69,6 +71,15 @@
   --shadow-button-primary-hover: var(--button-primary-shadow-hover);
   --shadow-button-secondary: var(--button-secondary-shadow);
   --shadow-button-secondary-hover: var(--button-secondary-shadow-hover);
+  --shadow-device: var(--device-shadow);
+  --color-device-frame: var(--device-frame);
+  --color-device-stand: var(--device-stand);
+  --color-device-floor: var(--device-floor);
+
+  /* Easing (see the Motion block in :root). Classes: ease-out-strong,
+     ease-in-out-strong; tw-animate enter/exit animations pick them up too. */
+  --ease-out-strong: var(--motion-ease-out);
+  --ease-in-out-strong: var(--motion-ease-in-out);
 
   /* Vertical rhythm (see :root). Classes: gap-minor, gap-major-sm, py-section-sm… */
   --spacing-minor: var(--space-minor);
@@ -248,7 +259,10 @@
   --text-card-metric-hero-lg--font-weight: var(--card-metric-hero-weight);
 }
 
-:root {
+/* Light tokens. `.light` repeats them so an element can scope itself to the
+   light theme inside a dark page; `.dark` (below) does the reverse. */
+:root,
+.light {
   --radius: 0.625rem;
   --brand: oklch(42.4% 0.199 265.638);
   --brand-foreground: oklch(0.985 0 0);
@@ -358,6 +372,18 @@
     0 0 0 1px rgba(0, 0, 0, 0.1), 0 1px 1px -0.5px rgba(0, 0, 0, 0.08),
     0 3px 3px -1.5px rgba(0, 0, 0, 0.08), 0 6px 6px -3px rgba(0, 0, 0, 0.08),
     0 12px 12px -6px rgba(0, 0, 0, 0.08);
+  /* Device mockups (templates showcase): hardware, so the frame stays near
+     black in both themes. device-shadow = a metal edge (inner rings) plus a
+     long, soft fall-off so the device stands on the page; device-floor is
+     the contact shadow under it; device-stand is the monitor's aluminium. */
+  --device-frame: oklch(0.2 0 0);
+  --device-stand: oklch(0.87 0 0);
+  --device-floor: rgba(0, 0, 0, 0.16);
+  --device-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 12px 24px -8px rgba(0, 0, 0, 0.12),
+    0 32px 64px -20px rgba(0, 0, 0, 0.18), 0 64px 120px -40px rgba(0, 0, 0, 0.2);
 
   /* Hero media tone — keeps the hero photos behind the one brand action.
      Wall-wide pull on every tile, plus a depth fade: tiles nearest the copy
@@ -679,6 +705,20 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.2),
     0 1px 1px -0.5px rgba(0, 0, 0, 0.22), 0 3px 3px -1.5px rgba(0, 0, 0, 0.22),
     0 6px 6px -3px rgba(0, 0, 0, 0.22), 0 12px 12px -6px rgba(0, 0, 0, 0.22);
+  /* Device mockups, dark: the frame sits a step above the page (a frame
+     darker than the ground disappears into it), a lit metal rim (outer and
+     inner white rings) and a brighter top edge catch the light, and a faint
+     glow suggests light spilling from the screen. The deep drops keep it
+     grounded. */
+  --device-frame: oklch(0.2 0 0);
+  --device-stand: oklch(0.42 0 0);
+  --device-floor: rgba(0, 0, 0, 0.55);
+  --device-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.12),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.16), 0 2px 4px -1px rgba(0, 0, 0, 0.3),
+    0 12px 24px -8px rgba(0, 0, 0, 0.45), 0 32px 64px -20px rgba(0, 0, 0, 0.55),
+    0 0 120px -24px rgba(255, 255, 255, 0.07);
   /* Hero media tone — dimmer and calmer on the dark ground; near tiles sink
      toward black instead of lifting toward white. */
   --hero-media-saturation: 0.75;
@@ -1043,6 +1083,13 @@
   --duration-exit: 150ms;
   --duration-enter: 210ms;
   --duration-move: 400ms;
+  /* Motion curves, the same in both themes.
+     motion-ease-out: things entering or responding (menus, dialogs, hover
+     lifts, presses). A stronger ease-out than CSS's (0, 0, 0.58, 1): it moves
+     almost at once, so the UI feels responsive, then settles softly.
+     motion-ease-in-out: things already on screen moving to a new place. */
+  --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
 /* Hero eyebrow — one glint travels across the brand name: each letter lifts

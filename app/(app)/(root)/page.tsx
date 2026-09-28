@@ -1,5 +1,7 @@
 import { BlocksSection } from "@/components/hero-blocks";
+import { FeaturesSection } from "@/components/hero-features";
 import { HeroSection } from "@/components/hero-section";
+import { TemplatesSection } from "@/components/hero-templates";
 import { UIComponentsSection } from "@/components/hero-UI-components";
 import { PageTransition } from "@/components/page-transition";
 import { ROUTES } from "@/constants/routes";
@@ -15,6 +17,8 @@ export default function IndexPage() {
       <BreadcrumbJsonLd items={[{ name: "Home", path: ROUTES.HOME }]} />
       <PageTransition>
         <HeroSection />
+        <TemplatesSection />
+        <FeaturesSection />
         <BlocksSection />
         <UIComponentsSection />
 

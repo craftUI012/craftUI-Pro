@@ -16,7 +16,7 @@ export const BlockCard = ({
 }: {
   block: (typeof SHOWCASE_BLOCKS)[number];
 }) => (
-  <article className="bg-card flex flex-col rounded-2xl p-2 shadow-card transition-[box-shadow] duration-200 ease-out hover:shadow-card-hover motion-reduce:transition-none">
+  <article className="bg-card flex flex-col rounded-2xl p-2 shadow-card transition-[box-shadow] duration-200 ease-out-strong hover:shadow-card-hover motion-reduce:transition-none">
     <BlockPreview id={block.id} />
     <div className={cn("flex flex-col px-3 py-minor", RHYTHM.minor)}>
       <div className="flex items-baseline justify-between gap-3">

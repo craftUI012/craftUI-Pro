@@ -11,4 +11,5 @@ export const SHADOW_TOKENS = [
   "button-primary-hover",
   "button-secondary",
   "button-secondary-hover",
+  "device",
 ] as const;

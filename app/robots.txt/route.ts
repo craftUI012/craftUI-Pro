@@ -7,6 +7,7 @@ export const GET = () => {
     "Allow: /",
     `Disallow: ${ROUTES.DOCS_ADMIN}`,
     `Disallow: ${ROUTES.DESIGN_ADMIN}`,
+    `Disallow: ${ROUTES.TEMPLATE_PREVIEW}`,
     "Content-Signal: ai-train=yes, search=yes, ai-input=yes",
     "",
     `Sitemap: ${SITE.URL}${ROUTES.SITEMAP}`,

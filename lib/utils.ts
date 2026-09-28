@@ -16,6 +16,7 @@ import { TYPE_ROLES, TYPE_SIZES } from "@/constants/typography";
 const twMerge = extendTailwindMerge({
   extend: {
     theme: {
+      ease: ["out-strong", "in-out-strong"],
       shadow: [...SHADOW_TOKENS],
       spacing: [...RHYTHM_SPACING],
       text: TYPE_ROLES.flatMap((role) =>

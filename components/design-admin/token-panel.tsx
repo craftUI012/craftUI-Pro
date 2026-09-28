@@ -20,6 +20,10 @@ const COLOR_GROUPS: { label: string; tokens: string[] }[] = [
     ],
   },
   {
+    label: "Device",
+    tokens: ["device-frame", "device-stand", "device-floor"],
+  },
+  {
     label: "Surface",
     tokens: [
       "background",
@@ -192,6 +196,11 @@ const SHADOWS = [
   {
     className: "shadow-button-secondary-hover",
     token: "--button-secondary-shadow-hover",
+  },
+  {
+    className: "shadow-device",
+    surface: "bg-device-frame",
+    token: "--device-shadow",
   },
 ];
 
@@ -614,6 +623,82 @@ const ShadowTokens = () => (
   </div>
 );
 
+const EASINGS = [
+  {
+    className: "ease-out-strong",
+    token: "--motion-ease-out",
+    use: "Entering and responding: menus, dialogs, hover lifts, presses",
+  },
+  {
+    className: "ease-in-out-strong",
+    token: "--motion-ease-in-out",
+    use: "Moving something already on screen",
+  },
+];
+
+// The curve of a cubic-bezier() value, read live from the token.
+const EasingCurve = ({ token }: { token: string }) => {
+  const [points, setPoints] = React.useState<number[] | null>(null);
+
+  React.useEffect(() => {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(token)
+      .trim();
+    const numbers = value.match(/-?[\d.]+/g)?.map(Number);
+    setPoints(numbers?.length === 4 ? numbers : null);
+  }, [token]);
+
+  if (!points) {
+    return <div className="bg-muted/40 h-16 w-24 rounded-md" />;
+  }
+
+  const [x1 = 0, y1 = 0, x2 = 1, y2 = 1] = points;
+
+  return (
+    <svg viewBox="-4 -4 108 68" className="h-16 w-24" fill="none" aria-hidden>
+      <path d="M0 60 H100 M0 60 V0" className="stroke-foreground/15" />
+      <path
+        d={`M0 60 C${x1 * 100} ${60 - y1 * 60} ${x2 * 100} ${60 - y2 * 60} 100 0`}
+        strokeWidth={2}
+        className="stroke-brand"
+      />
+    </svg>
+  );
+};
+
+const MotionTokens = () => (
+  <div className="flex flex-col gap-4">
+    <SectionLabel index="06">Motion</SectionLabel>
+    <p className={cn(TYPE.cardCaption, "text-muted-foreground text-pretty")}>
+      Easing curves, the same in both themes. tw-animate enter and exit
+      animations follow the ease class on the element.
+    </p>
+    <div className="flex flex-col gap-3">
+      {EASINGS.map((easing) => (
+        <div key={easing.token} className="flex items-center gap-4">
+          <EasingCurve token={easing.token} />
+          <div className="flex flex-col gap-0.5">
+            <span className={cn(TYPE.cardCaption, "font-mono")}>
+              {easing.className}
+            </span>
+            <span
+              className={cn(
+                TYPE.cardCaption,
+                "text-muted-foreground font-mono"
+              )}
+            >
+              {easing.token}
+            </span>
+            <span className={cn(TYPE.cardCaption, "text-muted-foreground")}>
+              {easing.use}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 export const TokenPanel = () => (
   <Card className="gap-0 py-0">
     <CardContent className="flex flex-col gap-8 p-6">
@@ -635,6 +720,7 @@ export const TokenPanel = () => (
         <SpacingTokens />
         <RadiusTokens />
         <ShadowTokens />
+        <MotionTokens />
       </div>
     </CardContent>
   </Card>

@@ -330,7 +330,7 @@ export const StripTile = ({
           }}
           // Card elevation at rest, lifted on hover; an open tile stays lifted.
           className={cn(
-            "bg-card relative flex overflow-hidden transition-[box-shadow] duration-200 ease-out hover:shadow-card-hover motion-reduce:transition-none",
+            "bg-card relative flex overflow-hidden transition-[box-shadow] duration-200 ease-out-strong hover:shadow-card-hover motion-reduce:transition-none",
             expanded ? "shadow-card-hover" : "shadow-card",
             stacked && "flex-col"
           )}
