@@ -10,7 +10,18 @@ import { cn } from "@/lib/utils";
 const COLOR_GROUPS: { label: string; tokens: string[] }[] = [
   {
     label: "Brand",
-    tokens: ["brand", "brand-foreground", "primary", "primary-foreground"],
+    tokens: [
+      "brand",
+      "brand-foreground",
+      "brand-text",
+      "brand-shimmer",
+      "primary",
+      "primary-foreground",
+    ],
+  },
+  {
+    label: "Device",
+    tokens: ["device-frame", "device-stand", "device-floor"],
   },
   {
     label: "Surface",
@@ -168,6 +179,29 @@ const SHADOWS = [
   { className: "shadow-border", token: "--surface-border" },
   { className: "shadow-border-hover", token: "--surface-border-hover" },
   { className: "shadow-elevated", token: "--surface-elevated" },
+  { className: "shadow-card", token: "--surface-card" },
+  { className: "shadow-card-hover", token: "--surface-card-hover" },
+  { className: "shadow-floating", token: "--surface-floating" },
+  {
+    className: "shadow-button-primary",
+    surface: "bg-primary",
+    token: "--button-primary-shadow",
+  },
+  {
+    className: "shadow-button-primary-hover",
+    surface: "bg-primary",
+    token: "--button-primary-shadow-hover",
+  },
+  { className: "shadow-button-secondary", token: "--button-secondary-shadow" },
+  {
+    className: "shadow-button-secondary-hover",
+    token: "--button-secondary-shadow-hover",
+  },
+  {
+    className: "shadow-device",
+    surface: "bg-device-frame",
+    token: "--device-shadow",
+  },
 ];
 
 // Browsers serialise resolved colors as lab()/oklab(); paint one pixel to get
@@ -562,13 +596,19 @@ const ShadowTokens = () => (
   <div className="flex flex-col gap-4">
     <SectionLabel index="05">Edges</SectionLabel>
     <p className={cn(TYPE.cardCaption, "text-muted-foreground text-pretty")}>
-      Borders on cards, outline buttons and popovers are box-shadows. Dividers
-      and form fields keep real borders.
+      Borders on cards, buttons and popovers are box-shadows, one family of a
+      ring plus four drops. Dividers and form fields keep real borders.
     </p>
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {SHADOWS.map((shadow) => (
         <div key={shadow.token} className="flex flex-col gap-1.5">
-          <div className={cn("bg-card h-14 rounded-lg", shadow.className)} />
+          <div
+            className={cn(
+              "h-14 rounded-lg",
+              shadow.surface ?? "bg-card",
+              shadow.className
+            )}
+          />
           <span className={cn(TYPE.cardCaption, "font-mono")}>
             {shadow.className}
           </span>
@@ -577,6 +617,82 @@ const ShadowTokens = () => (
           >
             {shadow.token}
           </span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const EASINGS = [
+  {
+    className: "ease-out-strong",
+    token: "--motion-ease-out",
+    use: "Entering and responding: menus, dialogs, hover lifts, presses",
+  },
+  {
+    className: "ease-in-out-strong",
+    token: "--motion-ease-in-out",
+    use: "Moving something already on screen",
+  },
+];
+
+// The curve of a cubic-bezier() value, read live from the token.
+const EasingCurve = ({ token }: { token: string }) => {
+  const [points, setPoints] = React.useState<number[] | null>(null);
+
+  React.useEffect(() => {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(token)
+      .trim();
+    const numbers = value.match(/-?[\d.]+/g)?.map(Number);
+    setPoints(numbers?.length === 4 ? numbers : null);
+  }, [token]);
+
+  if (!points) {
+    return <div className="bg-muted/40 h-16 w-24 rounded-md" />;
+  }
+
+  const [x1 = 0, y1 = 0, x2 = 1, y2 = 1] = points;
+
+  return (
+    <svg viewBox="-4 -4 108 68" className="h-16 w-24" fill="none" aria-hidden>
+      <path d="M0 60 H100 M0 60 V0" className="stroke-foreground/15" />
+      <path
+        d={`M0 60 C${x1 * 100} ${60 - y1 * 60} ${x2 * 100} ${60 - y2 * 60} 100 0`}
+        strokeWidth={2}
+        className="stroke-brand"
+      />
+    </svg>
+  );
+};
+
+const MotionTokens = () => (
+  <div className="flex flex-col gap-4">
+    <SectionLabel index="06">Motion</SectionLabel>
+    <p className={cn(TYPE.cardCaption, "text-muted-foreground text-pretty")}>
+      Easing curves, the same in both themes. tw-animate enter and exit
+      animations follow the ease class on the element.
+    </p>
+    <div className="flex flex-col gap-3">
+      {EASINGS.map((easing) => (
+        <div key={easing.token} className="flex items-center gap-4">
+          <EasingCurve token={easing.token} />
+          <div className="flex flex-col gap-0.5">
+            <span className={cn(TYPE.cardCaption, "font-mono")}>
+              {easing.className}
+            </span>
+            <span
+              className={cn(
+                TYPE.cardCaption,
+                "text-muted-foreground font-mono"
+              )}
+            >
+              {easing.token}
+            </span>
+            <span className={cn(TYPE.cardCaption, "text-muted-foreground")}>
+              {easing.use}
+            </span>
+          </div>
         </div>
       ))}
     </div>
@@ -604,6 +720,7 @@ export const TokenPanel = () => (
         <SpacingTokens />
         <RadiusTokens />
         <ShadowTokens />
+        <MotionTokens />
       </div>
     </CardContent>
   </Card>

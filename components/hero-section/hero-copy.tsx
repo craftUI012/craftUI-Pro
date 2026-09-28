@@ -1,4 +1,5 @@
 import { HERO_REVEAL_CLASS } from "@/components/hero-section/hero-data";
+import { HeroEyebrow } from "@/components/hero-section/hero-eyebrow";
 import { HeroReveal } from "@/components/hero-section/hero-reveal";
 import { HomeCtas } from "@/components/home-ctas";
 import { TYPE } from "@/constants/typography";
@@ -20,9 +21,7 @@ export const HeroCopy = () => (
       <style>{`.${HERO_REVEAL_CLASS}{opacity:1!important;transform:none!important}`}</style>
     </noscript>
     {/* No `uppercase`: the brand keeps its own casing. */}
-    <span className={cn(TYPE.cardEyebrow, "text-muted-foreground")}>
-      craftUI Pro
-    </span>
+    <HeroEyebrow>craftUI Pro</HeroEyebrow>
     <h1 id="hero-heading" className={cn(TYPE.headingHero, "text-balance")}>
       Build apps that look like a design team made them.
     </h1>
