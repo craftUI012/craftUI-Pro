@@ -2,18 +2,41 @@ import { BrowseCard } from "@/components/new-hero-section/browse/browse-card";
 import { BrowseFeed } from "@/components/new-hero-section/browse/browse-feed";
 import { BrowseFiltersProvider } from "@/components/new-hero-section/browse/browse-filters";
 import { BrowseIndex } from "@/components/new-hero-section/browse/browse-index";
+import type { RailData } from "@/components/new-hero-section/browse/browse-rail";
 import { BrowseShell } from "@/components/new-hero-section/browse/browse-shell";
 import {
   feedOrders,
   getHomeData,
 } from "@/components/new-hero-section/data/get-home-data";
+import { recentKey } from "@/components/new-hero-section/data/home-keys";
 import type {
   FeedId,
+  HomeData,
   Library,
 } from "@/components/new-hero-section/data/home-types";
 
 // Cards in the first row of the first tab: on screen at load, so eager.
 const EAGER_CARDS = 3;
+
+// How many of the newest items the rail's What's new lists.
+const WHATS_NEW_COUNT = 3;
+
+// Everything the rail shows, worked out once on the server from the same
+// cached data as the panels.
+const toRailData = (data: HomeData): RailData => ({
+  whatsNew: data.libraries
+    .flatMap((library) =>
+      library.items.map((item) => ({ item, library: library.id }))
+    )
+    .toSorted((a, b) => b.item.publishedAt.localeCompare(a.item.publishedAt))
+    .slice(0, WHATS_NEW_COUNT)
+    .map(({ item, library }) => ({
+      href: item.href,
+      key: recentKey(library, item.id),
+      library,
+      name: item.name,
+    })),
+});
 
 // Server component, one library's panel: the index (a filter), then the feed.
 // Both sit in one BrowseFiltersProvider, so picking an index item filters
@@ -78,14 +101,12 @@ export const NewHome = async () => {
 
   return (
     <BrowseShell
-      libraries={data.libraries.map(
-        ({ id, items, label, searchPlaceholder }) => ({
-          count: items.length,
-          id,
-          label,
-          searchPlaceholder,
-        })
-      )}
+      libraries={data.libraries.map(({ id, label, searchPlaceholder }) => ({
+        id,
+        label,
+        searchPlaceholder,
+      }))}
+      railData={toRailData(data)}
       panels={
         Object.fromEntries(
           data.libraries.map((library, index) => [

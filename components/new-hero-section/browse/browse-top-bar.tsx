@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 export interface LibraryTab {
   id: LibraryId;
   label: string;
-  count: number;
   searchPlaceholder: string;
 }
 
@@ -29,6 +28,10 @@ export const SITE_NAV = [
 
 // The primary CTA.
 const PRIMARY_CTA = { href: ROUTES.DOCS_INSTALLATION, label: "Get started" };
+
+// Same type as the rail's menu rows (MENU_BUTTON_CLS in docs-sidebar.tsx:
+// 0.8rem · 500), so the top bar's links read like the sidebar's.
+const RAIL_ROW_TYPE = "text-[0.8rem] font-medium";
 
 // "Sign in" for visitors, "Dashboard" once signed in. The session loads on
 // the client, so the page itself stays static. Until it's known, it shows
@@ -91,7 +94,7 @@ const BrowseSearch = ({
 
 // Client component, the slim bar over the content column. Search sits on the
 // left. The right holds the site navigation and the CTAs: Pricing and Blog as
-// quiet ghost links, a hairline, then Sign in (or Dashboard) and the primary
+// quiet ghost links in the rail's row type, a hairline, then Sign in (or Dashboard) and the primary
 // "Get started". The theme toggle, settings and Sponsor live in the rail's
 // footer (browse-rail.tsx).
 //
@@ -154,6 +157,7 @@ export const BrowseTopBar = ({
               variant="ghost"
               size="sm"
               sound="click"
+              className={RAIL_ROW_TYPE}
             >
               <Link href={item.href} transitionTypes={["nav-forward"]}>
                 {item.label}
@@ -167,7 +171,7 @@ export const BrowseTopBar = ({
           variant="ghost"
           size="sm"
           sound="click"
-          className="hidden md:inline-flex"
+          className={cn(RAIL_ROW_TYPE, "hidden md:inline-flex")}
         >
           <Link href={account.href} transitionTypes={["nav-forward"]}>
             {account.label}

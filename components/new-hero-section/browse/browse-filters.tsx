@@ -21,8 +21,8 @@ export const indexTag = (groupId: string, linkId: string) =>
   `${groupId}:${linkId}`;
 
 // Selection state for one library panel, shared by its index (which sets it)
-// and its feed (which filters by it). Each library keeps its own selection,
-// so switching the top-bar tab and back keeps what was picked.
+// and its feed (which filters by it). Each library panel has its own
+// provider, so switching libraries and back keeps what was picked.
 export const BrowseFiltersProvider = ({
   children,
 }: {

@@ -15,8 +15,9 @@ import { cn } from "@/lib/utils";
 // it. Only colour and transforms animate (200ms, ease-out-strong), and
 // reduced motion keeps just the colour change.
 //
-// Text is all TYPE tokens: labels are card-description and items are
-// heading-section, with no weight or size overrides.
+// Labels match the rail's group labels (12px · 500: cardCaption +
+// font-medium), so "Categories" and "Library" read as one row. Items are
+// heading-section.
 export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
   const { selection, toggle } = useBrowseFilters();
 
@@ -34,7 +35,10 @@ export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
         >
           <h2
             id={`index-${group.id}`}
-            className={cn(TYPE.cardDescription, "text-muted-foreground")}
+            className={cn(
+              TYPE.cardCaption,
+              "text-muted-foreground font-medium"
+            )}
           >
             {group.label}
           </h2>

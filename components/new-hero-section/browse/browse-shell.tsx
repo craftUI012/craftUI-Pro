@@ -8,6 +8,7 @@ import {
   BrowseRail,
   BrowseRailDrawer,
 } from "@/components/new-hero-section/browse/browse-rail";
+import type { RailData } from "@/components/new-hero-section/browse/browse-rail";
 import { BrowseTopBar } from "@/components/new-hero-section/browse/browse-top-bar";
 import type { LibraryTab } from "@/components/new-hero-section/browse/browse-top-bar";
 import type { LibraryId } from "@/components/new-hero-section/data/home-types";
@@ -37,8 +38,9 @@ const useSearchShortcut = (onTrigger: () => void) => {
 };
 
 // Client shell. It owns the page's navigation state: the active library, the
-// search query and whether the phone drawer is open. Layout: the rail on the
-// left (desktop), then the content column with the top bar over the panels.
+// search query and whether the phone drawer is open.
+// Layout: the rail on the left (desktop), then the content column with the
+// top bar over the panels.
 // On phones the rail becomes a drawer opened from the top bar.
 //
 // `panels` holds one index + grid per library, server-rendered. Every panel
@@ -47,9 +49,11 @@ const useSearchShortcut = (onTrigger: () => void) => {
 export const BrowseShell = ({
   libraries,
   panels,
+  railData,
 }: {
   libraries: LibraryTab[];
   panels: Record<LibraryId, React.ReactNode>;
+  railData: RailData;
 }) => {
   const [active, setActive] = useState<LibraryId>(
     libraries[0]?.id ?? "components"
@@ -75,7 +79,7 @@ export const BrowseShell = ({
     }, [])
   );
 
-  const rail = { active, libraries, onActiveChange: setActive };
+  const rail = { active, libraries, onActiveChange: setActive, railData };
 
   return (
     <BrowseQueryContext value={query}>
@@ -92,10 +96,9 @@ export const BrowseShell = ({
             onMenuOpen={() => setDrawerOpen(true)}
             onQueryChange={setQuery}
           />
-          {/* md:pt-6 puts the index's first label ("Categories") on the same
-              line as the rail's first group label ("Library"): the 3.5rem top
-              bar + 1.5rem = 5rem, the rail's p-4 + brand row h-9 + gap-4 +
-              group p-1 + label pt-2. Change one side, change the other. */}
+          {/* md:pt-6 is paired with the rail's Library group padding
+              (browse-rail.tsx) so "Library" and "Categories" share a
+              baseline. Change one side, change the other. */}
           <main className="container flex flex-col gap-16 pt-8 pb-24 md:gap-20 md:pt-6">
             {libraries.map((library) => (
               <div
@@ -115,8 +118,8 @@ export const BrowseShell = ({
           open={drawerOpen}
           placeholder={placeholder}
           query={query}
-          onOpenChange={setDrawerOpen}
           onQueryChange={setQuery}
+          onOpenChange={setDrawerOpen}
         />
       </div>
     </BrowseQueryContext>
