@@ -2,11 +2,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
-import {
-  LIFETIME_PLAN,
-  YEARLY_PLAN,
-  templateBySlug,
-} from "@/lib/billing/plans";
+import { LIFETIME_PLAN, YEARLY_PLAN } from "@/lib/billing/plans";
 import { isPolarConfigured, polar } from "@/lib/polar";
 
 const siteUrl = () =>
@@ -18,8 +14,7 @@ const siteUrl = () =>
 // with a magic link using the same email. No session required here.
 const checkoutSchema = z.object({
   email: z.string().trim().toLowerCase().pipe(z.email()),
-  plan: z.enum(["lifetime", "yearly", "template"]),
-  templateSlug: z.string().optional(),
+  plan: z.enum(["lifetime", "yearly"]),
 });
 
 export const POST = async (request: Request) => {
@@ -45,27 +40,12 @@ export const POST = async (request: Request) => {
     );
   }
 
-  const { email, plan, templateSlug } = parsed.data;
+  const { email, plan } = parsed.data;
 
-  let productId: string | undefined;
-  let kind = "";
-  let resolvedTemplate: string | undefined;
-
-  if (plan === "lifetime") {
-    productId = LIFETIME_PLAN.polarProductId;
-    kind = "lifetime";
-  } else if (plan === "yearly") {
-    productId = YEARLY_PLAN.polarProductId;
-    kind = "yearly";
-  } else {
-    const template = templateSlug ? templateBySlug(templateSlug) : undefined;
-    if (!template) {
-      return Response.json({ error: "Unknown template." }, { status: 400 });
-    }
-    productId = template.polarProductId;
-    kind = "template";
-    resolvedTemplate = template.slug;
-  }
+  const productId =
+    plan === "lifetime"
+      ? LIFETIME_PLAN.polarProductId
+      : YEARLY_PLAN.polarProductId;
 
   if (!productId) {
     return Response.json(
@@ -80,8 +60,7 @@ export const POST = async (request: Request) => {
     ...(session?.user.id ? { externalCustomerId: session.user.id } : {}),
     metadata: {
       email,
-      kind,
-      templateSlug: resolvedTemplate ?? "",
+      kind: plan,
       userId: session?.user.id ?? "",
     },
     products: [productId],

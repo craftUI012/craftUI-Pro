@@ -1,8 +1,7 @@
 import { Reloop } from "reloop-email";
 
 const apiKey = process.env.RELOOP_API_KEY;
-const from =
-  process.env.AUTH_EMAIL_FROM ?? "CraftUI Pro <onboarding@localhost>";
+const from = "CraftUI Pro <notification@craftui.space>";
 
 const getClient = () => {
   if (!apiKey) {

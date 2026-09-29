@@ -7,7 +7,6 @@ export interface Entitlements {
   hasAllAccess: boolean;
   hasLifetime: boolean;
   hasYearly: boolean;
-  templates: string[];
 }
 
 const isYearlyActive = (row: typeof purchase.$inferSelect) => {
@@ -49,15 +48,11 @@ export const getEntitlements = async (
 
   const hasLifetime = rows.some((row) => row.kind === "lifetime");
   const hasYearly = rows.some((row) => isYearlyActive(row));
-  const templates = rows
-    .filter((row) => row.kind === "template" && row.templateSlug)
-    .map((row) => row.templateSlug as string);
 
   return {
     hasAllAccess: hasLifetime || hasYearly,
     hasLifetime,
     hasYearly,
-    templates,
   };
 };
 
@@ -77,12 +72,4 @@ export const backfillPurchasesToUser = async (userId: string) => {
 export const canAccessComponents = async (userId: string) => {
   const entitlements = await getEntitlements(userId);
   return entitlements.hasAllAccess;
-};
-
-export const canAccessTemplate = async (userId: string, slug: string) => {
-  const entitlements = await getEntitlements(userId);
-  if (entitlements.hasAllAccess) {
-    return true;
-  }
-  return entitlements.templates.includes(slug);
 };

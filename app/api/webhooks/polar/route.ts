@@ -1,7 +1,7 @@
 import { Webhooks } from "@polar-sh/nextjs";
 import { eq } from "drizzle-orm";
 
-import { LIFETIME_PLAN, YEARLY_PLAN, TEMPLATES } from "@/lib/billing/plans";
+import { LIFETIME_PLAN, YEARLY_PLAN } from "@/lib/billing/plans";
 import { db } from "@/lib/db";
 import { purchase, user } from "@/lib/db/schema";
 
@@ -47,10 +47,6 @@ const kindFromProduct = (productId: string | null) => {
   if (productId === YEARLY_PLAN.polarProductId) {
     return { kind: "yearly" as const };
   }
-  const template = TEMPLATES.find((t) => t.polarProductId === productId);
-  if (template) {
-    return { kind: "template" as const, templateSlug: template.slug };
-  }
   return null;
 };
 
@@ -92,12 +88,8 @@ const resolveEmail = async (payload: unknown): Promise<string | null> => {
 
 const resolveKind = (payload: unknown) => {
   const metaKind = get(payload, "metadata.kind");
-  const metaTemplate = get(payload, "metadata.templateSlug");
   if (metaKind === "lifetime" || metaKind === "yearly") {
     return { kind: metaKind as "lifetime" | "yearly" };
-  }
-  if (metaKind === "template" && typeof metaTemplate === "string") {
-    return { kind: "template" as const, templateSlug: metaTemplate };
   }
   return kindFromProduct(productIdOf(payload));
 };
@@ -110,7 +102,6 @@ const upsertPurchase = async (row: typeof purchase.$inferInsert) => {
       set: {
         currentPeriodEnd: row.currentPeriodEnd,
         status: row.status,
-        templateSlug: row.templateSlug,
         updatedAt: new Date(),
       },
       target: purchase.id,
@@ -153,7 +144,6 @@ const recordOrder = async (order: unknown) => {
     polarOrderId: orderId,
     polarSubscriptionId: subscriptionId,
     status: "active",
-    templateSlug: kind.kind === "template" ? (kind.templateSlug ?? null) : null,
     userId,
   });
 };
@@ -204,7 +194,6 @@ const recordSubscription = async (subscription: unknown, status: string) => {
     polarOrderId: null,
     polarSubscriptionId: subscriptionId,
     status,
-    templateSlug: kind.kind === "template" ? (kind.templateSlug ?? null) : null,
     userId,
   });
 };

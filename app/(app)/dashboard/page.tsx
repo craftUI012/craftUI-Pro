@@ -17,7 +17,6 @@ import {
   backfillPurchasesToUser,
   getEntitlements,
 } from "@/lib/billing/entitlements";
-import { TEMPLATES } from "@/lib/billing/plans";
 
 const DashboardPage = async () => {
   const session = await auth.api.getSession({
@@ -31,20 +30,14 @@ const DashboardPage = async () => {
   // Link any guest-checkout purchases (paid before sign-in) to this user.
   await backfillPurchasesToUser(session.user.id);
   const entitlements = await getEntitlements(session.user.id);
-  const ownedTemplates = TEMPLATES.filter((template) =>
-    entitlements.templates.includes(template.slug)
-  );
 
   let accessMessage: string;
   if (entitlements.hasAllAccess) {
     accessMessage = entitlements.hasLifetime
       ? "Lifetime all-access is active. Every component and template is unlocked."
       : "Yearly all-access is active. Every component and template is unlocked.";
-  } else if (ownedTemplates.length > 0) {
-    accessMessage = `You own ${ownedTemplates.map((t) => t.name).join(", ")}. Upgrade for everything.`;
   } else {
-    accessMessage =
-      "No plan yet. Get lifetime or yearly all-access, or buy a single template.";
+    accessMessage = "No plan yet. Get lifetime or yearly all-access.";
   }
 
   return (

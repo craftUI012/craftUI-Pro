@@ -60,7 +60,6 @@ export const purchase = pgTable("purchase", {
   polarOrderId: text("polar_order_id"),
   polarSubscriptionId: text("polar_subscription_id"),
   status: text("status").notNull().default("active"),
-  templateSlug: text("template_slug"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   // Null until the buyer signs in — guest checkout happens before sign-in,
   // so rows are keyed by email first and backfilled to the user later.

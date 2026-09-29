@@ -12,7 +12,7 @@ import { ROUTES } from "@/constants/routes";
 
 export const Paywall = ({
   title = "Payment required",
-  description = "This content needs an active plan. Get lifetime or yearly all-access, or buy just the template you want.",
+  description = "This content needs an active plan. Get lifetime or yearly all-access.",
 }: {
   title?: string;
   description?: string;

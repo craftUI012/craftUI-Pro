@@ -6,17 +6,11 @@ import { Button } from "@/components/ui/button";
 
 interface CheckoutButtonProps {
   email: string;
-  plan: "lifetime" | "yearly" | "template";
-  templateSlug?: string;
+  plan: "lifetime" | "yearly";
   label: string;
 }
 
-export const CheckoutButton = ({
-  email,
-  label,
-  plan,
-  templateSlug,
-}: CheckoutButtonProps) => {
+export const CheckoutButton = ({ email, label, plan }: CheckoutButtonProps) => {
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -25,7 +19,7 @@ export const CheckoutButton = ({
     setFailure(null);
     try {
       const response = await fetch("/api/checkout", {
-        body: JSON.stringify({ email, plan, templateSlug }),
+        body: JSON.stringify({ email, plan }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
