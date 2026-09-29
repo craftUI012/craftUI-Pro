@@ -5,12 +5,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 interface CheckoutButtonProps {
-  email: string;
   plan: "lifetime" | "yearly";
   label: string;
 }
 
-export const CheckoutButton = ({ email, label, plan }: CheckoutButtonProps) => {
+export const CheckoutButton = ({ label, plan }: CheckoutButtonProps) => {
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -19,7 +18,7 @@ export const CheckoutButton = ({ email, label, plan }: CheckoutButtonProps) => {
     setFailure(null);
     try {
       const response = await fetch("/api/checkout", {
-        body: JSON.stringify({ email, plan }),
+        body: JSON.stringify({ plan }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
@@ -38,7 +37,7 @@ export const CheckoutButton = ({ email, label, plan }: CheckoutButtonProps) => {
     <div className="space-y-2">
       <Button
         className="w-full"
-        disabled={state === "loading" || !email.trim()}
+        disabled={state === "loading"}
         onClick={handleClick}
       >
         {state === "loading" ? "Redirecting…" : label}

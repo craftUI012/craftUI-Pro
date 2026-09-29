@@ -10,10 +10,9 @@ const siteUrl = () =>
   process.env.NEXT_PUBLIC_SITE_URL ??
   "http://localhost:3000";
 
-// Guest checkout: the buyer pays FIRST with just an email, then signs in
+// Polar collects the buyer's email at checkout. The buyer then signs in
 // with a magic link using the same email. No session required here.
 const checkoutSchema = z.object({
-  email: z.string().trim().toLowerCase().pipe(z.email()),
   plan: z.enum(["lifetime", "yearly"]),
 });
 
@@ -35,12 +34,12 @@ export const POST = async (request: Request) => {
   );
   if (!parsed.success) {
     return Response.json(
-      { error: "Enter a valid email to continue." },
+      { error: "Pick a plan to continue." },
       { status: 400 }
     );
   }
 
-  const { email, plan } = parsed.data;
+  const { plan } = parsed.data;
 
   const productId =
     plan === "lifetime"
@@ -54,12 +53,16 @@ export const POST = async (request: Request) => {
     );
   }
 
+  const sessionEmail = session?.user.email?.toLowerCase() || undefined;
+
   const checkout = await polar.checkouts.create({
-    customerEmail: email,
+    // Prefill when the buyer is signed in; otherwise Polar collects it
+    // and the webhook matches the purchase by email later.
+    ...(sessionEmail ? { customerEmail: sessionEmail } : {}),
     // Link to the signed-in user when possible; guests match by email later.
     ...(session?.user.id ? { externalCustomerId: session.user.id } : {}),
     metadata: {
-      email,
+      ...(sessionEmail ? { email: sessionEmail } : {}),
       kind: plan,
       userId: session?.user.id ?? "",
     },
