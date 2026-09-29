@@ -16,6 +16,8 @@ export const ROUTES = {
   DOCS_INSTALLATION: "/docs/installation",
   HOME: "/",
   HOME_NEW: "/homepage-new",
+  // The docs, shown inside the /homepage-new shell (same articles as /docs).
+  HOME_NEW_DOCS: "/homepage-new/docs",
   LLMS: "/llms.txt",
   LLMS_FULL: "/llms-full.txt",
   LLMS_MD: "/llms.md",

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 
-import { NewHome } from "@/components/new-hero-section";
+import { NewHomeBrowse } from "@/components/new-hero-section";
 import { ROUTES } from "@/constants/routes";
 import { createPageMetadata } from "@/seo/metadata";
 
-// Outside the (app) group on purpose: this page brings its own Mobbin-style
-// top bar, so it doesn't get the site header and footer.
-//
 // Kept out of search until it replaces the home page.
 export const metadata: Metadata = createPageMetadata({
   description:
@@ -24,9 +21,5 @@ export const dynamic = "force-static";
 export const revalidate = false;
 
 export default function HomepageNew() {
-  return (
-    <div className="bg-background min-h-svh">
-      <NewHome />
-    </div>
-  );
+  return <NewHomeBrowse />;
 }

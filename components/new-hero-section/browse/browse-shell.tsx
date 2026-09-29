@@ -1,17 +1,30 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import type * as React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { BrowseQueryContext } from "@/components/new-hero-section/browse/browse-context";
 import {
   BrowseRail,
   BrowseRailDrawer,
+  filterDocsMenu,
 } from "@/components/new-hero-section/browse/browse-rail";
-import type { RailData } from "@/components/new-hero-section/browse/browse-rail";
+import type {
+  RailData,
+  RailMode,
+} from "@/components/new-hero-section/browse/browse-rail";
 import { BrowseTopBar } from "@/components/new-hero-section/browse/browse-top-bar";
 import type { LibraryTab } from "@/components/new-hero-section/browse/browse-top-bar";
 import type { LibraryId } from "@/components/new-hero-section/data/home-types";
+import { ROUTES } from "@/constants/routes";
 
 // Matches Tailwind's `md`, where the rail replaces the drawer.
 const DESKTOP_QUERY = "(min-width: 48rem)";
@@ -37,24 +50,36 @@ const useSearchShortcut = (onTrigger: () => void) => {
   }, [onTrigger]);
 };
 
-// Client shell. It owns the page's navigation state: the active library, the
-// search query and whether the phone drawer is open.
-// Layout: the rail on the left (desktop), then the content column with the
-// top bar over the panels.
-// On phones the rail becomes a drawer opened from the top bar.
+// The active library, for the browse page's panels (browse-panels.tsx).
+const BrowseLibraryContext = createContext<LibraryId>("components");
+export const useActiveLibrary = () => use(BrowseLibraryContext);
+
+// Which menu the rail shows comes from the URL: anything under
+// ROUTES.HOME_NEW_DOCS is the docs view, everything else is browse.
+const modeOf = (pathname: string): RailMode =>
+  pathname.startsWith(ROUTES.HOME_NEW_DOCS) ? "docs" : "browse";
+
+// Client shell, rendered by app/homepage-new/layout.tsx. Because it lives in
+// the layout, the rail and top bar stay mounted when the route changes
+// between the browse page and the docs pages, so the rail can animate from
+// one menu to the other instead of the whole page reloading.
 //
-// `panels` holds one index + grid per library, server-rendered. Every panel
-// is in the HTML; the inactive ones are `hidden`, so their lazy images don't
-// load until the library is picked.
+// It owns the navigation state: the active library, the search query (which
+// filters the grid in browse and the docs menu in docs) and whether the phone
+// drawer is open. `children` is the route's content, placed under the top
+// bar.
 export const BrowseShell = ({
+  children,
   libraries,
-  panels,
   railData,
 }: {
+  children: React.ReactNode;
   libraries: LibraryTab[];
-  panels: Record<LibraryId, React.ReactNode>;
   railData: RailData;
 }) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const mode = modeOf(pathname);
   const [active, setActive] = useState<LibraryId>(
     libraries[0]?.id ?? "components"
   );
@@ -62,9 +87,20 @@ export const BrowseShell = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const topBarInput = useRef<HTMLInputElement>(null);
   const drawerInput = useRef<HTMLInputElement>(null);
+
+  // A query typed in one view means nothing in the other, so switching views
+  // starts with an empty search.
+  const [lastMode, setLastMode] = useState(mode);
+  if (mode !== lastMode) {
+    setLastMode(mode);
+    setQuery("");
+  }
+
   const placeholder =
-    libraries.find((library) => library.id === active)?.searchPlaceholder ??
-    "Search…";
+    mode === "docs"
+      ? "Search docs…"
+      : (libraries.find((library) => library.id === active)
+          ?.searchPlaceholder ?? "Search…");
 
   // Desktop focuses the top-bar search; phones open the drawer and focus its
   // search once it's on screen.
@@ -79,49 +115,63 @@ export const BrowseShell = ({
     }, [])
   );
 
-  const rail = { active, libraries, onActiveChange: setActive, railData };
+  // In docs, Enter in the search opens the first matching page, then clears
+  // the search so the full docs menu is back while reading.
+  const onSubmitSearch = () => {
+    if (mode !== "docs") {
+      return;
+    }
+    const [first] = filterDocsMenu(railData.docs, query);
+    if (first) {
+      setDrawerOpen(false);
+      setQuery("");
+      router.push(first.href);
+    }
+  };
+
+  const rail = {
+    active,
+    libraries,
+    mode,
+    onActiveChange: setActive,
+    pathname,
+    query,
+    railData,
+  };
 
   return (
-    <BrowseQueryContext value={query}>
-      <div className="flex min-h-svh">
-        <BrowseRail {...rail} />
+    <BrowseLibraryContext value={active}>
+      <BrowseQueryContext value={query}>
+        <div className="flex min-h-svh">
+          <BrowseRail {...rail} />
 
-        <div className="min-w-0 flex-1">
-          <BrowseTopBar
-            active={active}
-            drawerOpen={drawerOpen}
-            inputRef={topBarInput}
-            libraries={libraries}
-            query={query}
-            onMenuOpen={() => setDrawerOpen(true)}
+          <div className="min-w-0 flex-1">
+            <BrowseTopBar
+              active={active}
+              drawerOpen={drawerOpen}
+              inputRef={topBarInput}
+              libraries={libraries}
+              mode={mode}
+              placeholder={placeholder}
+              query={query}
+              onMenuOpen={() => setDrawerOpen(true)}
+              onQueryChange={setQuery}
+              onSubmitSearch={onSubmitSearch}
+            />
+            {children}
+          </div>
+
+          <BrowseRailDrawer
+            {...rail}
+            inputRef={drawerInput}
+            open={drawerOpen}
+            placeholder={placeholder}
+            onOpenChange={setDrawerOpen}
             onQueryChange={setQuery}
+            onSubmitSearch={onSubmitSearch}
           />
-          {/* md:pt-6 is paired with the rail's Library group padding
-              (browse-rail.tsx) so "Library" and "Categories" share a
-              baseline. Change one side, change the other. */}
-          <main className="container flex flex-col gap-16 pt-8 pb-24 md:gap-20 md:pt-6">
-            {libraries.map((library) => (
-              <div
-                key={library.id}
-                hidden={library.id !== active}
-                className="flex flex-col gap-16 md:gap-24"
-              >
-                {panels[library.id]}
-              </div>
-            ))}
-          </main>
         </div>
-
-        <BrowseRailDrawer
-          {...rail}
-          inputRef={drawerInput}
-          open={drawerOpen}
-          placeholder={placeholder}
-          query={query}
-          onQueryChange={setQuery}
-          onOpenChange={setDrawerOpen}
-        />
-      </div>
-    </BrowseQueryContext>
+      </BrowseQueryContext>
+    </BrowseLibraryContext>
   );
 };
