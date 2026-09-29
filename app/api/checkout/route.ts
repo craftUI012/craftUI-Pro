@@ -54,17 +54,19 @@ export const POST = async (request: Request) => {
   }
 
   const sessionEmail = session?.user.email?.toLowerCase() || undefined;
+  const sessionUserId = session?.user.id || undefined;
 
   const checkout = await polar.checkouts.create({
     // Prefill when the buyer is signed in; otherwise Polar collects it
     // and the webhook matches the purchase by email later.
     ...(sessionEmail ? { customerEmail: sessionEmail } : {}),
     // Link to the signed-in user when possible; guests match by email later.
-    ...(session?.user.id ? { externalCustomerId: session.user.id } : {}),
+    ...(sessionUserId ? { externalCustomerId: sessionUserId } : {}),
+    // NOTE: never send empty strings here — Polar rejects them with a 422.
     metadata: {
       ...(sessionEmail ? { email: sessionEmail } : {}),
+      ...(sessionUserId ? { userId: sessionUserId } : {}),
       kind: plan,
-      userId: session?.user.id ?? "",
     },
     products: [productId],
     successUrl: `${siteUrl()}/checkout/success?checkout_id={CHECKOUT_ID}`,

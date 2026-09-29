@@ -56,6 +56,20 @@ export const getEntitlements = async (
   };
 };
 
+// Pay-first gate: does this email own an active plan? Covers guest
+// checkouts (no user row yet), so it works before sign-in.
+export const hasActivePlanForEmail = async (email: string) => {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+  const rows = await db
+    .select()
+    .from(purchase)
+    .where(and(eq(purchase.email, normalized), eq(purchase.status, "active")));
+  return rows.some((row) => row.kind === "lifetime" || isYearlyActive(row));
+};
+
 // After sign-in, attach any guest purchases (email match, no user yet)
 // to the user so future lookups are direct.
 export const backfillPurchasesToUser = async (userId: string) => {
