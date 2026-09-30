@@ -9,6 +9,8 @@ import { createPageMetadata } from "@/seo/metadata";
 // The docs, inside the /homepage-new shell. Same articles as /docs (one
 // shared DocsArticle), with page-to-page links kept under
 // ROUTES.HOME_NEW_DOCS, so the rail stays on its docs menu while reading.
+// No page transition here: the article swaps in place and only the rail
+// animates.
 //
 // Static like /docs: every page prerendered at build.
 export const revalidate = false;
@@ -46,7 +48,11 @@ const HomepageNewDocsPage = async (props: {
   return (
     // The same top spacing the /docs layout gives its articles.
     <div className="px-4 md:px-6 [--top-spacing:0] lg:[--top-spacing:calc(var(--spacing)*4)]">
-      <DocsArticle page={page} basePath={ROUTES.HOME_NEW_DOCS} />
+      <DocsArticle
+        page={page}
+        basePath={ROUTES.HOME_NEW_DOCS}
+        transition={false}
+      />
     </div>
   );
 };

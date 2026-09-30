@@ -125,6 +125,7 @@ export const NewHomeShell = async ({
 export const NewHomeBrowse = async () => {
   const data = await getHomeData();
 
+  // No page transition: the content swaps in place; only the rail animates.
   return (
     <BrowsePanels
       order={data.libraries.map((library) => library.id)}

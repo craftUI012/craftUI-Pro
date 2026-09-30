@@ -85,6 +85,15 @@ export const BrowseShell = ({
   );
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // The next rail switch is instant when it comes from the keyboard (search +
+  // Enter): per the animation guidelines, keyboard actions don't animate. Any
+  // pointer press goes back to animating.
+  const [instant, setInstant] = useState(false);
+  useEffect(() => {
+    const onPointerDown = () => setInstant(false);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
   const topBarInput = useRef<HTMLInputElement>(null);
   const drawerInput = useRef<HTMLInputElement>(null);
 
@@ -125,12 +134,14 @@ export const BrowseShell = ({
     if (first) {
       setDrawerOpen(false);
       setQuery("");
+      setInstant(true);
       router.push(first.href);
     }
   };
 
   const rail = {
     active,
+    instant,
     libraries,
     mode,
     onActiveChange: setActive,

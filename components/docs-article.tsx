@@ -1,6 +1,7 @@
 import { findNeighbour } from "fumadocs-core/page-tree";
 import { ArrowLeftIcon, ArrowRightIcon, ArrowUpRightIcon } from "lucide-react";
 import Link from "next/link";
+import { Fragment } from "react";
 
 // import { DocsBaseSwitcher } from "@/components/docs-base-switcher";
 import { DocsCopyPage } from "@/components/docs-copy-page";
@@ -25,13 +26,20 @@ type DocsPage = NonNullable<ReturnType<typeof source.getPage>>;
 // `basePath` rewrites the page-to-page links (prev/next, keyboard shortcuts)
 // from /docs to another mount point, so a reader inside /homepage-new stays
 // inside it. Links written into the MDX content itself still point at /docs.
+//
+// `transition` wraps the article in PageTransition (the slide between docs
+// pages). On by default for /docs; /homepage-new turns it off, so there only
+// the rail animates and the article swaps in place.
 export const DocsArticle = ({
   basePath = ROUTES.DOCS,
   page,
+  transition = true,
 }: {
   basePath?: string;
   page: DocsPage;
+  transition?: boolean;
 }) => {
+  const Wrapper = transition ? PageTransition : Fragment;
   const toHref = (url: string) =>
     basePath === ROUTES.DOCS ? url : url.replace(ROUTES.DOCS, basePath);
 
@@ -55,7 +63,7 @@ export const DocsArticle = ({
         next={next ? next.url : null}
       />
 
-      <PageTransition>
+      <Wrapper>
         <div
           data-slot="docs"
           className="flex items-stretch text-[1.05rem] sm:text-[15px] xl:w-full"
@@ -181,7 +189,7 @@ export const DocsArticle = ({
             <DocsTocFooter docId={page.path} className="mx-8" />
           </div>
         </div>
-      </PageTransition>
+      </Wrapper>
     </>
   );
 };

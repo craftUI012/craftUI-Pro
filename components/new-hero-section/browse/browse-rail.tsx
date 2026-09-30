@@ -16,6 +16,15 @@ import {
   Tag,
   X,
 } from "lucide-react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  LazyMotion,
+  MotionConfig,
+  m,
+  useReducedMotion,
+} from "motion/react";
+import type { Transition, Variants } from "motion/react";
 import Link from "next/link";
 import type * as React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -68,7 +77,7 @@ import { cn } from "@/lib/utils";
 //
 // Two menus share the rail: Browse (libraries, resources, what's new) and
 // Docs (the /docs sidebar's sections and pages). The URL picks one (see
-// browse-shell.tsx); switching slides between them (see MenuTrack).
+// browse-shell.tsx); switching crossfades between them (see RailMenus).
 
 export type RailMode = "browse" | "docs";
 
@@ -92,7 +101,7 @@ export const filterDocsMenu = (docs: DocsMenu, query: string) => {
 };
 
 // The browse menu's Docs links open the docs inside this shell, so the rail
-// flips to the docs menu rather than leaving for /docs.
+// switches to the docs menu rather than leaving for /docs.
 const RESOURCE_LINKS = [
   { href: ROUTES.HOME_NEW_DOCS, icon: BookOpen, label: "Docs" },
   {
@@ -121,58 +130,76 @@ const SITE_NAV_ICONS: Record<(typeof SITE_NAV)[number]["href"], typeof Tag> = {
   [ROUTES.PRICING]: Tag,
 };
 
-// ─── Switch animation ──────────────────────────────────────────────────────
+// ─── Motion ────────────────────────────────────────────────────────────────
+//
+// Vercel-style menu switch, following the animation guidelines:
+// - the menus crossfade in place with a short sideways shift (12px), not a
+//   full-width slide: small travel, so it reads as smooth, not as a page;
+// - a true crossfade: both menus start at the same moment with the same
+//   duration (240ms) and curve (a calm decelerate), so their opacities always
+//   add up to 1 and the rail never goes blank mid-switch (staggered or
+//   unequal fades leave a moment where neither is visible). Forward in from
+//   the right, back in from the left. Only the leaving menu blurs (3px), so
+//   the arriving one is sharp and readable at once. The middle content
+//   doesn't animate (it swaps in place), so the rail is the only thing
+//   moving;
+// - the whole menu moves together; no row stagger, so every row is clickable
+//   the moment it lands;
+// - AnimatePresence popLayout takes the leaving menu out of the layout, so
+//   the scroll area only ever measures the menu that's arriving;
+// - keyboard-driven switches (search + Enter) are instant, and reduced motion
+//   turns it all off.
 
-// Track slide, and each incoming row's fade + 0.75rem slide. Rows start a
-// little after the track so they arrive as it settles, one step apart.
-const TRACK_MS = 300;
-const ROW_START_MS = 90;
-const ROW_STAGGER_MS = 24;
-// Past this many rows the rest arrive together, so a long menu never waits.
-const MAX_STAGGER_ROWS = 10;
+// A calm decelerate: Vercel's Geist `--ease-out`, cubic-bezier(0, 0, .2, 1)
+// (read from vercel.com's CSS). Gentler than ease-out-quint, which does
+// most of its movement at once and read as snappy for a menu swap.
+const EASE_OUT: [number, number, number, number] = [0, 0, 0.2, 1];
+// One duration for both sides of the crossfade (paired elements share
+// timing), and no delay on the arriving menu.
+const SWITCH_S = 0.24;
+const SHIFT_PX = 8;
 
-// How the incoming menu's rows enter: from the right when going into docs
-// (deeper), from the left when coming back. `null` until the first switch,
-// so a page that loads straight into either menu doesn't animate.
-type Entrance = { direction: "left" | "right"; generation: number } | null;
+// 1 going into docs (deeper, arrives from the right), -1 coming back.
+type Direction = 1 | -1;
 
-const useMenuEntrance = (mode: RailMode): Entrance => {
-  const [entrance, setEntrance] = useState<Entrance>(null);
-  const previous = useRef(mode);
-  useEffect(() => {
-    if (previous.current === mode) {
-      return;
-    }
-    previous.current = mode;
-    setEntrance((current) => ({
-      direction: mode === "docs" ? "right" : "left",
-      generation: (current?.generation ?? 0) + 1,
-    }));
-  }, [mode]);
-  return entrance;
+const menuVariants: Variants = {
+  center: {
+    filter: "blur(0px)",
+    opacity: 1,
+    transition: { duration: SWITCH_S, ease: EASE_OUT },
+    x: 0,
+  },
+  // The arriving menu starts on the side it's coming from, unblurred.
+  enter: (direction: Direction) => ({
+    filter: "blur(0px)",
+    opacity: 0,
+    x: SHIFT_PX * direction,
+  }),
+  // The leaving menu drifts the other way. `custom` comes from
+  // AnimatePresence, so a menu that's already exiting still gets the new
+  // direction.
+  exit: (direction: Direction) => ({
+    filter: "blur(3px)",
+    opacity: 0,
+    transition: { duration: SWITCH_S, ease: EASE_OUT },
+    x: -SHIFT_PX * direction,
+  }),
 };
 
-// Props every row takes so it can join the entrance.
-interface RowMotion {
-  // Position in its menu, for the stagger.
-  order: number;
-  entrance: Entrance;
-}
+// The shared active pill: something already on screen moving to a new row,
+// so a spring with no bounce (interruptible if you click again mid-move).
+const PILL_TRANSITION: Transition = {
+  bounce: 0,
+  duration: 0.25,
+  type: "spring",
+};
 
-const rowMotion = ({ entrance, order }: RowMotion) =>
-  entrance
-    ? {
-        className: cn(
-          "animate-in fade-in fill-mode-both ease-out-strong duration-300 motion-reduce:animate-none",
-          entrance.direction === "right"
-            ? "slide-in-from-right-3"
-            : "slide-in-from-left-3"
-        ),
-        style: {
-          animationDelay: `${ROW_START_MS + Math.min(order, MAX_STAGGER_ROWS) * ROW_STAGGER_MS}ms`,
-        },
-      }
-    : { className: undefined, style: undefined };
+// domMax carries layout animations (the pill's layoutId). Loaded lazily, the
+// same way as the components strip.
+const loadMotionFeatures = async () => {
+  const { domMax } = await import("motion/react");
+  return domMax;
+};
 
 // ─── Rows and groups ───────────────────────────────────────────────────────
 
@@ -181,82 +208,84 @@ const RailGroup = ({
   children,
   className,
   label,
-  motion,
 }: {
   children: React.ReactNode;
   className?: string;
   label?: string;
-  motion?: RowMotion;
-}) => {
-  const { className: enter, style } = motion
-    ? rowMotion(motion)
-    : { className: undefined, style: undefined };
-  return (
-    <SidebarGroup className={className}>
-      {label && (
-        <SidebarGroupLabel
-          style={style}
-          className={cn(
-            "text-muted-foreground border-l border-transparent font-medium",
-            enter
-          )}
-        >
-          {label}
-        </SidebarGroupLabel>
-      )}
-      <SidebarGroupContent>
-        <SidebarMenu>{children}</SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
-};
+}) => (
+  <SidebarGroup className={className}>
+    {label && (
+      <SidebarGroupLabel className="text-muted-foreground border-l border-transparent font-medium">
+        {label}
+      </SidebarGroupLabel>
+    )}
+    <SidebarGroupContent>
+      <SidebarMenu>{children}</SidebarMenu>
+    </SidebarGroupContent>
+  </SidebarGroup>
+);
+
+// The active row's fill is one shared element that glides between rows
+// (layoutId, one per menu so it never flies across a switch). The buttons'
+// own active fill is turned off so the pill is the only one. `isolate` keeps
+// the pill (z-index -1) inside the row, above the rail's background.
+const ACTIVE_ROW_CLS =
+  "isolate data-[active=true]:border-transparent data-[active=true]:bg-transparent";
+
+const ActivePill = ({ mode }: { mode: RailMode }) => (
+  <m.span
+    aria-hidden
+    layoutId={`rail-active-${mode}`}
+    // A numeric radius lets Motion undo the scale distortion while the pill
+    // changes width. 8 = rounded-md (--radius 0.625rem − 2px).
+    style={{ borderRadius: 8 }}
+    className="bg-accent border-accent absolute inset-0 -z-10 border"
+  />
+);
 
 // A link row, exactly like a docs sidebar page link. The stretched span
 // widens the hit area to the full menu width while the visible pill hugs
 // the text (w-fit in MENU_BUTTON_CLS).
 const RailLink = ({
-  entrance,
   href,
   icon: Icon,
   isActive = false,
   label,
+  mode,
   navBack = false,
   onNavigate,
-  order,
-}: RowMotion & {
+}: {
   href: string;
   icon: typeof Component;
   isActive?: boolean;
   label: string;
+  mode: RailMode;
   navBack?: boolean;
   onNavigate?: () => void;
-}) => {
-  const { className, style } = rowMotion({ entrance, order });
-  return (
-    <SidebarMenuItem className={className} style={style}>
-      <SidebarMenuButton
-        asChild
-        className={MENU_BUTTON_CLS}
-        isActive={isActive}
+}) => (
+  <SidebarMenuItem>
+    <SidebarMenuButton
+      asChild
+      className={cn(MENU_BUTTON_CLS, ACTIVE_ROW_CLS)}
+      isActive={isActive}
+    >
+      <Link
+        href={href}
+        aria-current={isActive ? "page" : undefined}
+        transitionTypes={[navBack ? "nav-back" : "nav-forward"]}
+        onClick={onNavigate}
       >
-        <Link
-          href={href}
-          aria-current={isActive ? "page" : undefined}
-          transitionTypes={[navBack ? "nav-back" : "nav-forward"]}
-          onClick={onNavigate}
-        >
-          <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
-          <Icon aria-hidden />
-          <span>{label}</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-};
+        {isActive && <ActivePill mode={mode} />}
+        <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
+        <Icon aria-hidden />
+        <span>{label}</span>
+      </Link>
+    </SidebarMenuButton>
+  </SidebarMenuItem>
+);
 
 interface MenuProps {
   active: LibraryId;
-  entrance: Entrance;
   libraries: LibraryTab[];
   onActiveChange: (id: LibraryId) => void;
   onNavigate?: () => void;
@@ -275,7 +304,6 @@ interface MenuProps {
 //   Site           drawer only (the top bar's nav on phones)
 const BrowseMenu = ({
   active,
-  entrance,
   libraries,
   onActiveChange,
   onNavigate,
@@ -283,22 +311,6 @@ const BrowseMenu = ({
   showSiteNav,
 }: MenuProps) => {
   const account = useAccountLink();
-  // Running row count for the stagger, top to bottom: libraries, resources,
-  // what's new, then the Changelog button.
-  let order = 0;
-  const next = () => {
-    const current = order;
-    order += 1;
-    return { entrance, order: current };
-  };
-  const changelogOrder =
-    // Library label + rows, Resources label + rows, What's new label + rows.
-    1 +
-    libraries.length +
-    1 +
-    RESOURCE_LINKS.length +
-    (railData.whatsNew.length > 0 ? 1 + railData.whatsNew.length : 0);
-  const changelogMotion = rowMotion({ entrance, order: changelogOrder });
 
   return (
     <>
@@ -306,25 +318,22 @@ const BrowseMenu = ({
           "Categories" (same 12px · 500 style), given the brand row above
           (pt-2.5 + h-9) and the browse page's md:pt-6 (browse-panels.tsx).
           Change one side, change the other. */}
-      <RailGroup label="Library" className="pt-6.5" motion={next()}>
+      <RailGroup label="Library" className="pt-6.5">
         {libraries.map((library) => {
           const Icon = LIBRARY_ICONS[library.id];
-          const { className, style } = rowMotion(next());
+          const selected = library.id === active;
           return (
-            <SidebarMenuItem
-              key={library.id}
-              className={className}
-              style={style}
-            >
+            <SidebarMenuItem key={library.id}>
               <SidebarMenuButton
-                className={MENU_BUTTON_CLS}
-                isActive={library.id === active}
-                aria-pressed={library.id === active}
+                className={cn(MENU_BUTTON_CLS, ACTIVE_ROW_CLS)}
+                isActive={selected}
+                aria-pressed={selected}
                 onClick={() => {
                   onActiveChange(library.id);
                   onNavigate?.();
                 }}
               >
+                {selected && <ActivePill mode="browse" />}
                 <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
                 <Icon aria-hidden />
                 <span>{library.label}</span>
@@ -334,27 +343,27 @@ const BrowseMenu = ({
         })}
       </RailGroup>
 
-      <RailGroup label="Resources" motion={next()}>
+      <RailGroup label="Resources">
         {RESOURCE_LINKS.map((link) => (
           <RailLink
             key={link.href}
             {...link}
-            {...next()}
+            mode="browse"
             onNavigate={onNavigate}
           />
         ))}
       </RailGroup>
 
       {railData.whatsNew.length > 0 && (
-        <RailGroup label="What's new" motion={next()}>
+        <RailGroup label="What's new">
           {railData.whatsNew.map((item) => (
             <RailLink
               key={item.key}
               href={item.href}
               icon={LIBRARY_ICONS[item.library]}
               label={item.name}
+              mode="browse"
               onNavigate={onNavigate}
-              {...next()}
             />
           ))}
         </RailGroup>
@@ -363,10 +372,7 @@ const BrowseMenu = ({
       {/* Changelog is a button, not a menu row: the one call to action in
           the list. px-1.5 + the button's own padding put its icon on the icon
           line; gap-2 puts its text on the label line. */}
-      <div
-        style={changelogMotion.style}
-        className={cn("px-1.5 pt-2 pb-4", changelogMotion.className)}
-      >
+      <div className="px-1.5 pt-2 pb-4">
         <Button
           asChild
           variant="outline"
@@ -387,20 +393,20 @@ const BrowseMenu = ({
       </div>
 
       {showSiteNav && (
-        <RailGroup label="Site" motion={next()}>
+        <RailGroup label="Site">
           {SITE_NAV.map((link) => (
             <RailLink
               key={link.href}
               {...link}
-              {...next()}
               icon={SITE_NAV_ICONS[link.href]}
+              mode="browse"
               onNavigate={onNavigate}
             />
           ))}
           <RailLink
             {...account}
-            {...next()}
             icon={account.href === ROUTES.DASHBOARD ? LayoutDashboard : LogIn}
+            mode="browse"
             onNavigate={onNavigate}
           />
         </RailGroup>
@@ -416,13 +422,7 @@ const BrowseMenu = ({
 //   <folders>      the docs folders' pages, as in the /docs sidebar
 //
 // The top-bar search filters it by page name while you're in docs.
-const DocsMenuView = ({
-  entrance,
-  onNavigate,
-  pathname,
-  query,
-  railData,
-}: MenuProps) => {
+const DocsMenuView = ({ onNavigate, pathname, query, railData }: MenuProps) => {
   const q = query.trim().toLowerCase();
   const matches = (name: string) => !q || name.toLowerCase().includes(q);
   const sections = railData.docs.sections.filter((link) => matches(link.name));
@@ -433,13 +433,6 @@ const DocsMenuView = ({
     }))
     .filter((group) => group.pages.length > 0);
 
-  let order = 0;
-  const next = () => {
-    const current = order;
-    order += 1;
-    return { entrance, order: current };
-  };
-
   return (
     <>
       <RailGroup className="pt-6.5 pb-0">
@@ -447,43 +440,43 @@ const DocsMenuView = ({
           href={ROUTES.HOME_NEW}
           icon={ArrowLeft}
           label="Library"
+          mode="docs"
           navBack
           onNavigate={onNavigate}
-          {...next()}
         />
       </RailGroup>
 
       {sections.length > 0 && (
-        <RailGroup label="Sections" motion={next()}>
+        <RailGroup label="Sections">
           {sections.map((link) => (
             <RailLink
               key={link.href}
               href={link.href}
               icon={DOCS_SECTION_ICONS[link.icon]}
               label={link.name}
+              mode="docs"
               isActive={
                 link.match === "exact"
                   ? pathname === link.href
                   : pathname.startsWith(link.href)
               }
               onNavigate={onNavigate}
-              {...next()}
             />
           ))}
         </RailGroup>
       )}
 
       {groups.map((group) => (
-        <RailGroup key={group.id} label={group.label} motion={next()}>
+        <RailGroup key={group.id} label={group.label}>
           {group.pages.map((page) => (
             <RailLink
               key={page.href}
               href={page.href}
               icon={group.kind === "components" ? Component : FileText}
               label={page.name}
+              mode="docs"
               isActive={pathname === page.href}
               onNavigate={onNavigate}
-              {...next()}
             />
           ))}
         </RailGroup>
@@ -504,56 +497,88 @@ const DocsMenuView = ({
   );
 };
 
-// ─── Track ─────────────────────────────────────────────────────────────────
+// ─── Menu switch ───────────────────────────────────────────────────────────
 
-// Both menus side by side in a 200%-wide track; the mode moves it by half
-// (transform only, 300ms ease-out-strong). Each menu scrolls on its own. The
-// hidden one is inert and faded, and its rows replay their entrance the next
-// time it comes in (keyed by the entrance generation). Reduced motion keeps
-// the switch instant.
-const MenuTrack = ({
+// Direction of the latest switch, updated during render (React's "store
+// info from previous renders" pattern) so the switch that caused it already
+// has it. The first render doesn't animate (initial={false}), so its value
+// doesn't matter.
+const useDirection = (mode: RailMode): Direction => {
+  const [direction, setDirection] = useState<Direction>(1);
+  const [previous, setPrevious] = useState(mode);
+  if (previous !== mode) {
+    setPrevious(mode);
+    setDirection(mode === "docs" ? 1 : -1);
+  }
+  return direction;
+};
+
+// The menu in view, swapped by AnimatePresence when the mode changes. When
+// focus was in the menu that's leaving (you activated one of its rows), it
+// moves to the new menu's first row, so keyboard users aren't dropped at the
+// top of the page. It has to be checked against the leaving menu, not just
+// "is focus lost": with popLayout that menu stays mounted for its 240ms exit,
+// so the focused row is still connected when the switch happens.
+const RailMenus = ({
+  instant,
   mode,
   ...props
-}: Omit<MenuProps, "entrance"> & { mode: RailMode }) => {
-  const entrance = useMenuEntrance(mode);
-  const panes: { id: RailMode; View: typeof BrowseMenu }[] = [
-    { View: BrowseMenu, id: "browse" },
-    { View: DocsMenuView, id: "docs" },
-  ];
+}: MenuProps & { instant: boolean; mode: RailMode }) => {
+  const reduce = useReducedMotion() ?? false;
+  const direction = useDirection(mode);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const firstRender = useRef(true);
+  const View = mode === "docs" ? DocsMenuView : BrowseMenu;
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const pane = scrollRef.current;
+    const incoming = pane?.querySelector<HTMLElement>(`[data-menu="${mode}"]`);
+    const focused = document.activeElement;
+    const inLeavingMenu =
+      focused instanceof HTMLElement &&
+      Boolean(pane?.contains(focused)) &&
+      !incoming?.contains(focused);
+    if (incoming && (inLeavingMenu || focused === document.body)) {
+      incoming
+        .querySelector<HTMLElement>("a, button")
+        ?.focus({ preventScroll: true });
+    }
+  }, [mode]);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="relative flex min-h-0 flex-1 flex-col">
       {/* Top fade, as in the docs sidebar: rows scroll under it. */}
       <div className="from-background via-background/80 to-background/50 pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-linear-to-b blur-xs" />
       <div
-        style={{
-          transform: mode === "docs" ? "translateX(-50%)" : "translateX(0)",
-          transitionDuration: `${TRACK_MS}ms`,
-        }}
-        className="ease-out-strong flex h-full w-[200%] transition-transform motion-reduce:transition-none"
+        ref={scrollRef}
+        className="no-scrollbar relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
       >
-        {panes.map(({ View, id }) => {
-          const shown = id === mode;
-          return (
-            <div
-              key={id}
-              inert={!shown}
-              aria-hidden={!shown}
-              className={cn(
-                "no-scrollbar ease-out-strong h-full w-1/2 overflow-x-hidden overflow-y-auto overscroll-contain transition-opacity duration-200 motion-reduce:transition-none",
-                shown ? "opacity-100" : "opacity-0"
-              )}
+        {/* Default transition for everything inside: the pill's glide.
+            Instant when the switch came from the keyboard (search + Enter):
+            keyboard actions don't animate. The menu variants carry their own
+            timing. */}
+        <MotionConfig transition={instant ? { duration: 0 } : PILL_TRANSITION}>
+          <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+            <m.div
+              key={mode}
+              data-menu={mode}
+              custom={direction}
+              variants={menuVariants}
+              initial={instant || reduce ? false : "enter"}
+              animate="center"
+              exit={instant || reduce ? undefined : "exit"}
+              // Each menu arrives scrolled to the top.
+              onAnimationStart={() => scrollRef.current?.scrollTo({ top: 0 })}
+              className="mx-auto flex w-(--sidebar-menu-width) flex-col"
             >
-              <div
-                // Replays the rows' entrance each time this menu comes in.
-                key={shown ? (entrance?.generation ?? 0) : "idle"}
-                className="mx-auto flex w-(--sidebar-menu-width) flex-col"
-              >
-                <View {...props} entrance={shown ? entrance : null} />
-              </div>
-            </div>
-          );
-        })}
+              <View {...props} />
+            </m.div>
+          </AnimatePresence>
+        </MotionConfig>
       </div>
       {/* Bottom fade, as in the docs sidebar. */}
       <div className="from-background via-background/80 to-background/50 pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-linear-to-t blur-xs" />
@@ -565,6 +590,8 @@ const MenuTrack = ({
 
 interface RailProps {
   active: LibraryId;
+  // Skip the switch animation (set when the switch came from the keyboard).
+  instant: boolean;
   libraries: LibraryTab[];
   mode: RailMode;
   onActiveChange: (id: LibraryId) => void;
@@ -577,18 +604,23 @@ interface RailProps {
 //
 //   brand                 pinned
 //   [search]              drawer only
-//   ─ menu track ─────────────────
+//   ─ menu ───────────────────────
 //   Browse or Docs menu   scrolls
 //   ──────────────────────────────
 //   Sponsor · theme · settings   pinned
 const RailBody = ({
-  mode,
+  layoutScope,
   onNavigate,
   search,
   showSiteNav = false,
   wide = false,
   ...props
 }: RailProps & {
+  // Namespaces the active pill's layoutId. The drawer is always mounted (only
+  // hidden on desktop), so without separate scopes the desktop pill and the
+  // drawer's pill share one layoutId and Motion crossfades the visible one
+  // out.
+  layoutScope: "rail" | "drawer";
   // Called after a pick, so the drawer can close.
   onNavigate?: () => void;
   search?: React.ReactNode;
@@ -600,51 +632,56 @@ const RailBody = ({
   // SidebarProvider supplies the context the Sidebar* primitives read.
   // `contents` keeps its wrapper div out of the layout.
   <SidebarProvider className="contents">
-    <div
-      className={cn(
-        "flex h-full flex-col",
-        wide
-          ? "[--sidebar-menu-width:--spacing(60)]"
-          : "[--sidebar-menu-width:--spacing(48)]"
-      )}
-    >
-      {/* Brand (and the drawer's search) sit in the menu's centred column.
-          pt-2.5 + the h-9 row centres "craftUI Pro" on the top bar's middle
-          line (header height 3.5rem → 1.75rem). */}
-      <div className="mx-auto flex w-(--sidebar-menu-width) shrink-0 flex-col gap-3 px-2 pt-2.5">
-        <Link
-          href={ROUTES.HOME}
-          transitionTypes={["nav-back"]}
-          className={cn(
-            TYPE.cardLabel,
-            "text-foreground focus-visible:ring-ring/50 flex h-9 items-center gap-2 rounded-md border border-transparent px-2 outline-none focus-visible:ring-[3px]"
-          )}
-        >
-          <LogoMark className="size-4" />
-          {SITE.NAME}
-        </Link>
-        {search}
-      </div>
+    <LazyMotion features={loadMotionFeatures}>
+      <MotionConfig reducedMotion="user">
+        <LayoutGroup id={layoutScope}>
+          <div
+            className={cn(
+              "flex h-full flex-col",
+              wide
+                ? "[--sidebar-menu-width:--spacing(60)]"
+                : "[--sidebar-menu-width:--spacing(48)]"
+            )}
+          >
+            {/* Brand (and the drawer's search) sit in the menu's centred
+              column. pt-2.5 + the h-9 row centres "craftUI Pro" on the top
+              bar's middle line (header height 3.5rem → 1.75rem). */}
+            <div className="mx-auto flex w-(--sidebar-menu-width) shrink-0 flex-col gap-3 px-2 pt-2.5">
+              <Link
+                href={ROUTES.HOME}
+                transitionTypes={["nav-back"]}
+                className={cn(
+                  TYPE.cardLabel,
+                  "text-foreground focus-visible:ring-ring/50 flex h-9 items-center gap-2 rounded-md border border-transparent px-2 outline-none focus-visible:ring-[3px]"
+                )}
+              >
+                <LogoMark className="size-4" />
+                {SITE.NAME}
+              </Link>
+              {search}
+            </div>
 
-      <MenuTrack
-        {...props}
-        mode={mode}
-        showSiteNav={showSiteNav}
-        onNavigate={onNavigate}
-      />
+            <RailMenus
+              {...props}
+              showSiteNav={showSiteNav}
+              onNavigate={onNavigate}
+            />
 
-      {/* Footer: pinned to the bottom, in the menu's column. px-1 plus the
-          Sponsor button's own padding puts the heart on the icon line. Below
-          sm the Sponsor link is an icon-only 2rem square (heart centred, not
-          padded), so the inset grows to px-2. */}
-      <div className="mx-auto flex w-(--sidebar-menu-width) shrink-0 items-center gap-1 border-l border-transparent px-1 pb-4 max-sm:px-2">
-        <SponsorLink />
-        <div className="ml-auto flex items-center gap-1">
-          <ModeSwitcher />
-          <SiteSettings />
-        </div>
-      </div>
-    </div>
+            {/* Footer: pinned to the bottom, in the menu's column. px-1 plus the
+              Sponsor button's own padding puts the heart on the icon line.
+              Below sm the Sponsor link is an icon-only 2rem square (heart
+              centred, not padded), so the inset grows to px-2. */}
+            <div className="mx-auto flex w-(--sidebar-menu-width) shrink-0 items-center gap-1 border-l border-transparent px-1 pb-4 max-sm:px-2">
+              <SponsorLink />
+              <div className="ml-auto flex items-center gap-1">
+                <ModeSwitcher />
+                <SiteSettings />
+              </div>
+            </div>
+          </div>
+        </LayoutGroup>
+      </MotionConfig>
+    </LazyMotion>
   </SidebarProvider>
 );
 
@@ -656,7 +693,7 @@ export const BrowseRail = (props: RailProps) => (
       aria-hidden
       className="via-border absolute top-12 right-0 bottom-0 w-px bg-linear-to-b from-transparent to-transparent"
     />
-    <RailBody {...props} />
+    <RailBody {...props} layoutScope="rail" />
   </aside>
 );
 
@@ -726,6 +763,7 @@ export const BrowseRailDrawer = ({
         </Button>
         <RailBody
           {...props}
+          layoutScope="drawer"
           showSiteNav
           wide
           onNavigate={() => onOpenChange(false)}
