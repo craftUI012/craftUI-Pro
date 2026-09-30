@@ -28,8 +28,8 @@ import React, {
   useSyncExternalStore,
 } from "react";
 
-import { AKTA_CSS } from "@/components/hero-templates/sections/akta-css";
 import { cn } from "@/lib/utils";
+import { AKTA_CSS } from "@/registry/new-york/akta-css";
 
 /* ---------------------------------------------------------------------------
  * akta-hero-01 — "technical drawing on white paper"

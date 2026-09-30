@@ -38,7 +38,9 @@ Help me understand how to use it. Be ready to explain concepts, give examples, o
 `
   )}`;
 
-const MENU_ITEMS: [string, (url: string) => React.ReactNode][] = [
+// Also used by the preview cards' "Copy for AI" menu (preview-copy-for-ai.tsx),
+// minus "markdown".
+export const MENU_ITEMS: [string, (url: string) => React.ReactNode][] = [
   [
     "markdown",
     (url) => (
@@ -171,7 +173,7 @@ export const DocsCopyPage = ({
     <Button
       variant="secondary"
       size="sm"
-      className="peer -ml-0.5 size-8 md:size-7 md:text-[0.8rem]"
+      className="peer size-8 md:size-7 md:text-[0.8rem]"
     >
       <ChevronDownIcon className="rotate-180 sm:rotate-0" />
     </Button>
@@ -179,7 +181,7 @@ export const DocsCopyPage = ({
 
   return (
     <Popover sounds>
-      <div className="group/buttons relative flex rounded-lg bg-secondary *:data-[slot=button]:focus-visible:relative *:data-[slot=button]:focus-visible:z-10">
+      <div className="group/buttons relative flex gap-1 rounded-lg bg-secondary *:data-[slot=button]:focus-visible:relative *:data-[slot=button]:focus-visible:z-10">
         <PopoverAnchor />
         <CopyButton
           value={copyValue}
@@ -207,7 +209,7 @@ export const DocsCopyPage = ({
         </DropdownMenu>
         <Separator
           orientation="vertical"
-          className="absolute top-1 right-8 z-0 h-6! bg-foreground/5! peer-focus-visible:opacity-0 sm:right-7 sm:h-5!"
+          className="absolute top-1 right-9 z-0 h-6! bg-foreground/5! peer-focus-visible:opacity-0 sm:right-8 sm:h-5!"
         />
         <PopoverTrigger asChild className="flex sm:hidden">
           {trigger}

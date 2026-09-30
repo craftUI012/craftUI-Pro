@@ -18,7 +18,15 @@ import { cn } from "@/lib/utils";
 const CARD_STAGGER_MS = 30;
 const MAX_STAGGER_STEPS = 6;
 
-const emptyMessage = (query: string, filtered: boolean) => {
+const emptyMessage = (
+  query: string,
+  filtered: boolean,
+  total: number,
+  noun: string
+) => {
+  if (total === 0) {
+    return `No ${noun} yet. They're on the way.`;
+  }
   if (!query) {
     return "Nothing matches these filters yet.";
   }
@@ -145,7 +153,12 @@ export const BrowseFeed = ({
       ) : (
         <div className="animate-in fade-in flex flex-col items-center gap-3 py-16 duration-200 motion-reduce:animate-none">
           <p className={cn(TYPE.cardBody, "text-muted-foreground text-center")}>
-            {emptyMessage(query, picked.length > 0)}
+            {emptyMessage(
+              query,
+              picked.length > 0,
+              orders[feed].length,
+              itemLabel.other
+            )}
           </p>
           {picked.length > 0 && (
             <Button variant="outline" size="sm" sound="click" onClick={clear}>

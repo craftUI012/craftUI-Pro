@@ -1,9 +1,13 @@
+import type * as React from "react";
+
 import { BrowseCard } from "@/components/new-hero-section/browse/browse-card";
 import { BrowseFeed } from "@/components/new-hero-section/browse/browse-feed";
 import { BrowseFiltersProvider } from "@/components/new-hero-section/browse/browse-filters";
 import { BrowseIndex } from "@/components/new-hero-section/browse/browse-index";
+import { BrowsePanels } from "@/components/new-hero-section/browse/browse-panels";
 import type { RailData } from "@/components/new-hero-section/browse/browse-rail";
 import { BrowseShell } from "@/components/new-hero-section/browse/browse-shell";
+import { buildDocsMenu } from "@/components/new-hero-section/data/docs-menu";
 import {
   feedOrders,
   getHomeData,
@@ -21,9 +25,19 @@ const EAGER_CARDS = 3;
 // How many of the newest items the rail's What's new lists.
 const WHATS_NEW_COUNT = 3;
 
-// Everything the rail shows, worked out once on the server from the same
-// cached data as the panels.
-const toRailData = (data: HomeData): RailData => ({
+// Everything the rail shows, worked out once on the server: the browse menu's
+// What's new (from the same cached data as the panels) and the docs menu
+// (from the docs source).
+const toRailData = (data: HomeData, docs = buildDocsMenu()): RailData => ({
+  docs,
+  // Each library as the docs rail lists it: its label from the registry
+  // data, and its docs pages (one row per page, even when a page holds
+  // several registry items, like the hero variants).
+  libraries: data.libraries.map((library) => ({
+    id: library.id,
+    label: library.label,
+    pages: docs.groups.find((group) => group.id === library.id)?.pages ?? [],
+  })),
   whatsNew: data.libraries
     .flatMap((library) =>
       library.items.map((item) => ({ item, library: library.id }))
@@ -87,26 +101,45 @@ const LibraryPanel = ({
   );
 };
 
-// Server entry for the new home page: a rail on the left (libraries with
-// counts, resource links), a slim top bar (search, site actions), then per
-// library a big index and a grid of preview cards with Latest / Most popular
-// tabs.
-//
-// The whole page is prerendered from cached data. Client JS covers only the
-// shell, rail and top bar (library, search and drawer state, site actions),
-// the index selection,
-// the feed (order + filter) and the button sounds.
-export const NewHome = async () => {
+// Server entry for the shell, used by app/(home)/layout.tsx: the rail
+// (browse and docs menus) and the top bar, around whatever route is open.
+// Both the layout and the browse page call getHomeData(); React `cache`
+// dedupes it within the render.
+export const NewHomeShell = async ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const data = await getHomeData();
 
   return (
     <BrowseShell
+      defaultLibrary={
+        data.libraries.find((library) => library.items.length > 0)?.id
+      }
       libraries={data.libraries.map(({ id, label, searchPlaceholder }) => ({
         id,
         label,
         searchPlaceholder,
       }))}
       railData={toRailData(data)}
+    >
+      {children}
+    </BrowseShell>
+  );
+};
+
+// Server entry for the browse page: per library a big index and a grid of
+// preview cards with Latest / Most popular tabs. Prerendered from cached
+// data; client JS covers the index selection, the feed (order + filter) and
+// the button sounds.
+export const NewHomeBrowse = async () => {
+  const data = await getHomeData();
+
+  // No page transition: the content swaps in place; only the rail animates.
+  return (
+    <BrowsePanels
+      order={data.libraries.map((library) => library.id)}
       panels={
         Object.fromEntries(
           data.libraries.map((library, index) => [

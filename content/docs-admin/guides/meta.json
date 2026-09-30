@@ -2,6 +2,7 @@
   "title": "Guides",
   "pages": [
     "adding-a-component",
+    "browse-page-and-filters",
     "writing-docs",
     "theming-and-styles",
     "sound-and-haptics",

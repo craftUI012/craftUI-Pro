@@ -39,8 +39,23 @@ description: Every field of the registry manifest and its items, with examples.
 | `cssVars`              | object   | `{ "theme": {}, "light": {}, "dark": {} }`, merged into the user's CSS variables                                                                                                |
 | `css`                  | object   | Raw CSS rules (`@keyframes`, `@layer` and so on) merged into the user's CSS                                                                                                     |
 | `docs`                 | string   | Message printed by the CLI after installing                                                                                                                                     |
-| `categories`           | string[] | For directory and search grouping                                                                                                                                               |
-| `meta`                 | object   | Free-form metadata                                                                                                                                                              |
+| `categories`           | string[] | For directory and search grouping, and **the home page's Categories filter**. Lowercase slugs                                                                                   |
+| `meta`                 | object   | Free-form metadata. This site reads `library`, `section`, `styles`, `publishedAt`, `docs`, `preview`, `popularity` and `pro` from it; see below                                 |
+
+## `meta` fields this site reads
+
+These are ignored by `shadcn build` and the CLI. The home page and the docs read them. The full guide, with examples, is [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
+
+| Field         | Required for the home page | Notes                                                                                                             |
+| ------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `library`     | yes                        | `"components"`, `"blocks"` or `"templates"` (shown as Sections). Without it, the item is left off the browse page |
+| `section`     | yes                        | Slug for the **Type** (**Primitives**) filter                                                                     |
+| `styles`      | yes                        | Slugs for the **Styles** filter                                                                                   |
+| `publishedAt` | yes                        | `YYYY-MM-DD`. Latest order, What's new                                                                            |
+| `docs`        | no                         | Docs page slug when it isn't `name` (variants sharing a page)                                                     |
+| `preview`     | no                         | Card screenshot path under `public/`                                                                              |
+| `popularity`  | no                         | Most popular order                                                                                                |
+| `pro`         | no                         | `true` puts the source behind the paywall                                                                         |
 
 ## `files[]`
 

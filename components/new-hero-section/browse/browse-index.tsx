@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 // grid is two columns and packs densely, so the one-column groups share the
 // first row.
 //
-// Every item rests in muted-foreground. The picked one (at most one per group)
-// turns foreground and slides a little right as a brand dot scales in beside
-// it. Only colour and transforms animate (200ms, ease-out-strong), and
-// reduced motion keeps just the colour change.
+// Every item is foreground. The picked one (at most one per group) slides a
+// little right as a brand dot scales in beside it; hovering an unpicked one
+// dims it slightly. Only colour and transforms animate (200ms,
+// ease-out-strong), and reduced motion keeps just the dot.
 //
 // Labels match the rail's group labels (12px · 500: cardCaption +
 // font-medium), so "Categories" and "Library" read as one row. Items are
@@ -66,10 +66,8 @@ export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
                     onClick={() => toggle(group.id, link.id)}
                     className={cn(
                       TYPE.headingSection,
-                      "focus-visible:ring-ring/50 relative rounded-sm text-left transition-colors duration-200 ease-out-strong outline-none focus-visible:ring-[3px] motion-reduce:transition-none",
-                      selected
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground/80"
+                      "focus-visible:ring-ring/50 text-foreground relative rounded-sm text-left transition-colors duration-200 ease-out-strong outline-none focus-visible:ring-[3px] motion-reduce:transition-none",
+                      !selected && "hover:text-foreground/80"
                     )}
                   >
                     <span

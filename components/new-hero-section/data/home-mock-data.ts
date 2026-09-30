@@ -103,7 +103,7 @@ const RAW: HomeData = {
         group("Styles", STYLES),
       ],
       itemLabel: { one: "component", other: "components" },
-      items: items(ROUTES.DOCS_COMPONENTS, [
+      items: items(`${ROUTES.DOCS}/components`, [
         [
           "Button",
           "Click sound, haptics and a brand shadow",
@@ -190,44 +190,36 @@ const RAW: HomeData = {
       searchPlaceholder: "Search blocks…",
     },
     {
+      // Shown as "Sections": what's here today are page sections, not full
+      // templates. The id (and the /docs/templates URLs) stay as they are.
       id: "templates",
-      index: [
-        group("Categories", [
-          "SaaS",
-          "Finance",
-          "Portfolio",
-          "Agency",
-          "Startup",
-        ]),
-        group(
-          "Pages",
-          [
-            "Landing",
-            "Pricing",
-            "Blog",
-            "About",
-            "Docs",
-            "Dashboard",
-            "Login",
-            "404",
-            "Changelog",
-            "Contact",
-          ],
-          2
-        ),
-        group("Styles", STYLES),
-      ],
-      itemLabel: { one: "template", other: "templates" },
-      items: items(ROUTES.TEMPLATE_PREVIEW, [
-        ["Ledger", "Business and personal banking", "2026-09-21", 760],
-        ["Orbit", "Spend management and corporate cards", "2026-09-14", 880],
-        ["Pulse", "Health data, in one place", "2026-09-26", 540],
-        ["Northstar", "Analytics for product teams", "2026-09-08", 620],
-        ["Folio", "A portfolio for designers", "2026-09-17", 410],
-        ["Relay", "Customer support inbox", "2026-09-01", 350],
+      // No index yet: real content is 3 sections (see registry/new-york),
+      // not enough to categorize meaningfully. Re-add groups once there's a
+      // real spread of templates to filter.
+      index: [],
+      itemLabel: { one: "section", other: "sections" },
+      items: items(`${ROUTES.DOCS}/templates`, [
+        [
+          "Hero section",
+          "Full marketing hero with a data panel cluster",
+          "2026-09-21",
+          760,
+        ],
+        [
+          "Benchmarks section",
+          "Four comparison metrics, each its own chart form",
+          "2026-09-14",
+          620,
+        ],
+        [
+          "Team section",
+          "Clustered avatar grid with a synced detail list",
+          "2026-09-08",
+          410,
+        ],
       ]),
-      label: "Templates",
-      searchPlaceholder: "Search templates…",
+      label: "Sections",
+      searchPlaceholder: "Search sections…",
     },
   ],
 };

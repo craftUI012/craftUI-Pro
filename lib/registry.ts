@@ -1,6 +1,18 @@
 import path from "node:path";
 
 import { readFileFromRoot } from "@/lib/read-file";
+import registry from "@/registry.json";
+
+// registry.json's own `meta`, e.g. `meta.pro` to gate an item behind a paid
+// plan (see ComponentPreview: a pro item shows the Paywall instead of its
+// source, regardless of whether the source file exists).
+export const getRegistryItemMeta = (
+  name: string
+): { pro?: boolean } | undefined =>
+  registry.items.find((item) => item.name === name)?.meta;
+
+export const getRegistryItemTitle = (name: string): string | undefined =>
+  registry.items.find((item) => item.name === name)?.title;
 
 export const readOptionalFromRoot = async (
   relativePath: string

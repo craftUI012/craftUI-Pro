@@ -5,12 +5,13 @@ description: Every URL the app serves, the proxy rewrites, redirects and respons
 
 ## Pages
 
-| URL                            | File                                        | Rendering                                                   |
-| ------------------------------ | ------------------------------------------- | ----------------------------------------------------------- |
-| `/`                            | `app/(app)/(root)/page.tsx`                 | static                                                      |
-| `/docs`, `/docs/*`             | `app/(app)/docs/[[...slug]]/page.tsx`       | static, one page per MDX file                               |
-| `/docs-admin`, `/docs-admin/*` | `app/(app)/docs-admin/[[...slug]]/page.tsx` | static, only when `environment=development` (otherwise 404) |
-| `/sponsor`                     | `app/(app)/sponsor/page.tsx`                | static                                                      |
+| URL                               | File                                                | Rendering                                                     |
+| --------------------------------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| `/`                               | `app/(home)/page.tsx`                               | static. The browse page, in the browse shell (rail + top bar) |
+| `/docs`, `/docs/*`                | `app/(home)/docs/[[...slug]]/page.tsx`              | static, one page per MDX file, in the browse shell            |
+| `/build-landing-pages-ui-library` | `app/(app)/build-landing-pages-ui-library/page.tsx` | static. The previous home page                                |
+| `/docs-admin`, `/docs-admin/*`    | `app/(app)/docs-admin/[[...slug]]/page.tsx`         | static, only when `environment=development` (otherwise 404)   |
+| `/sponsor`                        | `app/(app)/sponsor/page.tsx`                        | static                                                        |
 
 ## Route handlers and metadata routes
 
@@ -45,6 +46,7 @@ It's a **rewrite**, so the browser URL stays the same.
 
 - `/docs.mdx` goes to `/docs.md` (permanent)
 - `/docs/:path*.mdx` goes to `/docs/:path*.md` (permanent)
+- `/homepage-new` goes to `/`, and `/homepage-new/docs/:path*` goes to `/docs/:path*` (temporary, 307). These are the browse page's old URLs
 
 ## Headers (`next.config.mjs`)
 
@@ -53,6 +55,6 @@ It's a **rewrite**, so the browser URL stays the same.
 ## Adding a new route
 
 1. Add the path to `ROUTES` in `constants/routes.ts`.
-2. Create the folder under `app/(app)/` if it needs the header and footer, or directly under `app/` if it doesn't.
+2. Create the folder under `app/(app)/` if it needs the header and footer, under `app/(home)/` if it belongs in the browse shell (rail + top bar), or directly under `app/` if it needs neither.
 3. If it should appear in the navbar, add it to `navItems` in `components/site-header.tsx`. That list also feeds `MobileNav` and `CommandMenu`.
 4. If it's public, add it to `app/sitemap.ts`.

@@ -1,4 +1,7 @@
-export { NewHome } from "@/components/new-hero-section/browse/new-home";
+export {
+  NewHomeBrowse,
+  NewHomeShell,
+} from "@/components/new-hero-section/browse/new-home";
 export {
   HOME_CACHE_TAG,
   getHomeData,

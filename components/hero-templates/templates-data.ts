@@ -4,7 +4,7 @@
 // sections/index.ts, and is shown inside the device mockups through an
 // iframe so its own breakpoints apply.
 export const TEMPLATES = [
-  { label: "Features section", slug: "features" },
+  { label: "Benchmarks section", slug: "benchmarks" },
   { label: "Hero section", slug: "hero" },
   { label: "My team section", slug: "team" },
 ] as const;

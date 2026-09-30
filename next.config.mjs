@@ -40,6 +40,14 @@ const nextConfig = {
   },
   redirects() {
     return [
+      // The browse page and its docs moved from /homepage-new to / and /docs.
+      // Temporary (307) for now, so browsers don't cache it.
+      { destination: ROUTES.HOME, permanent: false, source: "/homepage-new" },
+      {
+        destination: `${ROUTES.DOCS}/:path*`,
+        permanent: false,
+        source: "/homepage-new/docs/:path*",
+      },
       {
         destination: `${ROUTES.DOCS}.md`,
         permanent: true,

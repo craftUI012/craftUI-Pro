@@ -3,8 +3,10 @@ export const ROUTES = {
   AGENT_SKILLS_SITE_SKILL: "/.well-known/agent-skills/site-skill.md",
   API_CATALOG: "/.well-known/api-catalog",
   API_STATUS: "/api/status",
-  // No page yet; linked from the /homepage-new top bar.
+  // No page yet; linked from the home page's top bar.
   BLOG: "/blog",
+  // The previous home page (hero, templates, features, blocks, components).
+  BUILD_LANDING_PAGES: "/build-landing-pages-ui-library",
   // Changelog entries live under content/docs/changelog (see lib/changelog.ts
   // and the RSS feed). No index page or entries yet.
   CHANGELOG: "/docs/changelog",
@@ -12,10 +14,11 @@ export const ROUTES = {
   DESIGN_ADMIN: "/design-admin",
   DOCS: "/docs",
   DOCS_ADMIN: "/docs-admin",
+  DOCS_BLOCKS: "/docs/blocks",
   DOCS_COMPONENTS: "/docs/components",
   DOCS_INSTALLATION: "/docs/installation",
+  DOCS_TEMPLATES: "/docs/templates",
   HOME: "/",
-  HOME_NEW: "/homepage-new",
   LLMS: "/llms.txt",
   LLMS_FULL: "/llms-full.txt",
   LLMS_MD: "/llms.md",

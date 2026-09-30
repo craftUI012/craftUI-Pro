@@ -4,6 +4,7 @@ import { Menu, SearchIcon } from "lucide-react";
 import Link from "next/link";
 
 import { LogoMark } from "@/components/logo";
+import type { RailMode } from "@/components/new-hero-section/browse/browse-rail";
 import type { LibraryId } from "@/components/new-hero-section/data/home-types";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -45,16 +46,19 @@ export const useAccountLink = () => {
 
 // Search field styled like the site header's docs search button (h-8,
 // bg-surface, ⌘K hint), with TYPE.cardLabel text like the drawer's search.
-// It's a real input that filters the grid as you type, and Escape clears it.
+// It's a real input: it filters the grid (browse) or the docs menu (docs) as
+// you type, Enter opens the first docs match, and Escape clears it.
 // Desktop only; on phones the drawer has its own.
 const BrowseSearch = ({
   inputRef,
   onQueryChange,
+  onSubmit,
   placeholder,
   query,
 }: {
   inputRef: React.RefObject<HTMLInputElement | null>;
   onQueryChange: (query: string) => void;
+  onSubmit: () => void;
   placeholder: string;
   query: string;
 }) => {
@@ -75,6 +79,8 @@ const BrowseSearch = ({
             if (event.key === "Escape") {
               onQueryChange("");
               event.currentTarget.blur();
+            } else if (event.key === "Enter") {
+              onSubmit();
             }
           }}
           className={cn(
@@ -106,16 +112,22 @@ export const BrowseTopBar = ({
   drawerOpen,
   inputRef,
   libraries,
+  mode,
   onMenuOpen,
   onQueryChange,
+  onSubmitSearch,
+  placeholder,
   query,
 }: {
   active: LibraryId;
   drawerOpen: boolean;
   inputRef: React.RefObject<HTMLInputElement | null>;
   libraries: LibraryTab[];
+  mode: RailMode;
   onMenuOpen: () => void;
   onQueryChange: (query: string) => void;
+  onSubmitSearch: () => void;
+  placeholder: string;
   query: string;
 }) => {
   const library = libraries.find((item) => item.id === active);
@@ -137,15 +149,16 @@ export const BrowseTopBar = ({
         </Button>
         <LogoMark className="size-5" />
         <span className={cn(TYPE.cardHeader, "max-sm:sr-only")}>
-          {library?.label}
+          {mode === "docs" ? "Docs" : library?.label}
         </span>
       </div>
 
       <BrowseSearch
         inputRef={inputRef}
-        placeholder={library?.searchPlaceholder ?? "Search…"}
+        placeholder={placeholder}
         query={query}
         onQueryChange={onQueryChange}
+        onSubmit={onSubmitSearch}
       />
 
       <div className="ml-auto flex items-center gap-1">
