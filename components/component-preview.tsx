@@ -52,7 +52,7 @@ export const ComponentPreview = async ({
       <div className="flex min-h-full items-center justify-center p-6">
         <Paywall
           className="w-full max-w-sm"
-          description="This template's source is part of craftUI Pro. Get lifetime or yearly all-access, or buy just this template."
+          description="This template's source is part of craftUI Pro. Get lifetime or yearly all-access."
           title="Unlock this template's source"
         />
       </div>
