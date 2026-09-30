@@ -55,11 +55,11 @@ const BrowseLibraryContext = createContext<LibraryId>("components");
 export const useActiveLibrary = () => use(BrowseLibraryContext);
 
 // Which menu the rail shows comes from the URL: anything under
-// ROUTES.HOME_NEW_DOCS is the docs view, everything else is browse.
+// ROUTES.DOCS is the docs view, everything else is browse.
 const modeOf = (pathname: string): RailMode =>
-  pathname.startsWith(ROUTES.HOME_NEW_DOCS) ? "docs" : "browse";
+  pathname.startsWith(ROUTES.DOCS) ? "docs" : "browse";
 
-// Client shell, rendered by app/homepage-new/layout.tsx. Because it lives in
+// Client shell, rendered by app/(home)/layout.tsx. Because it lives in
 // the layout, the rail and top bar stay mounted when the route changes
 // between the browse page and the docs pages, so the rail can animate from
 // one menu to the other instead of the whole page reloading.
@@ -70,10 +70,13 @@ const modeOf = (pathname: string): RailMode =>
 // bar.
 export const BrowseShell = ({
   children,
+  defaultLibrary,
   libraries,
   railData,
 }: {
   children: React.ReactNode;
+  // The library the browse page opens on (the first one with items).
+  defaultLibrary?: LibraryId;
   libraries: LibraryTab[];
   railData: RailData;
 }) => {
@@ -81,7 +84,7 @@ export const BrowseShell = ({
   const router = useRouter();
   const mode = modeOf(pathname);
   const [active, setActive] = useState<LibraryId>(
-    libraries[0]?.id ?? "components"
+    defaultLibrary ?? libraries[0]?.id ?? "components"
   );
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);

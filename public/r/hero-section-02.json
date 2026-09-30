@@ -1,0 +1,29 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "hero-section-02",
+  "title": "Hero section 02",
+  "description": "Split hero: headline and CTAs beside a drawn product panel. Mock layout.",
+  "files": [
+    {
+      "path": "registry/new-york/hero-section-02.tsx",
+      "content": "import { ArrowRight, Check, Sparkles } from \"lucide-react\";\nimport Link from \"next/link\";\n\nimport { cn } from \"@/lib/utils\";\n\n// MOCK HERO, for the hero gallery layout only. A split hero: copy and two\n// CTAs on the left, a drawn product panel on the right (no images, so it\n// renders anywhere). Colours are the host's semantic tokens, so it follows\n// the site's light/dark theme. Replace with a real design when one lands.\n\nconst POINTS = [\"Copy-paste source\", \"Light and dark\", \"Keyboard ready\"];\n\nconst BARS = [42, 64, 38, 80, 56, 92, 70];\n\nconst HeroSection02 = ({ className }: { className?: string }) => (\n  <section\n    className={cn(\n      \"bg-background text-foreground w-full px-6 py-16 sm:px-10 md:py-24\",\n      className\n    )}\n  >\n    <div className=\"mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2\">\n      <div className=\"flex flex-col items-start gap-6\">\n        <span className=\"bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium\">\n          <Sparkles aria-hidden className=\"size-3.5\" />\n          New in v2\n        </span>\n        <h2 className=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">\n          Ship polished interfaces without starting from zero\n        </h2>\n        <p className=\"text-muted-foreground max-w-md text-base text-pretty sm:text-lg\">\n          Sections, blocks and components built to drop into a real product,\n          tuned for motion, sound and every screen size.\n        </p>\n        <div className=\"flex flex-wrap gap-3\">\n          <Link\n            href=\"/docs/installation\"\n            className=\"bg-primary text-primary-foreground inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-medium\"\n          >\n            Get started\n            <ArrowRight aria-hidden className=\"size-4\" />\n          </Link>\n          <Link\n            href=\"/docs\"\n            className=\"border-border inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium\"\n          >\n            Browse library\n          </Link>\n        </div>\n        <ul className=\"text-muted-foreground flex flex-wrap gap-x-5 gap-y-2 text-sm\">\n          {POINTS.map((point) => (\n            <li key={point} className=\"flex items-center gap-1.5\">\n              <Check aria-hidden className=\"text-foreground size-4\" />\n              {point}\n            </li>\n          ))}\n        </ul>\n      </div>\n\n      <div\n        aria-hidden\n        className=\"border-border bg-card rounded-xl border p-5 shadow-sm\"\n      >\n        <div className=\"flex items-center gap-1.5 pb-4\">\n          <span className=\"bg-muted size-2.5 rounded-full\" />\n          <span className=\"bg-muted size-2.5 rounded-full\" />\n          <span className=\"bg-muted size-2.5 rounded-full\" />\n        </div>\n        <div className=\"grid grid-cols-3 gap-3\">\n          {[\"Revenue\", \"Users\", \"Uptime\"].map((label, i) => (\n            <div key={label} className=\"bg-muted/60 rounded-lg p-3\">\n              <p className=\"text-muted-foreground text-xs\">{label}</p>\n              <p className=\"pt-1 text-lg font-semibold\">\n                {[\"$48.2k\", \"12,940\", \"99.98%\"][i]}\n              </p>\n            </div>\n          ))}\n        </div>\n        <div className=\"bg-muted/60 mt-3 flex h-40 items-end gap-2 rounded-lg p-4\">\n          {BARS.map((height, i) => (\n            <div\n              // Static mock data: index is a stable key.\n              // oxlint-disable-next-line no-array-index-key\n              key={i}\n              className=\"bg-primary/80 flex-1 rounded-sm\"\n              style={{ height: `${height}%` }}\n            />\n          ))}\n        </div>\n      </div>\n    </div>\n  </section>\n);\n\nexport default HeroSection02;\n",
+      "type": "registry:block",
+      "target": "components/blocks/hero-section-02.tsx"
+    }
+  ],
+  "meta": {
+    "pro": false,
+    "library": "templates",
+    "section": "hero",
+    "styles": [
+      "minimal",
+      "dark-mode"
+    ],
+    "publishedAt": "2026-09-30",
+    "docs": "hero-section"
+  },
+  "categories": [
+    "marketing"
+  ],
+  "type": "registry:block"
+}

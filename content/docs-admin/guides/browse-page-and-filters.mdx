@@ -1,0 +1,154 @@
+---
+title: Browse page and filters
+description: How a registry item gets onto the home page, which filter groups it shows up in, and the metadata every new item needs.
+---
+
+The home page (`/`) is a browse page: pick a library in the rail (**Components**, **Blocks**, **Sections**), filter by the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
+
+**Everything on it comes from `registry.json`.** No list of cards, categories or filters lives in code. Add an item with the right metadata and it shows up, with its filters, the next time the page renders.
+
+<Callout title="Always add this metadata">
+  Every item meant for users (a component, a block or a section) needs
+  `categories` and a `meta` block with at least `library`, `section`, `styles`
+  and `publishedAt`. Without `meta.library` the item stays off the browse page
+  entirely.
+</Callout>
+
+## The fields
+
+```json
+{
+  "name": "hero-section-02",
+  "type": "registry:block",
+  "title": "Hero section 02",
+  "description": "Split hero: headline and CTAs beside a drawn product panel.",
+  "categories": ["marketing"],
+  "meta": {
+    "library": "templates",
+    "section": "hero",
+    "styles": ["minimal", "dark-mode"],
+    "publishedAt": "2026-09-30",
+    "docs": "hero-section",
+    "pro": false
+  },
+  "files": [
+    {
+      "path": "registry/new-york/hero-section-02.tsx",
+      "type": "registry:block",
+      "target": "components/blocks/hero-section-02.tsx"
+    }
+  ]
+}
+```
+
+| Field              | Required | Drives                                                                                                      |
+| ------------------ | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `categories`       | yes      | The **Categories** filter group (the category)                                                              |
+| `meta.library`     | yes      | Which library tab the card is in: `"components"`, `"blocks"` or `"templates"` (shown as **Sections**)       |
+| `meta.section`     | yes      | The **Type** filter group (the subcategory). It's labelled **Primitives** in Components                     |
+| `meta.styles`      | yes      | The **Styles** filter group. An item can carry several                                                      |
+| `meta.publishedAt` | yes      | ISO date (`YYYY-MM-DD`). Sorts **Latest** and picks the rail's **What's new**                               |
+| `title`            | yes      | The card's name                                                                                             |
+| `description`      | yes      | The card's one-line tagline (it's truncated, so lead with the point)                                        |
+| `meta.docs`        | no       | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)          |
+| `meta.preview`     | no       | Card screenshot, a path under `public/` (16:10, 1600px wide). A placeholder image is used until it's set    |
+| `meta.popularity`  | no       | Sorts **Most popular**. Until there's install data, every item counts as 0 and the tab falls back to newest |
+| `meta.pro`         | no       | `true` puts the item behind the paywall: no source in the Code tab, and **Copy for AI** is locked           |
+
+## Category, type and style values
+
+- **Use lowercase slugs**: `"marketing"`, `"dark-mode"`, `"sign-in"`.
+- The label is the slug in sentence case: `dark-mode` shows as **Dark mode**.
+- When sentence case isn't right (for example **Sound & haptics**), add the slug to `LABELS` in `components/new-hero-section/data/registry-home-data.ts`.
+- **Reuse existing values** before inventing new ones. Each new value adds a filter to the index, so `marketing` and `marketing-pages` would show up as two filters. Check what's in use first:
+
+  ```bash
+  node -e 'const r=require("./registry.json");for(const k of ["categories","section","styles"])console.log(k,[...new Set(r.items.flatMap(i=>k==="categories"?i.categories??[]:[].concat(i.meta?.[k]??[])))])'
+  ```
+
+- A filter group only appears once at least one item in that library uses it. A group with more than 5 values splits into two columns.
+
+Values in use today:
+
+| Group      | Values                           |
+| ---------- | -------------------------------- |
+| Categories | `marketing`, `company`           |
+| Type       | `hero`, `stats`, `team`          |
+| Styles     | `motion`, `dark-mode`, `minimal` |
+
+Only tag a style the item really has. For example, use `motion` only if it animates, and `dark-mode` only if it has dark styles or uses theme tokens.
+
+## Where a card links
+
+A card opens `/docs/<meta.library>/<page>`, where `<page>` is `meta.docs` or, by default, the item's `name`.
+
+**A card is only created if that docs page exists.** An item without its MDX page is silently left off the grid, so a card never leads to a 404. If a new item doesn't show up, check its docs page first.
+
+## Variants on one page
+
+Several items can share one docs page. For example, every hero is on `/docs/templates/hero-section`, one preview below the other. For each extra variant:
+
+1. Set `meta.docs` to the shared page's slug (`"hero-section"`).
+2. Add a heading and a preview for it on that page:
+
+   ```mdx
+   import HeroSection02 from "@/registry/new-york/hero-section-02";
+
+   ## Split with product panel
+
+   <ComponentPreview name="hero-section-02">
+     <HeroSection02 />
+   </ComponentPreview>
+   ```
+
+The card then links to `/docs/templates/hero-section#hero-section-02`. Each preview has its item's `name` as its `id`, so the page scrolls to it. The item gets its own card and its own filters, while the docs rail lists the page only once.
+
+## Checklist for a new item
+
+<Steps>
+
+<Step>Write the source</Step>
+
+`registry/new-york/<name>.tsx`. See [Adding a component](/docs-admin/guides/adding-a-component) for the rules.
+
+<Step>Register it with its browse metadata</Step>
+
+In `registry.json`, add the item with `categories` and `meta.library`, `meta.section`, `meta.styles` and `meta.publishedAt`, plus `meta.docs` if it's a variant.
+
+<Step>Build the registry</Step>
+
+```bash
+pnpm registry:build
+```
+
+<Step>Add or extend its docs page</Step>
+
+`content/docs/<library>/<page>.mdx`, with a `<ComponentPreview name="<name>">`. For a new page, list it in `content/docs/<library>/meta.json`.
+
+<Step>Check the home page</Step>
+
+On `/`, pick the library, then check that:
+
+- the card shows up and the count is right;
+- each of its category, type and style filters keeps it;
+- the card opens the right page (and the right preview for a variant).
+
+</Steps>
+
+## How it's wired
+
+| File                                                     | Role                                                                                            |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `components/new-hero-section/data/registry-home-data.ts` | Reads `registry.json`, builds each library's filter groups and cards. Library labels live here  |
+| `components/new-hero-section/data/get-home-data.ts`      | Caches the result. The cache key includes a hash of the registry, so edits show up on their own |
+| `components/new-hero-section/browse/browse-index.tsx`    | The filter index above the grid                                                                 |
+| `components/new-hero-section/browse/browse-feed.tsx`     | Filters and orders the cards on the client                                                      |
+| `components/new-hero-section/browse/browse-rail.tsx`     | The rail. In docs, it expands the library you're in to its pages                                |
+
+An item matches when it has **every** picked filter (one pick per group). In code, each item carries tags like `categories:marketing`, `sections:hero` and `styles:minimal`.
+
+<Callout title="Changing the data's shape">
+  Editing `registry.json` needs no cache bump. Changing the `HomeData` type
+  does: bump `HOME_DATA_VERSION` in `get-home-data.ts`, or pages keep the old
+  shape from the Data Cache.
+</Callout>

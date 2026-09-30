@@ -15,6 +15,145 @@
           "target": "components/ui/your-component.tsx"
         }
       ]
+    },
+    {
+      "name": "akta-css",
+      "type": "registry:lib",
+      "title": "Akta CSS",
+      "description": "Shared akta-* CSS (notches, hatch fill, rolling labels, entrance keyframes) used by the hero and benchmarks sections.",
+      "files": [
+        {
+          "path": "registry/new-york/akta-css.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/akta-css.ts"
+        }
+      ]
+    },
+    {
+      "name": "avatar-grid",
+      "type": "registry:component",
+      "title": "Avatar grid",
+      "description": "Clustered avatar grid with a synced role list, used by the team section.",
+      "files": [
+        {
+          "path": "components/craftui/blocks/avatar/default.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/avatar-grid.tsx"
+        }
+      ]
+    },
+    {
+      "name": "hero-section",
+      "type": "registry:block",
+      "title": "Hero section",
+      "description": "Full marketing hero with a data panel cluster, rolling CTAs and a scroll-cycling logo wall.",
+      "categories": [
+        "marketing"
+      ],
+      "meta": {
+        "pro": true,
+        "library": "templates",
+        "section": "hero",
+        "styles": [
+          "motion",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-09-21"
+      },
+      "registryDependencies": [
+        "akta-css"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york/hero-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/hero-section.tsx"
+        }
+      ]
+    },
+    {
+      "name": "hero-section-02",
+      "type": "registry:block",
+      "title": "Hero section 02",
+      "description": "Split hero: headline and CTAs beside a drawn product panel. Mock layout.",
+      "categories": [
+        "marketing"
+      ],
+      "meta": {
+        "pro": false,
+        "library": "templates",
+        "section": "hero",
+        "styles": [
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-09-30",
+        "docs": "hero-section"
+      },
+      "files": [
+        {
+          "path": "registry/new-york/hero-section-02.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/hero-section-02.tsx"
+        }
+      ]
+    },
+    {
+      "name": "benchmarks-section",
+      "type": "registry:block",
+      "title": "Benchmarks section",
+      "description": "Four comparison metrics against competitors, each drawn as its own chart form (isometric bars, unit field, radar, stacked slabs).",
+      "categories": [
+        "marketing"
+      ],
+      "meta": {
+        "pro": false,
+        "library": "templates",
+        "section": "stats",
+        "styles": [
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-09-14"
+      },
+      "registryDependencies": [
+        "akta-css"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york/benchmarks-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/benchmarks-section.tsx"
+        }
+      ]
+    },
+    {
+      "name": "team-section",
+      "type": "registry:block",
+      "title": "Team section",
+      "description": "Team roster: a clustered avatar grid synced to a role/bio detail list.",
+      "categories": [
+        "company"
+      ],
+      "meta": {
+        "pro": false,
+        "library": "templates",
+        "section": "team",
+        "styles": [
+          "motion"
+        ],
+        "publishedAt": "2026-09-08"
+      },
+      "registryDependencies": [
+        "avatar-grid"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york/team-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/team-section.tsx"
+        }
+      ]
     }
   ]
 }

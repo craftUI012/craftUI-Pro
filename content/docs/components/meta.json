@@ -1,4 +1,13 @@
 {
   "title": "Components",
-  "pages": ["index", "your-component"]
+  "pages": [
+    "index",
+    "your-component",
+    "button",
+    "input",
+    "select",
+    "switch",
+    "slider",
+    "calendar"
+  ]
 }

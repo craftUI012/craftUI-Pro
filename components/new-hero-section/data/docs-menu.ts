@@ -5,10 +5,9 @@ import { EXCLUDED_SECTIONS, isComponentsFolder } from "@/lib/docs";
 import { getAllPagesFromFolder, getPagesFromFolder } from "@/lib/page-tree";
 import { source } from "@/lib/source";
 
-// The /docs sidebar's menu, rebuilt for the /homepage-new shell: same
-// sections and groups as components/docs-sidebar.tsx, with every docs link
-// moved under ROUTES.HOME_NEW_DOCS so the reader stays in the shell. Server
-// only (reads the fumadocs source); the result is plain JSON for the rail.
+// The docs menu for the browse shell's rail: the same sections and groups as
+// components/docs-sidebar.tsx. Server only (reads the fumadocs source); the
+// result is plain JSON for the rail.
 
 export type DocsSectionIcon =
   | "introduction"
@@ -36,11 +35,6 @@ export interface DocsMenu {
   }[];
 }
 
-export const toShellDocsHref = (url: string) =>
-  url.startsWith(ROUTES.DOCS)
-    ? `${ROUTES.HOME_NEW_DOCS}${url.slice(ROUTES.DOCS.length)}`
-    : url;
-
 // Page-tree names can be React nodes; the rail only needs their text.
 const nameOf = (name: PageTreeNode["name"]) =>
   typeof name === "string" ? name : String(name ?? "");
@@ -65,7 +59,7 @@ export const buildDocsMenu = (): DocsMenu => ({
         kind: components ? ("components" as const) : ("pages" as const),
         label: nameOf(item.name),
         pages: pages.map((page) => ({
-          href: toShellDocsHref(page.url),
+          href: page.url,
           name: nameOf(page.name),
         })),
       },
@@ -75,19 +69,19 @@ export const buildDocsMenu = (): DocsMenu => ({
   // keeps its own URL.
   sections: [
     {
-      href: ROUTES.HOME_NEW_DOCS,
+      href: ROUTES.DOCS,
       icon: "introduction",
       match: "exact",
       name: "Introduction",
     },
     {
-      href: toShellDocsHref(ROUTES.DOCS_INSTALLATION),
+      href: ROUTES.DOCS_INSTALLATION,
       icon: "installation",
       match: "prefix",
       name: "Installation",
     },
     {
-      href: toShellDocsHref(ROUTES.DOCS_COMPONENTS),
+      href: ROUTES.DOCS_COMPONENTS,
       icon: "components",
       match: "prefix",
       name: "Components",

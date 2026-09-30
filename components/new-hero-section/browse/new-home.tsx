@@ -28,8 +28,16 @@ const WHATS_NEW_COUNT = 3;
 // Everything the rail shows, worked out once on the server: the browse menu's
 // What's new (from the same cached data as the panels) and the docs menu
 // (from the docs source).
-const toRailData = (data: HomeData): RailData => ({
-  docs: buildDocsMenu(),
+const toRailData = (data: HomeData, docs = buildDocsMenu()): RailData => ({
+  docs,
+  // Each library as the docs rail lists it: its label from the registry
+  // data, and its docs pages (one row per page, even when a page holds
+  // several registry items, like the hero variants).
+  libraries: data.libraries.map((library) => ({
+    id: library.id,
+    label: library.label,
+    pages: docs.groups.find((group) => group.id === library.id)?.pages ?? [],
+  })),
   whatsNew: data.libraries
     .flatMap((library) =>
       library.items.map((item) => ({ item, library: library.id }))
@@ -93,7 +101,7 @@ const LibraryPanel = ({
   );
 };
 
-// Server entry for the shell, used by app/homepage-new/layout.tsx: the rail
+// Server entry for the shell, used by app/(home)/layout.tsx: the rail
 // (browse and docs menus) and the top bar, around whatever route is open.
 // Both the layout and the browse page call getHomeData(); React `cache`
 // dedupes it within the render.
@@ -106,6 +114,9 @@ export const NewHomeShell = async ({
 
   return (
     <BrowseShell
+      defaultLibrary={
+        data.libraries.find((library) => library.items.length > 0)?.id
+      }
       libraries={data.libraries.map(({ id, label, searchPlaceholder }) => ({
         id,
         label,

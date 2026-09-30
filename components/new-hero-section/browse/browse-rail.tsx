@@ -84,6 +84,14 @@ export type RailMode = "browse" | "docs";
 // View data for the rail, worked out on the server (see new-home.tsx).
 export interface RailData {
   docs: DocsMenu;
+  // Each library: its label (from the registry data, same as the browse
+  // grid) and its docs pages. The docs rail expands the library you're
+  // reading from this.
+  libraries: {
+    id: LibraryId;
+    label: string;
+    pages: DocsMenuLink[];
+  }[];
   // The newest items across every library.
   // WHEN WE SHIP REAL DATA: item.meta.publishedAt.
   whatsNew: { key: string; name: string; href: string; library: LibraryId }[];
@@ -103,9 +111,9 @@ export const filterDocsMenu = (docs: DocsMenu, query: string) => {
 // The browse menu's Docs links open the docs inside this shell, so the rail
 // switches to the docs menu rather than leaving for /docs.
 const RESOURCE_LINKS = [
-  { href: ROUTES.HOME_NEW_DOCS, icon: BookOpen, label: "Docs" },
+  { href: ROUTES.DOCS, icon: BookOpen, label: "Docs" },
   {
-    href: `${ROUTES.HOME_NEW_DOCS}/installation`,
+    href: `${ROUTES.DOCS}/installation`,
     icon: Rocket,
     label: "Installation",
   },
@@ -418,26 +426,49 @@ const BrowseMenu = ({
 // ─── Docs menu ─────────────────────────────────────────────────────────────
 
 //   ← Library      back to the browse menu (and the browse page)
-//   Sections       Introduction, Installation, Components, llms.txt
-//   <folders>      the docs folders' pages, as in the /docs sidebar
+//   Get started    Introduction, Installation, then every library, one row
+//                  each (linking to its first page)
+//   <Library>      the library you're reading (e.g. Sections): its pages
+//   (More)         the remaining sections (Components overview, llms.txt);
+//                  commented out for now
 //
-// The top-bar search filters it by page name while you're in docs.
+// Libraries come from railData.libraries (the library data, same as the
+// browse grid), so nothing here is hard-coded per library. The top-bar
+// search filters it by name while you're in docs.
+const GET_STARTED_ICONS = new Set<DocsSectionIcon>([
+  "introduction",
+  "installation",
+]);
+
 const DocsMenuView = ({ onNavigate, pathname, query, railData }: MenuProps) => {
   const q = query.trim().toLowerCase();
   const matches = (name: string) => !q || name.toLowerCase().includes(q);
   const sections = railData.docs.sections.filter((link) => matches(link.name));
-  const groups = railData.docs.groups
-    .map((group) => ({
-      ...group,
-      pages: group.pages.filter((page) => matches(page.name)),
+  const getStarted = sections.filter((link) =>
+    GET_STARTED_ICONS.has(link.icon)
+  );
+  // For the More group, commented out below.
+  // const moreSections = sections.filter(
+  //   (link) => !GET_STARTED_ICONS.has(link.icon)
+  // );
+  // The library you're reading: its docs live under /docs/<library id>.
+  const inLibrary = (id: LibraryId) => {
+    const base = `${ROUTES.DOCS}/${id}`;
+    return pathname === base || pathname.startsWith(`${base}/`);
+  };
+  const libraries = railData.libraries
+    .map((library) => ({
+      ...library,
+      pages: library.pages.filter((page) => matches(page.name)),
     }))
-    .filter((group) => group.pages.length > 0);
+    .filter((library) => library.pages.length > 0);
+  const activeLibrary = libraries.find((library) => inLibrary(library.id));
 
   return (
     <>
       <RailGroup className="pt-6.5 pb-0">
         <RailLink
-          href={ROUTES.HOME_NEW}
+          href={ROUTES.HOME}
           icon={ArrowLeft}
           label="Library"
           mode="docs"
@@ -446,9 +477,9 @@ const DocsMenuView = ({ onNavigate, pathname, query, railData }: MenuProps) => {
         />
       </RailGroup>
 
-      {sections.length > 0 && (
-        <RailGroup label="Sections">
-          {sections.map((link) => (
+      {(getStarted.length > 0 || libraries.length > 0) && (
+        <RailGroup label="Get started">
+          {getStarted.map((link) => (
             <RailLink
               key={link.href}
               href={link.href}
@@ -463,16 +494,26 @@ const DocsMenuView = ({ onNavigate, pathname, query, railData }: MenuProps) => {
               onNavigate={onNavigate}
             />
           ))}
+          {libraries.map((library) => (
+            <RailLink
+              key={library.id}
+              href={library.pages[0].href}
+              icon={LIBRARY_ICONS[library.id]}
+              label={library.label}
+              mode="docs"
+              onNavigate={onNavigate}
+            />
+          ))}
         </RailGroup>
       )}
 
-      {groups.map((group) => (
-        <RailGroup key={group.id} label={group.label}>
-          {group.pages.map((page) => (
+      {activeLibrary && (
+        <RailGroup label={activeLibrary.label}>
+          {activeLibrary.pages.map((page) => (
             <RailLink
               key={page.href}
               href={page.href}
-              icon={group.kind === "components" ? Component : FileText}
+              icon={LIBRARY_ICONS[activeLibrary.id]}
               label={page.name}
               mode="docs"
               isActive={pathname === page.href}
@@ -480,9 +521,30 @@ const DocsMenuView = ({ onNavigate, pathname, query, railData }: MenuProps) => {
             />
           ))}
         </RailGroup>
-      ))}
+      )}
 
-      {q && sections.length === 0 && groups.length === 0 && (
+      {/* More: hidden for now. Uncomment to bring back the Components
+          overview and llms.txt links.
+            {moreSections.length > 0 && (
+              <RailGroup label="More">
+                {moreSections.map((link) => (
+                  <RailLink
+                    key={link.href}
+                    href={link.href}
+                    icon={DOCS_SECTION_ICONS[link.icon]}
+                    label={link.name}
+                    mode="docs"
+                    // Exact only: under a library, that library's page row holds
+                    // the active pill (one pill per menu).
+                    isActive={pathname === link.href}
+                    onNavigate={onNavigate}
+                  />
+                ))}
+              </RailGroup>
+            )}
+      */}
+
+      {q && sections.length === 0 && libraries.length === 0 && (
         <p
           role="status"
           className={cn(

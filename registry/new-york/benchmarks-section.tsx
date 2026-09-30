@@ -14,8 +14,8 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
-import { AKTA_CSS } from "@/components/hero-templates/sections/akta-css";
 import { cn } from "@/lib/utils";
+import { AKTA_CSS } from "@/registry/new-york/akta-css";
 
 /* ---------------------------------------------------------------------------
  * akta-benchmarks-01 — four metrics, four graphic forms

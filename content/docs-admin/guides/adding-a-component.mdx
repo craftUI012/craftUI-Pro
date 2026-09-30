@@ -3,15 +3,15 @@ title: Adding a component
 description: The full checklist, from source file to installable JSON to docs page, using a worked example.
 ---
 
-Adding a component means touching **four places**, then rebuilding:
+Adding a component means touching **four places**, then rebuilding. Its `registry.json` entry also needs **browse metadata** (`categories`, `meta.library`, `meta.section`, `meta.styles` and `meta.publishedAt`), or it won't appear on the home page. See [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
 
-| #          | File                                 | Why                                                                   |
-| ---------- | ------------------------------------ | --------------------------------------------------------------------- |
-| 1          | `registry/new-york/<name>.tsx`       | The component source you publish                                      |
-| 2          | `registry.json`                      | Tells `shadcn build` the component exists                             |
-| 3          | `content/docs/components/<name>.mdx` | Its docs page, with a live preview and source                         |
-| 4          | `content/docs/components/meta.json`  | Makes the page appear in the sidebar                                  |
-| (optional) | `examples/<name>.tsx`                | A usage demo shown as the preview source instead of the raw component |
+| #          | File                                 | Why                                                                                      |
+| ---------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| 1          | `registry/new-york/<name>.tsx`       | The component source you publish                                                         |
+| 2          | `registry.json`                      | Tells `shadcn build` the component exists, and puts it on the home page with its filters |
+| 3          | `content/docs/components/<name>.mdx` | Its docs page, with a live preview and source                                            |
+| 4          | `content/docs/components/meta.json`  | Makes the page appear in the sidebar                                                     |
+| (optional) | `examples/<name>.tsx`                | A usage demo shown as the preview source instead of the raw component                    |
 
 Then run `pnpm registry:build`.
 
@@ -88,6 +88,13 @@ Add an entry to `items`:
       "title": "Status Badge",
       "description": "A pill badge with idle, live and error states.",
       "dependencies": ["class-variance-authority"],
+      "categories": ["feedback"],
+      "meta": {
+        "library": "components",
+        "section": "badge",
+        "styles": ["minimal", "dark-mode"],
+        "publishedAt": "2026-10-01"
+      },
       "files": [
         {
           "path": "registry/new-york/status-badge.tsx",
@@ -104,6 +111,7 @@ Add an entry to `items`:
 - `dependencies` lists npm packages the CLI installs for users.
 - If you depend on shadcn primitives, add `"registryDependencies": ["button", "tooltip"]`.
 - If you depend on **another component in this registry**, use its full URL: `"registryDependencies": ["https://your-domain.com/r/other-thing.json"]`.
+- `categories` and `meta` put it on the home page and in its filters. Every field is covered in [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
 - Full field list: [registry.json reference](/docs-admin/reference/registry-json).
 
 <Step>Build the registry</Step>
@@ -196,6 +204,7 @@ pnpm dev
 
 - `/docs/components/status-badge` shows the preview and source.
 - `/docs/components` lists it.
+- On `/`, **Components** shows its card, and its category, primitive and style filters keep it.
 - `http://localhost:3000/r/status-badge.json` returns the JSON.
 - In a scratch Next.js app with shadcn initialised, run `npx shadcn@latest add http://localhost:3000/r/status-badge.json`.
 - Run `pnpm check && pnpm typecheck`.
@@ -252,5 +261,5 @@ Multi-file example:
 - `registry.json`
 - `public/r/your-component.json` (delete it; the build won't remove stale files)
 - `content/docs/components/your-component.mdx` and `content/docs/components/meta.json`
-- `app/(app)/(root)/page.tsx` (imports `YourComponent` for the home page showcase)
+- `app/(app)/build-landing-pages-ui-library/page.tsx` (imports `YourComponent` for the landing page showcase)
 - `lib/agent-discovery/site-agent-skill.ts` (install example)

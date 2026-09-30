@@ -22,6 +22,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TYPE } from "@/constants/typography";
 import { cn } from "@/lib/utils";
 
 export const mdxComponents = {
@@ -61,9 +62,11 @@ export const mdxComponents = {
         <div className="bg-primary/10 flex size-8 shrink-0 items-center justify-center rounded-md text-primary">
           <Icon className="size-4" />
         </div>
-        <CardTitle className="text-base font-medium">{title}</CardTitle>
+        <CardTitle className={TYPE.cardHeader}>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 text-sm text-muted-foreground">
+      <CardContent
+        className={cn("px-4 text-muted-foreground", TYPE.cardDescription)}
+      >
         {description}
       </CardContent>
     </Card>
@@ -104,7 +107,8 @@ export const mdxComponents = {
   Step: ({ className, children, ...props }: React.ComponentProps<"h3">) => (
     <h3
       className={cn(
-        "mt-8 scroll-m-32 font-heading text-lg font-medium tracking-tight",
+        "mt-8 scroll-m-32 font-heading",
+        TYPE.headingPanel,
         className
       )}
       {...props}
@@ -130,7 +134,7 @@ export const mdxComponents = {
   }: React.ComponentProps<typeof TabsContent>) => (
     <TabsContent
       className={cn(
-        "relative [&_h3.font-heading]:text-base [&_h3.font-heading]:font-medium *:[figure]:first:mt-0 [&>.steps]:mt-6",
+        "relative [&_h3.font-heading]:text-card-header-sm [&_h3.font-heading]:md:text-card-header-md [&_h3.font-heading]:lg:text-card-header-lg *:[figure]:first:mt-0 [&>.steps]:mt-6",
         className
       )}
       {...props}
@@ -155,7 +159,8 @@ export const mdxComponents = {
     <TabsTrigger
       sound="tabSwitch"
       className={cn(
-        "text-muted-foreground data-[state=active]:text-foreground data-[state=active]:border-primary dark:data-[state=active]:border-primary hover:text-primary rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pb-3 text-base data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent",
+        "text-muted-foreground data-[state=active]:text-foreground data-[state=active]:border-primary dark:data-[state=active]:border-primary hover:text-primary rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pb-3 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent",
+        TYPE.cardLabel,
         className
       )}
       {...props}
@@ -197,7 +202,8 @@ export const mdxComponents = {
       return (
         <code
           className={cn(
-            "bg-muted relative rounded-md px-[0.3rem] py-[0.2rem] font-mono text-[0.8rem] break-words outline-none",
+            "bg-muted relative rounded-md px-[0.3rem] py-[0.2rem] font-mono break-words outline-none",
+            TYPE.cardLabel,
             className
           )}
           {...props}
@@ -257,7 +263,8 @@ export const mdxComponents = {
   h1: ({ className, children, ...props }: React.ComponentProps<"h1">) => (
     <h1
       className={cn(
-        "font-heading mt-2 scroll-m-28 text-3xl font-bold tracking-tight",
+        "font-heading mt-2 scroll-m-28",
+        TYPE.headingDisplay,
         className
       )}
       {...props}
@@ -274,7 +281,8 @@ export const mdxComponents = {
         .replaceAll("?", "")
         .toLowerCase()}
       className={cn(
-        "[&+]*:[code]:text-xl mt-10 scroll-m-28 font-heading text-xl font-medium tracking-tight first:mt-0 lg:mt-12 [&+.steps]:mt-0! [&+.steps>h3]:mt-4! [&+h3]:mt-6! [&+p]:mt-4!",
+        "[&+]*:[code]:text-heading-section-sm [&+]*:[code]:md:text-heading-section-md [&+]*:[code]:lg:text-heading-section-lg mt-10 scroll-m-28 font-heading first:mt-0 lg:mt-12 [&+.steps]:mt-0! [&+.steps>h3]:mt-4! [&+h3]:mt-6! [&+p]:mt-4!",
+        TYPE.headingSection,
         className
       )}
       {...props}
@@ -285,7 +293,8 @@ export const mdxComponents = {
   h3: ({ className, children, ...props }: React.ComponentProps<"h3">) => (
     <h3
       className={cn(
-        "mt-12 scroll-m-28 font-heading text-lg font-medium tracking-tight [&+p]:mt-4! *:[code]:text-xl",
+        "mt-12 scroll-m-28 font-heading [&+p]:mt-4! *:[code]:text-heading-panel-sm *:[code]:md:text-heading-panel-md *:[code]:lg:text-heading-panel-lg",
+        TYPE.headingPanel,
         className
       )}
       {...props}
@@ -296,7 +305,8 @@ export const mdxComponents = {
   h4: ({ className, children, ...props }: React.ComponentProps<"h4">) => (
     <h4
       className={cn(
-        "font-heading mt-8 scroll-m-28 text-base font-medium tracking-tight",
+        "font-heading mt-8 scroll-m-28",
+        TYPE.cardHeader,
         className
       )}
       {...props}
@@ -306,10 +316,7 @@ export const mdxComponents = {
   ),
   h5: ({ className, children, ...props }: React.ComponentProps<"h5">) => (
     <h5
-      className={cn(
-        "mt-8 scroll-m-28 text-base font-medium tracking-tight",
-        className
-      )}
+      className={cn("mt-8 scroll-m-28", TYPE.cardLabel, className)}
       {...props}
     >
       {children}
@@ -317,10 +324,7 @@ export const mdxComponents = {
   ),
   h6: ({ className, children, ...props }: React.ComponentProps<"h6">) => (
     <h6
-      className={cn(
-        "mt-8 scroll-m-28 text-base font-medium tracking-tight",
-        className
-      )}
+      className={cn("mt-8 scroll-m-28", TYPE.cardCaption, className)}
       {...props}
     >
       {children}
@@ -341,7 +345,7 @@ export const mdxComponents = {
   ),
   p: ({ className, ...props }: React.ComponentProps<"p">) => (
     <p
-      className={cn("leading-relaxed [&:not(:first-child)]:mt-6", className)}
+      className={cn("[&:not(:first-child)]:mt-6", TYPE.cardBody, className)}
       {...props}
     />
   ),
@@ -363,7 +367,8 @@ export const mdxComponents = {
     <div className="my-6 no-scrollbar w-full overflow-y-auto rounded-xl border">
       <table
         className={cn(
-          "relative w-full overflow-hidden border-none text-sm [&_tbody_tr:last-child]:border-b-0",
+          "relative w-full overflow-hidden border-none [&_tbody_tr:last-child]:border-b-0",
+          TYPE.cardBody,
           className
         )}
         {...props}
