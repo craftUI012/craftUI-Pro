@@ -159,7 +159,7 @@
       "name": "tables-section",
       "type": "registry:block",
       "title": "Tables section",
-      "description": "Default data table: customers, plans and statuses in a plain shadcn table.",
+      "description": "API keys table: search, filters, selection, pagination and create, rotate and delete dialogs.",
       "categories": [
         "data"
       ],
@@ -175,7 +175,15 @@
       },
       "registryDependencies": [
         "table",
-        "badge"
+        "button",
+        "checkbox",
+        "dialog",
+        "dropdown-menu",
+        "input",
+        "kbd",
+        "label",
+        "skeleton",
+        "avatar"
       ],
       "files": [
         {
