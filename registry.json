@@ -154,6 +154,36 @@
           "target": "components/blocks/team-section.tsx"
         }
       ]
+    },
+    {
+      "name": "tables-section",
+      "type": "registry:block",
+      "title": "Tables section",
+      "description": "Default data table: customers, plans and statuses in a plain shadcn table.",
+      "categories": [
+        "data"
+      ],
+      "meta": {
+        "pro": false,
+        "library": "templates",
+        "section": "tables",
+        "styles": [
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-06"
+      },
+      "registryDependencies": [
+        "table",
+        "badge"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york/tables-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/tables-section.tsx"
+        }
+      ]
     }
   ]
 }

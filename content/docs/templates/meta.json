@@ -1,4 +1,9 @@
 {
   "title": "Templates",
-  "pages": ["hero-section", "benchmarks-section", "team-section"]
+  "pages": [
+    "hero-section",
+    "benchmarks-section",
+    "team-section",
+    "tables-section"
+  ]
 }

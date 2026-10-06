@@ -1,0 +1,32 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tables-section",
+  "title": "Tables section",
+  "description": "Default data table: customers, plans and statuses in a plain shadcn table.",
+  "registryDependencies": [
+    "table",
+    "badge"
+  ],
+  "files": [
+    {
+      "path": "registry/new-york/tables-section.tsx",
+      "content": "import type { ReactNode } from \"react\";\n\nimport { Badge } from \"@/components/ui/badge\";\nimport {\n  Table,\n  TableBody,\n  TableCaption,\n  TableCell,\n  TableFooter,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"@/components/ui/table\";\nimport { cn } from \"@/lib/utils\";\n\n// Default tables section (v1). Intentionally plain shadcn Table in a\n// section shell — eyebrow, heading, description, then the table card.\n// We will improve the UI as we go (sorting, selection, pagination).\n// Colours are host theme tokens only, so it follows light/dark.\n\nexport interface TablesRow {\n  id: string;\n  customer: string;\n  email: string;\n  plan: string;\n  status: \"active\" | \"trial\" | \"past-due\" | \"cancelled\";\n  amount: string;\n}\n\nexport interface TablesSectionProps {\n  eyebrow?: string;\n  heading?: ReactNode;\n  description?: ReactNode;\n  caption?: string;\n  rows?: TablesRow[];\n  className?: string;\n}\n\nconst DEFAULT_ROWS: TablesRow[] = [\n  {\n    amount: \"$48.00\",\n    customer: \"Maya Ellis\",\n    email: \"maya@studio.co\",\n    id: \"row-maya\",\n    plan: \"Pro\",\n    status: \"active\",\n  },\n  {\n    amount: \"$19.00\",\n    customer: \"Noor Haddad\",\n    email: \"noor@studio.co\",\n    id: \"row-noor\",\n    plan: \"Starter\",\n    status: \"trial\",\n  },\n  {\n    amount: \"$96.00\",\n    customer: \"Tom Brandt\",\n    email: \"tom@studio.co\",\n    id: \"row-tom\",\n    plan: \"Team\",\n    status: \"past-due\",\n  },\n  {\n    amount: \"$19.00\",\n    customer: \"Dev Sharma\",\n    email: \"dev@studio.co\",\n    id: \"row-dev\",\n    plan: \"Starter\",\n    status: \"cancelled\",\n  },\n];\n\nconst STATUS_LABEL: Record<TablesRow[\"status\"], string> = {\n  active: \"Active\",\n  cancelled: \"Cancelled\",\n  \"past-due\": \"Past due\",\n  trial: \"Trial\",\n};\n\nexport default function TablesSection({\n  eyebrow = \"Tables\",\n  heading = \"A default table to build on\",\n  description = \"Customers, plans and statuses in a plain table. Swap the rows via props — richer UI lands in later iterations.\",\n  caption = \"A list of your recent customers.\",\n  rows = DEFAULT_ROWS,\n  className,\n}: TablesSectionProps = {}) {\n  return (\n    <section\n      data-slot=\"tables-section\"\n      className={cn(\"bg-background text-foreground w-full\", className)}\n    >\n      <div className=\"mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20 xl:py-24\">\n        <div className=\"max-w-xl\">\n          <p className=\"text-muted-foreground text-xs font-medium tracking-[0.14em] uppercase\">\n            {eyebrow}\n          </p>\n          <h2 className=\"mt-3 text-3xl font-medium tracking-tight text-balance sm:text-4xl\">\n            {heading}\n          </h2>\n          <p className=\"text-muted-foreground mt-4 text-base leading-relaxed text-pretty\">\n            {description}\n          </p>\n        </div>\n\n        <div className=\"border-border bg-card mt-10 overflow-hidden rounded-xl border shadow-sm\">\n          <Table>\n            <TableCaption className=\"px-4\">{caption}</TableCaption>\n            <TableHeader>\n              <TableRow>\n                <TableHead className=\"pl-4\">Customer</TableHead>\n                <TableHead>Plan</TableHead>\n                <TableHead>Status</TableHead>\n                <TableHead className=\"pr-4 text-right\">Amount</TableHead>\n              </TableRow>\n            </TableHeader>\n            <TableBody>\n              {rows.map((row) => (\n                <TableRow key={row.id}>\n                  <TableCell className=\"pl-4\">\n                    <span className=\"block font-medium\">{row.customer}</span>\n                    <span className=\"text-muted-foreground block text-xs\">\n                      {row.email}\n                    </span>\n                  </TableCell>\n                  <TableCell>{row.plan}</TableCell>\n                  <TableCell>\n                    <Badge variant=\"secondary\">\n                      {STATUS_LABEL[row.status]}\n                    </Badge>\n                  </TableCell>\n                  <TableCell className=\"pr-4 text-right tabular-nums\">\n                    {row.amount}\n                  </TableCell>\n                </TableRow>\n              ))}\n            </TableBody>\n            <TableFooter>\n              <TableRow>\n                <TableCell className=\"pl-4\" colSpan={3}>\n                  Total\n                </TableCell>\n                <TableCell className=\"pr-4 text-right tabular-nums\">\n                  {rows.length} customers\n                </TableCell>\n              </TableRow>\n            </TableFooter>\n          </Table>\n        </div>\n      </div>\n    </section>\n  );\n}\n",
+      "type": "registry:block",
+      "target": "components/blocks/tables-section.tsx"
+    }
+  ],
+  "meta": {
+    "pro": false,
+    "library": "templates",
+    "section": "tables",
+    "styles": [
+      "minimal",
+      "dark-mode"
+    ],
+    "publishedAt": "2026-10-06"
+  },
+  "categories": [
+    "data"
+  ],
+  "type": "registry:block"
+}
