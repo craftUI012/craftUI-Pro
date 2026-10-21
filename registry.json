@@ -47,22 +47,15 @@
       "type": "registry:block",
       "title": "Hero section",
       "description": "Full marketing hero with a data panel cluster, rolling CTAs and a scroll-cycling logo wall.",
-      "categories": [
-        "marketing"
-      ],
+      "categories": ["marketing"],
       "meta": {
         "pro": true,
         "library": "templates",
-        "section": "hero",
-        "styles": [
-          "motion",
-          "dark-mode"
-        ],
+        "types": ["hero"],
+        "styles": ["motion", "dark-mode"],
         "publishedAt": "2026-09-21"
       },
-      "registryDependencies": [
-        "akta-css"
-      ],
+      "registryDependencies": ["akta-css"],
       "files": [
         {
           "path": "registry/new-york/hero-section.tsx",
@@ -76,17 +69,12 @@
       "type": "registry:block",
       "title": "Hero section 02",
       "description": "Split hero: headline and CTAs beside a drawn product panel. Mock layout.",
-      "categories": [
-        "marketing"
-      ],
+      "categories": ["marketing"],
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "hero",
-        "styles": [
-          "minimal",
-          "dark-mode"
-        ],
+        "types": ["hero"],
+        "styles": ["minimal", "dark-mode"],
         "publishedAt": "2026-09-30",
         "docs": "hero-section"
       },
@@ -103,22 +91,15 @@
       "type": "registry:block",
       "title": "Benchmarks section",
       "description": "Four comparison metrics against competitors, each drawn as its own chart form (isometric bars, unit field, radar, stacked slabs).",
-      "categories": [
-        "marketing"
-      ],
+      "categories": ["marketing"],
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "stats",
-        "styles": [
-          "minimal",
-          "dark-mode"
-        ],
+        "types": ["stats"],
+        "styles": ["minimal", "dark-mode"],
         "publishedAt": "2026-09-14"
       },
-      "registryDependencies": [
-        "akta-css"
-      ],
+      "registryDependencies": ["akta-css"],
       "files": [
         {
           "path": "registry/new-york/benchmarks-section.tsx",
@@ -132,21 +113,15 @@
       "type": "registry:block",
       "title": "Team section",
       "description": "Team roster: a clustered avatar grid synced to a role/bio detail list.",
-      "categories": [
-        "company"
-      ],
+      "categories": ["company"],
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "team",
-        "styles": [
-          "motion"
-        ],
+        "types": ["team"],
+        "styles": ["motion"],
         "publishedAt": "2026-09-08"
       },
-      "registryDependencies": [
-        "avatar-grid"
-      ],
+      "registryDependencies": ["avatar-grid"],
       "files": [
         {
           "path": "registry/new-york/team-section.tsx",
@@ -160,17 +135,12 @@
       "type": "registry:block",
       "title": "Tables section",
       "description": "API keys table: search, filters, selection, pagination and create, rotate and delete dialogs.",
-      "categories": [
-        "data"
-      ],
+      "categories": ["data"],
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "tables",
-        "styles": [
-          "minimal",
-          "dark-mode"
-        ],
+        "types": ["tables"],
+        "styles": ["minimal", "dark-mode"],
         "publishedAt": "2026-10-06"
       },
       "registryDependencies": [

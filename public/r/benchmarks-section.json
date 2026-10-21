@@ -17,7 +17,9 @@
   "meta": {
     "pro": false,
     "library": "templates",
-    "section": "stats",
+    "types": [
+      "stats"
+    ],
     "styles": [
       "minimal",
       "dark-mode"

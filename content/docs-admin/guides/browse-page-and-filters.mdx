@@ -1,20 +1,70 @@
 ---
 title: Browse page and filters
-description: How a registry item gets onto the home page, which filter groups it shows up in, and the metadata every new item needs.
+description: How a registry item gets onto the home page, the taxonomy file that defines every library and filter value, and the metadata every new item needs.
 ---
 
-The home page (`/`) is a browse page: pick a library in the rail (**Components**, **Blocks**, **Sections**), filter by the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
+The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Illustrations**, **Isometric**), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
 
-**Everything on it comes from `registry.json`.** No list of cards, categories or filters lives in code. Add an item with the right metadata and it shows up, with its filters, the next time the page renders.
+Two files drive everything on it. No list of cards or filter values lives in the components:
+
+| File                    | Defines                                                                                         |
+| ----------------------- | ----------------------------------------------------------------------------------------------- |
+| `constants/taxonomy.ts` | The libraries (tabs), and every category, type and style each library's filter index lists      |
+| `registry.json`         | The items (cards), each tagged with one or more categories, types and styles from that taxonomy |
 
 <Callout title="Always add this metadata">
-  Every item meant for users (a component, a block or a section) needs
-  `categories` and a `meta` block with at least `library`, `section`, `styles`
-  and `publishedAt`. Without `meta.library` the item stays off the browse page
-  entirely.
+  Every item meant for users needs `categories`, plus a `meta` block with
+  `library`, `types`, `styles` and `publishedAt`. Every slug must exist in
+  `constants/taxonomy.ts` and be listed for the item's library, or `pnpm
+  registry:build` fails and names the item and the slug.
 </Callout>
 
-## The fields
+## The taxonomy file
+
+`constants/taxonomy.ts` has three parts:
+
+1. **Pools**: `CATEGORIES`, `TYPES` and `STYLES`. Every value that exists, defined once as `slug: { label }`. The slug is what `registry.json` uses; the label is what the filter shows.
+2. **`LIBRARIES`**: per library, its tab label, URL slug, result nouns, and which values from the pools its index lists, **in display order**. A value can be listed by several libraries (`dark-mode` is in all of them).
+3. **`NAV_LIBRARIES`**: which libraries the navbar shows as tabs, in order. The first is the default.
+
+```ts
+export const STYLES = {
+  "dark-mode": { label: "Dark mode" },
+  minimal: { label: "Minimal" },
+  motion: { label: "Motion" },
+  // …
+};
+
+export const LIBRARIES = {
+  templates: {
+    label: "Sections",
+    slug: "sections",
+    categories: ["marketing", "company", "data", "ai"],
+    types: ["hero", "features", "pricing" /* … */],
+    styles: ["motion", "dark-mode", "minimal"],
+    // …
+  },
+  // …
+};
+```
+
+A value a library lists but no item uses yet shows **dimmed and not clickable**. It signals what's coming and keeps the index's layout stable as items land. A group with more than 5 values splits into two columns. A group a library lists nothing for is hidden.
+
+### Common edits
+
+| To…                            | Do this                                                                                                                             |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Add a value                    | Add `slug: { label }` to its pool, then add the slug to each library that should list it                                            |
+| Reorder a library's values     | Reorder its array in `LIBRARIES`                                                                                                    |
+| Rename a label                 | Change the `label`. Always safe                                                                                                     |
+| Rename a slug                  | Change it in the pool, in `LIBRARIES`, **and** in every `registry.json` item that uses it                                           |
+| Remove a value                 | Remove it from `LIBRARIES` (and the pool). The build fails if an item still uses it, so fix those items first                       |
+| Add a library                  | Add its id to `LibraryId`, an entry to `LIBRARIES`, and the id to `NAV_LIBRARIES`; then a `content/docs/<id>/` folder for its pages |
+| Hide a library from the navbar | Remove it from `NAV_LIBRARIES` (Components is defined but hidden this way)                                                          |
+
+Edits to the taxonomy or the registry show up on their own: the home data's cache key includes a hash of both.
+
+## The item fields
 
 ```json
 {
@@ -25,7 +75,7 @@ The home page (`/`) is a browse page: pick a library in the rail (**Components**
   "categories": ["marketing"],
   "meta": {
     "library": "templates",
-    "section": "hero",
+    "types": ["hero"],
     "styles": ["minimal", "dark-mode"],
     "publishedAt": "2026-09-30",
     "docs": "hero-section",
@@ -41,48 +91,63 @@ The home page (`/`) is a browse page: pick a library in the rail (**Components**
 }
 ```
 
-| Field              | Required | Drives                                                                                                      |
-| ------------------ | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `categories`       | yes      | The **Categories** filter group (the category)                                                              |
-| `meta.library`     | yes      | Which library tab the card is in: `"components"`, `"blocks"` or `"templates"` (shown as **Sections**)       |
-| `meta.section`     | yes      | The **Type** filter group (the subcategory). It's labelled **Primitives** in Components                     |
-| `meta.styles`      | yes      | The **Styles** filter group. An item can carry several                                                      |
-| `meta.publishedAt` | yes      | ISO date (`YYYY-MM-DD`). Sorts **Latest** and picks the rail's **What's new**                               |
-| `title`            | yes      | The card's name                                                                                             |
-| `description`      | yes      | The card's one-line tagline (it's truncated, so lead with the point)                                        |
-| `meta.docs`        | no       | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)          |
-| `meta.preview`     | no       | Card screenshot, a path under `public/` (16:10, 1600px wide). A placeholder image is used until it's set    |
-| `meta.popularity`  | no       | Sorts **Most popular**. Until there's install data, every item counts as 0 and the tab falls back to newest |
-| `meta.pro`         | no       | `true` puts the item behind the paywall: no source in the Code tab, and **Copy for AI** is locked           |
+| Field              | Required          | Drives                                                                                                      |
+| ------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| `categories`       | yes, one or more  | The **Categories** filter group                                                                             |
+| `meta.library`     | yes               | Which library tab the card is in: a key of `LIBRARIES` (`"templates"` is shown as **Sections**)             |
+| `meta.types`       | yes, one or more  | The **Type** filter group. It's labelled **Primitives** in Components                                       |
+| `meta.styles`      | no (can be empty) | The **Styles** filter group                                                                                 |
+| `meta.publishedAt` | yes               | ISO date (`YYYY-MM-DD`). Sorts **Latest**                                                                   |
+| `title`            | yes               | The card's name                                                                                             |
+| `description`      | yes               | The card's one-line tagline (it's truncated, so lead with the point)                                        |
+| `meta.docs`        | no                | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)          |
+| `meta.preview`     | no                | Card screenshot, a path under `public/` (16:10, 1600px wide). A placeholder image is used until it's set    |
+| `meta.popularity`  | no                | Sorts **Most popular**. Until there's install data, every item counts as 0 and the tab falls back to newest |
+| `meta.pro`         | no                | `true` puts the item behind the paywall: no source in the Code tab, and **Copy for AI** is locked           |
 
-## Category, type and style values
-
-- **Use lowercase slugs**: `"marketing"`, `"dark-mode"`, `"sign-in"`.
-- The label is the slug in sentence case: `dark-mode` shows as **Dark mode**.
-- When sentence case isn't right (for example **Sound & haptics**), add the slug to `LABELS` in `components/new-hero-section/data/registry-home-data.ts`.
-- **Reuse existing values** before inventing new ones. Each new value adds a filter to the index, so `marketing` and `marketing-pages` would show up as two filters. Check what's in use first:
-
-  ```bash
-  node -e 'const r=require("./registry.json");for(const k of ["categories","section","styles"])console.log(k,[...new Set(r.items.flatMap(i=>k==="categories"?i.categories??[]:[].concat(i.meta?.[k]??[])))])'
-  ```
-
-- A filter group only appears once at least one item in that library uses it. A group with more than 5 values splits into two columns.
-
-Values in use today:
-
-| Group      | Values                           |
-| ---------- | -------------------------------- |
-| Categories | `marketing`, `company`           |
-| Type       | `hero`, `stats`, `team`          |
-| Styles     | `motion`, `dark-mode`, `minimal` |
+`meta.types` replaced the old single `meta.section` string. The build rejects `meta.section` and says what to write instead.
 
 Only tag a style the item really has. For example, use `motion` only if it animates, and `dark-mode` only if it has dark styles or uses theme tokens.
+
+## Strict validation
+
+`lib/taxonomy.ts` checks every item with a `meta.library`. It runs at the start of `pnpm registry:build` (so also in `pnpm build` and CI), and again when the home page's data is built. It fails on:
+
+- a `meta.library` that isn't in `LIBRARIES`
+- a category, type or style slug that isn't in its pool (typos like `dark_mode`)
+- a slug that's in the pool but not listed for the item's library
+- no categories or no types
+- a missing or malformed `meta.publishedAt`
+- the old `meta.section` field
+
+Each error names the item, the field and the slug, and says which line of `constants/taxonomy.ts` to change.
+
+## How filtering works
+
+- **Within a group, picks widen** (OR): Marketing + Company shows items in either.
+- **Across groups, picks narrow** (AND): Marketing + Hero + Motion shows items that have all three.
+- The search box narrows further, by name and tagline.
+- Each library keeps its own picks, so switching tabs and back keeps them.
+
+## The URL
+
+The active tab and its picks are kept in the URL, so a filtered view can be shared, survives a refresh, and is back after returning from a docs page:
+
+```text
+/?library=blocks&category=marketing,company&type=charts&style=motion
+```
+
+- `library` is the library's `slug`, left out for the first tab.
+- Each group's key is its `param` in `FILTER_GROUPS` (`category`, `type`, `style`).
+- Values the library doesn't list, or has no items for, are ignored, so an old link shows a wider view instead of nothing.
+- Other params (`utm_*` and so on) are kept.
+- The page is prerendered with the default view; a link's filters apply as the page hydrates.
 
 ## Where a card links
 
 A card opens `/docs/<meta.library>/<page>`, where `<page>` is `meta.docs` or, by default, the item's `name`.
 
-**A card is only created if that docs page exists.** An item without its MDX page is silently left off the grid, so a card never leads to a 404. If a new item doesn't show up, check its docs page first.
+**A card is only created if that docs page exists.** An item without its MDX page is silently left off the grid (and out of the counts), so a card never leads to a 404. If a new item doesn't show up, check its docs page first.
 
 ## Variants on one page
 
@@ -101,7 +166,7 @@ Several items can share one docs page. For example, every hero is on `/docs/temp
    </ComponentPreview>
    ```
 
-The card then links to `/docs/templates/hero-section#hero-section-02`. Each preview has its item's `name` as its `id`, so the page scrolls to it. The item gets its own card and its own filters, while the docs rail lists the page only once.
+The card then links to `/docs/templates/hero-section#hero-section-02`. Each preview has its item's `name` as its `id`, so the page scrolls to it. The item gets its own card and its own filters.
 
 ## Checklist for a new item
 
@@ -111,15 +176,21 @@ The card then links to `/docs/templates/hero-section#hero-section-02`. Each prev
 
 `registry/new-york/<name>.tsx`. See [Adding a component](/docs-admin/guides/adding-a-component) for the rules.
 
+<Step>Check the taxonomy</Step>
+
+Pick its categories, types and styles from `constants/taxonomy.ts`. If one is missing, add it to the pool and to the library's list. Reuse existing values before inventing new ones: `marketing` and `marketing-pages` would show up as two filters.
+
 <Step>Register it with its browse metadata</Step>
 
-In `registry.json`, add the item with `categories` and `meta.library`, `meta.section`, `meta.styles` and `meta.publishedAt`, plus `meta.docs` if it's a variant.
+In `registry.json`, add the item with `categories`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`, plus `meta.docs` if it's a variant.
 
 <Step>Build the registry</Step>
 
 ```bash
 pnpm registry:build
 ```
+
+If a slug is wrong, this fails with the item and slug. Fix it and run it again.
 
 <Step>Add or extend its docs page</Step>
 
@@ -130,25 +201,29 @@ pnpm registry:build
 On `/`, pick the library, then check that:
 
 - the card shows up and the count is right;
-- each of its category, type and style filters keeps it;
+- its values in the index are no longer dimmed, and each of them keeps the card;
 - the card opens the right page (and the right preview for a variant).
 
 </Steps>
 
 ## How it's wired
 
-| File                                                     | Role                                                                                            |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `components/new-hero-section/data/registry-home-data.ts` | Reads `registry.json`, builds each library's filter groups and cards. Library labels live here  |
-| `components/new-hero-section/data/get-home-data.ts`      | Caches the result. The cache key includes a hash of the registry, so edits show up on their own |
-| `components/new-hero-section/browse/browse-index.tsx`    | The filter index above the grid                                                                 |
-| `components/new-hero-section/browse/browse-feed.tsx`     | Filters and orders the cards on the client                                                      |
-| `components/new-hero-section/browse/browse-rail.tsx`     | The rail. In docs, it expands the library you're in to its pages                                |
+| File                                                     | Role                                                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `constants/taxonomy.ts`                                  | Libraries, pools, each library's listed values, navbar order, URL params                                           |
+| `lib/taxonomy.ts`                                        | Reads an item's values and validates the registry against the taxonomy (also used by `scripts/build-registry.mjs`) |
+| `components/new-hero-section/data/registry-home-data.ts` | Builds each library's index (listed values with counts) and cards                                                  |
+| `components/new-hero-section/data/get-home-data.ts`      | Caches the result. The key hashes the registry and the taxonomy, so edits show up on their own                     |
+| `components/new-hero-section/browse/browse-shell.tsx`    | Owns the active tab and every library's picks, and keeps them in the URL                                           |
+| `components/new-hero-section/browse/browse-url.ts`       | Reads and writes the URL                                                                                           |
+| `components/new-hero-section/browse/browse-filters.tsx`  | The selection store, and the OR/AND matching                                                                       |
+| `components/new-hero-section/browse/browse-index.tsx`    | The filter index above the grid                                                                                    |
+| `components/new-hero-section/browse/browse-feed.tsx`     | Filters and orders the cards on the client                                                                         |
 
-An item matches when it has **every** picked filter (one pick per group). In code, each item carries tags like `categories:marketing`, `sections:hero` and `styles:minimal`.
+In code, each item carries tags like `categories:marketing`, `types:hero` and `styles:minimal`.
 
 <Callout title="Changing the data's shape">
-  Editing `registry.json` needs no cache bump. Changing the `HomeData` type
-  does: bump `HOME_DATA_VERSION` in `get-home-data.ts`, or pages keep the old
-  shape from the Data Cache.
+  Editing `registry.json` or `constants/taxonomy.ts` needs no cache bump.
+  Changing the `HomeData` type does: bump `HOME_DATA_VERSION` in
+  `get-home-data.ts`, or pages keep the old shape from the Data Cache.
 </Callout>

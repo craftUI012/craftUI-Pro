@@ -53,7 +53,9 @@
       "meta": {
         "pro": true,
         "library": "templates",
-        "section": "hero",
+        "types": [
+          "hero"
+        ],
         "styles": [
           "motion",
           "dark-mode"
@@ -82,7 +84,9 @@
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "hero",
+        "types": [
+          "hero"
+        ],
         "styles": [
           "minimal",
           "dark-mode"
@@ -109,7 +113,9 @@
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "stats",
+        "types": [
+          "stats"
+        ],
         "styles": [
           "minimal",
           "dark-mode"
@@ -138,7 +144,9 @@
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "team",
+        "types": [
+          "team"
+        ],
         "styles": [
           "motion"
         ],
@@ -166,7 +174,9 @@
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "tables",
+        "types": [
+          "tables"
+        ],
         "styles": [
           "minimal",
           "dark-mode"

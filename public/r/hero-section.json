@@ -17,7 +17,9 @@
   "meta": {
     "pro": true,
     "library": "templates",
-    "section": "hero",
+    "types": [
+      "hero"
+    ],
     "styles": [
       "motion",
       "dark-mode"

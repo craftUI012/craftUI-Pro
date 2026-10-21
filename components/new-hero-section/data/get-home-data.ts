@@ -9,6 +9,7 @@ import type {
   ShowcaseItem,
 } from "@/components/new-hero-section/data/home-types";
 import { buildHomeDataFromRegistry } from "@/components/new-hero-section/data/registry-home-data";
+import { LIBRARIES, NAV_LIBRARIES, POOLS } from "@/constants/taxonomy";
 import registry from "@/registry.json";
 
 // Tag for on-demand revalidation: calling `revalidateTag(HOME_CACHE_TAG)` from
@@ -27,23 +28,24 @@ export const HOME_CACHE_TAG = "new-home";
 const loadHomeData = (): Promise<HomeData> =>
   Promise.resolve(buildHomeDataFromRegistry());
 
-// A short hash of the registry's items, also part of the cache key, so an
-// edit to registry.json shows up without bumping HOME_DATA_VERSION.
-const registryHash = () =>
+// A short hash of the registry's items and the filter taxonomy, also part of
+// the cache key, so an edit to registry.json or constants/taxonomy.ts shows
+// up without bumping HOME_DATA_VERSION.
+const contentHash = () =>
   createHash("sha1")
-    .update(JSON.stringify(registry.items))
+    .update(JSON.stringify([registry.items, LIBRARIES, NAV_LIBRARIES, POOLS]))
     .digest("hex")
     .slice(0, 8);
 
 // Part of the cache key. The Data Cache outlives code edits (even in dev), so
 // bump this whenever the HomeData shape changes, or pages keep getting the old
 // cached shape.
-const HOME_DATA_VERSION = "7";
+const HOME_DATA_VERSION = "9";
 
 export const getHomeData = cache(
   unstable_cache(
     loadHomeData,
-    ["new-home-data", HOME_DATA_VERSION, registryHash()],
+    ["new-home-data", HOME_DATA_VERSION, contentHash()],
     {
       revalidate: false,
       tags: [HOME_CACHE_TAG],

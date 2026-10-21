@@ -17,7 +17,9 @@
   "meta": {
     "pro": false,
     "library": "templates",
-    "section": "team",
+    "types": [
+      "team"
+    ],
     "styles": [
       "motion"
     ],

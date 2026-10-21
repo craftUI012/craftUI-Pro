@@ -3,7 +3,7 @@ title: Adding a component
 description: The full checklist, from source file to installable JSON to docs page, using a worked example.
 ---
 
-Adding a component means touching **four places**, then rebuilding. Its `registry.json` entry also needs **browse metadata** (`categories`, `meta.library`, `meta.section`, `meta.styles` and `meta.publishedAt`), or it won't appear on the home page. See [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
+Adding a component means touching **four places**, then rebuilding. Its `registry.json` entry also needs **browse metadata** (`categories`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`), using values from `constants/taxonomy.ts`, or it won't appear on the home page and `pnpm registry:build` fails. See [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
 
 | #          | File                                 | Why                                                                                      |
 | ---------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
@@ -91,7 +91,7 @@ Add an entry to `items`:
       "categories": ["feedback"],
       "meta": {
         "library": "components",
-        "section": "badge",
+        "types": ["badge"],
         "styles": ["minimal", "dark-mode"],
         "publishedAt": "2026-10-01"
       },
@@ -112,6 +112,7 @@ Add an entry to `items`:
 - If you depend on shadcn primitives, add `"registryDependencies": ["button", "tooltip"]`.
 - If you depend on **another component in this registry**, use its full URL: `"registryDependencies": ["https://your-domain.com/r/other-thing.json"]`.
 - `categories` and `meta` put it on the home page and in its filters. Every field is covered in [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
+- Every category, type and style must be in `constants/taxonomy.ts` and listed for the item's library. This example uses `feedback` and `badge`, which aren't there yet: add `feedback: { label: "Feedback" }` to `CATEGORIES` and `badge: { label: "Badge" }` to `TYPES`, then list them in `LIBRARIES.components`. Otherwise `pnpm registry:build` fails and names the slug.
 - Full field list: [registry.json reference](/docs-admin/reference/registry-json).
 
 <Step>Build the registry</Step>

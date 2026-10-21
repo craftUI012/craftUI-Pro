@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils";
 // grid is two columns and packs densely, so the one-column groups share the
 // first row.
 //
-// Every item is foreground. The picked one (at most one per group) slides a
-// little right as a brand dot scales in beside it; hovering an unpicked one
-// dims it slightly. Only colour and transforms animate (200ms,
+// Every value is foreground. Picked ones (any number per group: OR within a
+// group, AND across groups) slide a little right as a brand dot scales in
+// beside them; hovering an unpicked one dims it slightly. A value the library
+// lists but has no items for yet (count 0) is dimmed and can't be picked. Only colour and transforms animate (200ms,
 // ease-out-strong), and reduced motion keeps just the dot.
 //
 // Labels match the rail's group labels (12px · 500: cardCaption +
@@ -57,17 +58,20 @@ export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
             )}
           >
             {group.links.map((link) => {
-              const selected = selection[group.id] === link.id;
+              const selected = selection[group.id]?.includes(link.id) ?? false;
+              const empty = link.count === 0;
               return (
                 <li key={link.id}>
                   <button
                     type="button"
                     aria-pressed={selected}
+                    disabled={empty}
+                    title={empty ? "Coming soon" : undefined}
                     onClick={() => toggle(group.id, link.id)}
                     className={cn(
                       TYPE.headingSection,
-                      "focus-visible:ring-ring/50 text-foreground relative rounded-sm text-left transition-colors duration-200 ease-out-strong outline-none focus-visible:ring-[3px] motion-reduce:transition-none",
-                      !selected && "hover:text-foreground/80"
+                      "focus-visible:ring-ring/50 text-foreground disabled:text-muted-foreground/40 relative rounded-sm text-left transition-colors duration-200 ease-out-strong outline-none focus-visible:ring-[3px] disabled:cursor-default motion-reduce:transition-none",
+                      !selected && "enabled:hover:text-foreground/80"
                     )}
                   >
                     <span

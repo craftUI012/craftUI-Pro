@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Blocks,
   BookOpen,
+  Box,
   Component,
   FileText,
   History,
@@ -13,6 +14,7 @@ import {
   Newspaper,
   Rocket,
   SearchIcon,
+  Shapes,
   Tag,
   X,
 } from "lucide-react";
@@ -122,6 +124,8 @@ const RESOURCE_LINKS = [
 const LIBRARY_ICONS: Record<LibraryId, typeof Component> = {
   blocks: Blocks,
   components: Component,
+  illustrations: Shapes,
+  isometric: Box,
   templates: LayoutTemplate,
 };
 

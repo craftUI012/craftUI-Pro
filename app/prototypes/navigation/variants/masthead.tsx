@@ -19,6 +19,8 @@ const LEADS: Record<LibraryId, string> = {
   blocks:
     "Whole sections, from pricing tables to dashboards, ready to drop in.",
   components: "The primitives, each shipped with the tokens it's built from.",
+  illustrations: "Drawn scenes and spot art, themed with your tokens.",
+  isometric: "Isometric objects and scenes, ready to drop in.",
   templates: "Complete sites with every page designed, not just the landing.",
 };
 

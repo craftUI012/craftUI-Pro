@@ -15,23 +15,26 @@
 // Everything must stay plain JSON (strings, numbers, arrays, objects):
 // getHomeData caches it with `unstable_cache`, which serialises the value.
 
-// Which library the rail shows.
-export type LibraryId = "components" | "blocks" | "templates";
+import type { FilterGroupId, LibraryId } from "@/constants/taxonomy";
 
-// One item in the index above the grid. Picking it filters the grid to items
-// whose `tags` include `<group id>:<item id>`.
-// WHEN WE SHIP REAL DATA: build the lists from the registry: the distinct
-// `categories` (Categories), `meta.section` (Sections / Primitives / Pages)
-// and `meta.styles` (Styles) across a library's items. `id` is the slug.
+// Libraries and filter groups are defined in constants/taxonomy.ts.
+export type { FilterGroupId, LibraryId } from "@/constants/taxonomy";
+
+// One value in the index above the grid. Picking it filters the grid to items
+// whose `tags` include `<group id>:<value id>`. The values a library lists
+// come from constants/taxonomy.ts; `id` is the slug.
 export interface IndexLink {
   id: string;
   label: string;
+  // How many of the library's items carry it. 0 shows the value dimmed and
+  // not clickable (listed, but nothing published yet).
+  count: number;
 }
 
 // One column group of the index. `columns: 2` splits the links over two grid
 // columns, as Mobbin's "Sections" does.
 export interface IndexGroup {
-  id: string;
+  id: FilterGroupId;
   label: string;
   columns: 1 | 2;
   links: IndexLink[];
@@ -69,7 +72,7 @@ export interface ShowcasePreview {
 //   publishedAt ← item.meta.publishedAt (ISO date) → "Latest" order
 //   popularity  ← installs over the last 30 days (analytics) → "Most popular"
 //   isPro     ← item.meta.pro, to badge paid items
-//   tags      ← "<group>:<slug>" for each of item.categories, item.meta.section
+//   tags      ← "<group>:<slug>" for each of item.categories, item.meta.types
 //               and item.meta.styles (matches the index; see IndexLink)
 export interface ShowcaseItem {
   id: string;
@@ -90,6 +93,8 @@ export type FeedId = "latest" | "popular";
 export interface Library {
   id: LibraryId;
   label: string;
+  // The library's key in the browse page's URL (/?library=blocks).
+  slug: string;
   // Nouns for the result count: "1 component", "6 components".
   itemLabel: { one: string; other: string };
   searchPlaceholder: string;

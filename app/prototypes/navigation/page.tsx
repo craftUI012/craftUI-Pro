@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 
 import { BrowseCard } from "@/components/new-hero-section/browse/browse-card";
 import { BrowseFeed } from "@/components/new-hero-section/browse/browse-feed";
-import { BrowseFiltersProvider } from "@/components/new-hero-section/browse/browse-filters";
+import {
+  BrowseFiltersLocalStore,
+  BrowseLibraryScope,
+} from "@/components/new-hero-section/browse/browse-filters";
 import { BrowseIndex } from "@/components/new-hero-section/browse/browse-index";
 import {
   feedOrders,
@@ -34,29 +37,31 @@ export default async function NavigationPrototype({
       const orders = feedOrders(library.items);
       return [
         library.id,
-        <BrowseFiltersProvider key={library.id}>
-          <BrowseIndex groups={library.index} />
-          <BrowseFeed
-            feeds={data.feeds}
-            itemLabel={library.itemLabel}
-            orders={orders}
-            tags={Object.fromEntries(
-              library.items.map((item) => [item.id, item.tags])
-            )}
-            searchText={Object.fromEntries(
-              library.items.map((item) => [
-                item.id,
-                `${item.name} ${item.tagline}`.toLowerCase(),
-              ])
-            )}
-            cards={Object.fromEntries(
-              library.items.map((item) => [
-                item.id,
-                <BrowseCard key={item.id} item={item} />,
-              ])
-            )}
-          />
-        </BrowseFiltersProvider>,
+        <BrowseFiltersLocalStore key={library.id}>
+          <BrowseLibraryScope library={library.id}>
+            <BrowseIndex groups={library.index} />
+            <BrowseFeed
+              feeds={data.feeds}
+              itemLabel={library.itemLabel}
+              orders={orders}
+              tags={Object.fromEntries(
+                library.items.map((item) => [item.id, item.tags])
+              )}
+              searchText={Object.fromEntries(
+                library.items.map((item) => [
+                  item.id,
+                  `${item.name} ${item.tagline}`.toLowerCase(),
+                ])
+              )}
+              cards={Object.fromEntries(
+                library.items.map((item) => [
+                  item.id,
+                  <BrowseCard key={item.id} item={item} />,
+                ])
+              )}
+            />
+          </BrowseLibraryScope>
+        </BrowseFiltersLocalStore>,
       ];
     })
   ) as Record<LibraryId, React.ReactNode>;

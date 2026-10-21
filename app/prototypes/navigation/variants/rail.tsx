@@ -2,10 +2,12 @@
 
 import {
   Blocks,
+  Box,
   Component,
   LayoutTemplate,
   Menu,
   SearchIcon,
+  Shapes,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +30,8 @@ import type { NavVariantProps } from "./shared";
 const LIBRARY_ICONS: Record<LibraryId, typeof Component> = {
   blocks: Blocks,
   components: Component,
+  illustrations: Shapes,
+  isometric: Box,
   templates: LayoutTemplate,
 };
 
