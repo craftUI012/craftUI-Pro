@@ -102,6 +102,7 @@ export const PreviewFrame = ({
 
   return (
     <div
+      data-slot="preview-frame"
       className="not-prose bg-card shadow-card scroll-mt-20 overflow-hidden rounded-lg [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:justify-center"
       id={installName}
       ref={boxRef}

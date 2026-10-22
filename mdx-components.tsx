@@ -25,6 +25,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TYPE } from "@/constants/typography";
 import { cn } from "@/lib/utils";
 
+// An h2 directly above a <ComponentPreview> names a variant on a gallery page
+// (## API keys table, then its preview). It titles the preview panel, so it
+// takes heading-panel ("title of a large panel inside a page") instead of
+// heading-section, and sits 1rem above the frame instead of touching it.
+const VARIANT_HEADING =
+  "[&:has(+[data-slot=preview-frame])]:mb-4 [&:has(+[data-slot=preview-frame])]:text-heading-panel-sm md:[&:has(+[data-slot=preview-frame])]:text-heading-panel-md lg:[&:has(+[data-slot=preview-frame])]:text-heading-panel-lg";
+
 export const mdxComponents = {
   Accordion,
   AccordionContent,
@@ -283,6 +290,7 @@ export const mdxComponents = {
       className={cn(
         "[&+]*:[code]:text-heading-section-sm [&+]*:[code]:md:text-heading-section-md [&+]*:[code]:lg:text-heading-section-lg mt-10 scroll-m-28 font-heading first:mt-0 lg:mt-12 [&+.steps]:mt-0! [&+.steps>h3]:mt-4! [&+h3]:mt-6! [&+p]:mt-4!",
         TYPE.headingSection,
+        VARIANT_HEADING,
         className
       )}
       {...props}

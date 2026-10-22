@@ -135,7 +135,7 @@ export const DocsArticle = ({
         >
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="h-(--top-spacing) shrink-0" />
-            <div className="container flex w-full min-w-0 flex-1 flex-col gap-8 py-6 text-neutral-800 lg:py-8 dark:text-neutral-300">
+            <div className="container flex w-full min-w-0 flex-1 flex-col gap-10 py-6 lg:gap-12 text-neutral-800 lg:py-8 dark:text-neutral-300">
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
@@ -155,7 +155,7 @@ export const DocsArticle = ({
                   {doc.description && (
                     <p
                       className={cn(
-                        "text-muted-foreground text-balance",
+                        "text-muted-foreground max-w-2xl text-pretty",
                         TYPE.pageLead
                       )}
                     >
