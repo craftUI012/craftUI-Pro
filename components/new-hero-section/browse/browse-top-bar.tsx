@@ -44,9 +44,10 @@ export const SITE_NAV = [
 // The previous top bar's primary CTA. Not in the navbar for now.
 // const PRIMARY_CTA = { href: ROUTES.DOCS_INSTALLATION, label: "Get started" };
 
-// One type for every navbar item, tabs and links alike (the docs sidebar's
-// row type, MENU_BUTTON_CLS in docs-sidebar.tsx: 0.8rem · 500).
-const NAV_TYPE = "text-[0.8rem] font-medium";
+// One type for every navbar item, tabs and links alike: card-label
+// (14px · 500), the same role as the brand and the search field, so the
+// whole bar reads at one size.
+const NAV_TYPE = TYPE.cardLabel;
 
 // "Sign in" for visitors, "Dashboard" once signed in. The session loads on
 // the client, so the page itself stays static. Until it's known, it shows

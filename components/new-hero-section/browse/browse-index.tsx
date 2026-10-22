@@ -13,12 +13,15 @@ import { cn } from "@/lib/utils";
 // Every value is foreground. Picked ones (any number per group: OR within a
 // group, AND across groups) slide a little right as a brand dot scales in
 // beside them; hovering an unpicked one dims it slightly. A value the library
-// lists but has no items for yet (count 0) is dimmed and can't be picked. Only colour and transforms animate (200ms,
-// ease-out-strong), and reduced motion keeps just the dot.
+// lists but has no items for yet (count 0) is dimmed and can't be picked.
+// Only colour and transforms animate (200ms, ease-out-strong), and reduced
+// motion keeps just the dot.
 //
-// Labels match the rail's group labels (12px · 500: cardCaption +
-// font-medium), so "Categories" and "Library" read as one row. Items are
-// heading-section.
+// Type (roles from /design-admin): group labels are card-eyebrow, an
+// uppercase overline, so they read as labels and not as one more value.
+// Values are heading-panel (16 → 20px · 600), the same tier as the feed's
+// Latest / Most popular below: big enough to scan as an index, without
+// twenty-odd section titles (heading-section) outshouting the grid.
 export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
   const { selection, toggle } = useBrowseFilters();
 
@@ -30,16 +33,13 @@ export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
           role="group"
           aria-labelledby={`index-${group.id}`}
           className={cn(
-            "flex flex-col gap-3",
+            "flex flex-col gap-2.5",
             group.columns === 2 && "col-span-2"
           )}
         >
           <h2
             id={`index-${group.id}`}
-            className={cn(
-              TYPE.cardCaption,
-              "text-muted-foreground font-medium"
-            )}
+            className={cn(TYPE.cardEyebrow, "text-muted-foreground uppercase")}
           >
             {group.label}
           </h2>
@@ -69,8 +69,8 @@ export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
                     title={empty ? "Coming soon" : undefined}
                     onClick={() => toggle(group.id, link.id)}
                     className={cn(
-                      TYPE.headingSection,
-                      "focus-visible:ring-ring/50 text-foreground disabled:text-muted-foreground/40 relative rounded-sm text-left transition-colors duration-200 ease-out-strong outline-none focus-visible:ring-[3px] disabled:cursor-default motion-reduce:transition-none",
+                      TYPE.headingPanel,
+                      "focus-visible:ring-ring/50 text-foreground disabled:text-muted-foreground/50 relative rounded-sm text-left transition-colors duration-200 ease-out-strong outline-none focus-visible:ring-[3px] disabled:cursor-default motion-reduce:transition-none",
                       !selected && "enabled:hover:text-foreground/80"
                     )}
                   >
@@ -84,7 +84,7 @@ export const BrowseIndex = ({ groups }: { groups: IndexGroup[] }) => {
                     <span
                       className={cn(
                         "inline-block transition-transform duration-200 ease-out-strong motion-reduce:transition-none",
-                        selected ? "translate-x-4" : "translate-x-0"
+                        selected ? "translate-x-3.5" : "translate-x-0"
                       )}
                     >
                       {link.label}
