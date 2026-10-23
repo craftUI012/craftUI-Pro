@@ -118,7 +118,6 @@ const toShowcaseItem = (
 
   return {
     href,
-    icon: { glyph: name.slice(0, 1) },
     id: item.name,
     isPro: meta.pro === true,
     name,

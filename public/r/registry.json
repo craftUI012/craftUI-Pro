@@ -45,8 +45,8 @@
     {
       "name": "hero-section",
       "type": "registry:block",
-      "title": "Hero section",
-      "description": "Full marketing hero with a data panel cluster, rolling CTAs and a scroll-cycling logo wall.",
+      "title": "Data panel hero",
+      "description": "Marketing hero with a cluster of data panels, rolling CTAs and a logo wall that cycles on scroll.",
       "categories": [
         "marketing"
       ],
@@ -76,8 +76,8 @@
     {
       "name": "hero-section-02",
       "type": "registry:block",
-      "title": "Hero section 02",
-      "description": "Split hero: headline and CTAs beside a drawn product panel. Mock layout.",
+      "title": "Split product hero",
+      "description": "Headline and CTAs on one side, a drawn product panel on the other.",
       "categories": [
         "marketing"
       ],
@@ -105,8 +105,8 @@
     {
       "name": "benchmarks-section",
       "type": "registry:block",
-      "title": "Benchmarks section",
-      "description": "Four comparison metrics against competitors, each drawn as its own chart form (isometric bars, unit field, radar, stacked slabs).",
+      "title": "Competitor benchmarks",
+      "description": "Four metrics against competitors, each drawn as its own chart: isometric bars, unit field, radar and stacked slabs.",
       "categories": [
         "marketing"
       ],
@@ -136,8 +136,8 @@
     {
       "name": "team-section",
       "type": "registry:block",
-      "title": "Team section",
-      "description": "Team roster: a clustered avatar grid synced to a role/bio detail list.",
+      "title": "Team avatar grid",
+      "description": "Clustered avatars synced to a list of roles and bios.",
       "categories": [
         "company"
       ],
@@ -166,8 +166,8 @@
     {
       "name": "tables-section",
       "type": "registry:block",
-      "title": "Tables section",
-      "description": "API keys table: search, filters, selection, pagination and create, rotate and delete dialogs.",
+      "title": "API keys table",
+      "description": "Search, filters, row selection, pagination, and create, rotate and delete dialogs.",
       "categories": [
         "data"
       ],

@@ -1,8 +1,8 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "hero-section-02",
-  "title": "Hero section 02",
-  "description": "Split hero: headline and CTAs beside a drawn product panel. Mock layout.",
+  "title": "Split product hero",
+  "description": "Headline and CTAs on one side, a drawn product panel on the other.",
   "files": [
     {
       "path": "registry/new-york/hero-section-02.tsx",

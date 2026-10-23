@@ -66,7 +66,6 @@ type ItemSeed = [string, string, string, number];
 const items = (base: string, seeds: ItemSeed[]): ShowcaseItem[] =>
   seeds.map(([name, tagline, publishedAt, popularity]) => ({
     href: `${base}/${slug(name)}`,
-    icon: { glyph: name.slice(0, 1) },
     id: slug(name),
     name,
     popularity,

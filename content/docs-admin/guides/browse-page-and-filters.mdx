@@ -70,8 +70,8 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
 {
   "name": "hero-section-02",
   "type": "registry:block",
-  "title": "Hero section 02",
-  "description": "Split hero: headline and CTAs beside a drawn product panel.",
+  "title": "Split product hero",
+  "description": "Headline and CTAs on one side, a drawn product panel on the other.",
   "categories": ["marketing"],
   "meta": {
     "library": "templates",
@@ -98,8 +98,8 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
 | `meta.types`       | yes, one or more  | The **Type** filter group. It's labelled **Primitives** in Components                                       |
 | `meta.styles`      | no (can be empty) | The **Styles** filter group                                                                                 |
 | `meta.publishedAt` | yes               | ISO date (`YYYY-MM-DD`). Sorts **Latest**                                                                   |
-| `title`            | yes               | The card's name                                                                                             |
-| `description`      | yes               | The card's one-line tagline (it's truncated, so lead with the point)                                        |
+| `title`            | yes               | The card's name. Use the variant's heading on its docs page ("API keys table"), not the page title          |
+| `description`      | yes               | The card's one-line tagline. It's truncated, so lead with the point and don't repeat the name               |
 | `meta.docs`        | no                | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)          |
 | `meta.preview`     | no                | Card screenshot, a path under `public/` (16:10, 1600px wide). A placeholder image is used until it's set    |
 | `meta.popularity`  | no                | Sorts **Most popular**. Until there's install data, every item counts as 0 and the tab falls back to newest |

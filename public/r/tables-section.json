@@ -1,8 +1,8 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "tables-section",
-  "title": "Tables section",
-  "description": "API keys table: search, filters, selection, pagination and create, rotate and delete dialogs.",
+  "title": "API keys table",
+  "description": "Search, filters, row selection, pagination, and create, rotate and delete dialogs.",
   "registryDependencies": [
     "table",
     "button",

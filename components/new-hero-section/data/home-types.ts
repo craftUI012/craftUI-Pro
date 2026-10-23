@@ -9,7 +9,7 @@
 //   │  Templates  6│ ┌────────┐ ┌────────┐ ┌────────┐                │
 //   │              │ │preview │ │preview │ │preview │  ← ShowcaseItem│
 //   │ Resources    │ └────────┘ └────────┘ └────────┘                │
-//   │  Docs …      │ (icon) Name / tagline                           │
+//   │  Docs …      │ Name / tagline                                  │
 //   └──────────────┴─────────────────────────────────────────────────┘
 //
 // Everything must stay plain JSON (strings, numbers, arrays, objects):
@@ -40,15 +40,6 @@ export interface IndexGroup {
   links: IndexLink[];
 }
 
-// The icon tile next to a card's name (Mobbin: the app icon).
-// WHEN WE SHIP REAL DATA: `src` is the item's icon from the registry
-// (`meta.icon`, a square SVG/PNG). Until then `glyph` (one or two letters) is
-// drawn on the brand fill.
-export interface ShowcaseIcon {
-  glyph: string;
-  src?: string;
-}
-
 // The screenshot inside a card.
 // WHEN WE SHIP REAL DATA: `meta.preview` from the registry item, a 16:10
 // screenshot, 1600px wide or more, made by the preview script (the
@@ -67,7 +58,6 @@ export interface ShowcasePreview {
 //   name      ← item.title
 //   tagline   ← item.description (one line; card truncates the rest)
 //   href      ← /docs/components/<name> (or /blocks, /templates)
-//   icon      ← item.meta.icon
 //   preview   ← item.meta.preview
 //   publishedAt ← item.meta.publishedAt (ISO date) → "Latest" order
 //   popularity  ← installs over the last 30 days (analytics) → "Most popular"
@@ -79,7 +69,6 @@ export interface ShowcaseItem {
   name: string;
   tagline: string;
   href: string;
-  icon: ShowcaseIcon;
   preview: ShowcasePreview;
   publishedAt: string;
   popularity: number;
