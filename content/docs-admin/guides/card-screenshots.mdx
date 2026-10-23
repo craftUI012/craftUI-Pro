@@ -1,0 +1,262 @@
+---
+title: Card screenshots
+description: How to upload, replace, roll back and delete the screenshots on the home page cards, stored on Cloudflare R2 with pnpm media.
+---
+
+The screenshot on each home page card is served from **Cloudflare R2**, not Vercel. Vercel never resizes or sends these images, so they cost nothing there, and R2 doesn't charge for downloads.
+
+You take each screenshot yourself. `pnpm media` renames it, makes four sizes, uploads them, points the card at them and cleans up. The same command uploads card videos: see [Card videos](/docs-admin/guides/card-videos).
+
+| Where                         | What                                                                              |
+| ----------------------------- | --------------------------------------------------------------------------------- |
+| `public/content/`             | Where you drop a new screenshot. Git-ignored: never committed or deployed         |
+| R2 `Images_product_cards/`    | The four AVIF sizes of every screenshot (the only copy once uploaded)             |
+| `content/media-manifest.json` | Which screenshot each card shows. The site reads it; **commit it** after a change |
+
+## One-time setup
+
+Skip this if `pnpm media check` already works.
+
+<Steps>
+
+<Step>The bucket</Step>
+
+In Cloudflare, **R2 Object Storage**: the bucket is `craftui`, and card images go in its `Images_product_cards` folder (videos will go in `Videos_product_cards` later). Turn on public access under the bucket's **Settings → Public access**: the `r2.dev` address works for testing; for production use a custom domain on Cloudflare, which is the one Cloudflare caches.
+
+<Step>An API token that can write</Step>
+
+R2 → **Manage API tokens** → **Create API token**, permission **Object Read & Write**, applied to the `craftui` bucket only. It shows the Access Key ID and Secret Access Key once. A permission change can take a few minutes to apply.
+
+<Step>Your `.env`</Step>
+
+```bash
+CLOUDFLARE_ACCOUNT_ID=…          # R2 overview page
+R2_ACCESS_KEY_ID=…               # from the token
+R2_SECRET_ACCESS_KEY=…           # from the token
+R2_BUCKET=craftui                # the bucket only, no folder
+R2_IMAGES_FOLDER=Images_product_cards
+R2_PUBLIC_BASE_URL=https://pub-….r2.dev   # or https://media.<your domain>
+MEDIA_LIVE_URL=https://<production domain> # what prune checks
+```
+
+The keys stay on your machine. Never paste them anywhere else.
+
+<Step>Vercel</Step>
+
+In the project's environment variables add only `R2_PUBLIC_BASE_URL` and `R2_IMAGES_FOLDER`. Without them the site still works, but every card shows the placeholder.
+
+</Steps>
+
+## Take the screenshot
+
+- **Shape:** 16:10, the card's frame. A browser window at **1440 × 900** on a Retina screen gives 2880 × 1800. A taller image is cropped from the bottom (the top is kept); a wider one is trimmed at the sides.
+- **Size:** at least **1000px** wide. The script refuses anything smaller.
+- **Format:** PNG, JPG or WebP. Any file name; the script renames it.
+
+Save it in `public/content/`.
+
+## Upload a new screenshot
+
+<Steps>
+
+<Step>Run the script</Step>
+
+```bash
+pnpm media
+```
+
+<Step>Pick the file</Step>
+
+```text
+Screenshots in public/content:
+  1. image.png
+Which file (1-1): 1
+image.png: 3420 × 2214
+```
+
+<Step>Pick the component</Step>
+
+If the file name already matches a component it asks you to confirm it; otherwise it lists them. `· has a screenshot` marks cards that already have one (picking one of those replaces it).
+
+```text
+Components:
+  1. Data panel hero (hero-section) · has a screenshot
+  2. Competitor benchmarks (benchmarks-section)
+  …
+Which component (1-4): 2
+```
+
+<Step>Confirm the name</Step>
+
+It proposes `<section>-<component name>`: the item's first `meta.types` value, then its card title. Type `y` to accept, or `n` and type your own (lowercase-with-dashes, no extension). The file in `public/content/` is renamed.
+
+```text
+Rename to "stats-competitor-benchmarks.png"? (y/n) y
+Renamed image.png → stats-competitor-benchmarks.png
+```
+
+<Step>Look at the four sizes</Step>
+
+They're written to `public/content/` and served by your dev server, so open the links to check them.
+
+```text
+Making 4 sizes (fingerprint 5fc6d226)…
+  stats-competitor-benchmarks-480.5fc6d226.avif  480 × 300  14.2 KB
+    http://localhost:3000/content/stats-competitor-benchmarks-480.5fc6d226.avif
+  …
+Check them above. Upload to R2? (y/n)
+```
+
+Type `n` to stop: nothing is uploaded and the files stay, so you can retake the screenshot and run again.
+
+<Step>Upload</Step>
+
+Type `y`. The script uploads the four files, opens each public address to check it loads with the right cache setting, and only then updates `content/media-manifest.json`. Finally it deletes the screenshot and its sizes from `public/content/`.
+
+```text
+✓ Competitor benchmarks now uses "stats-competitor-benchmarks". content/media-manifest.json updated.
+  Removed stats-competitor-benchmarks.png and its sizes from public/content.
+```
+
+<Step>Check, commit, deploy</Step>
+
+Open `http://localhost:3000` and look at the card. Then commit `content/media-manifest.json` and deploy.
+
+</Steps>
+
+## Replace a screenshot
+
+Same as uploading: save the new screenshot in `public/content/`, run `pnpm media`, and pick the same component. It keeps the same name.
+
+- The new sizes get a new fingerprint, so they're new files; nothing in R2 is overwritten.
+- The old version is listed under `retired` in the manifest, so you can roll back to it.
+- The old files stay in R2: the live site uses them until you deploy.
+
+After the deploy, run `pnpm media prune` to delete the old files.
+
+## Delete a screenshot
+
+<Steps>
+
+<Step>Take it off the card</Step>
+
+```bash
+pnpm media delete stats-competitor-benchmarks
+```
+
+It shows which card it belongs to and asks to confirm. The card goes back to the placeholder. Names are the keys in `content/media-manifest.json`, or run `pnpm media check` to list them.
+
+<Step>Commit and deploy</Step>
+
+Commit `content/media-manifest.json` and deploy.
+
+<Step>Delete the files from R2</Step>
+
+```bash
+pnpm media prune
+```
+
+</Steps>
+
+A deleted screenshot can't be rolled back. To show it again, take a new one.
+
+## Roll back
+
+```bash
+pnpm media rollback stats-competitor-benchmarks
+```
+
+Puts the previous screenshot back on the card (the current one becomes the previous one, so you can switch back). It only works while the old files are still in R2, so before you prune. Commit and deploy afterwards.
+
+## Prune: delete old files from R2
+
+Run it **after** deploying a replace or a delete.
+
+```bash
+pnpm media prune
+```
+
+1. It loads the live site (`MEDIA_LIVE_URL`, or `--live https://…`). If it can't, it stops and deletes nothing.
+2. It lists the files in `Images_product_cards/` that the manifest no longer uses.
+3. Any of them the live site still shows are kept (`still used by the live site; deploy first`).
+4. It lists the rest and asks you to type `delete`. Anything else cancels.
+5. It removes rolled-back versions whose files are gone from the manifest. If it says the manifest was updated, commit it.
+
+Only files named by the script (`<name>-<width>.<fingerprint>.avif`) are ever touched. Anything else in the bucket, like the videos at its top level, is left alone.
+
+## Check everything
+
+```bash
+pnpm media check
+```
+
+- Every screenshot in the manifest: ✓ when all four sizes load from the public address with the one-year cache setting, ✗ with the reason otherwise.
+- How many old files are waiting for `prune`.
+- Which cards are still on the placeholder.
+
+## Commands
+
+| Command                                | What it does                                                                                         |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `pnpm media` / `pnpm media add`        | Upload a screenshot or video, or replace a card's current one                                        |
+| `pnpm media delete <name> [--video]`   | Take a screenshot (or, with `--video`, a video) off its card. Files stay in R2 until pruned          |
+| `pnpm media rollback <name> [--video]` | Go back to the previous screenshot (or video), before it's pruned                                    |
+| `pnpm media prune [--live <url>]`      | After a deploy: delete R2 files neither the manifests nor the live site use (screenshots and videos) |
+| `pnpm media check`                     | Everything loads and is cached; files waiting for prune; cards without a screenshot or video         |
+
+A card's screenshot and video usually share a name. Without `--video` (or `--image`), `delete` and `rollback` ask which one you mean when a name is both.
+
+## Files and sizes
+
+Each screenshot becomes four files in R2:
+
+```text
+Images_product_cards/hero-data-panel-hero-480.5fc6d226.avif
+Images_product_cards/hero-data-panel-hero-640.5fc6d226.avif
+Images_product_cards/hero-data-panel-hero-800.5fc6d226.avif
+Images_product_cards/hero-data-panel-hero-1000.5fc6d226.avif
+```
+
+| Width | Used by                           | About |
+| ----- | --------------------------------- | ----- |
+| 480   | Ordinary (1×) desktop monitors    | 14 KB |
+| 640   | 2× laptops at 1280, 2× tablets    | 23 KB |
+| 800   | 2× desktops, tablets in landscape | 32 KB |
+| 1000  | 3× phones, the widest 2× layout   | 46 KB |
+
+The card's image is 300–535px wide on screen across every layout, so nothing needs more than about 1000px. The browser picks the smallest size that's sharp enough. The widths live in `constants/media.ts`.
+
+The **fingerprint** (`5fc6d226`) comes from the screenshot's contents. A new screenshot gets a new fingerprint and so new file names, which is why files can be cached for a year without anyone seeing an old image.
+
+<Callout title="Why nothing breaks">
+  Files are uploaded and checked before the manifest changes, so a failed run
+  leaves the card as it was; running again finishes the job. Replace and delete
+  never remove files, because the live site uses them until you deploy. Prune
+  refuses to run if it can't load the live site, and keeps anything the live
+  site still shows. The local screenshot is only deleted once everything worked.
+</Callout>
+
+## Troubleshooting
+
+| Message                                                  | Fix                                                                                                                     |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `HTTP 403 AccessDenied (check the R2 API token…)`        | The token can't write. Give it **Object Read & Write** on the bucket; a change can take a few minutes                   |
+| `… is missing from .env`                                 | Add that line (see [One-time setup](#one-time-setup))                                                                   |
+| `It's 800px wide; it needs at least 1000px`              | Retake it at a bigger window or on a Retina screen                                                                      |
+| `public/content/<name>.png already exists`               | An older file with that name is still there. Remove it, or pick another name                                            |
+| `This exact screenshot is already on the card`           | Nothing to upload. The local file is removed                                                                            |
+| `Couldn't load <url>/ …, so it can't be checked`         | Set `MEDIA_LIVE_URL` to the production address, or pass `--live https://…`                                              |
+| `<file> is no longer in R2 (pruned)` on rollback         | That version is gone. Take a new screenshot                                                                             |
+| `content/media-manifest.json: …` when the site builds    | The manifest was edited by hand and has a mistake: a bad name or fingerprint, an unknown component, or two for one card |
+| Cards show the placeholder in production but not locally | Add `R2_PUBLIC_BASE_URL` and `R2_IMAGES_FOLDER` to Vercel and redeploy                                                  |
+
+## How it's wired
+
+| File                                                       | Role                                                                                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `scripts/media.mjs`                                        | `pnpm media`: rename, resize (sharp), upload/delete in R2 (signed S3 requests), manifest updates |
+| `content/media-manifest.json`                              | Screenshot name → component, fingerprint, blur placeholder, retired versions                     |
+| `constants/media.ts`                                       | The four widths and the 16:10 frame, shared by the script and the site                           |
+| `lib/media.ts`                                             | Validates the manifest at build time and builds each card's image addresses                      |
+| `components/new-hero-section/data/registry-home-data.ts`   | Uses the R2 screenshot for a card when it has one, else the placeholder                          |
+| `components/new-hero-section/browse/browse-card-parts.tsx` | Renders it with all four sizes and the blur behind it, skipping Vercel's image optimizer         |

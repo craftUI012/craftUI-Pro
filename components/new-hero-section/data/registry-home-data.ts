@@ -12,6 +12,7 @@ import {
   POOLS,
 } from "@/constants/taxonomy";
 import type { FilterGroupId } from "@/constants/taxonomy";
+import { getCardMedia, getCardVideo } from "@/lib/media";
 import { source } from "@/lib/source";
 import { assertRegistryTaxonomy, itemFilterValues } from "@/lib/taxonomy";
 import type { TaxonomyRegistryItem } from "@/lib/taxonomy";
@@ -32,8 +33,9 @@ import registry from "@/registry.json";
 //   meta.docs          → the docs page it lives on, when that isn't its own
 //                        name (hero-section-02 → the hero-section page). The
 //                        card links to that page, #<name> for a variant.
-//   meta.preview       → the card's screenshot (path under /public);
-//                        a placeholder until the preview script makes them
+//   meta.preview       → the card's screenshot (path under /public), when
+//                        it has no R2 screenshot in content/media-manifest.json
+//                        (lib/media.ts); a placeholder otherwise
 //   meta.popularity    → "Most popular" order (install analytics, later)
 //   meta.pro           → the Pro badge
 //
@@ -99,6 +101,20 @@ const libraryIndex = (
   });
 };
 
+// The card's screenshot: the R2 one when it has been uploaded
+// (content/media-manifest.json), else meta.preview, else the placeholder.
+const previewOf = (item: RegistryItem, name: string) => {
+  const alt = `${name} preview`;
+  const media = getCardMedia(item.name);
+  if (media) {
+    return { ...media, alt };
+  }
+  if (item.meta?.preview) {
+    return { alt, height: 1000, src: item.meta.preview, width: 1600 };
+  }
+  return { ...PLACEHOLDER, alt };
+};
+
 // The card for one registry item, or null when it has no docs page to link
 // to (so a card never leads to a 404).
 const toShowcaseItem = (
@@ -122,14 +138,13 @@ const toShowcaseItem = (
     isPro: meta.pro === true,
     name,
     popularity: meta.popularity ?? 0,
-    preview: meta.preview
-      ? { alt: `${name} preview`, height: 1000, src: meta.preview, width: 1600 }
-      : { ...PLACEHOLDER, alt: `${name} preview` },
+    preview: previewOf(item, name),
     publishedAt: meta.publishedAt ?? "",
     tagline: item.description ?? "",
     tags: FILTER_GROUPS.flatMap((group) =>
       values[group.id].map((slug) => `${group.id}:${slug}`)
     ),
+    video: getCardVideo(item.name),
   };
 };
 

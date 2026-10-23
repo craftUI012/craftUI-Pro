@@ -91,19 +91,19 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
 }
 ```
 
-| Field              | Required          | Drives                                                                                                      |
-| ------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------- |
-| `categories`       | yes, one or more  | The **Categories** filter group                                                                             |
-| `meta.library`     | yes               | Which library tab the card is in: a key of `LIBRARIES` (`"templates"` is shown as **Sections**)             |
-| `meta.types`       | yes, one or more  | The **Type** filter group. It's labelled **Primitives** in Components                                       |
-| `meta.styles`      | no (can be empty) | The **Styles** filter group                                                                                 |
-| `meta.publishedAt` | yes               | ISO date (`YYYY-MM-DD`). Sorts **Latest**                                                                   |
-| `title`            | yes               | The card's name. Use the variant's heading on its docs page ("API keys table"), not the page title          |
-| `description`      | yes               | The card's one-line tagline. It's truncated, so lead with the point and don't repeat the name               |
-| `meta.docs`        | no                | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)          |
-| `meta.preview`     | no                | Card screenshot, a path under `public/` (16:10, 1600px wide). A placeholder image is used until it's set    |
-| `meta.popularity`  | no                | Sorts **Most popular**. Until there's install data, every item counts as 0 and the tab falls back to newest |
-| `meta.pro`         | no                | `true` puts the item behind the paywall: no source in the Code tab, and **Copy for AI** is locked           |
+| Field              | Required          | Drives                                                                                                                                   |
+| ------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `categories`       | yes, one or more  | The **Categories** filter group                                                                                                          |
+| `meta.library`     | yes               | Which library tab the card is in: a key of `LIBRARIES` (`"templates"` is shown as **Sections**)                                          |
+| `meta.types`       | yes, one or more  | The **Type** filter group. It's labelled **Primitives** in Components                                                                    |
+| `meta.styles`      | no (can be empty) | The **Styles** filter group                                                                                                              |
+| `meta.publishedAt` | yes               | ISO date (`YYYY-MM-DD`). Sorts **Latest**                                                                                                |
+| `title`            | yes               | The card's name. Use the variant's heading on its docs page ("API keys table"), not the page title                                       |
+| `description`      | yes               | The card's one-line tagline. It's truncated, so lead with the point and don't repeat the name                                            |
+| `meta.docs`        | no                | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)                                       |
+| `meta.preview`     | no                | Local fallback screenshot under `public/`. Real card screenshots live on R2: see [Card screenshots](/docs-admin/guides/card-screenshots) |
+| `meta.popularity`  | no                | Sorts **Most popular**. Until there's install data, every item counts as 0 and the tab falls back to newest                              |
+| `meta.pro`         | no                | `true` puts the item behind the paywall: no source in the Code tab, and **Copy for AI** is locked                                        |
 
 `meta.types` replaced the old single `meta.section` string. The build rejects `meta.section` and says what to write instead.
 
@@ -196,6 +196,10 @@ If a slug is wrong, this fails with the item and slug. Fix it and run it again.
 
 `content/docs/<library>/<page>.mdx`, with a `<ComponentPreview name="<name>">`. For a new page, list it in `content/docs/<library>/meta.json`.
 
+<Step>Add its card screenshot</Step>
+
+Save a 16:10 screenshot, at least 1000px wide, in `public/content/`, then run `pnpm media`. See [Card screenshots](/docs-admin/guides/card-screenshots).
+
 <Step>Check the home page</Step>
 
 On `/`, pick the library, then check that:
@@ -206,19 +210,24 @@ On `/`, pick the library, then check that:
 
 </Steps>
 
+## Card screenshots
+
+Card images live on Cloudflare R2 and are managed with `pnpm media`. See [Card screenshots](/docs-admin/guides/card-screenshots) for uploading, replacing and deleting them.
+
 ## How it's wired
 
-| File                                                     | Role                                                                                                               |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `constants/taxonomy.ts`                                  | Libraries, pools, each library's listed values, navbar order, URL params                                           |
-| `lib/taxonomy.ts`                                        | Reads an item's values and validates the registry against the taxonomy (also used by `scripts/build-registry.mjs`) |
-| `components/new-hero-section/data/registry-home-data.ts` | Builds each library's index (listed values with counts) and cards                                                  |
-| `components/new-hero-section/data/get-home-data.ts`      | Caches the result. The key hashes the registry and the taxonomy, so edits show up on their own                     |
-| `components/new-hero-section/browse/browse-shell.tsx`    | Owns the active tab and every library's picks, and keeps them in the URL                                           |
-| `components/new-hero-section/browse/browse-url.ts`       | Reads and writes the URL                                                                                           |
-| `components/new-hero-section/browse/browse-filters.tsx`  | The selection store, and the OR/AND matching                                                                       |
-| `components/new-hero-section/browse/browse-index.tsx`    | The filter index above the grid                                                                                    |
-| `components/new-hero-section/browse/browse-feed.tsx`     | Filters and orders the cards on the client                                                                         |
+| File                                                                | Role                                                                                                               |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `constants/taxonomy.ts`                                             | Libraries, pools, each library's listed values, navbar order, URL params                                           |
+| `lib/taxonomy.ts`                                                   | Reads an item's values and validates the registry against the taxonomy (also used by `scripts/build-registry.mjs`) |
+| `components/new-hero-section/data/registry-home-data.ts`            | Builds each library's index (listed values with counts) and cards                                                  |
+| `lib/media.ts`, `constants/media.ts`, `content/media-manifest.json` | Card screenshots on R2: the manifest, its validation and each card's `srcSet` (written by `scripts/media.mjs`)     |
+| `components/new-hero-section/data/get-home-data.ts`                 | Caches the result. The key hashes the registry and the taxonomy, so edits show up on their own                     |
+| `components/new-hero-section/browse/browse-shell.tsx`               | Owns the active tab and every library's picks, and keeps them in the URL                                           |
+| `components/new-hero-section/browse/browse-url.ts`                  | Reads and writes the URL                                                                                           |
+| `components/new-hero-section/browse/browse-filters.tsx`             | The selection store, and the OR/AND matching                                                                       |
+| `components/new-hero-section/browse/browse-index.tsx`               | The filter index above the grid                                                                                    |
+| `components/new-hero-section/browse/browse-feed.tsx`                | Filters and orders the cards on the client                                                                         |
 
 In code, each item carries tags like `categories:marketing`, `types:hero` and `styles:minimal`.
 

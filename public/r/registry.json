@@ -74,35 +74,6 @@
       ]
     },
     {
-      "name": "hero-section-02",
-      "type": "registry:block",
-      "title": "Split product hero",
-      "description": "Headline and CTAs on one side, a drawn product panel on the other.",
-      "categories": [
-        "marketing"
-      ],
-      "meta": {
-        "pro": false,
-        "library": "templates",
-        "types": [
-          "hero"
-        ],
-        "styles": [
-          "minimal",
-          "dark-mode"
-        ],
-        "publishedAt": "2026-09-30",
-        "docs": "hero-section"
-      },
-      "files": [
-        {
-          "path": "registry/new-york/hero-section-02.tsx",
-          "type": "registry:block",
-          "target": "components/blocks/hero-section-02.tsx"
-        }
-      ]
-    },
-    {
       "name": "benchmarks-section",
       "type": "registry:block",
       "title": "Competitor benchmarks",

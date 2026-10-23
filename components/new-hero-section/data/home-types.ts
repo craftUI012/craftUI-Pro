@@ -40,16 +40,24 @@ export interface IndexGroup {
   links: IndexLink[];
 }
 
-// The screenshot inside a card.
-// WHEN WE SHIP REAL DATA: `meta.preview` from the registry item, a 16:10
-// screenshot, 1600px wide or more, made by the preview script (the
-// template-preview route can render it). Keep width/height for next/image.
+// The screenshot inside a card. From Cloudflare R2 when the item has an
+// entry in content/media-manifest.json (see lib/media.ts): then `srcSet`
+// lists its four AVIF widths and the card loads them directly, skipping
+// Vercel's image optimizer. Otherwise a local placeholder through next/image.
 export interface ShowcasePreview {
   src: string;
+  srcSet?: string;
   alt: string;
   width: number;
   height: number;
   blurDataURL?: string;
+}
+
+// A card's video, from Cloudflare R2 when the item has an entry in
+// content/video-manifest.json (see lib/media.ts). Uploaded as-is.
+export interface ShowcaseVideo {
+  src: string;
+  type: "video/mp4" | "video/webm";
 }
 
 // One card in the grid.
@@ -58,7 +66,8 @@ export interface ShowcasePreview {
 //   name      ← item.title
 //   tagline   ← item.description (one line; card truncates the rest)
 //   href      ← /docs/components/<name> (or /blocks, /templates)
-//   preview   ← item.meta.preview
+//   preview   ← content/media-manifest.json (R2), else item.meta.preview
+//   video     ← content/video-manifest.json (R2), when it has one
 //   publishedAt ← item.meta.publishedAt (ISO date) → "Latest" order
 //   popularity  ← installs over the last 30 days (analytics) → "Most popular"
 //   isPro     ← item.meta.pro, to badge paid items
@@ -74,6 +83,7 @@ export interface ShowcaseItem {
   popularity: number;
   tags: string[];
   isPro?: boolean;
+  video?: ShowcaseVideo;
 }
 
 // The feed tabs above the grid (Mobbin: Latest / Most popular).
