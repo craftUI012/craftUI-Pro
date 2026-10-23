@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -17,6 +18,14 @@ import {
   backfillPurchasesToUser,
   getEntitlements,
 } from "@/lib/billing/entitlements";
+import { createPageMetadata } from "@/seo/metadata";
+
+// Signed-in only, so never in search results.
+export const metadata: Metadata = createPageMetadata({
+  noIndex: true,
+  path: ROUTES.DASHBOARD,
+  title: "Dashboard",
+});
 
 const DashboardPage = async () => {
   const session = await auth.api.getSession({

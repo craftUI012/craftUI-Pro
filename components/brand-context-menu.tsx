@@ -1,11 +1,10 @@
 "use client";
 
 import { DownloadIcon } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-import { LogoMark, getLogoMarkSVG } from "@/components/logo";
+import { LOGO_MARK_SVG, LogoMark } from "@/components/logo";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -19,30 +18,25 @@ export const BrandContextMenu = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { resolvedTheme } = useTheme();
   const { copyToClipboard } = useCopyToClipboard();
 
-  const logoMarkSvgString = getLogoMarkSVG(
-    resolvedTheme === "light" ? "#000" : "#fff"
-  );
-
   const handleCopy = useCallback(() => {
-    copyToClipboard(logoMarkSvgString);
+    copyToClipboard(LOGO_MARK_SVG);
     toast.success("Icon as SVG copied");
-  }, [logoMarkSvgString, copyToClipboard]);
+  }, [copyToClipboard]);
 
   const handleDownload = useCallback(() => {
-    const blob = new Blob([logoMarkSvgString], {
+    const blob = new Blob([LOGO_MARK_SVG], {
       type: "image/svg+xml;charset=utf-8",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "icon.svg";
+    a.download = "craftui-pro-logo.svg";
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Icon as SVG downloaded");
-  }, [logoMarkSvgString]);
+  }, []);
 
   return (
     <ContextMenu>

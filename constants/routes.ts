@@ -31,6 +31,7 @@ export const ROUTES = {
   REGISTRY: "/r/registry.json",
   ROBOTS: "/robots.txt",
   RSS: "/rss.xml",
+  SEO_ADMIN: "/seo-admin",
   SITEMAP: "/sitemap.xml",
   SPONSOR: "/sponsor",
   TEMPLATE_PREVIEW: "/template-preview",

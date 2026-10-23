@@ -19,7 +19,7 @@ import type {
   Library,
 } from "@/components/new-hero-section/data/home-types";
 import { ROUTES } from "@/constants/routes";
-import { showDesignAdmin, showDocsAdmin } from "@/lib/flags";
+import { showDesignAdmin, showDocsAdmin, showSeoAdmin } from "@/lib/flags";
 
 // Cards in the first row of the first tab: on screen at load, so eager.
 const EAGER_CARDS = 3;
@@ -113,6 +113,7 @@ const devLinks = [
   ...(showDesignAdmin
     ? [{ href: ROUTES.DESIGN_ADMIN, label: "Design admin" }]
     : []),
+  ...(showSeoAdmin ? [{ href: ROUTES.SEO_ADMIN, label: "SEO admin" }] : []),
 ];
 
 // Server entry for the shell, used by app/(home)/layout.tsx: the rail

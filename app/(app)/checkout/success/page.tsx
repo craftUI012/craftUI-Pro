@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ROUTES } from "@/constants/routes";
+import { createPageMetadata } from "@/seo/metadata";
+
+// Reached only after paying, so never in search results.
+export const metadata: Metadata = createPageMetadata({
+  noIndex: true,
+  path: "/checkout/success",
+  title: "Payment received",
+});
 
 const CheckoutSuccessPage = () => (
   <div className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-16">

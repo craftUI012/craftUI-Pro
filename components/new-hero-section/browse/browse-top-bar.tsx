@@ -3,6 +3,7 @@
 import { SearchIcon, X } from "lucide-react";
 import Link from "next/link";
 
+import { BrandContextMenu } from "@/components/brand-context-menu";
 import { LogoMark } from "@/components/logo";
 import type {
   FilterGroupId,
@@ -172,17 +173,20 @@ export const BrowseTopBar = ({
   return (
     <header className="bg-background/90 sticky top-0 z-40 backdrop-blur">
       <div className="container flex flex-wrap items-center gap-x-6 lg:h-(--header-height) lg:flex-nowrap">
-        <Link
-          href={ROUTES.HOME}
-          transitionTypes={["nav-back"]}
-          className={cn(
-            TYPE.cardLabel,
-            "text-foreground focus-visible:ring-ring/50 flex h-(--header-height) shrink-0 items-center gap-2 rounded-md outline-none focus-visible:ring-[3px] lg:h-9"
-          )}
-        >
-          <LogoMark className="size-4" />
-          {SITE.NAME}
-        </Link>
+        {/* Right-click the brand to copy or download the logo SVG. */}
+        <BrandContextMenu>
+          <Link
+            href={ROUTES.HOME}
+            transitionTypes={["nav-back"]}
+            className={cn(
+              TYPE.cardLabel,
+              "text-foreground focus-visible:ring-ring/50 flex h-(--header-height) shrink-0 items-center gap-2 rounded-md outline-none focus-visible:ring-[3px] lg:h-9"
+            )}
+          >
+            <LogoMark className="size-5" />
+            {SITE.NAME}
+          </Link>
+        </BrandContextMenu>
 
         {/* Library tabs. A second row below lg (order-last, full width,
             scrolls sideways on narrow phones), inline after the brand from

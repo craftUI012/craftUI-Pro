@@ -29,9 +29,18 @@ export default defineConfig({
   },
 });
 
+// Docs pages kept in the repo but not published: no route, no sitemap entry,
+// no menu item. Remove a line to bring its page back (and re-add it to its
+// folder's meta.json).
+const HIDDEN_DOCS = [
+  // Placeholder from the registry template, not a real component.
+  "components/your-component.mdx",
+];
+
 export const docs = defineDocs({
   dir: DOCS_DIR,
   docs: {
+    files: ["**/*.mdx", ...HIDDEN_DOCS.map((path) => `!${path}`)],
     postprocess: {
       includeProcessedMarkdown: true,
     },
