@@ -1,4 +1,4 @@
-# Contributing to craftUI Pro
+# Contributing to craftUI
 
 Thanks for your interest in contributing.
 

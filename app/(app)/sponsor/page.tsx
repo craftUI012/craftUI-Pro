@@ -13,7 +13,7 @@ import { createPageMetadata } from "@/seo/metadata";
 
 export const metadata: Metadata = createPageMetadata({
   description:
-    "Support craftUI Pro, a collection of crafted components for shadcn/ui. Sponsor tiers, stargazers, and how to contribute.",
+    "Support craftUI, a collection of crafted components for shadcn/ui. Sponsor tiers, stargazers, and how to contribute.",
   path: ROUTES.SPONSOR,
   title: "Sponsor",
 });
@@ -29,8 +29,8 @@ const SponsorPage = async () => {
             Support the project
           </h1>
           <p className="text-base text-muted-foreground text-balance">
-            craftUI Pro is a collection of crafted components for shadcn/ui,
-            built in the open.
+            craftUI is a collection of crafted components for shadcn/ui, built
+            in the open.
           </p>
           <p className="text-sm text-muted-foreground text-balance">
             If it made your project better, sponsoring helps fund new components

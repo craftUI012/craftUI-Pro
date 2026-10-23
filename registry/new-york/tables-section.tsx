@@ -1274,6 +1274,19 @@ const DeleteKeysDialog = ({
   );
 };
 
+// Keyboard shortcuts belong to one table at a time: the one with focus or
+// the pointer over it, or the only one on the page. Without this, two tables
+// on one page would both answer the same key.
+const ownsShortcuts = (section: HTMLElement | null): boolean => {
+  if (!section) {
+    return false;
+  }
+  if (section.contains(document.activeElement) || section.matches(":hover")) {
+    return true;
+  }
+  return document.querySelectorAll("[data-shortcuts]").length === 1;
+};
+
 export default function TablesSection({
   initialKeys,
   currentUser = "you",
@@ -1309,6 +1322,7 @@ export default function TablesSection({
   const [deleteIds, setDeleteIds] = React.useState<string[] | null>(null);
 
   const searchRef = React.useRef<HTMLInputElement>(null);
+  const sectionRef = React.useRef<HTMLElement>(null);
   const sdkRef = React.useRef<HTMLAnchorElement>(null);
   const docsRef = React.useRef<HTMLAnchorElement>(null);
   const refreshTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1401,7 +1415,7 @@ export default function TablesSection({
       ) {
         return;
       }
-      if (anyDialogOpen) {
+      if (anyDialogOpen || !ownsShortcuts(sectionRef.current)) {
         return;
       }
       const pressed = event.key.toLowerCase();
@@ -1520,10 +1534,14 @@ export default function TablesSection({
 
   return (
     <section
+      ref={sectionRef}
       data-slot="tables-section"
+      data-shortcuts=""
       className={cn("bg-background text-foreground w-full", className)}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      {/* Fills whatever it's placed in: the host page or app layout sets the
+          width. Only side padding, so it never touches the edges. */}
+      <div className="w-full px-4 py-6 sm:px-6 sm:py-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="flex items-center gap-2.5 text-2xl font-semibold tracking-tight sm:text-3xl">

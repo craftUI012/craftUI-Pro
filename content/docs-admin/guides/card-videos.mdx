@@ -1,0 +1,193 @@
+---
+title: Card videos
+description: How to upload, replace, roll back and delete the videos on the home page cards, stored on Cloudflare R2 with pnpm media.
+---
+
+A card can have a short video next to its screenshot. Videos are stored on **Cloudflare R2** and uploaded with the same `pnpm media` command as [card screenshots](/docs-admin/guides/card-screenshots). The difference: a video is uploaded **exactly as you saved it**, with no resizing or re-encoding, so export it the way it should play.
+
+| Where                         | What                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| `public/content/`             | Where you drop a new video. Git-ignored: never committed or deployed       |
+| R2 `Videos_product_cards/`    | The uploaded videos (the only copy once uploaded)                          |
+| `content/video-manifest.json` | Which video each card has. The site reads it; **commit it** after a change |
+
+Each card's data (`ShowcaseItem.video`, built in `registry-home-data.ts`) gets `{ src, type }` when it has a video, and the card switches to `BrowseVideoCard`.
+
+## How the card plays it
+
+A video card looks like any other card at rest: its screenshot (upload one too, or it shows the placeholder), plus a fine **ruler** in the bottom padding. The ruler is the only hint that there's footage.
+
+| Action                                  | What happens                                                                                                                           |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover the card (or tab to it)           | After 150 ms the video plays over the screenshot, muted and looping. The delay stops cards playing as the mouse sweeps across the grid |
+| Move across the screenshot or the ruler | Scrubs: the pointer is the timeline. Under the pointer the ruler magnifies like the macOS dock                                         |
+| Hold still for 300 ms                   | Plays on from there                                                                                                                    |
+| Move just under the card                | Still scrubs: the ruler answers up to 32 px below the card                                                                             |
+| Leave                                   | Pauses and fades back to the screenshot. The position is kept: the next hover carries on from the same frame                           |
+| Touch screens                           | No hover, so the card plays while it's mostly on screen and pauses when scrolled away. Not with reduced motion                         |
+
+The ruler shows progress without a coloured line: ticks you've watched are bright, the rest dim. Both ends fade out so it never runs into the card's rounded corners, and it uses the text colour, so it works in light and dark mode.
+
+Nothing loads until the first hover (`preload="none"`), so video cards cost nothing for visitors who don't touch them. The lens settings (`REACH_PX`, `MAGNIFY`, `HIT_BELOW`) are at the top of `components/new-hero-section/browse/browse-video-card.tsx`.
+
+<Callout title="Upload the screenshot too">
+  The screenshot is what everyone sees at rest and what shows before the video
+  loads. A card with a video but no screenshot shows the placeholder image until
+  it's hovered.
+</Callout>
+
+## One-time setup
+
+Everything from the [screenshot setup](/docs-admin/guides/card-screenshots#one-time-setup), plus one line in `.env`:
+
+```bash
+R2_VIDEOS_FOLDER=Videos_product_cards
+```
+
+On Vercel, add `R2_VIDEOS_FOLDER` next to `R2_PUBLIC_BASE_URL` and `R2_IMAGES_FOLDER`. Without it, cards simply have no video.
+
+## Export the video
+
+- **Shape:** **16:10 landscape**, the same frame as the screenshot, ideally the same framing so the switch from screenshot to video is seamless. The card fills its frame from the top, so a taller or portrait clip is cropped at the bottom.
+- **Format:** **MP4 (H.264)** plays everywhere, including Safari and iPhone. WebM also works, but not in older Safari. `.mov` isn't accepted; export it as MP4.
+- **Size:** keep it small, ideally under 3 MB. Cards play silently in a frame about 380px wide, so 1280px wide at 30 fps is plenty, and a few seconds that loop cleanly work best. Over 8 MB, the script warns you (it still uploads if you say yes).
+- **Fast start:** export with "optimize for web" / fast start, so it begins playing before it's fully downloaded. With ffmpeg:
+
+```bash
+ffmpeg -i input.mov -vf "scale=1280:-2" -c:v libx264 -crf 23 -preset slow \
+  -pix_fmt yuv420p -movflags +faststart -an output.mp4
+```
+
+`-an` drops the audio track; card videos are muted anyway.
+
+## Upload a video
+
+<Steps>
+
+<Step>Save it and run the script</Step>
+
+Put the `.mp4` in `public/content/`, then:
+
+```bash
+pnpm media
+```
+
+<Step>Pick the file</Step>
+
+The list labels each file as a screenshot or a video.
+
+```text
+Files in public/content:
+  1. checkout-demo.mp4  (video)
+Which file (1-1): 1
+checkout-demo.mp4 (video): 2.4 MB
+```
+
+<Step>Pick the component</Step>
+
+`· has a video` marks cards that already have one (picking one replaces it).
+
+```text
+Components:
+  1. Data panel hero (hero-section)
+  2. Competitor benchmarks (benchmarks-section)
+  3. Team avatar grid (team-section)
+  4. API keys table (tables-section)
+Which component (1-4): 4
+```
+
+<Step>Confirm the name</Step>
+
+Same rule as screenshots: `<section>-<component name>`. A card's video and screenshot share the name; they live in different folders and manifests.
+
+```text
+Rename to "tables-api-keys-table.mp4"? (y/n) y
+Renamed checkout-demo.mp4 → tables-api-keys-table.mp4
+```
+
+<Step>Check it and upload</Step>
+
+It prints the R2 file name and a local link so you can watch it first.
+
+```text
+Uploading as tables-api-keys-table.f992430f.mp4 (fingerprint f992430f).
+  Preview: http://localhost:3000/content/tables-api-keys-table.mp4
+
+Upload to R2? (y/n) y
+  tables-api-keys-table.f992430f.mp4  uploaded
+
+Checking the public addresses…
+  ✓ https://…/Videos_product_cards/tables-api-keys-table.f992430f.mp4
+
+✓ API keys table now uses "tables-api-keys-table". content/video-manifest.json updated.
+  Removed tables-api-keys-table.mp4 from public/content.
+```
+
+Type `n` at the upload question to stop: nothing is uploaded and the file stays.
+
+<Step>Commit and deploy</Step>
+
+Commit `content/video-manifest.json` and deploy.
+
+</Steps>
+
+## Replace a video
+
+Save the new one in `public/content/`, run `pnpm media`, and pick the same component. The new file gets a new fingerprint, the old one is kept for rollback, and the old file stays in R2 until you run `pnpm media prune` after the deploy.
+
+## Delete a video
+
+```bash
+pnpm media delete tables-api-keys-table --video
+```
+
+`--video` says which one you mean, since a card's screenshot usually has the same name. Without it, the script asks when the name is both. Then commit `content/video-manifest.json`, deploy, and run `pnpm media prune` to delete the file from R2.
+
+## Roll back
+
+```bash
+pnpm media rollback tables-api-keys-table --video
+```
+
+Goes back to the previous video, as long as it hasn't been pruned. Commit and deploy afterwards.
+
+## Prune and check
+
+`pnpm media prune` and `pnpm media check` cover screenshots and videos together:
+
+- **prune** lists old files from both folders, keeps anything the live site still uses, and asks you to type `delete`.
+- **check** confirms each video loads with the right type (`video/mp4`) and the one-year cache setting, shows old files waiting for prune, and lists cards without a video.
+
+See [Card screenshots](/docs-admin/guides/card-screenshots#prune-delete-old-files-from-r2) for how prune decides what's safe to delete.
+
+## Files
+
+```text
+Videos_product_cards/tables-api-keys-table.f992430f.mp4
+```
+
+The fingerprint comes from the file's contents, so a new video gets a new name and files are never overwritten. They're served with `Cache-Control: public, max-age=31536000, immutable`, and R2 answers range requests, so browsers can stream and seek.
+
+## Troubleshooting
+
+| Message                                               | Fix                                                                                      |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| The file isn't in the list                            | Only `.mp4` and `.webm` are picked up. Export a `.mov` as MP4                            |
+| `Over 8.0 MB: a card video this big is slow to start` | Shorten the clip or export at a lower bitrate (the ffmpeg command above)                 |
+| `R2_VIDEOS_FOLDER is missing from .env`               | Add `R2_VIDEOS_FOLDER=Videos_product_cards`                                              |
+| `"<name>" is both a screenshot and a video`           | Pick one, or pass `--video` / `--image`                                                  |
+| `content/video-manifest.json: …` when the site builds | A hand edit broke it: bad name or fingerprint, unknown component, ext not `.mp4`/`.webm` |
+| A card has no video in production but does locally    | Add `R2_VIDEOS_FOLDER` to Vercel and redeploy                                            |
+
+For upload errors (`HTTP 403`, the live site not loading), see [Card screenshots](/docs-admin/guides/card-screenshots#troubleshooting): they're the same.
+
+## How it's wired
+
+| File                                                       | Role                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `scripts/media.mjs`                                        | `pnpm media`: upload (as-is), delete, rollback, prune and check, for videos and screenshots |
+| `content/video-manifest.json`                              | Video name → component, fingerprint, extension, size, retired versions                      |
+| `lib/media.ts`                                             | Validates the manifest at build time; `getCardVideo` builds each card's `{ src, type }`     |
+| `components/new-hero-section/browse/browse-card.tsx`       | Server card; hands items with a video to `BrowseVideoCard`                                  |
+| `components/new-hero-section/browse/browse-video-card.tsx` | Client card: hover to play, scrub, the dock ruler, touch and reduced-motion handling        |
+| `components/new-hero-section/browse/browse-card-parts.tsx` | Surface, frame, screenshot and caption shared by both cards, so they match at rest          |

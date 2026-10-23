@@ -45,24 +45,17 @@
     {
       "name": "hero-section",
       "type": "registry:block",
-      "title": "Hero section",
-      "description": "Full marketing hero with a data panel cluster, rolling CTAs and a scroll-cycling logo wall.",
-      "categories": [
-        "marketing"
-      ],
+      "title": "Data panel hero",
+      "description": "Marketing hero with a cluster of data panels, rolling CTAs and a logo wall that cycles on scroll.",
+      "categories": ["marketing"],
       "meta": {
         "pro": true,
         "library": "templates",
-        "section": "hero",
-        "styles": [
-          "motion",
-          "dark-mode"
-        ],
+        "types": ["hero"],
+        "styles": ["motion", "dark-mode"],
         "publishedAt": "2026-09-21"
       },
-      "registryDependencies": [
-        "akta-css"
-      ],
+      "registryDependencies": ["akta-css"],
       "files": [
         {
           "path": "registry/new-york/hero-section.tsx",
@@ -72,53 +65,19 @@
       ]
     },
     {
-      "name": "hero-section-02",
-      "type": "registry:block",
-      "title": "Hero section 02",
-      "description": "Split hero: headline and CTAs beside a drawn product panel. Mock layout.",
-      "categories": [
-        "marketing"
-      ],
-      "meta": {
-        "pro": false,
-        "library": "templates",
-        "section": "hero",
-        "styles": [
-          "minimal",
-          "dark-mode"
-        ],
-        "publishedAt": "2026-09-30",
-        "docs": "hero-section"
-      },
-      "files": [
-        {
-          "path": "registry/new-york/hero-section-02.tsx",
-          "type": "registry:block",
-          "target": "components/blocks/hero-section-02.tsx"
-        }
-      ]
-    },
-    {
       "name": "benchmarks-section",
       "type": "registry:block",
-      "title": "Benchmarks section",
-      "description": "Four comparison metrics against competitors, each drawn as its own chart form (isometric bars, unit field, radar, stacked slabs).",
-      "categories": [
-        "marketing"
-      ],
+      "title": "Competitor benchmarks",
+      "description": "Four metrics against competitors, each drawn as its own chart: isometric bars, unit field, radar and stacked slabs.",
+      "categories": ["marketing"],
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "stats",
-        "styles": [
-          "minimal",
-          "dark-mode"
-        ],
+        "types": ["stats"],
+        "styles": ["minimal", "dark-mode"],
         "publishedAt": "2026-09-14"
       },
-      "registryDependencies": [
-        "akta-css"
-      ],
+      "registryDependencies": ["akta-css"],
       "files": [
         {
           "path": "registry/new-york/benchmarks-section.tsx",
@@ -130,23 +89,17 @@
     {
       "name": "team-section",
       "type": "registry:block",
-      "title": "Team section",
-      "description": "Team roster: a clustered avatar grid synced to a role/bio detail list.",
-      "categories": [
-        "company"
-      ],
+      "title": "Team avatar grid",
+      "description": "Clustered avatars synced to a list of roles and bios.",
+      "categories": ["company"],
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "team",
-        "styles": [
-          "motion"
-        ],
+        "types": ["team"],
+        "styles": ["motion"],
         "publishedAt": "2026-09-08"
       },
-      "registryDependencies": [
-        "avatar-grid"
-      ],
+      "registryDependencies": ["avatar-grid"],
       "files": [
         {
           "path": "registry/new-york/team-section.tsx",
@@ -158,19 +111,14 @@
     {
       "name": "tables-section",
       "type": "registry:block",
-      "title": "Tables section",
-      "description": "API keys table: search, filters, selection, pagination and create, rotate and delete dialogs.",
-      "categories": [
-        "data"
-      ],
+      "title": "API keys table",
+      "description": "Search, filters, row selection, pagination, and create, rotate and delete dialogs.",
+      "categories": ["data"],
       "meta": {
         "pro": false,
         "library": "templates",
-        "section": "tables",
-        "styles": [
-          "minimal",
-          "dark-mode"
-        ],
+        "types": ["tables"],
+        "styles": ["minimal", "dark-mode"],
         "publishedAt": "2026-10-06"
       },
       "registryDependencies": [
@@ -190,6 +138,44 @@
           "path": "registry/new-york/tables-section.tsx",
           "type": "registry:block",
           "target": "components/blocks/tables-section.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tables-section-02",
+      "type": "registry:block",
+      "title": "Support tickets table",
+      "description": "Help-desk queue with saved views, live SLA timers, inline status, priority and assignee, sorting, CSV export and a ticket detail sheet.",
+      "categories": ["data"],
+      "meta": {
+        "pro": false,
+        "library": "templates",
+        "types": ["tables"],
+        "styles": ["minimal", "dark-mode"],
+        "publishedAt": "2026-10-23"
+      },
+      "registryDependencies": [
+        "table",
+        "avatar",
+        "badge",
+        "button",
+        "checkbox",
+        "dialog",
+        "dropdown-menu",
+        "input",
+        "kbd",
+        "label",
+        "native-select",
+        "sheet",
+        "skeleton",
+        "tabs",
+        "textarea"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york/tables-section-02.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/tables-section-02.tsx"
         }
       ]
     }

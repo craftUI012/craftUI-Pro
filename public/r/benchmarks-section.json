@@ -1,8 +1,8 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "benchmarks-section",
-  "title": "Benchmarks section",
-  "description": "Four comparison metrics against competitors, each drawn as its own chart form (isometric bars, unit field, radar, stacked slabs).",
+  "title": "Competitor benchmarks",
+  "description": "Four metrics against competitors, each drawn as its own chart: isometric bars, unit field, radar and stacked slabs.",
   "registryDependencies": [
     "akta-css"
   ],
@@ -17,7 +17,9 @@
   "meta": {
     "pro": false,
     "library": "templates",
-    "section": "stats",
+    "types": [
+      "stats"
+    ],
     "styles": [
       "minimal",
       "dark-mode"

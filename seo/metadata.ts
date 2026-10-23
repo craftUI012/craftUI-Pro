@@ -34,9 +34,17 @@ export const createPageMetadata = ({
     canonical === ROUTES.DOCS || canonical.startsWith(`${ROUTES.DOCS}/`)
       ? `${canonical}.md`
       : undefined;
-  const resolvedOgImage =
-    ogImage ?? `${ROUTES.OG}${canonical === ROUTES.HOME ? "" : canonical}`;
   const resolvedTitle = ogTitle ?? title;
+  // Pages without their own card (docs pages pass theirs) get the site card
+  // with their title and description: /og takes both as query params.
+  const resolvedOgImage =
+    ogImage ??
+    `${ROUTES.OG}?${new URLSearchParams({
+      title: resolvedTitle,
+      ...((ogDescription ?? description) && {
+        description: ogDescription ?? description,
+      }),
+    })}`;
 
   return {
     alternates: {
@@ -75,6 +83,7 @@ export const createPageMetadata = ({
       ? {
           robots: {
             follow: false,
+            googleBot: { follow: false, index: false },
             index: false,
           },
         }
@@ -82,10 +91,14 @@ export const createPageMetadata = ({
   };
 };
 
+// Site-wide defaults, set once on the root layout. Every page inherits them
+// and overrides what it knows better (title, description, canonical, card)
+// through createPageMetadata.
+//
+// No canonical here on purpose: a default canonical would be inherited by
+// every page that doesn't set its own, telling search engines those pages
+// are copies of the home page. Pages set theirs (the home page included).
 export const baseMetadata: Metadata = {
-  alternates: {
-    canonical: ROUTES.HOME,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -95,7 +108,11 @@ export const baseMetadata: Metadata = {
   authors: [{ name: SITE.AUTHOR.NAME, url: LINK.GITHUB_ORG }],
   category: "technology",
   creator: SITE.AUTHOR.NAME,
-  description: SITE.DESCRIPTION.LONG,
+  description: SITE.DESCRIPTION.META,
+  formatDetection: { address: false, email: false, telephone: false },
+  // Built from public/logo by `pnpm brand:icons`. The SVG is the sharpest
+  // and is full colour, so it serves light and dark tabs alike; the .ico and
+  // PNG are for browsers without SVG favicons.
   icons: {
     apple: {
       sizes: "180x180",
@@ -104,7 +121,7 @@ export const baseMetadata: Metadata = {
     },
     icon: [
       {
-        sizes: "32x32",
+        sizes: "48x48",
         url: "/favicon.ico",
       },
       {
@@ -113,28 +130,20 @@ export const baseMetadata: Metadata = {
         url: "/favicon-96x96.png",
       },
       {
-        media: "(prefers-color-scheme: light)",
         sizes: "any",
         type: "image/svg+xml",
         url: "/favicon.svg",
       },
-      {
-        media: "(prefers-color-scheme: dark)",
-        sizes: "any",
-        type: "image/svg+xml",
-        url: "/favicon-dark.svg",
-      },
     ],
-    shortcut: "/favicon-16x16.png",
   },
   keywords: [...SITE.KEYWORDS],
   manifest: ROUTES.MANIFEST,
   metadataBase: new URL(SITE.URL),
   openGraph: {
-    description: SITE.DESCRIPTION.LONG,
+    description: SITE.DESCRIPTION.META,
     images: [
       {
-        alt: SITE.NAME,
+        alt: `${SITE.NAME}: ${SITE.TAGLINE}`,
         height: 630,
         url: SITE.OG_IMAGE,
         width: 1200,
@@ -142,19 +151,31 @@ export const baseMetadata: Metadata = {
     ],
     locale: "en_US",
     siteName: SITE.NAME,
-    title: SITE.NAME,
+    title: `${SITE.NAME} – ${SITE.TAGLINE}`,
     type: "website",
     url: SITE.URL,
   },
   publisher: SITE.AUTHOR.NAME,
+  // Let search engines show large image previews and full snippets.
+  robots: {
+    follow: true,
+    googleBot: {
+      follow: true,
+      index: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+    index: true,
+  },
   title: {
-    default: `${SITE.NAME} - ${SITE.DESCRIPTION.SHORT}`,
+    default: `${SITE.NAME} – ${SITE.TAGLINE}`,
     template: `%s | ${SITE.NAME}`,
   },
   twitter: {
     card: "summary_large_image",
-    description: SITE.DESCRIPTION.LONG,
+    description: SITE.DESCRIPTION.META,
     images: [SITE.OG_IMAGE],
-    title: SITE.NAME,
+    title: `${SITE.NAME} – ${SITE.TAGLINE}`,
   },
 };

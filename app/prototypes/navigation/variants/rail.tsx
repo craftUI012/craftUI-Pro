@@ -2,10 +2,12 @@
 
 import {
   Blocks,
+  Box,
   Component,
   LayoutTemplate,
   Menu,
   SearchIcon,
+  Shapes,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +30,8 @@ import type { NavVariantProps } from "./shared";
 const LIBRARY_ICONS: Record<LibraryId, typeof Component> = {
   blocks: Blocks,
   components: Component,
+  illustrations: Shapes,
+  isometric: Box,
   templates: LayoutTemplate,
 };
 
@@ -65,7 +69,7 @@ const RailBody = ({
         className="focus-visible:ring-ring/50 flex items-center gap-2 rounded-md px-2 py-1 outline-none focus-visible:ring-[3px]"
       >
         <LogoMark className="size-5" />
-        <span className={TYPE.cardHeader}>craftUI Pro</span>
+        <span className={TYPE.cardHeader}>craftUI</span>
       </Link>
 
       {showSearch && (

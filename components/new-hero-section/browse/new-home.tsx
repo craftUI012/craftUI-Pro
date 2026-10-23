@@ -2,7 +2,7 @@ import type * as React from "react";
 
 import { BrowseCard } from "@/components/new-hero-section/browse/browse-card";
 import { BrowseFeed } from "@/components/new-hero-section/browse/browse-feed";
-import { BrowseFiltersProvider } from "@/components/new-hero-section/browse/browse-filters";
+import { BrowseLibraryScope } from "@/components/new-hero-section/browse/browse-filters";
 import { BrowseIndex } from "@/components/new-hero-section/browse/browse-index";
 import { BrowsePanels } from "@/components/new-hero-section/browse/browse-panels";
 import type { RailData } from "@/components/new-hero-section/browse/browse-rail";
@@ -18,6 +18,8 @@ import type {
   HomeData,
   Library,
 } from "@/components/new-hero-section/data/home-types";
+import { ROUTES } from "@/constants/routes";
+import { showDesignAdmin, showDocsAdmin, showSeoAdmin } from "@/lib/flags";
 
 // Cards in the first row of the first tab: on screen at load, so eager.
 const EAGER_CARDS = 3;
@@ -53,8 +55,9 @@ const toRailData = (data: HomeData, docs = buildDocsMenu()): RailData => ({
 });
 
 // Server component, one library's panel: the index (a filter), then the feed.
-// Both sit in one BrowseFiltersProvider, so picking an index item filters
-// this library's grid. Cards are rendered here and handed to the client feed
+// Both sit in one BrowseLibraryScope, so picking an index value filters this
+// library's grid (the selections themselves live in the shell, which keeps
+// them in the URL). Cards are rendered here and handed to the client feed
 // as slots.
 const LibraryPanel = ({
   eager,
@@ -71,7 +74,7 @@ const LibraryPanel = ({
   );
 
   return (
-    <BrowseFiltersProvider>
+    <BrowseLibraryScope library={library.id}>
       <BrowseIndex groups={library.index} />
       <BrowseFeed
         feeds={feeds}
@@ -97,9 +100,21 @@ const LibraryPanel = ({
           ])
         )}
       />
-    </BrowseFiltersProvider>
+    </BrowseLibraryScope>
   );
 };
+
+// Internal pages, linked from the navbar only when `environment=development`
+// is set (local .env; never set in production). Read here on the server, so
+// production HTML never contains them. Same gate as the pages themselves
+// (lib/flags.ts), which 404 without it.
+const devLinks = [
+  ...(showDocsAdmin ? [{ href: ROUTES.DOCS_ADMIN, label: "Docs admin" }] : []),
+  ...(showDesignAdmin
+    ? [{ href: ROUTES.DESIGN_ADMIN, label: "Design admin" }]
+    : []),
+  ...(showSeoAdmin ? [{ href: ROUTES.SEO_ADMIN, label: "SEO admin" }] : []),
+];
 
 // Server entry for the shell, used by app/(home)/layout.tsx: the rail
 // (browse and docs menus) and the top bar, around whatever route is open.
@@ -114,14 +129,26 @@ export const NewHomeShell = async ({
 
   return (
     <BrowseShell
-      defaultLibrary={
-        data.libraries.find((library) => library.items.length > 0)?.id
-      }
-      libraries={data.libraries.map(({ id, label, searchPlaceholder }) => ({
-        id,
-        label,
-        searchPlaceholder,
-      }))}
+      // The first tab, always: the URL leaves `library` out for it, so the
+      // default mustn't move when a library gains or loses items.
+      defaultLibrary={data.libraries[0]?.id}
+      devLinks={devLinks}
+      libraries={data.libraries.map(
+        ({ id, index, label, searchPlaceholder, slug }) => ({
+          filters: Object.fromEntries(
+            index.map((group) => [
+              group.id,
+              group.links
+                .filter((link) => link.count > 0)
+                .map((link) => link.id),
+            ])
+          ),
+          id,
+          label,
+          searchPlaceholder,
+          slug,
+        })
+      )}
       railData={toRailData(data)}
     >
       {children}

@@ -1,4 +1,5 @@
 import type {
+  FilterGroupId,
   HomeData,
   IndexGroup,
   ShowcaseItem,
@@ -23,15 +24,24 @@ const slug = (label: string) =>
     .replaceAll(/[^a-z0-9]+/g, "-")
     .replaceAll(/^-|-$/g, "");
 
+// Index group ids are the filter groups in constants/taxonomy.ts; every
+// mock group that isn't Categories or Styles is the Type group.
+const groupId = (label: string): FilterGroupId => {
+  if (label === "Categories") {
+    return "categories";
+  }
+  return label === "Styles" ? "styles" : "types";
+};
+
 const group = (
   label: string,
   links: string[],
   columns: 1 | 2 = 1
 ): IndexGroup => ({
   columns,
-  id: slug(label),
+  id: groupId(label),
   label,
-  links: links.map((link) => ({ id: slug(link), label: link })),
+  links: links.map((link) => ({ count: 1, id: slug(link), label: link })),
 });
 
 // Mock tagging: item i gets the i-th item of every index group (wrapping),
@@ -56,7 +66,6 @@ type ItemSeed = [string, string, string, number];
 const items = (base: string, seeds: ItemSeed[]): ShowcaseItem[] =>
   seeds.map(([name, tagline, publishedAt, popularity]) => ({
     href: `${base}/${slug(name)}`,
-    icon: { glyph: name.slice(0, 1) },
     id: slug(name),
     name,
     popularity,
@@ -128,6 +137,7 @@ const RAW: HomeData = {
       ]),
       label: "Components",
       searchPlaceholder: "Search components…",
+      slug: "components",
     },
     {
       id: "blocks",
@@ -188,6 +198,7 @@ const RAW: HomeData = {
       ]),
       label: "Blocks",
       searchPlaceholder: "Search blocks…",
+      slug: "blocks",
     },
     {
       // Shown as "Sections": what's here today are page sections, not full
@@ -220,6 +231,7 @@ const RAW: HomeData = {
       ]),
       label: "Sections",
       searchPlaceholder: "Search sections…",
+      slug: "sections",
     },
   ],
 };

@@ -1,97 +1,59 @@
 import type {
   HomeData,
   IndexGroup,
-  Library,
   LibraryId,
   ShowcaseItem,
 } from "@/components/new-hero-section/data/home-types";
 import { ROUTES } from "@/constants/routes";
+import {
+  FILTER_GROUPS,
+  LIBRARIES,
+  NAV_LIBRARIES,
+  POOLS,
+} from "@/constants/taxonomy";
+import type { FilterGroupId } from "@/constants/taxonomy";
+import { getCardMedia, getCardVideo } from "@/lib/media";
 import { source } from "@/lib/source";
+import { assertRegistryTaxonomy, itemFilterValues } from "@/lib/taxonomy";
+import type { TaxonomyRegistryItem } from "@/lib/taxonomy";
 import aiHero01 from "@/public/images/AIHero01.png";
 import registry from "@/registry.json";
 
-// The browse page's data, built from registry.json. An item shows up in a
-// library when it has `meta.library`; everything else in the registry
-// (libs, helpers, dependencies like avatar-grid) stays out. Per item:
+// The browse page's data. The libraries and the values each one's filter
+// index lists come from constants/taxonomy.ts; the cards come from
+// registry.json. An item shows up in a library when it has `meta.library`;
+// everything else in the registry (libs, helpers, dependencies like
+// avatar-grid) stays out. Per item:
 //
-//   categories         → the "Categories" index group
-//   meta.library       → which library: "components" | "blocks" | "templates"
-//                        (templates is shown as "Sections")
-//   meta.section       → the library's type group (Primitives / Type)
-//   meta.styles        → the "Styles" index group
-//   meta.publishedAt   → "Latest" order and the rail's What's new
+//   categories         → the "Categories" group (one or more)
+//   meta.library       → which library (a LibraryId; templates = "Sections")
+//   meta.types         → the "Type" group (one or more)
+//   meta.styles        → the "Styles" group (zero or more)
+//   meta.publishedAt   → "Latest" order and What's new
 //   meta.docs          → the docs page it lives on, when that isn't its own
 //                        name (hero-section-02 → the hero-section page). The
 //                        card links to that page, #<name> for a variant.
-//   meta.preview       → the card's screenshot (path under /public);
-//                        a placeholder until the preview script makes them
+//   meta.preview       → the card's screenshot (path under /public), when
+//                        it has no R2 screenshot in content/media-manifest.json
+//                        (lib/media.ts); a placeholder otherwise
 //   meta.popularity    → "Most popular" order (install analytics, later)
 //   meta.pro           → the Pro badge
 //
-// Index groups are built from whatever values the items carry, so a new
-// category, type or style needs no code change. Values are slugs; labels come
-// from LABELS or are sentence-cased from the slug.
+// The slugs are checked against constants/taxonomy.ts first
+// (assertRegistryTaxonomy), so a bad one fails the build, not the page.
 
-interface ItemMeta {
-  docs?: string;
-  library?: string;
-  popularity?: number;
-  preview?: string;
-  pro?: boolean;
-  publishedAt?: string;
-  section?: string;
-  styles?: string[];
-}
-
-interface RegistryItem {
-  categories?: string[];
+interface RegistryItem extends TaxonomyRegistryItem {
   description?: string;
-  meta?: ItemMeta;
-  name: string;
+  meta?: TaxonomyRegistryItem["meta"] & {
+    docs?: string;
+    popularity?: number;
+    preview?: string;
+    pro?: boolean;
+  };
   title?: string;
 }
 
-// Labels a slug can't produce by sentence-casing.
-const LABELS: Record<string, string> = {
-  "sound-and-haptics": "Sound & haptics",
-};
-
-const labelOf = (slug: string) =>
-  LABELS[slug] ??
-  slug.charAt(0).toUpperCase() + slug.slice(1).replaceAll("-", " ");
-
-// Per-library copy, and the label of its type group (meta.section).
-const LIBRARIES: {
-  id: LibraryId;
-  itemLabel: Library["itemLabel"];
-  label: string;
-  searchPlaceholder: string;
-  sectionLabel: string;
-}[] = [
-  {
-    id: "components",
-    itemLabel: { one: "component", other: "components" },
-    label: "Components",
-    searchPlaceholder: "Search components…",
-    sectionLabel: "Primitives",
-  },
-  {
-    id: "blocks",
-    itemLabel: { one: "block", other: "blocks" },
-    label: "Blocks",
-    searchPlaceholder: "Search blocks…",
-    sectionLabel: "Type",
-  },
-  {
-    id: "templates",
-    itemLabel: { one: "section", other: "sections" },
-    label: "Sections",
-    searchPlaceholder: "Search sections…",
-    sectionLabel: "Type",
-  },
-];
-
-// A group with more than this many links splits over two columns.
+// A group with more than this many values splits over two columns.
 const ONE_COLUMN_MAX = 5;
 
 // Placeholder screenshot for items without meta.preview.
@@ -102,25 +64,55 @@ const PLACEHOLDER = {
   width: aiHero01.width,
 };
 
-// One index group from the values the items carry, in first-seen order.
-// Empty groups are dropped.
-const indexGroup = (
-  id: string,
-  label: string,
-  values: string[]
+const labelOf = (group: FilterGroupId, slug: string) =>
+  POOLS[group][slug]?.label ?? slug;
+
+// The index for one library: each filter group with the values the library
+// lists (in its order), each counted over the library's items. Groups the
+// library lists nothing for are dropped.
+const libraryIndex = (
+  library: LibraryId,
+  items: RegistryItem[]
 ): IndexGroup[] => {
-  const unique = [...new Set(values)];
-  if (unique.length === 0) {
-    return [];
+  const config = LIBRARIES[library];
+
+  return FILTER_GROUPS.flatMap((group) => {
+    const listed: readonly string[] = config[group.id];
+    if (listed.length === 0) {
+      return [];
+    }
+    return [
+      {
+        columns: listed.length > ONE_COLUMN_MAX ? 2 : 1,
+        id: group.id,
+        label:
+          group.id === "types"
+            ? (config.typeLabel ?? group.label)
+            : group.label,
+        links: listed.map((slug) => ({
+          count: items.filter((item) =>
+            itemFilterValues(item)[group.id].includes(slug)
+          ).length,
+          id: slug,
+          label: labelOf(group.id, slug),
+        })),
+      },
+    ];
+  });
+};
+
+// The card's screenshot: the R2 one when it has been uploaded
+// (content/media-manifest.json), else meta.preview, else the placeholder.
+const previewOf = (item: RegistryItem, name: string) => {
+  const alt = `${name} preview`;
+  const media = getCardMedia(item.name);
+  if (media) {
+    return { ...media, alt };
   }
-  return [
-    {
-      columns: unique.length > ONE_COLUMN_MAX ? 2 : 1,
-      id,
-      label,
-      links: unique.map((slug) => ({ id: slug, label: labelOf(slug) })),
-    },
-  ];
+  if (item.meta?.preview) {
+    return { alt, height: 1000, src: item.meta.preview, width: 1600 };
+  }
+  return { ...PLACEHOLDER, alt };
 };
 
 // The card for one registry item, or null when it has no docs page to link
@@ -134,61 +126,54 @@ const toShowcaseItem = (
   if (!source.getPage([library, page])) {
     return null;
   }
-  const name = item.title ?? labelOf(item.name);
+  const name = item.title ?? item.name;
   const href = `${ROUTES.DOCS}/${library}/${page}${
     page === item.name ? "" : `#${item.name}`
   }`;
+  const values = itemFilterValues(item);
 
   return {
     href,
-    icon: { glyph: name.slice(0, 1) },
     id: item.name,
     isPro: meta.pro === true,
     name,
     popularity: meta.popularity ?? 0,
-    preview: meta.preview
-      ? { alt: `${name} preview`, height: 1000, src: meta.preview, width: 1600 }
-      : { ...PLACEHOLDER, alt: `${name} preview` },
+    preview: previewOf(item, name),
     publishedAt: meta.publishedAt ?? "",
     tagline: item.description ?? "",
-    tags: [
-      ...(item.categories ?? []).map((slug) => `categories:${slug}`),
-      ...(meta.section ? [`sections:${meta.section}`] : []),
-      ...(meta.styles ?? []).map((slug) => `styles:${slug}`),
-    ],
+    tags: FILTER_GROUPS.flatMap((group) =>
+      values[group.id].map((slug) => `${group.id}:${slug}`)
+    ),
+    video: getCardVideo(item.name),
   };
 };
 
 export const buildHomeDataFromRegistry = (): HomeData => {
   const items = registry.items as RegistryItem[];
+  assertRegistryTaxonomy(items);
 
   return {
     feeds: [
       { id: "latest", label: "Latest" },
       { id: "popular", label: "Most popular" },
     ],
-    libraries: LIBRARIES.map(({ sectionLabel, ...library }) => {
-      const own = items.filter((item) => item.meta?.library === library.id);
+    libraries: NAV_LIBRARIES.map((id) => {
+      const { itemLabel, label, searchPlaceholder, slug } = LIBRARIES[id];
+      const own = items.filter((item) => item.meta?.library === id);
+      const cards = own.flatMap((item) => toShowcaseItem(id, item) ?? []);
+      // Counted over the items that got a card, so a count never promises
+      // an item the grid can't show.
+      const shown = own.filter((item) =>
+        cards.some((card) => card.id === item.name)
+      );
       return {
-        ...library,
-        index: [
-          ...indexGroup(
-            "categories",
-            "Categories",
-            own.flatMap((item) => item.categories ?? [])
-          ),
-          ...indexGroup(
-            "sections",
-            sectionLabel,
-            own.flatMap((item) => item.meta?.section ?? [])
-          ),
-          ...indexGroup(
-            "styles",
-            "Styles",
-            own.flatMap((item) => item.meta?.styles ?? [])
-          ),
-        ],
-        items: own.flatMap((item) => toShowcaseItem(library.id, item) ?? []),
+        id,
+        index: libraryIndex(id, shown),
+        itemLabel,
+        items: cards,
+        label,
+        searchPlaceholder,
+        slug,
       };
     }),
   };

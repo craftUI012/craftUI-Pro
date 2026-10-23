@@ -1,3 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-icon lucide-package"><metadata><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><rdf:Description><dc:creator>RealFaviconGenerator</dc:creator><dc:source>https://realfavicongenerator.net</dc:source></rdf:Description></rdf:RDF></metadata><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><path d="m7.5 4.27 9 5.15"></path><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
-@media (prefers-color-scheme: dark) { :root { filter: invert(100%); } }
-</style></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="16 7.5 60 60" fill="none">
+  <title>Glass squircle pair</title>
+  <defs>
+    <!-- Figma "Glass" fill: left to right, #A8B8FF at 90% to 28% -->
+    <linearGradient id="glassFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#A8B8FF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#A8B8FF" stop-opacity="0.28"/>
+    </linearGradient>
+    <!-- Emulates Figma background blur 12 (SVG has no backdrop-filter) -->
+    <filter id="backdropBlur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <clipPath id="glassShape">
+      <rect x="17" y="18" width="45" height="46" rx="12"/>
+    </clipPath>
+  </defs>
+
+  <!-- Solid squircle -->
+  <rect id="solid" x="30" y="11" width="45" height="46" rx="12" fill="#1F3BFF"/>
+
+  <!-- Blurred copy of the solid, visible only through the glass -->
+  <g clip-path="url(#glassShape)">
+    <rect x="30" y="11" width="45" height="46" rx="12" fill="#1F3BFF" filter="url(#backdropBlur)"/>
+  </g>
+
+  <!-- Glass tint -->
+  <rect id="glass" x="17" y="18" width="45" height="46" rx="12" fill="url(#glassFill)"/>
+
+  <!-- 0.8px inside stroke, white at 50% -->
+  <rect x="17.4" y="18.4" width="44.2" height="45.2" rx="11.6" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="0.8"/>
+</svg>

@@ -1,7 +1,7 @@
 // Data shape for the new home page, modelled on Mobbin's browse screen:
 //
 //   ┌──────────────┬────────────────────────────── [Search ⌘K] ♥ ◐ ⚙ ─┐
-//   │ craftUI Pro  │ Categories   Sections              Styles       │
+//   │ craftUI  │ Categories   Sections              Styles       │
 //   │              │ Forms        Hero      Pricing     Minimal      │
 //   │ Library      │ …            …         …           …            │
 //   │ ▍Components 6│                                                 │
@@ -9,53 +9,55 @@
 //   │  Templates  6│ ┌────────┐ ┌────────┐ ┌────────┐                │
 //   │              │ │preview │ │preview │ │preview │  ← ShowcaseItem│
 //   │ Resources    │ └────────┘ └────────┘ └────────┘                │
-//   │  Docs …      │ (icon) Name / tagline                           │
+//   │  Docs …      │ Name / tagline                                  │
 //   └──────────────┴─────────────────────────────────────────────────┘
 //
 // Everything must stay plain JSON (strings, numbers, arrays, objects):
 // getHomeData caches it with `unstable_cache`, which serialises the value.
 
-// Which library the rail shows.
-export type LibraryId = "components" | "blocks" | "templates";
+import type { FilterGroupId, LibraryId } from "@/constants/taxonomy";
 
-// One item in the index above the grid. Picking it filters the grid to items
-// whose `tags` include `<group id>:<item id>`.
-// WHEN WE SHIP REAL DATA: build the lists from the registry: the distinct
-// `categories` (Categories), `meta.section` (Sections / Primitives / Pages)
-// and `meta.styles` (Styles) across a library's items. `id` is the slug.
+// Libraries and filter groups are defined in constants/taxonomy.ts.
+export type { FilterGroupId, LibraryId } from "@/constants/taxonomy";
+
+// One value in the index above the grid. Picking it filters the grid to items
+// whose `tags` include `<group id>:<value id>`. The values a library lists
+// come from constants/taxonomy.ts; `id` is the slug.
 export interface IndexLink {
   id: string;
   label: string;
+  // How many of the library's items carry it. 0 shows the value dimmed and
+  // not clickable (listed, but nothing published yet).
+  count: number;
 }
 
 // One column group of the index. `columns: 2` splits the links over two grid
 // columns, as Mobbin's "Sections" does.
 export interface IndexGroup {
-  id: string;
+  id: FilterGroupId;
   label: string;
   columns: 1 | 2;
   links: IndexLink[];
 }
 
-// The icon tile next to a card's name (Mobbin: the app icon).
-// WHEN WE SHIP REAL DATA: `src` is the item's icon from the registry
-// (`meta.icon`, a square SVG/PNG). Until then `glyph` (one or two letters) is
-// drawn on the brand fill.
-export interface ShowcaseIcon {
-  glyph: string;
-  src?: string;
-}
-
-// The screenshot inside a card.
-// WHEN WE SHIP REAL DATA: `meta.preview` from the registry item, a 16:10
-// screenshot, 1600px wide or more, made by the preview script (the
-// template-preview route can render it). Keep width/height for next/image.
+// The screenshot inside a card. From Cloudflare R2 when the item has an
+// entry in content/media-manifest.json (see lib/media.ts): then `srcSet`
+// lists its four AVIF widths and the card loads them directly, skipping
+// Vercel's image optimizer. Otherwise a local placeholder through next/image.
 export interface ShowcasePreview {
   src: string;
+  srcSet?: string;
   alt: string;
   width: number;
   height: number;
   blurDataURL?: string;
+}
+
+// A card's video, from Cloudflare R2 when the item has an entry in
+// content/video-manifest.json (see lib/media.ts). Uploaded as-is.
+export interface ShowcaseVideo {
+  src: string;
+  type: "video/mp4" | "video/webm";
 }
 
 // One card in the grid.
@@ -64,24 +66,24 @@ export interface ShowcasePreview {
 //   name      ← item.title
 //   tagline   ← item.description (one line; card truncates the rest)
 //   href      ← /docs/components/<name> (or /blocks, /templates)
-//   icon      ← item.meta.icon
-//   preview   ← item.meta.preview
+//   preview   ← content/media-manifest.json (R2), else item.meta.preview
+//   video     ← content/video-manifest.json (R2), when it has one
 //   publishedAt ← item.meta.publishedAt (ISO date) → "Latest" order
 //   popularity  ← installs over the last 30 days (analytics) → "Most popular"
 //   isPro     ← item.meta.pro, to badge paid items
-//   tags      ← "<group>:<slug>" for each of item.categories, item.meta.section
+//   tags      ← "<group>:<slug>" for each of item.categories, item.meta.types
 //               and item.meta.styles (matches the index; see IndexLink)
 export interface ShowcaseItem {
   id: string;
   name: string;
   tagline: string;
   href: string;
-  icon: ShowcaseIcon;
   preview: ShowcasePreview;
   publishedAt: string;
   popularity: number;
   tags: string[];
   isPro?: boolean;
+  video?: ShowcaseVideo;
 }
 
 // The feed tabs above the grid (Mobbin: Latest / Most popular).
@@ -90,6 +92,8 @@ export type FeedId = "latest" | "popular";
 export interface Library {
   id: LibraryId;
   label: string;
+  // The library's key in the browse page's URL (/?library=blocks).
+  slug: string;
   // Nouns for the result count: "1 component", "6 components".
   itemLabel: { one: string; other: string };
   searchPlaceholder: string;

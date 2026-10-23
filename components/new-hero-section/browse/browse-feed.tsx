@@ -5,7 +5,8 @@ import { useState } from "react";
 
 import { useBrowseQuery } from "@/components/new-hero-section/browse/browse-context";
 import {
-  indexTag,
+  matchesSelection,
+  pickedGroups,
   useBrowseFilters,
 } from "@/components/new-hero-section/browse/browse-filters";
 import type { FeedId } from "@/components/new-hero-section/data/home-types";
@@ -65,19 +66,17 @@ export const BrowseFeed = ({
   const { clear, selection } = useBrowseFilters();
   const query = useBrowseQuery().trim().toLowerCase();
 
-  const picked = Object.entries(selection).flatMap(([groupId, linkId]) =>
-    linkId ? [indexTag(groupId, linkId)] : []
-  );
+  const picked = pickedGroups(selection);
   const ids = orders[feed].filter(
     (id) =>
-      picked.every((tag) => tags[id]?.includes(tag)) &&
+      matchesSelection(tags[id], selection) &&
       (!query || searchText[id]?.includes(query))
   );
 
   // Changes whenever what's shown changes, and keys the cards so they replay
   // the entrance. Nothing animates until the first change after load; from
   // then on every change does, including going back to the first view.
-  const viewKey = `${feed}|${picked.join(",")}|${query}`;
+  const viewKey = `${feed}|${JSON.stringify(picked)}|${query}`;
   const [firstViewKey] = useState(viewKey);
   const [animate, setAnimate] = useState(false);
   if (!animate && viewKey !== firstViewKey) {

@@ -1,8 +1,8 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "hero-section",
-  "title": "Hero section",
-  "description": "Full marketing hero with a data panel cluster, rolling CTAs and a scroll-cycling logo wall.",
+  "title": "Data panel hero",
+  "description": "Marketing hero with a cluster of data panels, rolling CTAs and a logo wall that cycles on scroll.",
   "registryDependencies": [
     "akta-css"
   ],
@@ -17,7 +17,9 @@
   "meta": {
     "pro": true,
     "library": "templates",
-    "section": "hero",
+    "types": [
+      "hero"
+    ],
     "styles": [
       "motion",
       "dark-mode"

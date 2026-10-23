@@ -6,3 +6,7 @@ export const showDocsAdmin = process.env.environment === "development";
 
 // Same gate for the /design-admin token + component showcase.
 export const showDesignAdmin = process.env.environment === "development";
+
+// Same gate for the /seo-admin audit (metadata, structured data, sitemap,
+// robots, icons).
+export const showSeoAdmin = process.env.environment === "development";

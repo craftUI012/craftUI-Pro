@@ -39,9 +39,9 @@ export const commandFor = (manager: PackageManager, name: string) => {
 
 // The compact install command shown on the preview toolbar's right side:
 // package-manager icon + truncated command + copy, and a dropdown to switch
-// manager. Brand-coloured (variant="default", same fill as the header's "Get
-// started" button) so it reads as the primary action on the toolbar, each
-// button its own shadowed pill with a real gap between them.
+// manager. Secondary (the same bg-secondary + shadow-button-secondary family
+// as the Preview/Code switch), so the toolbar stays quiet beside the preview;
+// each button its own pill with a real gap between them.
 export const PreviewInstallCommand = ({
   className,
   name,
@@ -59,14 +59,14 @@ export const PreviewInstallCommand = ({
         showTooltip={false}
         sound="copy"
         value={command}
-        variant="default"
+        variant="secondary"
       >
         {getIconForPackageManager(manager)}
         <span className="truncate">{command}</span>
       </CopyButton>
       <DropdownMenu sounds>
         <DropdownMenuTrigger asChild>
-          <Button className="size-7" size="icon" variant="default">
+          <Button className="size-7" size="icon" variant="secondary">
             <ChevronDownIcon className="size-3.5" />
             <span className="sr-only">Choose package manager</span>
           </Button>

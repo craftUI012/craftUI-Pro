@@ -47,7 +47,7 @@ export const Paywall = ({
         )}
         href={ROUTES.LOGIN}
       >
-        Already have craftUI Pro? Sign in
+        Already have access? Sign in
       </Link>
     </CardContent>
   </Card>

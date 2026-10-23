@@ -15,7 +15,9 @@
     "postinstall": "fumadocs-mdx",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "brand:icons": "node scripts/generate-brand-icons.mjs",
+    "media": "node scripts/media.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.3.5",

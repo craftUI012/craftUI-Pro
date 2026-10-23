@@ -13,7 +13,7 @@ import { createPageMetadata } from "@/seo/metadata";
 
 export const metadata: Metadata = createPageMetadata({
   description:
-    "Internal showcase of craftUI Pro design tokens and the component kit.",
+    "Internal showcase of craftUI design tokens and the component kit.",
   noIndex: true,
   path: ROUTES.DESIGN_ADMIN,
   title: "Design Admin",
