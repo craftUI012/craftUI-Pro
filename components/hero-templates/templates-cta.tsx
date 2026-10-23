@@ -11,7 +11,7 @@ import { ROUTES } from "@/constants/routes";
 export const TemplatesCta = ({ className }: { className?: string }) => (
   <Button asChild className={className}>
     <Link href={ROUTES.PRICING} transitionTypes={["nav-forward"]}>
-      Get craftUI Pro
+      Get craftUI
       <ArrowRight data-icon="inline-end" />
     </Link>
   </Button>

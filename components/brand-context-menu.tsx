@@ -32,7 +32,7 @@ export const BrandContextMenu = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "craftui-pro-logo.svg";
+    a.download = "craftui-logo.svg";
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Icon as SVG downloaded");

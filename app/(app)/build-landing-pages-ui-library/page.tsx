@@ -13,7 +13,7 @@ import { createPageMetadata } from "@/seo/metadata";
 // moved here when the browse page took over /.
 export const metadata = createPageMetadata({
   description:
-    "Build landing pages with craftUI Pro: templates, sections, blocks and components, each shipped with its full design system.",
+    "Build landing pages with craftUI: templates, sections, blocks and components, each shipped with its full design system.",
   path: ROUTES.BUILD_LANDING_PAGES,
   title: "Build landing pages",
 });

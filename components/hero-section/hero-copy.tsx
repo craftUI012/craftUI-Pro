@@ -21,7 +21,7 @@ export const HeroCopy = () => (
       <style>{`.${HERO_REVEAL_CLASS}{opacity:1!important;transform:none!important}`}</style>
     </noscript>
     {/* No `uppercase`: the brand keeps its own casing. */}
-    <HeroEyebrow>craftUI Pro</HeroEyebrow>
+    <HeroEyebrow>craftUI</HeroEyebrow>
     <h1 id="hero-heading" className={cn(TYPE.headingHero, "text-balance")}>
       Build apps that look like a design team made them.
     </h1>

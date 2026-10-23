@@ -54,7 +54,7 @@ export const CommandNav = ({
             className="hover:bg-accent focus-visible:ring-ring/50 flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-150 outline-none focus-visible:ring-[3px]"
           >
             <LogoMark className="size-5" />
-            <span className="sr-only">craftUI Pro</span>
+            <span className="sr-only">craftUI</span>
           </Link>
 
           {/* Segmented library switch. The thumb slides with a transform; its

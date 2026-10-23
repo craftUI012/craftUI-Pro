@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { TruncatedText } from "@/components/new-hero-section/browse/truncated-text";
 import type { ShowcaseItem } from "@/components/new-hero-section/data/home-types";
 import { TYPE } from "@/constants/typography";
 import { cn } from "@/lib/utils";
@@ -80,7 +81,8 @@ export const PreviewImage = ({
     />
   );
 
-// The name and tagline under the card.
+// The name and tagline under the card. The tagline is one line; when it's
+// cut off, hovering it shows the whole thing.
 export const CardCaption = ({
   item,
 }: {
@@ -88,10 +90,9 @@ export const CardCaption = ({
 }) => (
   <div className="flex min-w-0 flex-col">
     <span className={cn(TYPE.cardHeader, "text-foreground")}>{item.name}</span>
-    <span
-      className={cn(TYPE.cardDescription, "text-muted-foreground truncate")}
-    >
-      {item.tagline}
-    </span>
+    <TruncatedText
+      text={item.tagline}
+      className={cn(TYPE.cardDescription, "text-muted-foreground")}
+    />
   </div>
 );

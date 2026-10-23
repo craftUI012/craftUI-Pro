@@ -2,7 +2,7 @@ import { useId } from "react";
 
 import { cn } from "@/lib/utils";
 
-// The craftUI Pro mark: a solid squircle behind a frosted glass one. Drawn from
+// The craftUI mark: a solid squircle behind a frosted glass one. Drawn from
 // public/logo/glass-squircle-pair.svg (the master), framed square so it sits
 // like an icon at any size. It's in full colour in both themes.
 //

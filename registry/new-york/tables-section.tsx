@@ -1539,7 +1539,9 @@ export default function TablesSection({
       data-shortcuts=""
       className={cn("bg-background text-foreground w-full", className)}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      {/* Fills whatever it's placed in: the host page or app layout sets the
+          width. Only side padding, so it never touches the edges. */}
+      <div className="w-full px-4 py-6 sm:px-6 sm:py-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="flex items-center gap-2.5 text-2xl font-semibold tracking-tight sm:text-3xl">

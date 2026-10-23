@@ -30,7 +30,7 @@ import { createPageMetadata } from "@/seo/metadata";
 
 export const metadata: Metadata = createPageMetadata({
   description:
-    "Internal audit of craftUI Pro's SEO: metadata, structured data, sitemap, robots and icons.",
+    "Internal audit of craftUI's SEO: metadata, structured data, sitemap, robots and icons.",
   noIndex: true,
   path: ROUTES.SEO_ADMIN,
   title: "SEO Admin",

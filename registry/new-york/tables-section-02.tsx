@@ -2831,7 +2831,9 @@ export default function TablesSection02({
         className
       )}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      {/* Fills whatever it's placed in: the host page or app layout sets the
+          width. Only side padding, so it never touches the edges. */}
+      <div className="w-full px-4 py-6 @xl:px-6 @xl:py-8">
         <TicketsHeader onExport={exportCsv} onNew={() => setNewOpen(true)} />
 
         <ViewTabs

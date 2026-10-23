@@ -710,7 +710,7 @@ const RailBody = ({
             )}
           >
             {/* Brand (and the drawer's search) sit in the menu's centred
-              column. pt-2.5 + the h-9 row centres "craftUI Pro" on the top
+              column. pt-2.5 + the h-9 row centres "craftUI" on the top
               bar's middle line (header height 3.5rem → 1.75rem). */}
             <div className="mx-auto flex w-(--sidebar-menu-width) shrink-0 flex-col gap-3 px-2 pt-2.5">
               <Link

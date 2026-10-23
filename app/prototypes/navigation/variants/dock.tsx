@@ -69,7 +69,7 @@ export const DockNav = ({
       <header className="container flex h-14 items-center gap-2">
         <Link href="/" className="flex items-center gap-2">
           <LogoMark className="size-5" />
-          <span className={TYPE.cardHeader}>craftUI Pro</span>
+          <span className={TYPE.cardHeader}>craftUI</span>
         </Link>
         <div className="ml-auto flex items-center gap-1">
           <SponsorLink />

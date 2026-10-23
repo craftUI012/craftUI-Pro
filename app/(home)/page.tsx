@@ -7,8 +7,8 @@ import { BreadcrumbJsonLd } from "@/seo/json-ld";
 import { createPageMetadata } from "@/seo/metadata";
 
 // The home page: browse sections, blocks, illustrations and isometric art.
-// Its title is the site's default ("craftUI Pro – …"), so it's set as
-// `absolute` here to skip the "%s | craftUI Pro" template.
+// Its title is the site's default ("craftUI – …"), so it's set as
+// `absolute` here to skip the "%s | craftUI" template.
 //
 // Prerendered once at build and served from the CDN like a static file. The
 // data sits in the Data Cache under HOME_CACHE_TAG. When the registry

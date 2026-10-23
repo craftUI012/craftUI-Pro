@@ -1,4 +1,4 @@
-// "Why craftUI Pro": what separates these components from a plain kit,
+// "Why craftUI": what separates these components from a plain kit,
 // grouped by the qualities in the make-interfaces-feel-better principles
 // (keyboard access, interaction, theming, screen sizes, surface detail).
 // `title` states the business outcome; `points` are the concrete details

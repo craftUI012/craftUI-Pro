@@ -158,7 +158,7 @@ export const MastheadNav = ({
             )}
           >
             <LogoMark className="size-4" />
-            craftUI Pro
+            craftUI
           </Link>
           <nav aria-label="Site" className="hidden items-center gap-5 md:flex">
             {SITE_LINKS.map((link) => (

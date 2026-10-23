@@ -1,7 +1,7 @@
 import { Reloop } from "reloop-email";
 
 const apiKey = process.env.RELOOP_API_KEY;
-const from = "CraftUI Pro <notification@craftui.space>";
+const from = "craftUI <notification@craftui.space>";
 
 const getClient = () => {
   if (!apiKey) {
@@ -31,9 +31,9 @@ export const sendMagicLinkEmail = async ({
 
   const { emailError } = await reloop.mail.send({
     from,
-    html: `<p>Click the link below to sign in to CraftUI Pro.</p><p><a href="${url}">Sign in</a></p><p>This link expires in 15 minutes. If you didn't request it, you can ignore this email.</p>`,
-    subject: "Your CraftUI Pro sign-in link",
-    text: `Sign in to CraftUI Pro: ${url}`,
+    html: `<p>Click the link below to sign in to craftUI.</p><p><a href="${url}">Sign in</a></p><p>This link expires in 15 minutes. If you didn't request it, you can ignore this email.</p>`,
+    subject: "Your craftUI sign-in link",
+    text: `Sign in to craftUI: ${url}`,
     to: email,
   });
 

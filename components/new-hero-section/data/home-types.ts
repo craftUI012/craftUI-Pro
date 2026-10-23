@@ -1,7 +1,7 @@
 // Data shape for the new home page, modelled on Mobbin's browse screen:
 //
 //   ┌──────────────┬────────────────────────────── [Search ⌘K] ♥ ◐ ⚙ ─┐
-//   │ craftUI Pro  │ Categories   Sections              Styles       │
+//   │ craftUI  │ Categories   Sections              Styles       │
 //   │              │ Forms        Hero      Pricing     Minimal      │
 //   │ Library      │ …            …         …           …            │
 //   │ ▍Components 6│                                                 │

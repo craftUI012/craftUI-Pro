@@ -133,7 +133,7 @@ const BrowseSearch = ({
 // Client component, the full-width navbar at the top of the shell (the left
 // rail is commented out for now; see browse-shell.tsx).
 //
-//   [logo] craftUI Pro   Sections  Blocks  Illustrations  Isometric
+//   [logo] craftUI   Sections  Blocks  Illustrations  Isometric
 //                                         [Search ⌘K]  Pricing  [Sign in]
 //
 // The library switch is a shadcn TabsList: its triggers drive the shell's

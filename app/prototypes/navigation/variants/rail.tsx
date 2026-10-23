@@ -69,7 +69,7 @@ const RailBody = ({
         className="focus-visible:ring-ring/50 flex items-center gap-2 rounded-md px-2 py-1 outline-none focus-visible:ring-[3px]"
       >
         <LogoMark className="size-5" />
-        <span className={TYPE.cardHeader}>craftUI Pro</span>
+        <span className={TYPE.cardHeader}>craftUI</span>
       </Link>
 
       {showSearch && (

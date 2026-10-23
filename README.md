@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://craftui-pro.vercel.app/og" alt="craftUI Pro banner" />
+  <img src="https://craftui-pro.vercel.app/og" alt="craftUI banner" />
 </p>
 
-<h1 align="center">craftUI Pro</h1>
+<h1 align="center">craftUI</h1>
 
 <p align="center">
   Crafted, production-ready components for shadcn/ui. Install any of them into your project with a single command.

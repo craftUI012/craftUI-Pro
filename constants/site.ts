@@ -32,7 +32,7 @@ export const SITE = {
       "Beautiful Landing pages, UI Blocks and components for businesses startups, and SaaS products focusing on conversion, accessibility and performance. Built with shadcn/ui, tailwindcss and Motion.",
   },
   KEYWORDS: [
-    "craftUI Pro",
+    "craftUI",
     "shadcn",
     "shadcn/ui",
     "shadcn blocks",
@@ -49,7 +49,7 @@ export const SITE = {
   // Square logo for structured data and anywhere a crawler wants one
   // (512 × 512, on its light tile; built by `pnpm brand:icons`).
   LOGO: `${baseUrl}/logo/logo-512.png`,
-  NAME: "craftUI Pro",
+  NAME: "craftUI",
   OG_IMAGE: `${baseUrl}/og`,
   REGISTRY: baseUrl,
   // The home page's title, after the name. Kept short: search results cut
