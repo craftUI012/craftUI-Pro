@@ -27,7 +27,7 @@ lib/source.ts            loader({ baseUrl: "/docs", source: docs.toFumadocsSourc
 | `docs`      | `content/docs`       | `/docs`       | `includeProcessedMarkdown: true`, so pages can be exported as markdown for LLM routes |
 | `docsAdmin` | `content/docs-admin` | `/docs-admin` | Dev-only handbook. Not included in the sitemap, llms or RSS.                          |
 
-Both use Fumadocs' default `frontmatterSchema` (`title`, `description`, `icon`, `full`) and `metaSchema`.
+Both use Fumadocs' `frontmatterSchema` (`title`, `description`, `icon`, `full`) and `metaSchema`. `docs` adds one field: `hideHeader: true` hides a page's visible title and description (the first preview heading leads instead). The title stays as a visually hidden `h1` for screen readers and search, and the description still feeds the meta tags. `content/docs/templates/tables-section.mdx` uses it.
 
 The MDX options **remove the first default rehype plugin** (Fumadocs' built-in code highlighter) and add `rehype-pretty-code` with `github-dark` and `github-light-default` themes and the shared `transformers` from `lib/highlight-code.ts`. That transformer copies the raw source to `__raw__` for copy buttons, and for commands starting with `npm install`, `npx`, `npm create` or `npm run` it generates yarn, pnpm and bun equivalents. That's how the package-manager tabs on code blocks work.
 

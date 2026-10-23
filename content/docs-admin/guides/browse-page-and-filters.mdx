@@ -210,6 +210,20 @@ On `/`, pick the library, then check that:
 
 </Steps>
 
+## More like this
+
+Under every docs page that's a browse item, a "More like …" section (for example "More like API keys table") shows up to six other cards from the same library, ranked by the browse tags they share with the page's item(s):
+
+| Shared tag | Points |
+| ---------- | ------ |
+| A type     | 3      |
+| A category | 2      |
+| A style    | 1      |
+
+Highest score first, newest first on a tie. Items with nothing in common still fill in after, so the section isn't empty while a library is small. The heading uses the card's name when the page shows one component, and the page title when it holds several variants.
+
+The tags are the same ones the filters use, so **tagging an item well also decides where it shows up as related**. Weights and the limit are in `components/new-hero-section/data/related-items.ts`; the section is `components/docs-related.tsx`. Pages that aren't a browse item (the Components docs, for now) get no section.
+
 ## Card screenshots
 
 Card images live on Cloudflare R2 and are managed with `pnpm media`. See [Card screenshots](/docs-admin/guides/card-screenshots) for uploading, replacing and deleting them.

@@ -12,7 +12,6 @@ import {
 import type { ComponentType } from "react";
 import { useEffect, useState } from "react";
 
-import { DocsShareMenu } from "@/components/docs-share-menu";
 import { PreviewCopyForAi } from "@/components/preview-copy-for-ai";
 import { PreviewInstallCommand } from "@/components/preview-install-command";
 import { Button } from "@/components/ui/button";
@@ -138,9 +137,9 @@ const ViewToggle = ({
   </div>
 );
 
-// This card's own link: the page URL plus #<installName> (the box's id, see
-// preview-frame.tsx). Read after mount, since the server doesn't know the
-// page's URL; empty until then.
+// This card's own link (for Copy for AI's "open in" links): the page URL plus
+// #<installName> (the box's id, see preview-frame.tsx). Read after mount,
+// since the server doesn't know the page's URL; empty until then.
 const useCardUrl = (id?: string) => {
   const [url, setUrl] = useState("");
   useEffect(() => {
@@ -152,7 +151,7 @@ const useCardUrl = (id?: string) => {
 
 // The strip pinned to the top of a preview box (see preview-frame.tsx): the
 // Preview/Code toggle and the install command on the left; device width,
-// reload, full screen, share and "Copy for AI" on the right.
+// reload, full screen and "Copy for AI" on the right.
 export const PreviewToolbar = ({
   className,
   copyValue,
@@ -218,22 +217,15 @@ export const PreviewToolbar = ({
         <ToolbarButton label="Full screen" onClick={onFullscreen} shortcut="F">
           <Maximize className="size-4.5" strokeWidth="2" />
         </ToolbarButton>
-        {(cardUrl || hasCopy) && (
-          <Separator className="mx-1 h-4!" orientation="vertical" />
-        )}
-        <div className="flex items-center gap-1.5">
-          {cardUrl && (
-            <DocsShareMenu title={title ?? "Component"} url={cardUrl} />
-          )}
-          <PreviewCopyForAi
-            code={copyValue}
-            installName={installName}
-            locked={locked}
-            onLocked={onLockedCopy}
-            title={title ?? "Component"}
-            url={cardUrl}
-          />
-        </div>
+        {hasCopy && <Separator className="mx-1 h-4!" orientation="vertical" />}
+        <PreviewCopyForAi
+          code={copyValue}
+          installName={installName}
+          locked={locked}
+          onLocked={onLockedCopy}
+          title={title ?? "Component"}
+          url={cardUrl}
+        />
       </div>
     </div>
   );

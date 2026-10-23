@@ -5,6 +5,7 @@ import {
   metaSchema,
 } from "fumadocs-mdx/config";
 import { rehypePrettyCode } from "rehype-pretty-code";
+import { z } from "zod";
 
 import { DOCS_ADMIN_DIR, DOCS_DIR } from "@/lib/docs";
 import { transformers } from "@/lib/highlight-code";
@@ -37,6 +38,15 @@ const HIDDEN_DOCS = [
   "components/your-component.mdx",
 ];
 
+// Extra frontmatter for /docs pages:
+//   hideHeader  hide the page's title and description (the preview's own
+//               heading leads instead). The title stays as a visually hidden
+//               h1 for screen readers and search; the description still
+//               feeds the meta tags.
+const docsFrontmatter = frontmatterSchema.extend({
+  hideHeader: z.boolean().optional(),
+});
+
 export const docs = defineDocs({
   dir: DOCS_DIR,
   docs: {
@@ -44,7 +54,7 @@ export const docs = defineDocs({
     postprocess: {
       includeProcessedMarkdown: true,
     },
-    schema: frontmatterSchema,
+    schema: docsFrontmatter,
   },
   meta: {
     schema: metaSchema,

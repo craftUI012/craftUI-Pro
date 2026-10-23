@@ -77,6 +77,57 @@ const DocsHeaderActions = ({
   </div>
 );
 
+// The title block: title (with the header actions beside it), description,
+// and Docs / API Reference badges when the page links out.
+const DocsArticleHeader = ({
+  actions,
+  description,
+  links,
+  title,
+}: {
+  actions: React.ReactNode;
+  description?: string;
+  links?: { doc?: string; api?: string };
+  title: string;
+}) => (
+  <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <h1 className={cn("scroll-m-20", TYPE.headingDisplay)}>{title}</h1>
+        {actions}
+      </div>
+      {description && (
+        <p
+          className={cn(
+            "text-muted-foreground max-w-2xl text-pretty",
+            TYPE.pageLead
+          )}
+        >
+          {description}
+        </p>
+      )}
+    </div>
+    {links ? (
+      <div className="flex items-center space-x-2 pt-4">
+        {links.doc && (
+          <Badge asChild variant="secondary">
+            <Link href={links.doc} target="_blank" rel="noreferrer">
+              Docs <ArrowUpRightIcon />
+            </Link>
+          </Badge>
+        )}
+        {links.api && (
+          <Badge asChild variant="secondary">
+            <Link href={links.api} target="_blank" rel="noreferrer">
+              API Reference <ArrowUpRightIcon />
+            </Link>
+          </Badge>
+        )}
+      </div>
+    ) : null}
+  </div>
+);
+
 // The body of a docs page: title, description, copy/share, prev/next, the MDX
 // content and the table of contents. Rendered by /docs, inside the browse
 // shell (app/(home)/docs).
@@ -92,12 +143,15 @@ const DocsHeaderActions = ({
 // rail animates, the rail lists every page, and each preview card carries
 // its own share and "Copy for AI").
 export const DocsArticle = ({
+  after,
   basePath = ROUTES.DOCS,
   footerNav = true,
   headerActions = true,
   page,
   transition = true,
 }: {
+  // Rendered under the content, in the same column (e.g. "More like …").
+  after?: React.ReactNode;
   basePath?: string;
   footerNav?: boolean;
   headerActions?: boolean;
@@ -119,7 +173,10 @@ export const DocsArticle = ({
     : null;
   const markdownUrl = getPageMarkdownUrl(page).url;
 
-  const { links } = doc as { links?: { doc?: string; api?: string } };
+  const { hideHeader, links } = doc as {
+    hideHeader?: boolean;
+    links?: { doc?: string; api?: string };
+  };
 
   return (
     <>
@@ -136,13 +193,14 @@ export const DocsArticle = ({
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="h-(--top-spacing) shrink-0" />
             <div className="container flex w-full min-w-0 flex-1 flex-col gap-10 py-6 lg:gap-12 text-neutral-800 lg:py-8 dark:text-neutral-300">
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <h1 className={cn("scroll-m-20", TYPE.headingDisplay)}>
-                      {doc.title}
-                    </h1>
-                    {headerActions && (
+              {/* `hideHeader` in frontmatter: no visible title block, but the
+                  title stays as the page's h1 for screen readers and search. */}
+              {hideHeader ? (
+                <h1 className="sr-only">{doc.title}</h1>
+              ) : (
+                <DocsArticleHeader
+                  actions={
+                    headerActions ? (
                       <DocsHeaderActions
                         markdownUrl={markdownUrl}
                         next={next}
@@ -150,38 +208,13 @@ export const DocsArticle = ({
                         previous={previous}
                         title={doc.title}
                       />
-                    )}
-                  </div>
-                  {doc.description && (
-                    <p
-                      className={cn(
-                        "text-muted-foreground max-w-2xl text-pretty",
-                        TYPE.pageLead
-                      )}
-                    >
-                      {doc.description}
-                    </p>
-                  )}
-                </div>
-                {links ? (
-                  <div className="flex items-center space-x-2 pt-4">
-                    {links?.doc && (
-                      <Badge asChild variant="secondary">
-                        <Link href={links.doc} target="_blank" rel="noreferrer">
-                          Docs <ArrowUpRightIcon />
-                        </Link>
-                      </Badge>
-                    )}
-                    {links?.api && (
-                      <Badge asChild variant="secondary">
-                        <Link href={links.api} target="_blank" rel="noreferrer">
-                          API Reference <ArrowUpRightIcon />
-                        </Link>
-                      </Badge>
-                    )}
-                  </div>
-                ) : null}
-              </div>
+                    ) : null
+                  }
+                  description={doc.description}
+                  links={links}
+                  title={doc.title}
+                />
+              )}
               <div className="w-full flex-1 *:data-[slot=alert]:first:mt-0">
                 {/* {params.slug &&
                 params.slug[0] === "components" &&
@@ -195,6 +228,7 @@ export const DocsArticle = ({
                 )} */}
                 <MdxContent components={mdxComponents} />
               </div>
+              {after}
             </div>
             {footerNav && (
               <div className="container hidden h-16 w-full items-center gap-2 sm:flex">

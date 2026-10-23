@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { DocsArticle } from "@/components/docs-article";
+import { DocsRelated } from "@/components/docs-related";
 import { ROUTES } from "@/constants/routes";
 import { formatTitleFromSlug } from "@/lib/docs";
 import { getPageImage, source } from "@/lib/source";
@@ -77,6 +78,7 @@ const DocsPage = async (props: { params: Promise<{ slug?: string[] }> }) => {
       {/* The same top spacing the old /docs layout gave its articles. */}
       <div className="px-4 md:px-6 [--top-spacing:0] lg:[--top-spacing:calc(var(--spacing)*4)]">
         <DocsArticle
+          after={<DocsRelated pageTitle={page.data.title} url={page.url} />}
           page={page}
           footerNav={false}
           headerActions={false}

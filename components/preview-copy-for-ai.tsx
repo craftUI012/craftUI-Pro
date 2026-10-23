@@ -42,7 +42,7 @@ const BUTTON_CLS = "h-7 gap-2 px-2.5 text-xs";
 
 // "Copy for AI" on a preview card's toolbar: Copy Page's split button
 // (docs-copy-page.tsx) — copy on the left, the AI links in a dropdown on the
-// right — in the install command's brand colour. Pro items (`locked`) keep
+// right — secondary, like the install command. Pro items (`locked`) keep
 // both halves behind the paywall: each one opens the Code view instead,
 // which shows the Paywall.
 export const PreviewCopyForAi = ({
@@ -79,7 +79,7 @@ export const PreviewCopyForAi = ({
           onClick={onLocked}
           size="sm"
           type="button"
-          variant="default"
+          variant="secondary"
         >
           <Lock className="size-3.5" />
           Copy for AI
@@ -89,7 +89,7 @@ export const PreviewCopyForAi = ({
           onClick={onLocked}
           size="icon"
           type="button"
-          variant="default"
+          variant="secondary"
         >
           <Lock className="size-3.5" />
           <span className="sr-only">Open in an AI tool (Pro)</span>
@@ -109,14 +109,14 @@ export const PreviewCopyForAi = ({
         showTooltip={false}
         sound="copy"
         value={getBrief}
-        variant="default"
+        variant="secondary"
       >
         Copy for AI
       </CopyButton>
       {url && (
         <DropdownMenu sounds>
           <DropdownMenuTrigger asChild>
-            <Button className="size-7" size="icon" variant="default">
+            <Button className="size-7" size="icon" variant="secondary">
               <ChevronDownIcon className="size-3.5" />
               <span className="sr-only">Open in an AI tool</span>
             </Button>
