@@ -140,6 +140,44 @@
           "target": "components/blocks/tables-section.tsx"
         }
       ]
+    },
+    {
+      "name": "tables-section-02",
+      "type": "registry:block",
+      "title": "Support tickets table",
+      "description": "Help-desk queue with saved views, live SLA timers, inline status, priority and assignee, sorting, CSV export and a ticket detail sheet.",
+      "categories": ["data"],
+      "meta": {
+        "pro": false,
+        "library": "templates",
+        "types": ["tables"],
+        "styles": ["minimal", "dark-mode"],
+        "publishedAt": "2026-10-23"
+      },
+      "registryDependencies": [
+        "table",
+        "avatar",
+        "badge",
+        "button",
+        "checkbox",
+        "dialog",
+        "dropdown-menu",
+        "input",
+        "kbd",
+        "label",
+        "native-select",
+        "sheet",
+        "skeleton",
+        "tabs",
+        "textarea"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york/tables-section-02.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/tables-section-02.tsx"
+        }
+      ]
     }
   ]
 }
