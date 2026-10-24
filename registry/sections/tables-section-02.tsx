@@ -18,6 +18,7 @@ import {
   ListFilter,
   Mail,
   MessageCircle,
+  Minus,
   MoreHorizontal,
   PanelRightOpen,
   Phone,
@@ -34,7 +35,7 @@ import * as React from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -48,6 +49,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -85,6 +87,42 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+
+// ─── Menus ───────────────────────────────────────────────────────────────────
+// This block runs on either shadcn style. Radix closes a menu after a radio
+// pick on its own; Base UI keeps it open. So every menu here owns its open
+// state, and its radio groups close it once a value is chosen.
+const CloseMenuContext = React.createContext<(() => void) | null>(null);
+
+const Menu = ({
+  children,
+  ...props
+}: React.ComponentProps<typeof DropdownMenu>) => {
+  const [open, setOpen] = React.useState(false);
+  const close = React.useCallback(() => setOpen(false), []);
+  return (
+    <CloseMenuContext.Provider value={close}>
+      <DropdownMenu {...props} onOpenChange={setOpen} open={open}>
+        {children}
+      </DropdownMenu>
+    </CloseMenuContext.Provider>
+  );
+};
+
+type MenuRadioGroupProps = React.ComponentProps<typeof DropdownMenuRadioGroup>;
+
+const MenuRadioGroup = ({ onValueChange, ...props }: MenuRadioGroupProps) => {
+  const close = React.useContext(CloseMenuContext);
+  const handleValueChange = ((
+    ...args: Parameters<NonNullable<MenuRadioGroupProps["onValueChange"]>>
+  ) => {
+    onValueChange?.(...args);
+    close?.();
+  }) as MenuRadioGroupProps["onValueChange"];
+  return (
+    <DropdownMenuRadioGroup {...props} onValueChange={handleValueChange} />
+  );
+};
 
 // Support tickets table: a help-desk queue in the same shape as the API keys
 // table (tables-section.tsx): header actions, a search + filter toolbar,
@@ -931,18 +969,15 @@ const CellMenuTrigger = ({
   label: string;
   children: React.ReactNode;
 }) => (
-  <DropdownMenuTrigger asChild>
-    <button
-      type="button"
-      aria-label={label}
-      className="group/cell hover:bg-muted focus-visible:ring-ring/50 data-[state=open]:bg-muted -mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 outline-none focus-visible:ring-[3px]"
-    >
-      {children}
-      <ChevronDown
-        aria-hidden
-        className="text-muted-foreground size-3 opacity-0 transition-opacity group-hover/cell:opacity-100 group-data-[state=open]/cell:opacity-100"
-      />
-    </button>
+  <DropdownMenuTrigger
+    className="group/cell hover:bg-muted focus-visible:ring-ring/50 data-[state=open]:bg-muted data-popup-open:bg-muted -mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 outline-none focus-visible:ring-[3px]"
+    aria-label={label}
+  >
+    {children}
+    <ChevronDown
+      aria-hidden
+      className="text-muted-foreground size-3 opacity-0 transition-opacity group-hover/cell:opacity-100 group-data-[state=open]/cell:opacity-100 group-data-popup-open/cell:opacity-100"
+    />
   </DropdownMenuTrigger>
 );
 
@@ -953,7 +988,7 @@ const StatusItems = ({
   value: TicketStatus;
   onChange: (status: TicketStatus) => void;
 }) => (
-  <DropdownMenuRadioGroup
+  <MenuRadioGroup
     value={value}
     onValueChange={(next) => onChange(next as TicketStatus)}
   >
@@ -963,7 +998,7 @@ const StatusItems = ({
         {status.label}
       </DropdownMenuRadioItem>
     ))}
-  </DropdownMenuRadioGroup>
+  </MenuRadioGroup>
 );
 
 const PriorityItems = ({
@@ -973,7 +1008,7 @@ const PriorityItems = ({
   value: TicketPriority;
   onChange: (priority: TicketPriority) => void;
 }) => (
-  <DropdownMenuRadioGroup
+  <MenuRadioGroup
     value={value}
     onValueChange={(next) => onChange(next as TicketPriority)}
   >
@@ -983,7 +1018,7 @@ const PriorityItems = ({
         {priority.label}
       </DropdownMenuRadioItem>
     ))}
-  </DropdownMenuRadioGroup>
+  </MenuRadioGroup>
 );
 
 const UNASSIGNED = "__unassigned__";
@@ -997,7 +1032,7 @@ const AssigneeItems = ({
   agents: string[];
   onChange: (assignee: string | null) => void;
 }) => (
-  <DropdownMenuRadioGroup
+  <MenuRadioGroup
     value={value ?? UNASSIGNED}
     onValueChange={(next) => onChange(next === UNASSIGNED ? null : next)}
   >
@@ -1007,7 +1042,7 @@ const AssigneeItems = ({
         {agent}
       </DropdownMenuRadioItem>
     ))}
-  </DropdownMenuRadioGroup>
+  </MenuRadioGroup>
 );
 
 // ─── Header and views ────────────────────────────────────────────────────────
@@ -1135,17 +1170,17 @@ const FilterMenu = ({
 }) => {
   const count = activeFilterCount(filters);
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          <ListFilter aria-hidden className="size-4" />
-          Filter
-          {count > 0 && (
-            <span className="bg-muted text-foreground ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums">
-              {count}
-            </span>
-          )}
-        </Button>
+    <Menu>
+      <DropdownMenuTrigger
+        className={cn(buttonVariants({ variant: "outline" }))}
+      >
+        <ListFilter aria-hidden className="size-4" />
+        Filter
+        {count > 0 && (
+          <span className="bg-muted text-foreground ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums">
+            {count}
+          </span>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuSub>
@@ -1208,7 +1243,7 @@ const FilterMenu = ({
             Assignee
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="min-w-44">
-            <DropdownMenuRadioGroup
+            <MenuRadioGroup
               value={filters.assignee}
               onValueChange={(assignee) => onChange({ ...filters, assignee })}
             >
@@ -1221,19 +1256,19 @@ const FilterMenu = ({
                   {agent}
                 </DropdownMenuRadioItem>
               ))}
-            </DropdownMenuRadioGroup>
+            </MenuRadioGroup>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         {count > 0 && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => onChange(NO_FILTERS)}>
+            <DropdownMenuItem onClick={() => onChange(NO_FILTERS)}>
               Clear filters
             </DropdownMenuItem>
           </>
         )}
       </DropdownMenuContent>
-    </DropdownMenu>
+    </Menu>
   );
 };
 
@@ -1376,43 +1411,45 @@ const ViewMenu = ({
   onToggleColumn: (id: ColumnId) => void;
   onShowAllColumns: () => void;
 }) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="outline">
-        <SlidersHorizontal aria-hidden className="size-4" />
-        View
-      </Button>
+  <Menu>
+    <DropdownMenuTrigger className={cn(buttonVariants({ variant: "outline" }))}>
+      <SlidersHorizontal aria-hidden className="size-4" />
+      View
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="w-48">
-      <DropdownMenuLabel>Order by</DropdownMenuLabel>
-      <DropdownMenuRadioGroup
-        value={sort.column}
-        onValueChange={(column) => onSortColumn(column as SortColumn)}
-      >
-        {SORTS.map((item) => (
-          <DropdownMenuRadioItem key={item.id} value={item.id}>
-            {item.label}
-          </DropdownMenuRadioItem>
-        ))}
-      </DropdownMenuRadioGroup>
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel>Columns</DropdownMenuLabel>
-      {COLUMNS.map((col) => (
-        <DropdownMenuCheckboxItem
-          key={col.id}
-          checked={visible[col.id]}
-          onCheckedChange={() => onToggleColumn(col.id)}
-          onSelect={(event) => event.preventDefault()}
+      <DropdownMenuGroup>
+        <DropdownMenuLabel>Order by</DropdownMenuLabel>
+        <MenuRadioGroup
+          value={sort.column}
+          onValueChange={(column) => onSortColumn(column as SortColumn)}
         >
-          {col.label}
-        </DropdownMenuCheckboxItem>
-      ))}
+          {SORTS.map((item) => (
+            <DropdownMenuRadioItem key={item.id} value={item.id}>
+              {item.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </MenuRadioGroup>
+      </DropdownMenuGroup>
       <DropdownMenuSeparator />
-      <DropdownMenuItem onSelect={onShowAllColumns}>
+      <DropdownMenuGroup>
+        <DropdownMenuLabel>Columns</DropdownMenuLabel>
+        {COLUMNS.map((col) => (
+          <DropdownMenuCheckboxItem
+            key={col.id}
+            checked={visible[col.id]}
+            onCheckedChange={() => onToggleColumn(col.id)}
+            onSelect={(event) => event.preventDefault()}
+          >
+            {col.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuGroup>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={onShowAllColumns}>
         Show all columns
       </DropdownMenuItem>
     </DropdownMenuContent>
-  </DropdownMenu>
+  </Menu>
 );
 
 // ─── Table ───────────────────────────────────────────────────────────────────
@@ -1479,23 +1516,26 @@ const RowMenu = ({
   agents: string[];
   actions: RowActions;
 }) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={`Actions for ${row.id}`}
-        className="text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
-      >
-        <MoreHorizontal aria-hidden className="size-4" />
-      </Button>
+  <Menu>
+    <DropdownMenuTrigger
+      className={cn(
+        buttonVariants({
+          className:
+            "text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 data-popup-open:opacity-100",
+          size: "icon-sm",
+          variant: "ghost",
+        })
+      )}
+      aria-label={`Actions for ${row.id}`}
+    >
+      <MoreHorizontal aria-hidden className="size-4" />
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="min-w-48">
-      <DropdownMenuItem onSelect={() => actions.onOpen(row)}>
+      <DropdownMenuItem onClick={() => actions.onOpen(row)}>
         <PanelRightOpen aria-hidden className="size-4" />
         Open ticket
       </DropdownMenuItem>
-      <DropdownMenuItem onSelect={() => actions.onCopyLink(row)}>
+      <DropdownMenuItem onClick={() => actions.onCopyLink(row)}>
         <Link2 aria-hidden className="size-4" />
         Copy ticket link
       </DropdownMenuItem>
@@ -1540,13 +1580,13 @@ const RowMenu = ({
       <DropdownMenuSeparator />
       <DropdownMenuItem
         variant="destructive"
-        onSelect={() => actions.onDelete([row.id])}
+        onClick={() => actions.onDelete([row.id])}
       >
         <Trash2 aria-hidden className="size-4" />
         Delete ticket
       </DropdownMenuItem>
     </DropdownMenuContent>
-  </DropdownMenu>
+  </Menu>
 );
 
 // The ticket cell: the subject (bold while unread; opens the sheet), and
@@ -1609,7 +1649,7 @@ const AssigneeCell = ({
   agents: string[];
   onChange: (assignee: string | null) => void;
 }) => (
-  <DropdownMenu>
+  <Menu>
     <CellMenuTrigger
       label={`Assignee of ${row.id}: ${row.assignee ?? "unassigned"}`}
     >
@@ -1618,7 +1658,7 @@ const AssigneeCell = ({
     <DropdownMenuContent align="start">
       <AssigneeItems value={row.assignee} agents={agents} onChange={onChange} />
     </DropdownMenuContent>
-  </DropdownMenu>
+  </Menu>
 );
 
 const TicketRowView = ({
@@ -1662,7 +1702,7 @@ const TicketRowView = ({
       )}
       {visible.priority && (
         <TableCell className={SHOW_FROM.priority}>
-          <DropdownMenu>
+          <Menu>
             <CellMenuTrigger label={`Priority of ${row.id}`}>
               <PriorityLabel priority={row.priority} />
             </CellMenuTrigger>
@@ -1672,12 +1712,12 @@ const TicketRowView = ({
                 onChange={(priority) => update({ priority })}
               />
             </DropdownMenuContent>
-          </DropdownMenu>
+          </Menu>
         </TableCell>
       )}
       {visible.status && (
         <TableCell className={SHOW_FROM.status}>
-          <DropdownMenu>
+          <Menu>
             <CellMenuTrigger label={`Status of ${row.id}`}>
               <StatusLabel status={row.status} />
             </CellMenuTrigger>
@@ -1687,7 +1727,7 @@ const TicketRowView = ({
                 onChange={(status) => update({ status })}
               />
             </DropdownMenuContent>
-          </DropdownMenu>
+          </Menu>
         </TableCell>
       )}
       {visible.assignee && (
@@ -1720,17 +1760,42 @@ const TicketRowView = ({
   );
 };
 
-const pageCheckboxState = (
-  allSelected: boolean,
-  someSelected: boolean
-): boolean | "indeterminate" => {
-  if (allSelected) {
-    return true;
-  }
-  if (someSelected) {
-    return "indeterminate";
-  }
-  return false;
+/* The select-all box. Its "some rows" state is drawn here rather than with
+ * the checkbox's own indeterminate value, because the two shadcn styles
+ * spell that differently (Radix: checked="indeterminate"; Base UI: an
+ * indeterminate prop) and this block runs on either. Underneath it stays
+ * unchecked, so a click selects every row; on top it's filled, marked with
+ * a dash and announced as mixed. aria-checked is only passed while mixed:
+ * passing undefined would override the checkbox's own value. */
+const PageCheckbox = ({
+  allSelected,
+  label,
+  onToggle,
+  someSelected,
+}: {
+  allSelected: boolean;
+  label: string;
+  onToggle: (selected: boolean) => void;
+  someSelected: boolean;
+}) => {
+  const mixed = someSelected && !allSelected;
+  return (
+    <span className="relative inline-flex">
+      <Checkbox
+        {...(mixed ? { "aria-checked": "mixed" as const } : {})}
+        aria-label={label}
+        checked={allSelected}
+        className={cn(mixed && "border-primary bg-primary dark:bg-primary")}
+        onCheckedChange={(value) => onToggle(value === true)}
+      />
+      {mixed ? (
+        <Minus
+          aria-hidden
+          className="text-primary-foreground pointer-events-none absolute inset-0 m-auto size-3"
+        />
+      ) : null}
+    </span>
+  );
 };
 
 const EmptyState = ({
@@ -1854,10 +1919,11 @@ const TicketsTable = ({
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <TableHead className="w-10 pl-4">
-            <Checkbox
-              checked={pageCheckboxState(allPageSelected, somePageSelected)}
-              onCheckedChange={(value) => onTogglePage(value === true)}
-              aria-label="Select all tickets on this page"
+            <PageCheckbox
+              allSelected={allPageSelected}
+              label="Select all tickets on this page"
+              onToggle={onTogglePage}
+              someSelected={somePageSelected}
             />
           </TableHead>
           <TableHead>Ticket</TableHead>
@@ -1930,30 +1996,32 @@ const BulkActions = ({
   "agents" | "onAssignSelected" | "onSolveSelected" | "onDeleteSelected"
 >) => (
   <span className="flex items-center gap-1">
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <UserRound aria-hidden className="size-3.5" />
-          Assign
-          <ChevronDown aria-hidden className="size-3" />
-        </Button>
+    <Menu>
+      <DropdownMenuTrigger
+        className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+      >
+        <UserRound aria-hidden className="size-3.5" />
+        Assign
+        <ChevronDown aria-hidden className="size-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuLabel>Assign selected to</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => onAssignSelected(null)}>
-          Unassigned
-        </DropdownMenuItem>
-        {agents.map((agent) => (
-          <DropdownMenuItem
-            key={agent}
-            onSelect={() => onAssignSelected(agent)}
-          >
-            {agent}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Assign selected to</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onAssignSelected(null)}>
+            Unassigned
           </DropdownMenuItem>
-        ))}
+          {agents.map((agent) => (
+            <DropdownMenuItem
+              key={agent}
+              onClick={() => onAssignSelected(agent)}
+            >
+              {agent}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
-    </DropdownMenu>
+    </Menu>
     <Button variant="ghost" size="sm" onClick={onSolveSelected}>
       <CheckCheck aria-hidden className="size-3.5" />
       Mark solved
@@ -1985,28 +2053,31 @@ const TicketsFooter = ({
       <p className="text-muted-foreground text-sm">
         {selectedCount} of {totalCount} ticket(s) selected.
       </p>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label="Rows per page">
-            {pageSize}
-            <ChevronDown aria-hidden className="size-3.5" />
-          </Button>
+      <Menu>
+        <DropdownMenuTrigger
+          className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+          aria-label="Rows per page"
+        >
+          {pageSize}
+          <ChevronDown aria-hidden className="size-3.5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuLabel>Rows per page</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup
-            value={String(pageSize)}
-            onValueChange={(value) => onPageSizeChange(Number(value))}
-          >
-            {PAGE_SIZES.map((size) => (
-              <DropdownMenuRadioItem key={size} value={String(size)}>
-                {size}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Rows per page</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <MenuRadioGroup
+              value={String(pageSize)}
+              onValueChange={(value) => onPageSizeChange(Number(value))}
+            >
+              {PAGE_SIZES.map((size) => (
+                <DropdownMenuRadioItem key={size} value={String(size)}>
+                  {size}
+                </DropdownMenuRadioItem>
+              ))}
+            </MenuRadioGroup>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </Menu>
       {selectedCount > 0 && <BulkActions {...bulk} />}
     </div>
     <div className="flex items-center gap-1">
@@ -2281,7 +2352,7 @@ const SheetFields = ({
 }) => (
   <>
     <DetailRow label="Status">
-      <DropdownMenu>
+      <Menu>
         <CellMenuTrigger label="Change status">
           <StatusLabel status={row.status} />
         </CellMenuTrigger>
@@ -2291,10 +2362,10 @@ const SheetFields = ({
             onChange={(status) => update({ status })}
           />
         </DropdownMenuContent>
-      </DropdownMenu>
+      </Menu>
     </DetailRow>
     <DetailRow label="Priority">
-      <DropdownMenu>
+      <Menu>
         <CellMenuTrigger label="Change priority">
           <PriorityLabel priority={row.priority} />
         </CellMenuTrigger>
@@ -2304,10 +2375,10 @@ const SheetFields = ({
             onChange={(priority) => update({ priority })}
           />
         </DropdownMenuContent>
-      </DropdownMenu>
+      </Menu>
     </DetailRow>
     <DetailRow label="Assignee">
-      <DropdownMenu>
+      <Menu>
         <CellMenuTrigger label="Change assignee">
           <AssigneeName assignee={row.assignee} />
         </CellMenuTrigger>
@@ -2318,7 +2389,7 @@ const SheetFields = ({
             onChange={(assignee) => update({ assignee })}
           />
         </DropdownMenuContent>
-      </DropdownMenu>
+      </Menu>
     </DetailRow>
   </>
 );

@@ -10,7 +10,6 @@ import {
   CARD_SURFACE,
   CardCaption,
   PREVIEW_CLASS,
-  PreviewImage,
 } from "@/components/new-hero-section/browse/browse-card-parts";
 import type {
   ShowcaseItem,
@@ -18,14 +17,15 @@ import type {
 } from "@/components/new-hero-section/data/home-types";
 import { cn } from "@/lib/utils";
 
-// A browse card for an item with a video. At rest it looks like any other
-// card (its screenshot), plus a fine ruler in the bottom padding: that ruler
-// is the hint that there's footage.
+// A browse card for an item with a video. At rest it shows the video itself,
+// paused on a frame (its first, or wherever the last hover left it), plus a
+// fine ruler in the bottom padding: that ruler is the hint that there's
+// footage. The item's screenshot (`item.preview`) isn't drawn here; it stays
+// in the data for everything else that uses it.
 //
-// - Hover (or keyboard focus) plays the video, muted and looping, over the
-//   screenshot, after a short intent delay so sweeping across the grid
-//   doesn't. Leaving pauses it and keeps the position; the next hover
-//   carries on from the same frame.
+// - Hover (or keyboard focus) plays the video, muted and looping, after a
+//   short intent delay so sweeping across the grid doesn't. Leaving pauses
+//   it and keeps the position; the next hover carries on from that frame.
 // - The pointer is the timeline. Moving across the screenshot, the ruler, or
 //   just under the card scrubs; holding still plays on from there.
 // - The ruler magnifies under the pointer like the macOS dock, and the part
@@ -33,12 +33,18 @@ import { cn } from "@/lib/utils";
 // - Touch screens have no hover: the card plays while it's mostly in view
 //   (not with reduced motion).
 //
-// The video is preload="none" until the first hover, so cards cost nothing
-// until someone shows interest. Files come from Cloudflare R2
+// A card loads only its video's metadata and opening frame, and only once it
+// comes near the viewport (above-the-fold cards at once); the rest of the
+// file waits for the first hover. Files come from Cloudflare R2
 // (content/video-manifest.json, `pnpm media`).
 
 // Hover long enough to mean it.
 const INTENT_MS = 150;
+// How far ahead of the viewport a card starts loading its opening frame.
+const NEAR_MARGIN = "300px";
+// A media fragment just past zero: Safari otherwise shows nothing until the
+// video plays, rather than its first frame.
+const FIRST_FRAME = "#t=0.001";
 // Pointer travel (px) before a move counts as scrubbing, not a jittery hover.
 const SCRUB_THRESHOLD = 4;
 // How long the pointer rests before playback picks up from the playhead.
@@ -90,15 +96,30 @@ export const BrowseVideoCard = ({
   const intent = useRef(0);
   const settle = useRef(0);
   const enterX = useRef<number | null>(null);
-  // Hovered (or focused, or in view on touch), and whether the video has
-  // shown a frame yet. The video is visible while both hold, also when it's
-  // paused mid-scrub, so you see the frame you're scrubbing to.
-  const [engaged, setEngaged] = useState(false);
-  const [ready, setReady] = useState(false);
+  // Near the viewport, so it's worth loading the opening frame.
+  const [near, setNear] = useState(eager);
   const reduce = useReducedMotion();
 
+  useEffect(() => {
+    const card = cardRef.current;
+    if (near || !card) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setNear(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: NEAR_MARGIN }
+    );
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [near]);
+
   const start = useCallback(() => {
-    setEngaged(true);
+    setNear(true);
     window.clearTimeout(intent.current);
     intent.current = window.setTimeout(() => {
       const element = videoRef.current;
@@ -110,7 +131,6 @@ export const BrowseVideoCard = ({
   }, []);
 
   const stop = useCallback(() => {
-    setEngaged(false);
     window.clearTimeout(intent.current);
     window.clearTimeout(settle.current);
     videoRef.current?.pause();
@@ -139,7 +159,6 @@ export const BrowseVideoCard = ({
       raf = requestAnimationFrame(loop);
     };
     const onPlaying = () => {
-      setReady(true);
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(loop);
     };
@@ -263,27 +282,23 @@ export const BrowseVideoCard = ({
             onPointerLeave={onPointerLeave}
             onPointerMove={onPointerMove}
           >
-            <PreviewImage eager={eager} preview={item.preview} />
-            {/* Fades in once it has played a frame (no black flash) and out
-                when the card is left, back to the screenshot. */}
+            {/* The card's picture is the video: paused on its opening frame
+                at rest, playing on hover. bg-muted holds the frame's place
+                until it loads. */}
             <video
               ref={videoRef}
               muted
               loop
               playsInline
-              preload="none"
+              preload={near ? "metadata" : "none"}
+              src={near ? `${video.src}${FIRST_FRAME}` : undefined}
               aria-hidden
               tabIndex={-1}
               className={cn(
-                "absolute inset-0 size-full",
-                PREVIEW_CLASS,
-                // After PREVIEW_CLASS, so the fade isn't overridden.
-                "transition-[opacity,scale]",
-                engaged && ready ? "opacity-100" : "opacity-0"
+                "bg-muted absolute inset-0 size-full",
+                PREVIEW_CLASS
               )}
-            >
-              <source src={video.src} type={video.type} />
-            </video>
+            />
           </div>
           {/* The ruler's hover zone: the bottom padding and HIT_BELOW px past
               the card, so the lens follows a pointer that drifts under it. */}

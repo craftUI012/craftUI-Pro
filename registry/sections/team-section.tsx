@@ -17,9 +17,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { motion, useReducedMotion } from "motion/react";
 import * as React from "react";
 
-import AvatarGrid, {
-  type AvatarMember,
-} from "@/components/craftui/blocks/avatar/default";
+import AvatarGrid, { type AvatarMember } from "./avatar-grid";
 
 type HugeIcon = React.ComponentProps<typeof HugeiconsIcon>["icon"];
 

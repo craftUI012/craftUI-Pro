@@ -17,7 +17,12 @@ description: Every folder and notable file, and what it's for.
 ├── hooks/                  Client hooks (jotai atoms, media queries, feedback, clipboard)
 ├── lib/                    Server and shared logic: docs loaders, registry readers, highlighting
 ├── public/                 Static assets; public/r/ is the BUILT registry output
-├── registry/new-york/      Component SOURCE published through the registry
+├── registry/              Component SOURCE published through the registry, one folder per library
+│   ├── sections/           Sections (the "Sections" tab; `templates` in constants/taxonomy.ts)
+│   ├── blocks/             Blocks
+│   ├── illustrations/      Illustrations
+│   ├── isometric/          Isometric
+│   └── components/         Primitives (the components library)
 ├── scripts/                build-registry.mjs: runs shadcn build with the homepage from NEXT_PUBLIC_SITE_URL
 ├── seo/                    Metadata builder and JSON-LD helpers
 ├── styles/                 globals.css (Tailwind v4 tokens) + themes.css (colour themes)
@@ -96,7 +101,7 @@ app/
 
 <Callout title="components/ui is not the registry">
   `components/ui/*` are primitives **used by this website**. What you
-  **publish** lives in `registry/new-york/`. Don't mix them up.
+  **publish** lives in `registry/<library>/`. Don't mix them up.
 </Callout>
 
 ## `lib/`

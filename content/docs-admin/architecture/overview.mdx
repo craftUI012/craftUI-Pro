@@ -16,7 +16,7 @@ The codebase has four subsystems, and they all hang off one Next.js app:
 
 ```text
                 ┌──────────────────────────────────────────┐
-                │  registry/new-york/<name>.tsx  (source)  │
+                │  registry/<library>/<name>.tsx  (source) │
                 └───────────────┬──────────────────────────┘
                                 │ listed in
                                 ▼
@@ -35,7 +35,7 @@ The codebase has four subsystems, and they all hang off one Next.js app:
    with mdxComponents)
           │
           └─► <ComponentPreview name="x">  ──►  ComponentSource  ──►  reads examples/x.tsx
-                                                                     or registry/new-york/x.tsx
+                                                                     or the item's first file in registry.json
                                                                      from disk, formats, highlights
 ```
 

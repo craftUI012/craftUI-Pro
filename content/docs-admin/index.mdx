@@ -15,7 +15,7 @@ description: The internal handbook for this codebase. What it is, how it's put t
 This repository is a **shadcn component registry plus its documentation site**, built on the
 [startercn](https://github.com/shadcn-labs/startercn) template. It does three jobs:
 
-1. **Hosts component source.** Components live in `registry/new-york/` and are listed in `registry.json`.
+1. **Hosts component source.** Components live in `registry/<library>/` (one folder per navbar library) and are listed in `registry.json`.
 2. **Publishes installable JSON.** `pnpm registry:build` compiles each item to `public/r/<name>.json`, so anyone can run `npx shadcn@latest add https://<site>/r/<name>.json`.
 3. **Documents them.** A Fumadocs-powered site at `/docs` renders MDX pages with live previews and highlighted source.
 

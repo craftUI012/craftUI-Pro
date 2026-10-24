@@ -19,7 +19,7 @@ const baseUrl = getBaseUrl();
 
 export const SITE = {
   AUTHOR: {
-    NAME: "Indranil and Pranav",
+    NAME: "Indranil",
   },
   DESCRIPTION: {
     // Longer copy for llms.txt, the RSS feed and structured data.

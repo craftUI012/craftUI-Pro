@@ -15,7 +15,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { cn } from "@/lib/utils";
-import { AKTA_CSS } from "@/registry/new-york/akta-css";
+
+import { DRAWING_CSS } from "./drawing-styles";
 
 /* ---------------------------------------------------------------------------
  * akta-benchmarks-01 — four metrics, four graphic forms
@@ -23,7 +24,7 @@ import { AKTA_CSS } from "@/registry/new-york/akta-css";
  * Same contract as akta-hero-01: every value lives in this file as a Tailwind
  * arbitrary value with its dark twin, and the akta- CSS it shares with the
  * hero (the notch device class and the scroll-reveal keyframe) comes from
- * ./akta-css, rendered as a <style> inside the section. Nothing is written
+ * ./drawing-styles, rendered as a <style> inside the section. Nothing is written
  * into globals.css. There is no `@theme` block and no `:root` palette.
  *
  * The SVG charts follow the same rule. Fills and strokes are `fill-[…]` /
@@ -1099,8 +1100,8 @@ function AktaBenchmarks01({
         className
       )}
     >
-      {/* The akta CSS (./akta-css): nothing in globals.css. */}
-      <style>{AKTA_CSS}</style>
+      {/* The akta CSS (./drawing-styles): nothing in globals.css. */}
+      <style>{DRAWING_CSS}</style>
 
       <div className={GUTTER}>
         <div className={cn(GRID, "relative", RULE_X_LG)}>

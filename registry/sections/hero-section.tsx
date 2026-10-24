@@ -29,13 +29,14 @@ import React, {
 } from "react";
 
 import { cn } from "@/lib/utils";
-import { AKTA_CSS } from "@/registry/new-york/akta-css";
+
+import { DRAWING_CSS } from "./drawing-styles";
 
 /* ---------------------------------------------------------------------------
  * akta-hero-01 — "technical drawing on white paper"
  *
  * Every value lives in this file, and the akta- CSS it shares with the other
- * akta sections comes from ./akta-css (rendered as a <style> inside the
+ * akta sections comes from ./drawing-styles (rendered as a <style> inside the
  * section): nothing is written into globals.css. That CSS covers what a utility cannot express: the notch's
  * masked pseudo-element, the hatch gradient, the rolling label's three
  * coordinated elements, the tick field's indexed stagger, the plate, and the
@@ -373,7 +374,7 @@ const FONT_VARS = {
 } as React.CSSProperties;
 
 function AktaHero01({
-  plateImage = "/images/AIHero01.png",
+  plateImage = "/images/data-panel-hero-plate.webp",
   className = "",
 }: AktaHero01Props) {
   return (
@@ -387,8 +388,8 @@ function AktaHero01({
         className
       )}
     >
-      {/* The akta CSS (./akta-css): nothing in globals.css. */}
-      <style>{AKTA_CSS}</style>
+      {/* The akta CSS (./drawing-styles): nothing in globals.css. */}
+      <style>{DRAWING_CSS}</style>
 
       <div className={cn(GRID, "relative", RULE_X_LG)}>
         {/* nav — three cells separated by rules, not by padding */}

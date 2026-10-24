@@ -30,9 +30,9 @@ const PREVIEW_SIZES = [
   "calc((100vw - 32px) * 0.88)",
 ].join(", ");
 
-// Fills the frame from the top, and grows a touch on card hover.
-export const PREVIEW_CLASS =
-  "object-cover object-top transition-transform duration-300 ease-out group-hover:scale-[1.02] motion-reduce:transition-none";
+// Fills the frame from the top. It stays still on hover: the card's lift
+// (shadow-card-hover) is the hover cue, and the picture doesn't zoom.
+export const PREVIEW_CLASS = "object-cover object-top";
 
 // The card's screenshot. An R2 screenshot (srcSet set) is a plain <img> with
 // its own AVIF widths, so Vercel's image optimizer never touches it; the

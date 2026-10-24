@@ -10,7 +10,7 @@
 // registry.json is kept instead.
 
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { createJiti } from "jiti";
@@ -65,3 +65,36 @@ const result = spawnSync(
 );
 
 process.exitCode = result.status ?? 1;
+
+// Images a component loads by a root-relative path ("/images/…") live in this
+// site's public folder. That path works in the site's own previews, but after
+// `shadcn add` it would resolve against the user's site, where the file
+// doesn't exist. So in the published files only, point it at this site: the
+// image is then served from here (the deploy's CDN), with no upload step.
+const ROOT_ASSET = /(["'`(])\/images\//g;
+
+if (result.status === 0) {
+  for (const file of readdirSync(OUTPUT_DIR)) {
+    if (!file.endsWith(".json") || file === "registry.json") {
+      continue;
+    }
+    const target = path.join(OUTPUT_DIR, file);
+    const item = JSON.parse(readFileSync(target, "utf-8"));
+    let rewritten = 0;
+    for (const entry of item.files ?? []) {
+      if (typeof entry.content === "string") {
+        rewritten += entry.content.match(ROOT_ASSET)?.length ?? 0;
+        entry.content = entry.content.replace(
+          ROOT_ASSET,
+          `$1${registry.homepage}/images/`
+        );
+      }
+    }
+    if (rewritten > 0) {
+      writeFileSync(target, `${JSON.stringify(item, null, 2)}\n`);
+      console.log(
+        `Pointed ${rewritten} image path(s) in ${file} at ${registry.homepage}`
+      );
+    }
+  }
+}

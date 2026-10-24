@@ -41,7 +41,7 @@ With `environment=development` set, the internal handbook at `/docs-admin` expla
 ## Project structure
 
 ```
-├── registry/new-york/    # Component source (what gets published)
+├── registry/            # Component source (what gets published), one folder per library: sections, blocks, illustrations, isometric, components
 ├── registry.json         # Registry manifest
 ├── public/r/             # Built registry JSON (generated)
 ├── content/docs/         # Public documentation (MDX)
