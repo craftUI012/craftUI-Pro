@@ -27,7 +27,7 @@ description: Every field of the registry manifest and its items, with examples.
 
 | Field                  | Type     | Notes                                                                                                                                                                           |
 | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                 | string   | **Unique**. Becomes `public/r/<name>.json`. Must match the source filename for the docs lookup (`registry/new-york/<name>.tsx`).                                                |
+| `name`                 | string   | **Unique**. Becomes `public/r/<name>.json`. The docs show its first `files` entry as the source, so list the main file first.                                                |
 | `type`                 | string   | `registry:ui`, `registry:component`, `registry:block`, `registry:hook`, `registry:lib`, `registry:page`, `registry:file`, `registry:style`, `registry:theme` or `registry:item` |
 | `title`                | string   | Human-readable name                                                                                                                                                             |
 | `description`          | string   | Short description (shown by the CLI and directories)                                                                                                                            |
@@ -76,7 +76,7 @@ These are ignored by `shadcn build` and the CLI. The home page and the docs read
   "dependencies": ["motion"],
   "files": [
     {
-      "path": "registry/new-york/shimmer-text.tsx",
+      "path": "registry/components/shimmer-text.tsx",
       "type": "registry:ui",
       "target": "components/ui/shimmer-text.tsx"
     }
@@ -106,7 +106,7 @@ These are ignored by `shadcn build` and the CLI. The home page and the docs read
   ],
   "files": [
     {
-      "path": "registry/new-york/pricing-card.tsx",
+      "path": "registry/blocks/pricing-card.tsx",
       "type": "registry:component"
     }
   ]

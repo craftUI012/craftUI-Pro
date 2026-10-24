@@ -36,6 +36,7 @@ export const CATEGORIES = {
   finance: { label: "Finance" },
   marketing: { label: "Marketing" },
   people: { label: "People" },
+  portfolio: { label: "Portfolio" },
   technology: { label: "Technology" },
 } as const satisfies Record<string, TaxonomyValue>;
 
@@ -155,7 +156,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
     types: ["objects", "scenes", "devices"],
   },
   templates: {
-    categories: ["marketing", "company", "data", "ai"],
+    categories: ["marketing", "company", "data", "ai", "portfolio"],
     itemLabel: { one: "section", other: "sections" },
     label: "Sections",
     searchPlaceholder: "Search sections…",

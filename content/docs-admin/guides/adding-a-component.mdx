@@ -7,7 +7,7 @@ Adding a component means touching **four places**, then rebuilding. Its `registr
 
 | #          | File                                 | Why                                                                                      |
 | ---------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
-| 1          | `registry/new-york/<name>.tsx`       | The component source you publish                                                         |
+| 1          | `registry/<library>/<name>.tsx`      | The component source you publish                                                         |
 | 2          | `registry.json`                      | Tells `shadcn build` the component exists, and puts it on the home page with its filters |
 | 3          | `content/docs/components/<name>.mdx` | Its docs page, with a live preview and source                                            |
 | 4          | `content/docs/components/meta.json`  | Makes the page appear in the sidebar                                                     |
@@ -21,7 +21,7 @@ The walkthrough below adds a `status-badge` component.
 
 <Step>Write the component</Step>
 
-Create `registry/new-york/status-badge.tsx`:
+Create `registry/components/status-badge.tsx` (its library is `components`; a section goes in `registry/sections/`, a block in `registry/blocks/`, and so on):
 
 ```tsx
 import { cva } from "class-variance-authority";
@@ -97,7 +97,7 @@ Add an entry to `items`:
       },
       "files": [
         {
-          "path": "registry/new-york/status-badge.tsx",
+          "path": "registry/components/status-badge.tsx",
           "type": "registry:ui",
           "target": "components/ui/status-badge.tsx"
         }
@@ -110,7 +110,9 @@ Add an entry to `items`:
 - `name` **must match** the filename (`status-badge.tsx`). The docs site looks up source by this name.
 - `dependencies` lists npm packages the CLI installs for users.
 - If you depend on shadcn primitives, add `"registryDependencies": ["button", "tooltip"]`.
-- If you depend on **another component in this registry**, use its full URL: `"registryDependencies": ["https://your-domain.com/r/other-thing.json"]`.
+- If it needs **a helper file** (shared CSS, a sub-component), ship that file inside the item: add it to `files` with the same target folder and import it relatively (`./avatar-grid`). Several items can ship the same file. A bare name in `registryDependencies` (`"avatar-grid"`) is looked up on **ui.shadcn.com**, not here, and fails to install.
+- Only depend on **another item in this registry** when it's a real component in its own right, and then by its full URL: `"registryDependencies": ["https://your-domain.com/r/other-thing.json"]`.
+- List every npm package the files import in `dependencies`. The CLI installs only what's listed.
 - `categories` and `meta` put it on the home page and in its filters. Every field is covered in [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
 - Every category, type and style must be in `constants/taxonomy.ts` and listed for the item's library. This example uses `feedback` and `badge`, which aren't there yet: add `feedback: { label: "Feedback" }` to `CATEGORIES` and `badge: { label: "Badge" }` to `TYPES`, then list them in `LIBRARIES.components`. Otherwise `pnpm registry:build` fails and names the slug.
 - Full field list: [registry.json reference](/docs-admin/reference/registry-json).
@@ -128,7 +130,7 @@ Check that `public/r/status-badge.json` exists and that its `files[0].content` c
 If you create `examples/status-badge.tsx`, the preview shows **that file's source** instead of the raw component:
 
 ```tsx
-import { StatusBadge } from "@/registry/new-york/status-badge";
+import { StatusBadge } from "@/registry/components/status-badge";
 
 export default function StatusBadgeDemo() {
   return (
@@ -151,7 +153,7 @@ title: Status Badge
 description: A pill badge with idle, live and error states.
 ---
 
-import { StatusBadge } from "@/registry/new-york/status-badge";
+import { StatusBadge } from "@/registry/components/status-badge";
 
 <ComponentPreview name="status-badge">
   <div className="flex gap-2">
@@ -234,12 +236,12 @@ Multi-file example:
   "registryDependencies": ["button", "card"],
   "files": [
     {
-      "path": "registry/new-york/blocks/pricing/pricing.tsx",
+      "path": "registry/blocks/pricing.tsx",
       "type": "registry:component",
       "target": "components/pricing/pricing.tsx"
     },
     {
-      "path": "registry/new-york/blocks/pricing/use-billing.ts",
+      "path": "registry/blocks/use-billing.ts",
       "type": "registry:hook",
       "target": "hooks/use-billing.ts"
     }
@@ -248,17 +250,16 @@ Multi-file example:
 ```
 
 <Callout title="Nested files and the docs lookup">
-  `lib/registry.ts` only looks for `registry/new-york/<name>.tsx`. For
-  items in subfolders, pass `src` explicitly:
-  `<ComponentSource src="registry/new-york/blocks/pricing/pricing.tsx" title="pricing.tsx" />`,
-  or extend `getRegistryUiSourceCandidates`.
+  `lib/registry.ts` shows the item's **first** file in `registry.json`, so
+  list the main file first. To show another file of the item, pass `src`:
+  `<ComponentSource src="registry/blocks/use-billing.ts" title="use-billing.ts" />`.
 </Callout>
 
 ## Renaming or removing the placeholder
 
 `your-component` is referenced in:
 
-- `registry/new-york/your-component.tsx`
+- `registry/components/your-component.tsx`
 - `registry.json`
 - `public/r/your-component.json` (delete it; the build won't remove stale files)
 - `content/docs/components/your-component.mdx` and `content/docs/components/meta.json`

@@ -5,7 +5,7 @@ import { TemplatesSection } from "@/components/hero-templates";
 import { UIComponentsSection } from "@/components/hero-UI-components";
 import { PageTransition } from "@/components/page-transition";
 import { ROUTES } from "@/constants/routes";
-import { YourComponent } from "@/registry/new-york/your-component";
+import { YourComponent } from "@/registry/components/your-component";
 import { BreadcrumbJsonLd } from "@/seo/json-ld";
 import { createPageMetadata } from "@/seo/metadata";
 

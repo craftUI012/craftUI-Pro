@@ -21,7 +21,7 @@ With `environment=development` in `.env`, the internal handbook at `http://local
 
 ## Adding or changing a component
 
-1. Edit or add the source in `registry/new-york/<name>.tsx`.
+1. Edit or add the source in `registry/<library>/<name>.tsx`, where `<library>` is the navbar library it belongs to (`sections`, `blocks`, `illustrations`, `isometric`, or `components`).
 2. Add or update its entry in `registry.json`.
 3. Add or update its docs page in `content/docs/components/<name>.mdx` and list it in `content/docs/components/meta.json`.
 4. Run `pnpm registry:build`.

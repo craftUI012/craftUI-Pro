@@ -204,7 +204,7 @@ const RAW: HomeData = {
       // Shown as "Sections": what's here today are page sections, not full
       // templates. The id (and the /docs/templates URLs) stay as they are.
       id: "templates",
-      // No index yet: real content is 3 sections (see registry/new-york),
+      // No index yet: real content is 3 sections (see registry/sections),
       // not enough to categorize meaningfully. Re-add groups once there's a
       // real spread of templates to filter.
       index: [],

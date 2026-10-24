@@ -39,7 +39,7 @@ export const LIBRARIES = {
   templates: {
     label: "Sections",
     slug: "sections",
-    categories: ["marketing", "company", "data", "ai"],
+    categories: ["marketing", "company", "data", "ai", "portfolio"],
     types: ["hero", "features", "pricing" /* … */],
     styles: ["motion", "dark-mode", "minimal"],
     // …
@@ -83,7 +83,7 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
   },
   "files": [
     {
-      "path": "registry/new-york/hero-section-02.tsx",
+      "path": "registry/sections/hero-section-02.tsx",
       "type": "registry:block",
       "target": "components/blocks/hero-section-02.tsx"
     }
@@ -157,7 +157,7 @@ Several items can share one docs page. For example, every hero is on `/docs/temp
 2. Add a heading and a preview for it on that page:
 
    ```mdx
-   import HeroSection02 from "@/registry/new-york/hero-section-02";
+   import HeroSection02 from "@/registry/sections/hero-section-02";
 
    ## Split with product panel
 
@@ -174,7 +174,7 @@ The card then links to `/docs/templates/hero-section#hero-section-02`. Each prev
 
 <Step>Write the source</Step>
 
-`registry/new-york/<name>.tsx`. See [Adding a component](/docs-admin/guides/adding-a-component) for the rules.
+`registry/<library>/<name>.tsx`. See [Adding a component](/docs-admin/guides/adding-a-component) for the rules.
 
 <Step>Check the taxonomy</Step>
 

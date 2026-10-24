@@ -15,6 +15,7 @@ import {
   Copy,
   History,
   KeyRound,
+  Minus,
   MoreHorizontal,
   Pencil,
   RefreshCw,
@@ -30,7 +31,7 @@ import {
 import * as React from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -44,6 +45,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -64,6 +66,42 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+
+// ─── Menus ───────────────────────────────────────────────────────────────────
+// This block runs on either shadcn style. Radix closes a menu after a radio
+// pick on its own; Base UI keeps it open. So every menu here owns its open
+// state, and its radio groups close it once a value is chosen.
+const CloseMenuContext = React.createContext<(() => void) | null>(null);
+
+const Menu = ({
+  children,
+  ...props
+}: React.ComponentProps<typeof DropdownMenu>) => {
+  const [open, setOpen] = React.useState(false);
+  const close = React.useCallback(() => setOpen(false), []);
+  return (
+    <CloseMenuContext.Provider value={close}>
+      <DropdownMenu {...props} onOpenChange={setOpen} open={open}>
+        {children}
+      </DropdownMenu>
+    </CloseMenuContext.Provider>
+  );
+};
+
+type MenuRadioGroupProps = React.ComponentProps<typeof DropdownMenuRadioGroup>;
+
+const MenuRadioGroup = ({ onValueChange, ...props }: MenuRadioGroupProps) => {
+  const close = React.useContext(CloseMenuContext);
+  const handleValueChange = ((
+    ...args: Parameters<NonNullable<MenuRadioGroupProps["onValueChange"]>>
+  ) => {
+    onValueChange?.(...args);
+    close?.();
+  }) as MenuRadioGroupProps["onValueChange"];
+  return (
+    <DropdownMenuRadioGroup {...props} onValueChange={handleValueChange} />
+  );
+};
 
 // API keys table, modelled on the Reloop dashboard's API keys page: header
 // actions, search + filters toolbar, selectable rows with a per-row menu,
@@ -390,91 +428,97 @@ const KeysToolbar = ({
       )}
     </div>
 
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          <CirclePlus aria-hidden className="size-4" />
-          Status
-          {statusFilter !== "all" && (
-            <span className="bg-primary text-primary-foreground ml-1 inline-flex size-5 items-center justify-center rounded-full text-[11px] font-semibold">
-              1
-            </span>
-          )}
-        </Button>
+    <Menu>
+      <DropdownMenuTrigger
+        className={cn(buttonVariants({ variant: "outline" }))}
+      >
+        <CirclePlus aria-hidden className="size-4" />
+        Status
+        {statusFilter !== "all" && (
+          <span className="bg-primary text-primary-foreground ml-1 inline-flex size-5 items-center justify-center rounded-full text-[11px] font-semibold">
+            1
+          </span>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuLabel>Filter by status</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup
-          value={statusFilter}
-          onValueChange={(value) =>
-            onStatusFilterChange(value as "all" | ApiKeyStatus)
-          }
-        >
-          <DropdownMenuRadioItem value="all">All keys</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="active">Active</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="disabled">
-            Disabled
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          <CirclePlus aria-hidden className="size-4" />
-          User
-          {userFilter !== "all" && (
-            <span className="bg-primary text-primary-foreground ml-1 inline-flex size-5 items-center justify-center rounded-full text-[11px] font-semibold">
-              1
-            </span>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuLabel>Filter by user</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup
-          value={userFilter}
-          onValueChange={onUserFilterChange}
-        >
-          <DropdownMenuRadioItem value="all">All users</DropdownMenuRadioItem>
-          {users.map((user) => (
-            <DropdownMenuRadioItem key={user} value={user}>
-              {user}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Filter by status</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <MenuRadioGroup
+            value={statusFilter}
+            onValueChange={(value) =>
+              onStatusFilterChange(value as "all" | ApiKeyStatus)
+            }
+          >
+            <DropdownMenuRadioItem value="all">All keys</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="active">Active</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="disabled">
+              Disabled
             </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
+          </MenuRadioGroup>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
-    </DropdownMenu>
+    </Menu>
+
+    <Menu>
+      <DropdownMenuTrigger
+        className={cn(buttonVariants({ variant: "outline" }))}
+      >
+        <CirclePlus aria-hidden className="size-4" />
+        User
+        {userFilter !== "all" && (
+          <span className="bg-primary text-primary-foreground ml-1 inline-flex size-5 items-center justify-center rounded-full text-[11px] font-semibold">
+            1
+          </span>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Filter by user</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <MenuRadioGroup value={userFilter} onValueChange={onUserFilterChange}>
+            <DropdownMenuRadioItem value="all">All users</DropdownMenuRadioItem>
+            {users.map((user) => (
+              <DropdownMenuRadioItem key={user} value={user}>
+                {user}
+              </DropdownMenuRadioItem>
+            ))}
+          </MenuRadioGroup>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </Menu>
 
     <div className="ml-auto flex items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">
-            <SlidersHorizontal aria-hidden className="size-4" />
-            View
-          </Button>
+      <Menu>
+        <DropdownMenuTrigger
+          className={cn(buttonVariants({ variant: "outline" }))}
+        >
+          <SlidersHorizontal aria-hidden className="size-4" />
+          View
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {COLUMNS.map((col) => (
+              <DropdownMenuCheckboxItem
+                key={col.id}
+                checked={visible[col.id]}
+                onCheckedChange={() => onToggleColumn(col.id)}
+                // Radix closes the menu on a toggle; keep it open, as Base UI
+                // does, so several columns can be switched in one go.
+                onSelect={(event) => event.preventDefault()}
+              >
+                {col.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          {COLUMNS.map((col) => (
-            <DropdownMenuCheckboxItem
-              key={col.id}
-              checked={visible[col.id]}
-              onCheckedChange={() => onToggleColumn(col.id)}
-            >
-              {col.label}
-            </DropdownMenuCheckboxItem>
-          ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={onShowAllColumns}>
+          <DropdownMenuItem onClick={onShowAllColumns}>
             Show all columns
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </Menu>
 
       <Button
         variant="outline"
@@ -514,17 +558,42 @@ interface TableProps {
   now: number;
 }
 
-const pageCheckboxState = (
-  allSelected: boolean,
-  someSelected: boolean
-): boolean | "indeterminate" => {
-  if (allSelected) {
-    return true;
-  }
-  if (someSelected) {
-    return "indeterminate";
-  }
-  return false;
+/* The select-all box. Its "some rows" state is drawn here rather than with
+ * the checkbox's own indeterminate value, because the two shadcn styles
+ * spell that differently (Radix: checked="indeterminate"; Base UI: an
+ * indeterminate prop) and this block runs on either. Underneath it stays
+ * unchecked, so a click selects every row; on top it's filled, marked with
+ * a dash and announced as mixed. aria-checked is only passed while mixed:
+ * passing undefined would override the checkbox's own value. */
+const PageCheckbox = ({
+  allSelected,
+  label,
+  onToggle,
+  someSelected,
+}: {
+  allSelected: boolean;
+  label: string;
+  onToggle: (selected: boolean) => void;
+  someSelected: boolean;
+}) => {
+  const mixed = someSelected && !allSelected;
+  return (
+    <span className="relative inline-flex">
+      <Checkbox
+        {...(mixed ? { "aria-checked": "mixed" as const } : {})}
+        aria-label={label}
+        checked={allSelected}
+        className={cn(mixed && "border-primary bg-primary dark:bg-primary")}
+        onCheckedChange={(value) => onToggle(value === true)}
+      />
+      {mixed ? (
+        <Minus
+          aria-hidden
+          className="text-primary-foreground pointer-events-none absolute inset-0 m-auto size-3"
+        />
+      ) : null}
+    </span>
+  );
 };
 
 const KeysTable = ({
@@ -717,33 +786,35 @@ const KeysTable = ({
             </TableCell>
           )}
           <TableCell className="pr-4 text-right">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Actions for ${row.name}`}
-                >
-                  <MoreHorizontal aria-hidden className="size-4" />
-                </Button>
+            <Menu>
+              <DropdownMenuTrigger
+                className={cn(
+                  buttonVariants({
+                    size: "icon-sm",
+                    variant: "ghost",
+                  })
+                )}
+                aria-label={`Actions for ${row.name}`}
+              >
+                <MoreHorizontal aria-hidden className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onSelect={() => onCopy(`menu-${row.id}`, row.prefix)}
+                  onClick={() => onCopy(`menu-${row.id}`, row.prefix)}
                 >
                   <Copy aria-hidden className="size-4" />
                   Copy prefix
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onEdit(row)}>
+                <DropdownMenuItem onClick={() => onEdit(row)}>
                   <Pencil aria-hidden className="size-4" />
                   Edit API key
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onRotate(row)}>
+                <DropdownMenuItem onClick={() => onRotate(row)}>
                   <RotateCw aria-hidden className="size-4" />
                   Rotate key
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onSelect={() =>
+                  onClick={() =>
                     onSetStatus([row.id], isDisabled ? "active" : "disabled")
                   }
                 >
@@ -762,13 +833,13 @@ const KeysTable = ({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   variant="destructive"
-                  onSelect={() => onDelete([row.id])}
+                  onClick={() => onDelete([row.id])}
                 >
                   <Trash2 aria-hidden className="size-4" />
                   Delete API key
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </Menu>
           </TableCell>
         </TableRow>
       );
@@ -780,10 +851,11 @@ const KeysTable = ({
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <TableHead className="w-10 pl-4">
-            <Checkbox
-              checked={pageCheckboxState(allPageSelected, somePageSelected)}
-              onCheckedChange={(value) => onTogglePage(value === true)}
-              aria-label="Select all rows on this page"
+            <PageCheckbox
+              allSelected={allPageSelected}
+              label="Select all rows on this page"
+              onToggle={onTogglePage}
+              someSelected={somePageSelected}
             />
           </TableHead>
           <TableHead>Name</TableHead>
@@ -832,28 +904,31 @@ const KeysFooter = ({
       <p className="text-muted-foreground text-sm">
         {selectedCount} of {totalCount} row(s) selected.
       </p>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label="Rows per page">
-            {pageSize}
-            <ChevronDown aria-hidden className="size-3.5" />
-          </Button>
+      <Menu>
+        <DropdownMenuTrigger
+          className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+          aria-label="Rows per page"
+        >
+          {pageSize}
+          <ChevronDown aria-hidden className="size-3.5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuLabel>Rows per page</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup
-            value={String(pageSize)}
-            onValueChange={(value) => onPageSizeChange(Number(value))}
-          >
-            {PAGE_SIZES.map((size) => (
-              <DropdownMenuRadioItem key={size} value={String(size)}>
-                {size}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Rows per page</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <MenuRadioGroup
+              value={String(pageSize)}
+              onValueChange={(value) => onPageSizeChange(Number(value))}
+            >
+              {PAGE_SIZES.map((size) => (
+                <DropdownMenuRadioItem key={size} value={String(size)}>
+                  {size}
+                </DropdownMenuRadioItem>
+              ))}
+            </MenuRadioGroup>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </Menu>
       {selectedCount > 0 && (
         <span className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={onEnableSelected}>
@@ -1553,20 +1628,24 @@ export default function TablesSection({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button asChild variant="outline">
-              <a ref={sdkRef} href={sdkHref}>
-                <CodeXml aria-hidden className="size-4" />
-                SDK
-                <Kbd>S</Kbd>
-              </a>
-            </Button>
-            <Button asChild variant="outline">
-              <a ref={docsRef} href={docsHref}>
-                <BookOpen aria-hidden className="size-4" />
-                Documentation
-                <Kbd>D</Kbd>
-              </a>
-            </Button>
+            <a
+              ref={sdkRef}
+              href={sdkHref}
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
+              <CodeXml aria-hidden className="size-4" />
+              SDK
+              <Kbd>S</Kbd>
+            </a>
+            <a
+              ref={docsRef}
+              href={docsHref}
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
+              <BookOpen aria-hidden className="size-4" />
+              Documentation
+              <Kbd>D</Kbd>
+            </a>
             <Button onClick={openCreate}>
               <span aria-hidden className="text-base leading-none">
                 +

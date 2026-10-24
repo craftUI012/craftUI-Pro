@@ -1,13 +1,15 @@
-// The akta design language's CSS, shared by the akta sections (hero.tsx and
-// features.tsx) and rendered inside each one's <style> rather than in
-// globals.css. Every property, class and keyframe is akta- prefixed so it
+// The "technical drawing" sections' shared CSS: the data panel hero
+// (hero-section.tsx) and the competitor benchmarks (benchmarks-section.tsx)
+// render it inside their own <style>, rather than in globals.css. Both
+// sections ship this file with them, so each installs on its own. The akta-
+// prefix is from the design they were authored in ("akta"). Every property, class and keyframe is akta- prefixed so it
 // cannot collide with the app's own tokens in either direction. It covers
 // what a utility cannot express: the notch's masked pseudo-element, the hatch
 // gradient, the rolling label, the tick field's indexed stagger, the plate,
 // and the entrance / scroll-reveal keyframes. The @property registrations are
 // server-rendered with the page, so they are parsed before the notch
 // transitions need them.
-export const AKTA_CSS = `
+export const DRAWING_CSS = `
 @property --akta-notch-arm {
   syntax: "<length>";
   inherits: true;

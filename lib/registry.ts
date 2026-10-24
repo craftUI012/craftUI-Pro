@@ -24,9 +24,12 @@ export const readOptionalFromRoot = async (
   }
 };
 
-export const getRegistryUiSourceCandidates = ({ name }: { name: string }) => [
-  path.join("registry", "new-york", `${name}.tsx`),
-];
+// An item's main file is the first in its registry.json `files`, wherever
+// its library folder is (registry/sections, registry/blocks, …).
+export const getRegistryUiSourceCandidates = ({ name }: { name: string }) => {
+  const main = registry.items.find((item) => item.name === name)?.files[0];
+  return main ? [main.path] : [];
+};
 
 export const getDemoSource = (name: string): Promise<string | null> =>
   readOptionalFromRoot(path.join("examples", `${name}.tsx`));

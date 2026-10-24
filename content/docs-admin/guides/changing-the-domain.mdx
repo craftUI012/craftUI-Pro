@@ -36,6 +36,10 @@ The placeholder domain today is `https://craftui-pro.vercel.app`.
 
 `/llms.txt`, `/openapi.json` and `/.well-known/*` take the domain from the incoming request instead, so they're always right.
 
+### Image paths in published components
+
+A component that loads an image from this site's `public/` folder writes it as a root-relative path, such as `"/images/data-panel-hero-plate.webp"`, which works in the site's own previews. `pnpm registry:build` rewrites those paths in `public/r/*.json` only, to `<homepage>/images/…`, so an installed component loads the image from this site. It uses the same homepage as the registry, so it follows `NEXT_PUBLIC_SITE_URL` too.
+
 ### Install commands in the docs (`<InstallCommand>`)
 
 Install commands in MDX are written as a component instead of a plain code block:
