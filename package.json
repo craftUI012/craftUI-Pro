@@ -28,6 +28,7 @@
     "@tabler/icons-react": "^3.48.0",
     "@tailwindcss/postcss": "^4.2.4",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "@web-kits/audio": "^0.1.0",
     "better-auth": "^1.7.6",
     "class-variance-authority": "^0.7.1",
