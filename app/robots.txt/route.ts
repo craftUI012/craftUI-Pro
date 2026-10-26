@@ -5,6 +5,7 @@ export const GET = () => {
   const body = [
     "User-agent: *",
     "Allow: /",
+    `Disallow: ${ROUTES.ADMIN_PANEL}`,
     `Disallow: ${ROUTES.DOCS_ADMIN}`,
     `Disallow: ${ROUTES.DESIGN_ADMIN}`,
     `Disallow: ${ROUTES.SEO_ADMIN}`,

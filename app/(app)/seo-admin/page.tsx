@@ -59,7 +59,7 @@ const WIRING: { controls: string; file: string; url?: string }[] = [
   },
   {
     controls:
-      "Structured data: WebSite, Organization, SoftwareSourceCode (freemium offer), BreadcrumbList",
+      "Structured data: WebSite, Organization, SoftwareSourceCode (freemium offer), BreadcrumbList, FAQPage (about page)",
     file: "seo/json-ld.tsx",
   },
   {
@@ -139,7 +139,13 @@ const ICONS: { path: string; size: string; usedFor: string }[] = [
 
 // Indexable pages come from the sitemap; these are the public routes kept out
 // of search (noindex), checked so they stay that way.
-const NOINDEX_PAGES = [ROUTES.LOGIN, ROUTES.DASHBOARD, "/checkout/success"];
+// A placeholder docs page (no registry item behind it) is checked too.
+const NOINDEX_PAGES = [
+  ROUTES.LOGIN,
+  ROUTES.DASHBOARD,
+  ROUTES.CHECKOUT_SUCCESS,
+  `${ROUTES.DOCS_BLOCKS}/team-invites`,
+];
 
 const Field = ({
   label,

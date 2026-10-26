@@ -36,6 +36,10 @@ import {
 import type { LibraryId } from "@/components/new-hero-section/data/home-types";
 import { Tabs } from "@/components/ui/tabs";
 import { ROUTES } from "@/constants/routes";
+import { trackEvent } from "@/lib/events";
+
+// How long the search box must sit still before a search is reported.
+const SEARCH_SETTLE_MS = 1000;
 
 // Matches Tailwind's `md`, where the navbar's inline search replaces the
 // phone search row.
@@ -66,10 +70,20 @@ const useSearchShortcut = (onTrigger: () => void) => {
 const BrowseLibraryContext = createContext<LibraryId>("components");
 export const useActiveLibrary = () => use(BrowseLibraryContext);
 
-// Which menu the rail shows comes from the URL: anything under
-// ROUTES.DOCS is the docs view, everything else is browse.
-const modeOf = (pathname: string): RailMode =>
-  pathname.startsWith(ROUTES.DOCS) ? "docs" : "browse";
+// What the shell is around comes from the URL: the browse page (/), the docs
+// (anything under ROUTES.DOCS), or any other site page (pricing, sign-in,
+// dashboard, the admin pages), which gets the navbar and nothing else.
+type ShellMode = RailMode | "page";
+const modeOf = (pathname: string): ShellMode => {
+  if (pathname === ROUTES.HOME) {
+    return "browse";
+  }
+  // Not a bare prefix check: /docs-admin isn't the docs.
+  if (pathname === ROUTES.DOCS || pathname.startsWith(`${ROUTES.DOCS}/`)) {
+    return "docs";
+  }
+  return "page";
+};
 
 // The library a docs page belongs to (/docs/<library>/...), so its navbar
 // tab shows as active while reading. Other docs pages select no tab.
@@ -80,9 +94,10 @@ const libraryOfDocsPath = (pathname: string, libraries: LibraryTab[]) =>
       pathname.startsWith(`${ROUTES.DOCS}/${library.id}/`)
   )?.id ?? "";
 
-// Client shell, rendered by app/(home)/layout.tsx. Because it lives in
-// the layout, the navbar stays mounted when the route changes between the
-// browse page and the docs pages.
+// Client shell, rendered by app/(home)/layout.tsx and app/(app)/layout.tsx,
+// so every page has the same navbar. Because it lives in the layout, the
+// navbar stays mounted when the route changes between the browse page and
+// the docs pages.
 //
 // It owns the navigation state: the active library, the search query (which
 // filters the grid in browse and the docs menu in docs) and whether the
@@ -119,6 +134,22 @@ export const BrowseShell = ({
     defaultLibrary ?? libraries[0]?.id ?? "components"
   );
   const [query, setQuery] = useState("");
+
+  // A search is reported once typing settles, not per keystroke: what people
+  // look for, and in which library.
+  useEffect(() => {
+    const term = query.trim();
+    if (term.length < 2) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      trackEvent({
+        name: "search_performed",
+        properties: { library: active, query: term },
+      });
+    }, SEARCH_SETTLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [active, query]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [selections, setSelections] = useState<BrowseSelections>({});
   const firstLibrary = defaultLibrary ?? libraries[0]?.id ?? "templates";
@@ -187,11 +218,13 @@ export const BrowseShell = ({
     setQuery("");
   }
 
-  const placeholder =
-    mode === "docs"
-      ? "Search docs…"
-      : (libraries.find((library) => library.id === active)
-          ?.searchPlaceholder ?? "Search…");
+  // Off the browse page there's no grid to filter, so the search finds docs
+  // pages (every item has one).
+  const searchesDocs = mode !== "browse";
+  const placeholder = searchesDocs
+    ? "Search docs…"
+    : (libraries.find((library) => library.id === active)?.searchPlaceholder ??
+      "Search…");
 
   // Desktop focuses the navbar search; phones open the search row and focus
   // it once it's on screen.
@@ -206,19 +239,29 @@ export const BrowseShell = ({
   useSearchShortcut(openSearch);
 
   // Browse: the tab is the active library. Docs: the library of the page
-  // being read, if any. Picking a tab from docs goes back to browse.
-  const tab = mode === "docs" ? libraryOfDocsPath(pathname, libraries) : active;
+  // being read, if any. Other pages: none. Picking a tab from docs or another
+  // page goes back to browse on that library. The library goes in the URL
+  // because another page's layout has its own shell, so this state doesn't
+  // carry over.
+  const tabByMode: Record<ShellMode, string> = {
+    browse: active,
+    docs: libraryOfDocsPath(pathname, libraries),
+    page: "",
+  };
+  const tab = tabByMode[mode];
   const onTabChange = (value: string) => {
     setActive(value as LibraryId);
-    if (mode === "docs") {
-      router.push(ROUTES.HOME);
+    if (mode !== "browse") {
+      router.push(
+        `${ROUTES.HOME}${browseSearch("", value as LibraryId, {}, libraries, firstLibrary)}`
+      );
     }
   };
 
-  // In docs, Enter in the search opens the first matching page, then clears
-  // the search so the full docs menu is back while reading.
+  // Off the browse page, Enter in the search opens the first matching docs
+  // page, then clears the search so the full docs menu is back while reading.
   const onSubmitSearch = () => {
-    if (mode !== "docs") {
+    if (!searchesDocs) {
       return;
     }
     const [first] = filterDocsMenu(railData.docs, query);
@@ -255,7 +298,9 @@ export const BrowseShell = ({
           >
             {/* <BrowseRail {...rail} /> */}
 
-            <div className="min-w-0 flex-1">
+            {/* A column, so a site page's main can grow and keep its
+                footer at the bottom of a short page. */}
+            <div className="flex min-w-0 flex-1 flex-col">
               <BrowseTopBar
                 devLinks={devLinks}
                 inputRef={topBarInput}

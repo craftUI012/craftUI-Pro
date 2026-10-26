@@ -1,4 +1,5 @@
 import { track } from "@vercel/analytics";
+import { posthog } from "posthog-js";
 import { z } from "zod";
 
 const eventSchema = z.object({
@@ -21,6 +22,11 @@ const eventSchema = z.object({
     "click_registry_add_button",
     "copy_registry_command",
     "keyboard_shortcut_navigate",
+    // Browse and purchase journey (PostHog funnels).
+    "filter_applied",
+    "search_performed",
+    "paywall_viewed",
+    "checkout_started",
   ]),
   properties: z
     .record(
@@ -32,9 +38,13 @@ const eventSchema = z.object({
 
 export type Event = z.infer<typeof eventSchema>;
 
+// One call reports to both Vercel Analytics and PostHog. PostHog's capture
+// is a no-op when it isn't initialised (no project token), so this is safe
+// everywhere on the client.
 export const trackEvent = (input: Event): void => {
   const event = eventSchema.parse(input);
   if (event) {
     track(event.name, event.properties);
+    posthog.capture(event.name, event.properties);
   }
 };

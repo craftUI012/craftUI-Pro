@@ -63,7 +63,7 @@ export const WebMcpTools = () => {
     register({
       description: `Navigate this tab to a ${SITE.NAME} documentation path (e.g. /docs/installation).`,
       execute: (input) => {
-        const path = getPath(input, ROUTES.DOCS);
+        const path = getPath(input, ROUTES.DOCS_INSTALLATION);
         window.location.assign(path);
 
         return Promise.resolve({ ok: true, path });

@@ -24,19 +24,12 @@
     }
   ],
   "meta": {
-    "pro": true,
+    "id": "SEC-0003",
     "library": "templates",
-    "types": [
-      "hero"
-    ],
-    "styles": [
-      "motion",
-      "dark-mode"
-    ],
+    "types": ["hero"],
+    "styles": ["motion", "dark-mode"],
     "publishedAt": "2026-09-21"
   },
-  "categories": [
-    "marketing"
-  ],
+  "categories": ["marketing"],
   "type": "registry:block"
 }

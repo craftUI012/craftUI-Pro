@@ -8,6 +8,9 @@
     "writing-docs",
     "theming-and-styles",
     "sound-and-haptics",
+    "payments-with-dodo",
+    "installation-flow",
+    "admin-panel",
     "deploying",
     "changing-the-domain"
   ]

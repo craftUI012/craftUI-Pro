@@ -1,0 +1,264 @@
+---
+title: Payments with Dodo
+description: How craftUI takes payments with Dodo Payments, what's stored, how to set up test and live mode, and how to fix the usual problems.
+---
+
+craftUI sells two plans through [Dodo Payments](https://dodopayments.com):
+
+| Plan | Dodo product | Grants |
+| --- | --- | --- |
+| **Lifetime** | One-time payment | Every paid item, forever (until refunded) |
+| **Yearly** | Subscription, billed every year | Every paid item, while the subscription is paid up |
+
+Buyers **pay first, then sign in**. No account is needed to buy. For the whole journey from a locked component to `shadcn add`, see [Buying and installing, end to end](/docs-admin/guides/installation-flow).
+
+## How the pieces fit
+
+Two connections to Dodo, each with one job:
+
+| Connection | Direction | Job | File |
+| --- | --- | --- | --- |
+| **API** | We call Dodo | Start a checkout and get Dodo's payment page URL | `app/api/checkout/route.ts` |
+| **Webhook** | Dodo calls us | Report what happened: paid, renewed, cancelled, refunded. **The only thing that records purchases** | `app/api/webhooks/dodo/route.ts` |
+
+The success page the buyer returns to is never trusted: it can be skipped (tab closed) or faked. The signed webhook can't.
+
+```
+ Buy button ──► /api/checkout ──► Dodo API: create checkout session
+                                        │
+                     buyer pays on Dodo's page (Dodo collects the email)
+                                        │
+            ┌───────────────────────────┴────────────────────────────┐
+            ▼                                                        ▼
+  Dodo ──► /api/webhooks/dodo                              Dodo redirects buyer to
+  (signature checked)                                      /checkout/success?status=…&email=…
+            │                                                        │
+  purchase saved in MongoDB, by email                     "Sign in to unlock" → /login?email=…
+            │                                                        │
+  lib/auth.ts lets that email sign in  ◄──── magic link ─────────────┘
+```
+
+## Code map
+
+| Piece | File |
+| --- | --- |
+| Plans, display prices, Dodo product IDs | `lib/billing/plans.ts` (prices from `NEXT_PUBLIC_LIFETIME_PRICE_USD` / `NEXT_PUBLIC_YEARLY_PRICE_USD`) |
+| Dodo client (test or live mode) | `lib/dodo.ts` |
+| Buy buttons (also send `checkout_started` and the PostHog ID) | `components/checkout-button.tsx`, used by `components/pricing-client.tsx` and `components/paywall.tsx` |
+| Start a checkout | `app/api/checkout/route.ts` |
+| Webhook: signature check, then hand-off | `app/api/webhooks/dodo/route.ts` |
+| Webhook: what each event does | `lib/billing/dodo-webhook.ts` |
+| Writing purchases (upsert, refunds) | `lib/billing/purchases.ts` |
+| Who has access to what | `lib/billing/entitlements.ts` |
+| Purchase document shape | `lib/db/schema.ts` |
+| Sign-in gate (paid emails only) | `lib/auth.ts` |
+| Page after paying | `app/(app)/checkout/success/page.tsx` |
+
+## The checkout
+
+`POST /api/checkout` with `{ plan: "lifetime" | "yearly", distinctId? }`:
+
+1. Picks the plan's Dodo product (`DODO_LIFETIME_PRODUCT_ID` or `DODO_YEARLY_PRODUCT_ID`).
+2. If the visitor is signed in, pre-fills their email and name. Otherwise Dodo asks for the email.
+3. Creates a checkout session with this **metadata**, which Dodo sends back in the webhooks:
+
+   | Key | Value |
+   | --- | --- |
+   | `kind` | `lifetime` or `yearly` |
+   | `userId` | The better-auth user ID, if signed in |
+   | `posthogDistinctId` | The visitor's PostHog ID, so the purchase joins their journey |
+
+4. Returns Dodo's `checkout_url`. The button redirects the browser there.
+5. `return_url` is `<BETTER_AUTH_URL>/checkout/success`. Dodo adds `?status=…&email=…` (and `payment_id` or `subscription_id`).
+
+Errors the buyer can see: "Payments are not configured yet." (no API key), "This plan is not set up in Dodo Payments yet." (no product ID), "Couldn't start checkout. Please try again." (Dodo's API failed; logged as `[checkout] Dodo checkout failed`).
+
+## The webhook
+
+`POST /api/webhooks/dodo`:
+
+1. Reads the raw body (the signature covers the exact bytes).
+2. Verifies it with `DODO_PAYMENTS_WEBHOOK_KEY` ([Standard Webhooks](https://www.standardwebhooks.com): headers `webhook-id`, `webhook-timestamp`, `webhook-signature`). A bad signature, or a timestamp over 5 minutes old, gets **401**.
+3. Hands the event to `handleDodoEvent()`. If that throws, it answers **500** and Dodo retries later.
+4. Answers **200** `{ received: true }`.
+
+### What each event does
+
+| Dodo event | Effect on the purchase |
+| --- | --- |
+| `payment.succeeded`, one-time | **Lifetime** saved: `_id` `order_<payment_id>`, `kind` `lifetime`, by the customer's email |
+| `payment.succeeded`, part of a subscription | Ignored: subscription events below record the yearly plan |
+| `subscription.active`, `renewed`, `updated`, `plan_changed`, `unpaused` | **Yearly** saved or updated: `_id` `sub_<subscription_id>`, `currentPeriodEnd` = `next_billing_date` |
+| `subscription.cancelled` | Stays `active`: it was paid to the end of its period, and access ends when `currentPeriodEnd` passes |
+| `subscription.on_hold`, `past_due`, `failed`, `expired`, `paused` | Status saved as is, and access stops |
+| `refund.succeeded`, full | Purchase marked `refunded`, and access stops. For a subscription payment, the subscription is found through Dodo's API and refunded too. **Final:** later webhooks can't reopen it |
+| `refund.succeeded`, partial | Nothing changes |
+| Anything else (disputes, payouts, …) | Ignored |
+| A payment or subscription for a product we don't know | Ignored, logged as `[dodo] … unknown product` |
+
+Repeated or out-of-order deliveries are safe: each purchase is upserted by its Dodo ID. The first delivery inserts it; later ones only update `status` and `currentPeriodEnd`.
+
+A brand-new purchase also sends **`purchase_completed`** to PostHog (`plan`, `amount_cents`, `revenue`, `currency`). Renewals don't.
+
+It also emails the buyer the **founder's thank-you note**: from `Indranil from craftUI <nil@craftui.space>` (replies go there too), with a **Sign in** button to `/login?email=…` and the offer of direct help or a short call for setup problems. Design and copy: `lib/emails/purchase-thank-you.ts`; sent by `sendPurchaseThankYouEmail` in `lib/email.ts` through Reloop. A failed send is logged (`[dodo] Couldn't send the thank-you note`) and doesn't fail the webhook, since the purchase is already saved. Renewals don't send it.
+
+### Access rules
+
+`lib/billing/entitlements.ts` decides from the stored purchases:
+
+- **Lifetime**, **item**: access while `status` is `active`.
+- **Yearly**: access while `status` is `active` **and** `currentPeriodEnd` plus **one day** is in the future. The day covers the minutes between Dodo charging a renewal and its webhook arriving.
+- Purchases match the user by `userId`, **or by email**, so a guest purchase counts even before it's linked.
+
+## What's stored
+
+One document per purchase in the MongoDB `purchase` collection:
+
+| Field | Example | Notes |
+| --- | --- | --- |
+| `_id` | `order_pay_0NqW…` / `sub_sub_0NqX…` | From Dodo's ID, so repeats update one document |
+| `kind` | `lifetime` / `yearly` / `item` | `item` is for single templates later |
+| `itemId` | `null` / `SEC-0003` | Product code; set only when `kind` is `item` |
+| `email` | `buyer@example.com` | Lowercase; how a guest purchase is found |
+| `userId` | `null` → `6ade5b3a…` | Filled in when the buyer signs in |
+| `status` | `active` / `refunded` / `on_hold` / … | |
+| `currentPeriodEnd` | `2027-10-25T…` | Yearly only |
+| `amountCents`, `currency` | `24900`, `USD` | What Dodo charged |
+| `provider` | `dodo` | |
+| `providerOrderId`, `providerSubscriptionId`, `providerCustomerId` | Dodo's IDs | For refunds and support |
+| `createdAt`, `updatedAt` | | |
+
+To look someone up: MongoDB Atlas → Browse Collections → `craftui` → `purchase`, filter `{ email: "buyer@example.com" }`.
+
+## Setting up Dodo
+
+All values come from the **same mode** (Test or Live, the switch at the bottom left of the Dodo dashboard).
+
+<Steps>
+
+<Step>Create the products</Step>
+
+**Products → Create**:
+
+- **CraftUI Lifetime**: one-time price.
+- **CraftUI Yearly**: subscription, billed every 1 year.
+
+Keep each price equal to the site's price: `NEXT_PUBLIC_LIFETIME_PRICE_USD` and `NEXT_PUBLIC_YEARLY_PRICE_USD` in `.env` (whole dollars, e.g. `249`). Dodo's price is what's charged; ours is only what the site displays. To change a price: edit the product in Dodo, set the variable to the same amount (locally and in Vercel), then restart `pnpm dev` or redeploy, since `NEXT_PUBLIC_` values are built into the page. Unset, the site falls back to $249 and $129.
+
+<Step>Create an API key</Step>
+
+**Developer → API Keys → Create**.
+
+<Step>Add the webhook endpoint</Step>
+
+**Developer → Webhooks → Add endpoint**:
+
+- **Integration:** Custom webhook.
+- **Endpoint URL:** `https://<site>/api/webhooks/dodo` (see the table below).
+- **Subscribed events:** `payment.succeeded`, `refund.succeeded`, and every `subscription.*` event. (Leaving it empty also works: unknown events are ignored.)
+
+Then open the endpoint and copy its **Signing secret** (`whsec_…`).
+
+<Step>Set the environment variables</Step>
+
+| Variable | Value |
+| --- | --- |
+| `DODO_PAYMENTS_ENVIRONMENT` | `test_mode` or `live_mode` (anything else is test mode) |
+| `DODO_PAYMENTS_API_KEY` | The API key |
+| `DODO_PAYMENTS_WEBHOOK_KEY` | The endpoint's signing secret. **Each endpoint has its own** |
+| `DODO_LIFETIME_PRODUCT_ID` | `pdt_…` |
+| `DODO_YEARLY_PRODUCT_ID` | `pdt_…` |
+| `BETTER_AUTH_URL` | This site's address. Also where buyers return after paying |
+
+Locally in `.env`; on Vercel under Settings → Environment Variables, per environment.
+
+</Steps>
+
+### Which endpoint URL where
+
+There's no env variable for the endpoint URL: it's set only in Dodo, and the route answers on whatever address the app runs.
+
+| Where | Dodo mode | Endpoint URL |
+| --- | --- | --- |
+| Your machine | Test | A tunnel to `localhost:3000`, e.g. `https://<random>.trycloudflare.com/api/webhooks/dodo` |
+| Vercel preview of a branch | Test | `https://craft-ui-pro-git-<branch>-craft-ui-pro.vercel.app/api/webhooks/dodo` |
+| Production | Live | `https://www.craftui.space/api/webhooks/dodo` |
+
+<Callout title="Vercel previews are usually password-protected">
+  Deployment Protection blocks Dodo's webhooks on previews. Either turn it off
+  for previews, or create a Protection Bypass for Automation secret and add
+  `?x-vercel-protection-bypass=<secret>` to the endpoint URL in Dodo.
+</Callout>
+
+## Testing
+
+### Locally, with a tunnel
+
+Dodo needs a public HTTPS address. Run a free Cloudflare tunnel next to `pnpm dev`:
+
+```bash
+npx cloudflared tunnel --url http://localhost:3000
+```
+
+It prints `https://<random>.trycloudflare.com`. Put `<that>/api/webhooks/dodo` in the test-mode endpoint. The address changes every time the tunnel restarts, so update the endpoint then.
+
+### A test purchase
+
+1. Open `/pricing` signed out (a private window), click **Buy lifetime**.
+2. On Dodo's page, use an email you can open and a test card:
+
+   | Card | Result |
+   | --- | --- |
+   | `4242 4242 4242 4242` | Succeeds |
+   | `5555 5555 5555 4444` | Succeeds (Mastercard) |
+   | `4000 0000 0000 0002` | Declined |
+   | `4000 0000 0000 9995` | Declined, insufficient funds |
+
+   Expiry `06/32`, CVV `123`.
+3. Back on `/checkout/success`, click **Sign in to unlock**, open the magic link, and check `/dashboard` says the plan is active.
+
+### Where to look
+
+| What | Where |
+| --- | --- |
+| Did Dodo deliver the webhook, and what did we answer? | Dodo → Developer → Webhooks → your endpoint → **Message attempts**. **Resend** replays one |
+| Was the purchase saved? | Atlas → `purchase` collection |
+| Did PostHog get it? | PostHog → Activity → event `purchase_completed` (dev traffic is tagged `environment = development`) |
+| Server errors | The `pnpm dev` terminal, or Vercel → Logs: `[dodo]` and `[checkout]` lines |
+
+## Going live
+
+<Steps>
+
+<Step>Recreate everything in Live mode</Step>
+
+Products (same names and prices), an API key, and an endpoint at `https://www.craftui.space/api/webhooks/dodo`. Test-mode IDs and secrets don't work in live mode.
+
+<Step>Set Production env vars on Vercel</Step>
+
+`DODO_PAYMENTS_ENVIRONMENT=live_mode`, the live key, live webhook secret and live product IDs, and `BETTER_AUTH_URL=https://www.craftui.space`.
+
+<Step>Do one real purchase and refund it</Step>
+
+Check the purchase appears, sign-in works, items unlock, and after the refund (Dodo → Transactions → the payment → Refund) access is gone.
+
+</Steps>
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| "Payments are not configured yet." | `DODO_PAYMENTS_API_KEY` missing | Set it and restart / redeploy |
+| "This plan is not set up in Dodo Payments yet." | Product ID missing | Set `DODO_LIFETIME_PRODUCT_ID` / `DODO_YEARLY_PRODUCT_ID` |
+| "Couldn't start checkout." | Dodo refused the request: wrong mode for the key, deleted product | Check the server log line `[checkout] Dodo checkout failed` |
+| Webhook attempts show **401** | Wrong `DODO_PAYMENTS_WEBHOOK_KEY` (another endpoint's, or the other mode's), or the server clock is off | Copy the secret from *this* endpoint |
+| Webhook attempts show **503** | `DODO_PAYMENTS_WEBHOOK_KEY` missing | Set it |
+| Webhook attempts show **500** | Recording failed (database unreachable, …) | Server log `[dodo] Couldn't record …`. Dodo retries; or **Resend** once fixed |
+| Webhook attempts show **404** | The URL points at a deployment without this code, or the tunnel changed | Fix the endpoint URL |
+| Paid, but sign-in says "No active plan found" | Signing in with a different email than the one paid with, or the webhook hasn't arrived | Use the checkout email (the success page shows it); check Message attempts |
+| A yearly subscriber lost access | Status isn't `active` (renewal failed, on hold) or the period ended | Check the `purchase` document and the subscription in Dodo |
+| Charged amount differs from the site | Dodo price ≠ the `NEXT_PUBLIC_*_PRICE_USD` variable | Make them equal, then restart or redeploy |
+
+## Selling single items later
+
+The data model already supports it: a purchase with `kind` `item` and `itemId` set to the item's product code (`meta.id`, e.g. `SEC-0003`), and access checks already accept it. Still to build: a Dodo product per sellable item, a checkout that puts `kind: "item"` and `itemId` in the metadata (the webhook already reads both), and buy buttons on those items.

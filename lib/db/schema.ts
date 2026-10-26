@@ -1,67 +1,51 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+// The documents this app stores in MongoDB (connection: lib/db/index.ts).
+//
+// better-auth's own collections (user, session, account, verification) are
+// created and indexed by its MongoDB adapter (lib/auth.ts). A user's `_id` is
+// an ObjectId; the app sees it as its hex string (`session.user.id`), and
+// that string is what `purchase.userId` and install tokens hold.
 
-export const user = pgTable("user", {
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").notNull().default(false),
-  id: text("id").primaryKey(),
-  image: text("image"),
-  name: text("name").notNull(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+// Relative, not "@/…": scripts load this file without the path alias.
+import type { PurchaseKind } from "../billing/plans";
 
-export const session = pgTable("session", {
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  expiresAt: timestamp("expires_at").notNull(),
-  id: text("id").primaryKey(),
-  ipAddress: text("ip_address"),
-  token: text("token").notNull().unique(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  userAgent: text("user_agent"),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-});
+// One document per order or subscription. What it unlocks:
+//   kind "lifetime" | "yearly" → everything (all-access)
+//   kind "item"                → one product, `itemId` (its product code,
+//                                registry.json meta.id, e.g. "SEC-0003")
+export interface PurchaseDoc {
+  // "order_<provider order id>" or "sub_<provider subscription id>", so a
+  // provider's repeated webhooks update one document instead of adding more.
+  _id: string;
+  // What was paid, in the currency's minor unit (cents). Null if the
+  // provider didn't say.
+  amountCents: number | null;
+  createdAt: Date;
+  currency: string | null;
+  currentPeriodEnd: Date | null;
+  // Lowercase. Guest checkout happens before sign-in, so purchases are
+  // matched by email until `userId` is filled in.
+  email: string;
+  itemId: string | null;
+  kind: PurchaseKind;
+  // The payment provider ("polar", "dodo") and its own IDs.
+  provider: string;
+  providerCustomerId: string | null;
+  providerOrderId: string | null;
+  providerSubscriptionId: string | null;
+  status: string;
+  updatedAt: Date;
+  // Null until the buyer signs in, then backfilled to their user ID.
+  userId: string | null;
+}
 
-export const account = pgTable("account", {
-  accessToken: text("access_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  accountId: text("account_id").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  id: text("id").primaryKey(),
-  idToken: text("id_token"),
-  password: text("password"),
-  providerId: text("provider_id").notNull(),
-  refreshToken: text("refresh_token"),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-  scope: text("scope"),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-});
-
-export const verification = pgTable("verification", {
-  createdAt: timestamp("created_at").defaultNow(),
-  expiresAt: timestamp("expires_at").notNull(),
-  id: text("id").primaryKey(),
-  identifier: text("identifier").notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  value: text("value").notNull(),
-});
-
-export const purchase = pgTable("purchase", {
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  currentPeriodEnd: timestamp("current_period_end"),
-  email: text("email").notNull(),
-  id: text("id").primaryKey(),
-  kind: text("kind").notNull(),
-  polarCustomerId: text("polar_customer_id"),
-  polarOrderId: text("polar_order_id"),
-  polarSubscriptionId: text("polar_subscription_id"),
-  status: text("status").notNull().default("active"),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  // Null until the buyer signs in — guest checkout happens before sign-in,
-  // so rows are keyed by email first and backfilled to the user later.
-  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
-});
+// MongoDB has no check constraints, so writers call this: a single-item
+// purchase must name its item, and an all-access plan mustn't.
+export const assertPurchaseShape = (
+  purchase: Pick<PurchaseDoc, "itemId" | "kind">
+) => {
+  if ((purchase.kind === "item") !== (purchase.itemId !== null)) {
+    throw new Error(
+      `A "${purchase.kind}" purchase ${purchase.kind === "item" ? "needs" : "can't have"} an itemId.`
+    );
+  }
+};

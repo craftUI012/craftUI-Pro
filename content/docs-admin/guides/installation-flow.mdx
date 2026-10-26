@@ -1,0 +1,210 @@
+---
+title: Buying and installing, end to end
+description: The full journey of a buyer, from a locked component to `npx shadcn add`, with every check the code makes along the way.
+---
+
+This page follows one person through craftUI: they find a paid item, buy, sign in, see the code and install it. Each step lists what they see, what the code does, which file does it, and what can go wrong.
+
+Payments themselves are covered in [Payments with Dodo](/docs-admin/guides/payments-with-dodo); how items are built and gated in [Registry pipeline → Paid items](/docs-admin/architecture/registry-pipeline#paid-items).
+
+## The short version
+
+```
+1. Browse          /  →  /docs/<library>/<item>          (preview is free to look at)
+2. Locked          Code tab / Copy for AI / install       → plans with buy buttons
+3. Pay             /api/checkout → Dodo's page            (no account needed)
+4. Recorded        Dodo → /api/webhooks/dodo              → purchase saved by email
+5. Sign in         /checkout/success → /login → magic link (only paid emails)
+6. Unlocked        /api/access → access + install token
+7. See the code    Code tab ← /api/source/<item>
+8. Install         npx shadcn add <site>/r/<item>.json?t=<token>
+                     → /r/[file] route: token → user → access → item JSON
+```
+
+## Free or paid?
+
+Every library item (`meta.library` in `registry.json`) is **paid** unless it has `"free": true` in its `meta`. Right now **every item is paid**. `isPaidItem()` in `lib/registry.ts` is the single place that decides.
+
+| | Free item | Paid item |
+| --- | --- | --- |
+| Live preview | Yes | Yes |
+| Source in the page HTML | Yes | **Never** |
+| Code tab | Source | Plans, or the source for an owner |
+| Copy for AI | Works | Locked, or works for an owner |
+| Install command | Plain URL | Locked, or a URL with the owner's token |
+| `/r/<item>.json` | Static file in `public/r/` | `app/r/[file]/route.ts`, buyers only |
+
+The rest of this page is about paid items.
+
+## 1. Browsing
+
+**The visitor sees:** the browse page (`/`) and an item's docs page, e.g. `/docs/templates/tables-section-02`, with a live, interactive preview.
+
+**The code:** `components/component-preview.tsx` (server) renders the preview frame. For a paid item it reads **no source**: it passes `paid` and the item's product code (`itemId`, e.g. `SEC-0005`) to `components/preview-frame.tsx`.
+
+The preview runs the component's compiled JavaScript in the browser; it has to, to render. Only the readable source and the installable files are protected.
+
+## 2. Locked
+
+**The visitor sees** three things locked, each with a lock icon:
+
+| Control | Click does |
+| --- | --- |
+| **Code** tab | Shows the **plans**: Yearly and Lifetime cards with their buy buttons, and "Already have access? Sign in" |
+| **Install command** (toolbar, left) | Opens the Code tab's plans. Nothing is copied |
+| **Copy for AI** (toolbar, right) | Opens the Code tab's plans. Nothing is copied |
+
+**The code:**
+
+- `hooks/use-access.ts` asks `/api/access` once per page (only when signed in). Until the answer arrives, everything stays locked, so nothing flashes open.
+- `components/preview-frame.tsx` computes `locked = paid && !canUse(itemId)`.
+- The Code tab is `components/paid-source.tsx`, which shows `components/paywall.tsx` (the plan cards).
+- Opening a locked Code tab sends `paywall_viewed` (with `item`) to PostHog.
+
+**Even if someone digs into DevTools:** the visible install command has no token, and the CLI refuses it (step 8). The page HTML contains no source.
+
+## 3. Paying
+
+**The visitor sees:** clicks **Buy lifetime** or **Subscribe yearly** (in the Code tab or on `/pricing`), lands on Dodo's payment page, enters an email and a card, and pays.
+
+**The code:**
+
+1. `components/checkout-button.tsx` sends `checkout_started` (`plan`, `price_cents`) to PostHog, then POSTs `{ plan, distinctId }` to `/api/checkout`.
+2. `app/api/checkout/route.ts` creates a Dodo checkout session with metadata `kind`, `userId` (if signed in) and `posthogDistinctId`, and returns Dodo's URL.
+3. The browser goes to Dodo.
+
+No account is needed. That's deliberate: **pay first, then sign in**.
+
+## 4. Recorded
+
+**The visitor sees:** nothing. This happens between Dodo and our server, usually within seconds.
+
+**The code:**
+
+1. Dodo POSTs `payment.succeeded` (lifetime) or `subscription.active` (yearly) to `/api/webhooks/dodo`.
+2. The route checks the signature (`DODO_PAYMENTS_WEBHOOK_KEY`).
+3. `lib/billing/dodo-webhook.ts` saves a `purchase` document: `kind`, the buyer's **email** (lowercase), `status: "active"`, and for yearly `currentPeriodEnd`. `userId` is empty for a guest.
+4. A new purchase sends `purchase_completed` to PostHog.
+
+Every webhook event is in [Payments with Dodo → What each event does](/docs-admin/guides/payments-with-dodo#what-each-event-does).
+
+## 5. Signing in
+
+**The visitor sees:**
+
+1. Dodo sends them to `/checkout/success`: "Payment received", showing the email they paid with. (If the payment failed or was cancelled: "Payment didn't go through".)
+2. **Sign in to unlock** opens `/login?email=…` with the email already filled in.
+3. They get an email with a magic link (valid 15 minutes) and click it.
+4. They land signed in. `/dashboard` says "Lifetime all-access is active…" (or yearly, or "You own N items").
+
+**The code:**
+
+- `lib/auth.ts`, the **pay-first gate**: before sending a magic link, `hasActivePurchaseForEmail(email)` must be true. Otherwise: "No active plan found for this email. Get access first, then sign in with the email you paid with."
+- better-auth creates the `user` and `session` in MongoDB on first sign-in.
+- `components/posthog-identify.tsx` ties the visitor's PostHog history to their user ID.
+- `/dashboard` runs `backfillPurchasesToUser()`, which writes their `userId` into guest purchases bought with that email. (Access works by email even before this.)
+
+## 6. Unlocked
+
+**The visitor sees:** back on any docs page, the locks are gone.
+
+**The code:** `/api/access` (`app/api/access/route.ts`) returns, for the signed-in user:
+
+```json
+{
+  "hasAllAccess": true,
+  "hasLifetime": true,
+  "hasYearly": false,
+  "itemIds": [],
+  "installToken": "NmFkZTViM2Ez….k9Xq…"
+}
+```
+
+- `hasAllAccess`: lifetime, or an active yearly plan.
+- `itemIds`: product codes of items bought one by one.
+- `installToken`: their personal install token (step 8).
+
+`hooks/use-access.ts` caches it for the page, and `canUse(itemId)` is `hasAllAccess || itemIds.includes(itemId)`.
+
+## 7. Seeing and copying the code
+
+**The owner sees:** the **Code** tab shows the highlighted source. **Copy for AI** copies a Markdown brief: title, install command (with token), and the full source.
+
+**The code:**
+
+- `components/paid-source.tsx` fetches `/api/source/<item>`.
+- `app/api/source/[name]/route.ts` checks the session and `canAccessItem()` on the server **every time**, then returns `{ code, html }` (formatted source and its Shiki-highlighted HTML). Anyone else gets **403**.
+- Copy for AI fetches the same route at the moment of copying.
+
+## 8. Installing
+
+**The owner sees:** the toolbar's install command, e.g. `pnpm dlx shadcn@latest add https://www.craftui.space/r/tables-section-02.json`. Clicking it copies the same command **with their token appended**:
+
+```bash
+pnpm dlx shadcn@latest add "https://www.craftui.space/r/tables-section-02.json?t=NmFkZTViM2Ez….k9Xq…"
+```
+
+The visible text never shows the token; only the copied command has it. They paste it in their project, and the CLI downloads the item and writes the files.
+
+**The code:** the CLI requests `/r/tables-section-02.json?t=…`. Paid items aren't files in `public/`, so the request reaches `app/r/[file]/route.ts`, which:
+
+<Steps>
+
+<Step>Finds the item</Step>
+
+By name (`tables-section-02`) or product code (`SEC-0005`). Unknown: **404**.
+
+<Step>Checks the token</Step>
+
+`lib/install-token.ts`. The token is `base64url(userId) + "." + HMAC-SHA256(BETTER_AUTH_SECRET, userId)`, so only this server can make one. No token, or a forged or changed one: **401**.
+
+<Step>Checks access in the database</Step>
+
+`canAccessItem(userId, "SEC-0005")`: all-access, or a purchase of that product code. This runs on **every** install, so a refunded buyer or a lapsed yearly plan stops working at once. No access: **403**.
+
+<Step>Sends the item</Step>
+
+The item's JSON from `registry-paid/` (built by `pnpm registry:build`), with `Cache-Control: private, no-store`.
+
+</Steps>
+
+After responding, it sends PostHog `registry_item_fetched` (tied to the buyer) for a granted install, or `registry_access_denied` (`reason` `no_token` / `no_access`) for a refusal.
+
+### What the CLI prints when refused
+
+| Case | Status | Message the CLI shows |
+| --- | --- | --- |
+| No token (e.g. a command typed by hand) | 401 | `"Support tickets table" is a paid craftUI item. Sign in at <site> and copy the install command from its docs page (<site>/docs/templates/tables-section-02).` |
+| Token, but the account doesn't include the item | 403 | `Your craftUI account doesn't include "Data panel hero". See plans at <site>/pricing.` |
+| Unknown item | 404 | `There's no craftUI item called "…".` |
+
+### The token, in short
+
+- **One per user**, the same for every item. The database check, not the token, decides which items it opens.
+- **Never expires.** Access is checked live, so old commands stop working the moment access ends.
+- **Changing `BETTER_AUTH_SECRET` invalidates every token.** Owners just copy the command again.
+- A shared command works for others only while the owner has access, and every install is logged under the owner in PostHog.
+
+## Analytics along the way
+
+| Step | PostHog event |
+| --- | --- |
+| Opens a page | `$pageview` |
+| Opens a locked Code tab | `paywall_viewed` (`item`) |
+| Copies an install command | `copy_npm_command` (`item`, `manager`) |
+| Clicks a buy button | `checkout_started` (`plan`, `price_cents`) |
+| Pays | `purchase_completed` (`plan`, `amount_cents`, `revenue`), from the webhook |
+| Installs | `registry_item_fetched` (`item`, `product_id`, `client`), from the server |
+| Install refused | `registry_access_denied` (`item`, `reason`) |
+
+Where to read these: the PostHog analytics guide in `posthog-docs/analytics-guide.md`.
+
+## Quick checks
+
+| Want to know | Do |
+| --- | --- |
+| Is an item paid? | `registry.json` → the item's `meta.free`. No flag means paid |
+| What does a user own? | Signed in as them: open `/api/access`. Or Atlas → `purchase` → `{ email: "…" }` |
+| Does a paid item refuse anonymous installs? | `curl -i <site>/r/<item>.json` should be **401** |
+| Is the source out of the page? | View source on the docs page: no lines of the item's file |
+| Why can't a buyer install? | The CLI's message (table above), then their `purchase` document, then PostHog `registry_access_denied` |

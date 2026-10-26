@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 
 import { Analytics } from "@/components/analytics";
+import { PostHogIdentify } from "@/components/posthog-identify";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { META_THEME_COLORS } from "@/constants/site";
@@ -48,6 +49,7 @@ const RootLayout = ({
           {children}
           <Toaster position="top-center" />
           <Analytics />
+          <PostHogIdentify />
           <SpeedInsights />
         </ThemeProvider>
       </SoundProvider>

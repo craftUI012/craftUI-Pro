@@ -102,6 +102,11 @@ export type LibraryId =
 
 export interface LibraryConfig {
   label: string;
+  // Prefix of every item's product code (meta.id, e.g. "SEC-0001"). The code
+  // is what purchases store, so it never changes once an item is published,
+  // even if the item's slug or title does. "TPL" is kept for full-page
+  // templates, a separate product to come.
+  idPrefix: string;
   // The library's key in the browse page's URL (/?library=blocks).
   slug: string;
   // Nouns for the result count: "1 block", "6 blocks".
@@ -118,6 +123,7 @@ export interface LibraryConfig {
 export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   blocks: {
     categories: ["marketing", "data", "finance", "people"],
+    idPrefix: "BLK",
     itemLabel: { one: "block", other: "blocks" },
     label: "Blocks",
     searchPlaceholder: "Search blocks…",
@@ -129,6 +135,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   // validate and it's one line away from coming back.
   components: {
     categories: [],
+    idPrefix: "CMP",
     itemLabel: { one: "component", other: "components" },
     label: "Components",
     searchPlaceholder: "Search components…",
@@ -139,6 +146,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   },
   illustrations: {
     categories: ["marketing", "technology", "people", "ecommerce"],
+    idPrefix: "ILL",
     itemLabel: { one: "illustration", other: "illustrations" },
     label: "Illustrations",
     searchPlaceholder: "Search illustrations…",
@@ -148,6 +156,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   },
   isometric: {
     categories: ["technology", "finance", "ecommerce", "data"],
+    idPrefix: "ISO",
     itemLabel: { one: "isometric item", other: "isometric items" },
     label: "Isometric",
     searchPlaceholder: "Search isometric…",
@@ -157,6 +166,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   },
   templates: {
     categories: ["marketing", "company", "data", "ai", "portfolio"],
+    idPrefix: "SEC",
     itemLabel: { one: "section", other: "sections" },
     label: "Sections",
     searchPlaceholder: "Search sections…",

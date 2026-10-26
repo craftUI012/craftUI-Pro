@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { posthog } from "posthog-js";
 
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
@@ -13,6 +14,8 @@ export const SignOutButton = () => {
     <Button
       onClick={async () => {
         await authClient.signOut();
+        // The next visitor on this device starts anonymous.
+        posthog.reset();
         router.push(ROUTES.LOGIN);
         router.refresh();
       }}

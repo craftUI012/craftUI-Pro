@@ -37,6 +37,8 @@ export interface CopyButtonProps extends Omit<
   value: string | (() => Promise<string> | string);
   src?: string;
   event?: Event["name"];
+  // Sent with the event, next to the copied text (e.g. which item).
+  eventProperties?: Event["properties"];
   showTooltip?: boolean;
 }
 
@@ -45,6 +47,7 @@ export const CopyButton = ({
   className,
   variant = "ghost",
   event,
+  eventProperties,
   children,
   showTooltip = true,
   ...props
@@ -69,11 +72,12 @@ export const CopyButton = ({
       trackEvent({
         name: event,
         properties: {
+          ...eventProperties,
           code: text,
         },
       });
     }
-  }, [copyToClipboard, event, getValue]);
+  }, [copyToClipboard, event, eventProperties, getValue]);
 
   const copyButton = (
     <Button

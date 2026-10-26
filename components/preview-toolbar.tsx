@@ -155,7 +155,9 @@ const useCardUrl = (id?: string) => {
 export const PreviewToolbar = ({
   className,
   copyValue,
+  getCode,
   installName,
+  installToken,
   locked = false,
   onFullscreen,
   onLockedCopy,
@@ -169,7 +171,11 @@ export const PreviewToolbar = ({
 }: {
   className?: string;
   copyValue?: string | null;
+  // A paid item's source for its owner, fetched on copy.
+  getCode?: () => Promise<string | null>;
   installName?: string;
+  // The owner's token for a paid item's install command.
+  installToken?: string | null;
   locked?: boolean;
   onFullscreen: () => void;
   onLockedCopy: () => void;
@@ -182,7 +188,7 @@ export const PreviewToolbar = ({
   width: PreviewWidth;
 }) => {
   const cardUrl = useCardUrl(installName);
-  const hasCopy = locked || Boolean(copyValue);
+  const hasCopy = locked || Boolean(copyValue) || Boolean(getCode);
 
   return (
     <div
@@ -195,7 +201,14 @@ export const PreviewToolbar = ({
         {showViewToggle && (
           <ViewToggle onViewChange={onViewChange} view={view} />
         )}
-        {installName && <PreviewInstallCommand name={installName} />}
+        {installName && (
+          <PreviewInstallCommand
+            locked={locked}
+            name={installName}
+            onLocked={onLockedCopy}
+            token={installToken}
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-0.5">
@@ -220,7 +233,9 @@ export const PreviewToolbar = ({
         {hasCopy && <Separator className="mx-1 h-4!" orientation="vertical" />}
         <PreviewCopyForAi
           code={copyValue}
+          getCode={getCode}
           installName={installName}
+          installToken={installToken}
           locked={locked}
           onLocked={onLockedCopy}
           title={title ?? "Component"}

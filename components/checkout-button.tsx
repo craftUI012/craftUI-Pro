@@ -1,8 +1,16 @@
 "use client";
 
+import { posthog } from "posthog-js";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { LIFETIME_PLAN, YEARLY_PLAN } from "@/lib/billing/plans";
+import { trackEvent } from "@/lib/events";
+
+const PLAN_PRICE_CENTS = {
+  lifetime: LIFETIME_PLAN.priceCents,
+  yearly: YEARLY_PLAN.priceCents,
+};
 
 interface CheckoutButtonProps {
   plan: "lifetime" | "yearly";
@@ -16,9 +24,20 @@ export const CheckoutButton = ({ label, plan }: CheckoutButtonProps) => {
   const handleClick = async () => {
     setState("loading");
     setFailure(null);
+    // The price with the plan: prices change, and reports need the one the
+    // visitor actually saw.
+    trackEvent({
+      name: "checkout_started",
+      properties: { plan, price_cents: PLAN_PRICE_CENTS[plan] },
+    });
     try {
       const response = await fetch("/api/checkout", {
-        body: JSON.stringify({ plan }),
+        // The PostHog ID lets the purchase (recorded by the payment
+        // webhook) join this visitor's journey in the funnel.
+        body: JSON.stringify({
+          distinctId: posthog.get_distinct_id?.() || undefined,
+          plan,
+        }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });

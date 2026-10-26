@@ -10,6 +10,8 @@ import { usePackageManager } from "@/hooks/use-package-manager";
 import type { Event } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
+const REGISTRY_ITEM_IN_COMMAND = /\/r\/([\w-]+)\.json\b/;
+
 export const CodeBlockCommand = ({
   __npm__,
   __yarn__,
@@ -45,6 +47,17 @@ export const CodeBlockCommand = ({
   const copyValue = useMemo(
     () => commandTabs[packageManager] || "",
     [commandTabs, packageManager]
+  );
+
+  // Which registry item the command installs (".../r/<item>.json"), so
+  // copies can be counted per item, like the preview toolbar's. Null for
+  // commands that aren't a registry install (e.g. `npm install motion`).
+  const eventProperties = useMemo(
+    () => ({
+      item: REGISTRY_ITEM_IN_COMMAND.exec(copyValue)?.[1] ?? null,
+      manager: packageManager,
+    }),
+    [copyValue, packageManager]
   );
 
   return (
@@ -96,6 +109,7 @@ export const CodeBlockCommand = ({
         className="absolute top-2 right-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100"
         value={copyValue}
         event={copyEvent}
+        eventProperties={eventProperties}
       />
     </div>
   );

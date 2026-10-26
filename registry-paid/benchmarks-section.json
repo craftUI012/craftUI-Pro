@@ -3,10 +3,7 @@
   "name": "benchmarks-section",
   "title": "Competitor benchmarks",
   "description": "Four metrics against competitors, each drawn as its own chart: isometric bars, unit field, radar and stacked slabs.",
-  "dependencies": [
-    "@hugeicons/core-free-icons",
-    "@hugeicons/react"
-  ],
+  "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react"],
   "files": [
     {
       "path": "registry/sections/benchmarks-section.tsx",
@@ -22,19 +19,12 @@
     }
   ],
   "meta": {
-    "pro": false,
+    "id": "SEC-0002",
     "library": "templates",
-    "types": [
-      "stats"
-    ],
-    "styles": [
-      "minimal",
-      "dark-mode"
-    ],
+    "types": ["stats"],
+    "styles": ["minimal", "dark-mode"],
     "publishedAt": "2026-09-14"
   },
-  "categories": [
-    "marketing"
-  ],
+  "categories": ["marketing"],
   "type": "registry:block"
 }

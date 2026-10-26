@@ -3,9 +3,7 @@
   "name": "tables-section-02",
   "title": "Support tickets table",
   "description": "Help-desk queue with saved views, live SLA timers, inline status, priority and assignee, sorting, CSV export and a ticket detail sheet.",
-  "dependencies": [
-    "lucide-react"
-  ],
+  "dependencies": ["lucide-react"],
   "registryDependencies": [
     "table",
     "avatar",
@@ -32,19 +30,12 @@
     }
   ],
   "meta": {
-    "pro": false,
+    "id": "SEC-0005",
     "library": "templates",
-    "types": [
-      "tables"
-    ],
-    "styles": [
-      "minimal",
-      "dark-mode"
-    ],
+    "types": ["tables"],
+    "styles": ["minimal", "dark-mode"],
     "publishedAt": "2026-10-23"
   },
-  "categories": [
-    "data"
-  ],
+  "categories": ["data"],
   "type": "registry:block"
 }

@@ -70,7 +70,7 @@ export interface ShowcaseVideo {
 //   video     ← content/video-manifest.json (R2), when it has one
 //   publishedAt ← item.meta.publishedAt (ISO date) → "Latest" order
 //   popularity  ← installs over the last 30 days (analytics) → "Most popular"
-//   isPro     ← item.meta.pro, to badge paid items
+//   isPro     ← not item.meta.free: every library item is paid unless free
 //   tags      ← "<group>:<slug>" for each of item.categories, item.meta.types
 //               and item.meta.styles (matches the index; see IndexLink)
 export interface ShowcaseItem {
