@@ -2,10 +2,11 @@
 import { ObjectId } from "mongodb";
 import type { Document, Filter } from "mongodb";
 
+import type { ResourceCategory } from "@/lib/admin/constants";
 import { isGranting, summarizeAccess } from "@/lib/billing/entitlements";
 import type { Entitlements } from "@/lib/billing/entitlements";
-import { db, ensureIndexes, purchases } from "@/lib/db";
-import type { PurchaseDoc } from "@/lib/db/schema";
+import { db, ensureIndexes, purchases, resources } from "@/lib/db";
+import type { PurchaseDoc, ResourceDoc } from "@/lib/db/schema";
 import registry from "@/registry.json";
 
 // Everything the admin panel (app/admin-panel-craft) reads. Pages call these
@@ -61,6 +62,7 @@ export const COLLECTIONS = [
   "account",
   "verification",
   "purchase",
+  "resource",
 ] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 
@@ -364,5 +366,63 @@ export const listCollection = async (name: CollectionName, page: number) => {
     }),
     pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)),
     total,
+  };
+};
+
+export interface ResourceFilters {
+  category?: ResourceCategory;
+  query?: string;
+  // Every one of these tags (AND).
+  tags?: string[];
+}
+
+// The Resources page: the matching resources (newest first), how many
+// resources each category has, and the tags in use (within the chosen
+// category) with counts, for the filter chips.
+export const listResources = async ({
+  category,
+  query,
+  tags = [],
+}: ResourceFilters) => {
+  const collection = await resources();
+  const scope: Filter<ResourceDoc> = category ? { category } : {};
+  const filter: Filter<ResourceDoc> = { ...scope };
+  if (tags.length > 0) {
+    filter.tags = { $all: tags };
+  }
+  const search = query?.trim();
+  if (search) {
+    filter.$or = [
+      { name: { $options: "i", $regex: escapeRegex(search) } },
+      { url: { $options: "i", $regex: escapeRegex(search) } },
+    ];
+  }
+
+  const [rows, categoryCounts, tagCounts] = await Promise.all([
+    collection.find(filter, { limit: 1000, sort: { createdAt: -1 } }).toArray(),
+    collection
+      .aggregate<{ _id: ResourceCategory; count: number }>([
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+      ])
+      .toArray(),
+    collection
+      .aggregate<{ _id: string; count: number }>([
+        { $match: scope },
+        { $unwind: "$tags" },
+        { $group: { _id: "$tags", count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray(),
+  ]);
+
+  return {
+    categoryCounts: Object.fromEntries(
+      categoryCounts.map((entry) => [entry._id, entry.count])
+    ) as Partial<Record<ResourceCategory, number>>,
+    rows,
+    tagCounts: tagCounts.map((entry) => ({
+      count: entry.count,
+      tag: entry._id,
+    })),
   };
 };

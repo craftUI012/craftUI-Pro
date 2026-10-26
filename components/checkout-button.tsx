@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LIFETIME_PLAN, YEARLY_PLAN } from "@/lib/billing/plans";
 import { trackEvent } from "@/lib/events";
+import { cn } from "@/lib/utils";
 
 const PLAN_PRICE_CENTS = {
   lifetime: LIFETIME_PLAN.priceCents,
@@ -15,9 +16,20 @@ const PLAN_PRICE_CENTS = {
 interface CheckoutButtonProps {
   plan: "lifetime" | "yearly";
   label: string;
+  // Extra classes, size and style, for pages with their own layout (the
+  // pricing page's large buttons). Defaults: the standard filled button.
+  className?: string;
+  size?: "default" | "lg";
+  variant?: "default" | "secondary";
 }
 
-export const CheckoutButton = ({ label, plan }: CheckoutButtonProps) => {
+export const CheckoutButton = ({
+  className,
+  label,
+  plan,
+  size = "default",
+  variant = "default",
+}: CheckoutButtonProps) => {
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -55,7 +67,9 @@ export const CheckoutButton = ({ label, plan }: CheckoutButtonProps) => {
   return (
     <div className="space-y-2">
       <Button
-        className="w-full"
+        className={cn("w-full", className)}
+        size={size}
+        variant={variant}
         disabled={state === "loading"}
         onClick={handleClick}
       >

@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import type { IndexDescription } from "mongodb";
 
-import type { PurchaseDoc } from "./schema";
+import type { PurchaseDoc, ResourceDoc } from "./schema";
 
 // One MongoDB client per server process, reused by every request: opening
 // a connection per request would be slow and exhaust Atlas's connection
@@ -41,6 +41,11 @@ const INDEXES: Record<string, IndexDescription[]> = {
       key: { providerSubscriptionId: 1 },
       name: "purchase_provider_subscription_id",
     },
+  ],
+  // The Resources page lists newest first per category and filters by tag.
+  resource: [
+    { key: { category: 1, createdAt: -1 }, name: "resource_category" },
+    { key: { tags: 1 }, name: "resource_tags" },
   ],
   session: [
     { key: { token: 1 }, name: "session_token", unique: true },
@@ -84,4 +89,9 @@ export const prepareIndexes = async () => {
 export const purchases = async () => {
   await ensureIndexes();
   return db.collection<PurchaseDoc>("purchase");
+};
+
+export const resources = async () => {
+  await ensureIndexes();
+  return db.collection<ResourceDoc>("resource");
 };

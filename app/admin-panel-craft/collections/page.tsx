@@ -16,6 +16,8 @@ const ABOUT: Record<CollectionName, string> = {
     "Sign-in methods linked to a user (better-auth). Empty while sign-in is magic link only.",
   purchase:
     'One document per order or subscription (ours). Only status "active" grants access.',
+  resource:
+    "Saved links from the Resources page (ours): websites, designers on X, X posts and tools, with tags.",
   session:
     "One per signed-in browser (better-auth). Tokens are shortened here.",
   user: "One per person who signed in, or was added here (better-auth).",
@@ -24,7 +26,8 @@ const ABOUT: Record<CollectionName, string> = {
 };
 
 // The raw MongoDB documents, read-only, 20 per page, newest first: to check
-// exactly what's stored. Edit through the Users and Purchases pages.
+// exactly what's stored. Edit through the Users, Purchases and Resources
+// pages.
 const AdminCollectionsPage = async ({
   searchParams,
 }: {

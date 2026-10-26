@@ -54,14 +54,14 @@ export const SoftwareSourceCodeJsonLd = () => (
         url: LINK.GITHUB_ORG,
       },
       name: SITE.NAME,
-      // Freemium: some components are free, the rest need a paid plan. Only
-      // the free tier is listed as an Offer (paid prices aren't final yet);
-      // the paid plans are on the pricing page.
+      // Freemium: previews and docs are free, the code needs a paid plan.
+      // Only the free tier is listed as an Offer; the paid plans are on the
+      // pricing page.
       offers: {
         "@type": "Offer",
         availability: "https://schema.org/InStock",
         description:
-          "Freemium: some components and blocks are free; the rest are included in a paid plan.",
+          "Freemium: previews and docs are free; the code is included in a paid plan.",
         name: "Free tier",
         price: "0",
         priceCurrency: "USD",

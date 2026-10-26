@@ -16,6 +16,7 @@ import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ROUTES } from "@/constants/routes";
 import { SITE } from "@/constants/site";
 import { TYPE } from "@/constants/typography";
+import { useAccess } from "@/hooks/use-access";
 import { useIsMac } from "@/hooks/use-is-mac";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -135,13 +136,14 @@ const BrowseSearch = ({
 // rail is commented out for now; see browse-shell.tsx).
 //
 //   [logo] craftUI   Sections  Blocks  Illustrations  Isometric
-//                                         [Search ⌘K]  Pricing  [Sign in]
+//                          [Search ⌘K]  (Admin panel)  Pricing  [Sign in]
 //
 // The library switch is a shadcn TabsList: its triggers drive the shell's
 // <Tabs>, whose TabsContent panels are the browse grids (browse-panels.tsx).
 // The right side holds the search, Docs admin and Design admin (development
-// only, from md up), Pricing as a quiet ghost link, and Sign in (or
-// Dashboard once signed in) as the one filled button.
+// only, from md up), Admin panel (signed-in admins only), Pricing as a quiet
+// ghost link, and Sign in (or Dashboard once signed in) as the one filled
+// button.
 //
 // Below lg the tabs drop to a second row. On phones the search also becomes
 // an icon button that opens a search row under the bar.
@@ -171,6 +173,9 @@ export const BrowseTopBar = ({
 }) => {
   const account = useAccountLink();
   const onPricing = usePathname() === ROUTES.PRICING;
+  // Admins (ADMIN_EMAILS, checked by /api/access on the server) get a link to
+  // the admin panel. Everyone else never sees it; the panel checks again.
+  const { isAdmin } = useAccess();
 
   return (
     <header className="bg-background/90 sticky top-0 z-40 backdrop-blur">
@@ -272,6 +277,17 @@ export const BrowseTopBar = ({
               />
             </>
           )}
+          {isAdmin && (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              sound="click"
+              className={NAV_TYPE}
+            >
+              <Link href={ROUTES.ADMIN_PANEL}>Admin panel</Link>
+            </Button>
+          )}
           {/* Filled like an active library tab while on the pricing page. */}
           <Button
             asChild
@@ -286,7 +302,6 @@ export const BrowseTopBar = ({
             <Link
               href={ROUTES.PRICING}
               aria-current={onPricing ? "page" : undefined}
-              transitionTypes={["nav-forward"]}
             >
               Pricing
             </Link>
@@ -297,9 +312,9 @@ export const BrowseTopBar = ({
             sound="click"
             className={cn(NAV_TYPE, "ml-1")}
           >
-            <Link href={account.href} transitionTypes={["nav-forward"]}>
-              {account.label}
-            </Link>
+            {/* No transition type: pricing, sign-in and the dashboard open in
+                place, without the page you leave sliding away. */}
+            <Link href={account.href}>{account.label}</Link>
           </Button>
         </div>
       </div>

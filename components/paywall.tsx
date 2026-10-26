@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 // The plans, as compact cards with their own checkout buttons, so a locked
 // item can be bought right where it's locked (the same buttons as /pricing).
 const PLANS = [
-  { label: "Subscribe yearly", per: "/year", plan: YEARLY_PLAN },
+  { label: "Subscribe yearly", per: " per year", plan: YEARLY_PLAN },
   { label: "Buy lifetime", per: " once", plan: LIFETIME_PLAN },
 ] as const;
 
