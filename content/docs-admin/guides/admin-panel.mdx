@@ -29,7 +29,8 @@ Admin emails may sign in **without a purchase** (`lib/auth.ts` skips the pay-fir
 | **Users** | Every user with their access (Lifetime, Yearly, N items), purchase and session counts, last activity. Search by email or name. **Add user**, optionally granting access at once |
 | **User page** | Edit name, email and verified flag. Their purchases (add, edit, delete), sessions (sign out of one or everywhere), linked accounts, pending sign-in links. **Delete user and all records** |
 | **Purchases** | Every purchase, guests included. Filter by email or ID, kind, status. Add, edit, delete |
-| **Collections** | The raw documents of `user`, `session`, `account`, `verification` and `purchase`, read-only, 20 per page. Session and sign-in tokens are shortened |
+| **Resources** | Saved links: websites, designers on X and X posts, each with a name, a link and tags. Add, edit, delete. Filter by category (tabs), by tags (chips; a resource must have every chosen tag) and by name or link. The filters are in the URL, so a view can be bookmarked |
+| **Collections** | The raw documents of `user`, `session`, `account`, `verification`, `purchase` and `resource`, read-only, 20 per page. Session and sign-in tokens are shortened |
 
 ## What the actions change
 
@@ -45,12 +46,28 @@ All in `app/admin-panel-craft/actions.ts`. They change **our database only**: no
 | Delete purchase | Removes it; access from it ends at once |
 | Delete user and all records | Type the email to confirm. Removes the user, their sessions, accounts, pending sign-in links, and **all purchases** by user ID or email |
 
+## Resources
+
+Stored in the `resource` collection (`ResourceDoc` in `lib/db/schema.ts`), indexed by category and by tag:
+
+| Field | Example | Notes |
+| --- | --- | --- |
+| `_id` | `res_<uuid>` | |
+| `category` | `website`, `people` (shown as Designers on X), `x-post` | From `RESOURCE_CATEGORIES` in `lib/admin/constants.ts`. Add a category there to get its tab, form option and validation |
+| `name`, `url` | `Linear`, `https://linear.app` | Links must be http(s) |
+| `tags` | `["design-systems", "motion"]` | Typed comma-separated; saved lowercase and hyphenated, without repeats (`normalizeTags`), up to 20. "Design Systems, AI/ML" becomes `design-systems`, `ai-ml` |
+| `createdBy` | `nil@craftui.space` | The admin who added it |
+| `createdAt`, `updatedAt` | dates | |
+
+Admin-only: nothing on the public site reads it.
+
 ## Files
 
 | File | Role |
 | --- | --- |
-| `app/admin-panel-craft/` | Layout (the admin check and the bar), Overview, `users/`, `users/[id]/`, `purchases/`, `collections/`, `actions.ts` |
+| `app/admin-panel-craft/` | Layout (the admin check and the bar), Overview, `users/`, `users/[id]/`, `purchases/`, `resources/`, `collections/`, `actions.ts` |
 | `lib/admin/emails.ts` | `isAdminEmail` (reads `ADMIN_EMAILS`) |
 | `lib/admin/session.ts` | `requireAdminPage` (pages), `requireAdmin` (actions) |
-| `lib/admin/data.ts` | Every read: overview, users, a user's details, purchases, raw collections |
+| `lib/admin/data.ts` | Every read: overview, users, a user's details, purchases, resources, raw collections |
+| `lib/admin/constants.ts` | Purchase statuses and kinds, resource categories, `normalizeTags` (shared by the forms and the actions) |
 | `components/admin-panel/` | Nav, the add/edit dialogs, delete confirmations, access badges |

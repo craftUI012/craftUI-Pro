@@ -6,6 +6,7 @@
 // that string is what `purchase.userId` and install tokens hold.
 
 // Relative, not "@/…": scripts load this file without the path alias.
+import type { ResourceCategory } from "../admin/constants";
 import type { PurchaseKind } from "../billing/plans";
 
 // One document per order or subscription. What it unlocks:
@@ -49,3 +50,23 @@ export const assertPurchaseShape = (
     );
   }
 };
+
+// One saved link in the admin panel's Resources (app/admin-panel-craft/
+// resources): a website, a person or an X post worth keeping, with tags to
+// filter by (categories: RESOURCE_CATEGORIES in lib/admin/constants.ts).
+// Admin-only; nothing on the public site reads it.
+export interface ResourceDoc {
+  // "res_<uuid>".
+  _id: string;
+  category: ResourceCategory;
+  createdAt: Date;
+  // The admin's email who added it.
+  createdBy: string;
+  name: string;
+  // Normalised by normalizeTags (lib/admin/constants.ts): lowercase,
+  // hyphenated, unique.
+  tags: string[];
+  updatedAt: Date;
+  // http(s) only.
+  url: string;
+}

@@ -8,11 +8,17 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { ROUTES } from "@/constants/routes";
-import { PURCHASE_KINDS, PURCHASE_STATUSES } from "@/lib/admin/constants";
+import {
+  PURCHASE_KINDS,
+  PURCHASE_STATUSES,
+  isResourceCategory,
+  normalizeTags,
+} from "@/lib/admin/constants";
+import type { ResourceCategory } from "@/lib/admin/constants";
 import { itemOptions, toObjectId } from "@/lib/admin/data";
 import type { UserDoc } from "@/lib/admin/data";
 import { requireAdmin } from "@/lib/admin/session";
-import { db, ensureIndexes, purchases } from "@/lib/db";
+import { db, ensureIndexes, purchases, resources } from "@/lib/db";
 import { assertPurchaseShape } from "@/lib/db/schema";
 import type { PurchaseDoc } from "@/lib/db/schema";
 
@@ -337,6 +343,90 @@ export const deletePurchase = async (input: {
       return { error: "No such purchase." };
     }
     return done("Purchase deleted.");
+  } catch (error) {
+    return fail(error);
+  }
+};
+
+// A resource as the form sends it. The link must be http(s); tags arrive as
+// typed ("Design, motion") and are normalised here, so the database only
+// ever holds the clean form.
+const resourceInput = z.object({
+  category: z.custom<ResourceCategory>(isResourceCategory, {
+    message: "Pick a category.",
+  }),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Give it a name.")
+    .max(200, "Keep the name under 200 characters."),
+  tags: z
+    .string()
+    .max(1000)
+    .transform((value) => normalizeTags(value)),
+  url: z
+    .string()
+    .trim()
+    .url("Enter a full link, starting with https://.")
+    .refine((value) => /^https?:\/\//i.test(value), {
+      message: "Only http(s) links.",
+    }),
+});
+
+type ResourceInput = z.input<typeof resourceInput>;
+
+export const createResource = async (
+  input: ResourceInput
+): Promise<ActionResult> => {
+  try {
+    const session = await requireAdmin();
+    const resource = resourceInput.parse(input);
+    const now = new Date();
+    const collection = await resources();
+    await collection.insertOne({
+      ...resource,
+      _id: `res_${randomUUID()}`,
+      createdAt: now,
+      createdBy: session.user.email,
+      updatedAt: now,
+    });
+    return done(`Added "${resource.name}".`);
+  } catch (error) {
+    return fail(error);
+  }
+};
+
+export const updateResource = async (
+  input: ResourceInput & { id: string }
+): Promise<ActionResult> => {
+  try {
+    await requireAdmin();
+    const resource = resourceInput.parse(input);
+    const collection = await resources();
+    const result = await collection.updateOne(
+      { _id: input.id },
+      { $set: { ...resource, updatedAt: new Date() } }
+    );
+    if (result.matchedCount === 0) {
+      return { error: "No such resource." };
+    }
+    return done("Saved.");
+  } catch (error) {
+    return fail(error);
+  }
+};
+
+export const deleteResource = async (input: {
+  id: string;
+}): Promise<ActionResult> => {
+  try {
+    await requireAdmin();
+    const collection = await resources();
+    const result = await collection.deleteOne({ _id: input.id });
+    if (result.deletedCount === 0) {
+      return { error: "No such resource." };
+    }
+    return done("Resource deleted.");
   } catch (error) {
     return fail(error);
   }

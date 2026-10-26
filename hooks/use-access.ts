@@ -5,14 +5,21 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 
 // What the signed-in user can use, from /api/access: all-access, the product
-// codes of items they bought, and the token for their install commands.
+// codes of items they bought, the token for their install commands, and
+// whether they're an admin (ADMIN_EMAILS).
 interface Access {
   hasAllAccess: boolean;
   installToken: string | null;
+  isAdmin: boolean;
   itemIds: string[];
 }
 
-const NONE: Access = { hasAllAccess: false, installToken: null, itemIds: [] };
+const NONE: Access = {
+  hasAllAccess: false,
+  installToken: null,
+  isAdmin: false,
+  itemIds: [],
+};
 
 // One request per signed-in user per page load, shared by every preview on
 // the page.
@@ -28,6 +35,7 @@ const fetchAccess = async (): Promise<Access> => {
     return {
       hasAllAccess: data.hasAllAccess === true,
       installToken: data.installToken ?? null,
+      isAdmin: data.isAdmin === true,
       itemIds: data.itemIds ?? [],
     };
   } catch {
