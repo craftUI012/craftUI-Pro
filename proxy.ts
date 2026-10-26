@@ -10,7 +10,9 @@ import {
   captureServerEvent,
   registryClientOf,
 } from "@/lib/posthog-server";
-import { getRegistryItem, isPaidItem } from "@/lib/registry";
+// Not "@/lib/registry": it reads files, and the proxy must not (see
+// lib/registry-items.ts).
+import { getRegistryItem, isPaidItem } from "@/lib/registry-items";
 
 const { rewrite: rewriteDocs } = rewritePath(
   `${ROUTES.DOCS}{/*path}`,
