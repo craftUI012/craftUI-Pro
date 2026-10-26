@@ -26,6 +26,8 @@ export const RESOURCE_CATEGORIES = [
   // category when it was renamed.
   { id: "people", label: "Designers on X", one: "Designer on X" },
   { id: "x-post", label: "X posts", one: "X post" },
+  // Apps and services worth keeping (design tools, generators, plugins).
+  { id: "tool", label: "Tools", one: "Tool" },
 ] as const;
 
 export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number]["id"];

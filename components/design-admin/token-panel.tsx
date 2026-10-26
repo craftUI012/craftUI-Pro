@@ -1,7 +1,15 @@
 "use client";
 
+import {
+  Notification03Icon,
+  Search01Icon,
+  Settings01Icon,
+  SparklesIcon,
+} from "@hugeicons/core-free-icons";
 import * as React from "react";
 
+import { Icon } from "@/components/icon";
+import type { IconSize } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TYPE, TYPE_ROLES, TYPE_SIZES } from "@/constants/typography";
@@ -699,6 +707,81 @@ const MotionTokens = () => (
   </div>
 );
 
+const ICON_SIZES: IconSize[] = ["sm", "md", "lg"];
+const ICON_SAMPLES = [
+  Search01Icon,
+  Notification03Icon,
+  Settings01Icon,
+  SparklesIcon,
+];
+
+// The site icon tokens, read live: each size, its rem value, and the line it
+// actually draws (the stroke is in the icon's 24-unit grid, so it scales
+// with the size).
+const IconTokens = () => {
+  const [tokens, setTokens] = React.useState<{
+    sizes: Record<string, string>;
+    stroke: number;
+  } | null>(null);
+
+  React.useEffect(() => {
+    const styles = getComputedStyle(document.documentElement);
+    setTokens({
+      sizes: Object.fromEntries(
+        ICON_SIZES.map((size) => [
+          size,
+          styles.getPropertyValue(`--icon-size-${size}`).trim(),
+        ])
+      ),
+      stroke: Number(styles.getPropertyValue("--icon-stroke").trim()) || 0,
+    });
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <SectionLabel index="07">Icons</SectionLabel>
+      <p className={cn(TYPE.cardCaption, "text-muted-foreground text-pretty")}>
+        Hugeicons through components/icon.tsx, for craftUI's own UI (not the
+        registry components). The stroke is --icon-stroke
+        {tokens
+          ? ` (${tokens.stroke || "not loaded: the stylesheet is stale, restart the dev server"})`
+          : ""}{" "}
+        in a 24-unit grid, so the line stays proportional to the size.
+      </p>
+      <div className="flex flex-col gap-3">
+        {ICON_SIZES.map((size) => {
+          const rem = tokens?.sizes[size] ?? "";
+          const px = Number.parseFloat(rem) * 16;
+          const line = tokens && px ? (px * tokens.stroke) / 24 : null;
+          return (
+            <div key={size} className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                {ICON_SAMPLES.map((sample, index) => (
+                  <Icon key={index} icon={sample} size={size} />
+                ))}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className={cn(TYPE.cardCaption, "font-mono")}>
+                  size=&quot;{size}&quot; · --icon-size-{size}
+                </span>
+                <span
+                  className={cn(
+                    TYPE.cardCaption,
+                    "text-muted-foreground font-mono"
+                  )}
+                >
+                  {rem} = {px || "…"}px · line{" "}
+                  {line === null ? "…" : `${Number(line.toFixed(2))}px`}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export const TokenPanel = () => (
   <Card className="gap-0 py-0">
     <CardContent className="flex flex-col gap-8 p-6">
@@ -721,6 +804,7 @@ export const TokenPanel = () => (
         <RadiusTokens />
         <ShadowTokens />
         <MotionTokens />
+        <IconTokens />
       </div>
     </CardContent>
   </Card>

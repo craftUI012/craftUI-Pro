@@ -302,7 +302,6 @@ export const BrowseTopBar = ({
             <Link
               href={ROUTES.PRICING}
               aria-current={onPricing ? "page" : undefined}
-              transitionTypes={["nav-forward"]}
             >
               Pricing
             </Link>
@@ -313,9 +312,9 @@ export const BrowseTopBar = ({
             sound="click"
             className={cn(NAV_TYPE, "ml-1")}
           >
-            <Link href={account.href} transitionTypes={["nav-forward"]}>
-              {account.label}
-            </Link>
+            {/* No transition type: pricing, sign-in and the dashboard open in
+                place, without the page you leave sliding away. */}
+            <Link href={account.href}>{account.label}</Link>
           </Button>
         </div>
       </div>

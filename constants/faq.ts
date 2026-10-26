@@ -24,7 +24,7 @@ export const FAQ: { answer: string; question: string }[] = [
   },
   {
     answer:
-      "craftUI is freemium. Some items are free to install; the rest are included in a paid plan. Every preview is free to explore. The plans are on the pricing page.",
+      "Every preview and the docs are free to explore. Viewing an item's code and installing it need the yearly or lifetime plan, both on the pricing page.",
     question: "Is craftUI free?",
   },
   {

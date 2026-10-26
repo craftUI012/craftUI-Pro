@@ -1,37 +1,25 @@
 import type { Metadata } from "next";
 
-import { PageTransition } from "@/components/page-transition";
-import { PricingClient } from "@/components/pricing-client";
+import { PricingPlans } from "@/components/pricing-plans";
 import { ROUTES } from "@/constants/routes";
 import { createPageMetadata } from "@/seo/metadata";
 
 export const metadata: Metadata = createPageMetadata({
   description:
-    "Lifetime all-access or yearly all-access. Pick the plan that fits.",
+    "Preview every craftUI item for free. Get the code with a yearly plan or pay once for lifetime access.",
   path: ROUTES.PRICING,
   title: "Pricing",
 });
 
+// No page transition: the pricing page and the links to it (navbar, CTAs)
+// open in place, without the sideways slide. The content is
+// constants/pricing.ts; the layout is components/pricing-plans.tsx.
 const PricingPage = () => (
-  <PageTransition>
-    <section className="container-wrapper">
-      <div className="container flex max-w-4xl flex-col items-center gap-4 py-16 text-center">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Simple pricing
-        </h1>
-        <p className="text-muted-foreground max-w-xl text-base">
-          Pay first, then sign in. Lifetime and yearly include every component
-          and every template — nothing else.
-        </p>
-      </div>
-    </section>
-
-    <section className="container-wrapper">
-      <div className="container max-w-4xl pb-16">
-        <PricingClient />
-      </div>
-    </section>
-  </PageTransition>
+  <section className="container-wrapper">
+    <div className="container max-w-5xl px-4 pt-16 pb-12 md:pt-20">
+      <PricingPlans />
+    </div>
+  </section>
 );
 
 export default PricingPage;

@@ -10,7 +10,7 @@ import { ROUTES } from "@/constants/routes";
 // rendered from a server component hydrates with a mismatch.
 export const TemplatesCta = ({ className }: { className?: string }) => (
   <Button asChild className={className}>
-    <Link href={ROUTES.PRICING} transitionTypes={["nav-forward"]}>
+    <Link href={ROUTES.PRICING}>
       Get craftUI
       <ArrowRight data-icon="inline-end" />
     </Link>

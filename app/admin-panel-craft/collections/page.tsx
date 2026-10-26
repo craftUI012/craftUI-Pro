@@ -17,7 +17,7 @@ const ABOUT: Record<CollectionName, string> = {
   purchase:
     'One document per order or subscription (ours). Only status "active" grants access.',
   resource:
-    "Saved links from the Resources page (ours): websites, designers on X and X posts, with tags.",
+    "Saved links from the Resources page (ours): websites, designers on X, X posts and tools, with tags.",
   session:
     "One per signed-in browser (better-auth). Tokens are shortened here.",
   user: "One per person who signed in, or was added here (better-auth).",

@@ -101,8 +101,8 @@ export const ResourceDialog = ({
               {resource ? "Edit resource" : "Add resource"}
             </DialogTitle>
             <DialogDescription>
-              A website, a designer on X or an X post worth keeping, with tags
-              to filter by later.
+              A website, a designer on X, an X post or a tool worth keeping,
+              with tags to filter by later.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">

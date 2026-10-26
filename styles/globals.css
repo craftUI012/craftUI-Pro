@@ -762,6 +762,67 @@
   @apply border-border/50 dark:border-border;
 }
 
+/* The highlighted plan's card on /pricing (components/pricing-plans.tsx, on
+   the shadcn Card through the design-admin KitCard), after the Pro card in
+   Figma "Pricing card03", in the primary colour: a glow from the top-left
+   corner only, fading out well before mid-card, and a 1px edge that is full
+   primary at the top-left and settles to a dim primary line elsewhere.
+
+   A plain class, deliberately outside Tailwind's layers: unlayered CSS
+   always beats layered utilities, so it reliably replaces the Card's own
+   bg-card and shadow-border (which are utilities) instead of depending on
+   utility order.
+
+   How: a transparent border, with three background layers. The glow and
+   the card colour fill the inside (padding-box); the edge gradient fills
+   the border-box behind them, so only the 1px border shows it.
+
+   Tuning: the glow's spread is its ellipse (75% wide, 45% tall from the
+   corner) and its strength the primary % beside it; the edge's bright
+   stretch is the first stops of the 135deg gradient (full at 0-15%, dim
+   from about 42%). */
+.card-highlight {
+  border: 1px solid transparent;
+  background:
+    radial-gradient(
+        75% 45% at 0% 0%,
+        color-mix(in oklab, var(--primary) 22%, transparent),
+        transparent
+      )
+      padding-box,
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary) 15%,
+        color-mix(in oklab, var(--primary) 25%, transparent) 42%,
+        color-mix(in oklab, var(--primary) 20%, transparent)
+      )
+      border-box;
+  box-shadow: none;
+}
+
+/* Dark, matching the site's dark variant (.dark, but not inside .light). */
+.card-highlight:is(.dark *):not(:is(.dark .light, .dark .light *)) {
+  background:
+    radial-gradient(
+        75% 45% at 0% 0%,
+        color-mix(in oklab, var(--primary) 70%, transparent),
+        transparent
+      )
+      padding-box,
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary) 15%,
+        color-mix(in oklab, var(--primary) 35%, transparent) 42%,
+        color-mix(in oklab, var(--primary) 30%, transparent)
+      )
+      border-box;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
 @utility section-soft {
   @apply from-background to-surface/40 dark:bg-background 3xl:fixed:bg-none bg-linear-to-b;
 }
@@ -1092,6 +1153,24 @@
      motion-ease-in-out: things already on screen moving to a new place. */
   --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --motion-ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
+  /* Site icons: Hugeicons through components/icon.tsx, for craftUI's own UI
+     only (never the registry components, which ship their own icons).
+     Three sizes, rem at 16px. The stroke is in the icon's 24-unit grid, so
+     the drawn line stays proportional to the icon's size:
+     size × stroke ÷ 24 = 1px at 16px, 1.25px at 20px, 1.5px at 24px.
+     Raise --icon-stroke for bolder icons everywhere at once. */
+  --icon-size-sm: 1rem;
+  --icon-size-md: 1.25rem;
+  --icon-size-lg: 1.5rem;
+  --icon-stroke: 1.5;
+}
+
+/* The site icon's stroke (components/icon.tsx). CSS wins over the
+   stroke-width attribute Hugeicons writes on each shape, so the token rules. */
+@utility site-icon {
+  & :where(path, circle, rect, line, polyline, polygon, ellipse) {
+    stroke-width: var(--icon-stroke);
+  }
 }
 
 /* Hero eyebrow — one glint travels across the brand name: each letter lifts

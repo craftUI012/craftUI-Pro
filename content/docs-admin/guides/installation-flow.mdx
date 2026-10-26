@@ -95,7 +95,7 @@ Every webhook event is in [Payments with Dodo → What each event does](/docs-ad
 1. Dodo sends them to `/checkout/success`: "Payment received", showing the email they paid with. (If the payment failed or was cancelled: "Payment didn't go through".)
 2. **Sign in to unlock** opens `/login?email=…` with the email already filled in.
 3. They get an email with a magic link (valid 15 minutes) and click it.
-4. They land signed in. `/dashboard` says "Lifetime all-access is active…" (or yearly, or "You own N items").
+4. They land signed in on `/dashboard`: their name and email, their plan (Lifetime, Yearly with the end of the current year, or the items they own), their last payment, and every payment with an **Invoice** download.
 
 **The code:**
 
@@ -103,6 +103,8 @@ Every webhook event is in [Payments with Dodo → What each event does](/docs-ad
 - better-auth creates the `user` and `session` in MongoDB on first sign-in.
 - `components/posthog-identify.tsx` ties the visitor's PostHog history to their user ID.
 - `/dashboard` runs `backfillPurchasesToUser()`, which writes their `userId` into guest purchases bought with that email. (Access works by email even before this.)
+- The dashboard's plan comes from our `purchase` documents; its payments come from Dodo (`payments.list` per Dodo customer, so each yearly renewal is its own row), in the currency Dodo actually charged. `lib/billing/account.ts` builds both. If Dodo can't be reached, payments fall back to our records without invoices.
+- **Invoice** downloads go through `/api/invoices/<paymentId>`, which checks the session and that the payment was charged to one of the user's Dodo customers (anyone else gets 404), then streams Dodo's PDF.
 
 ## 6. Unlocked
 
