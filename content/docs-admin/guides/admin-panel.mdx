@@ -1,0 +1,56 @@
+---
+title: Admin panel
+description: Manage users and purchases, and read the raw MongoDB collections, at /admin-panel-craft.
+---
+
+The admin panel is at **`/admin-panel-craft`**. It's built from the shadcn components in `components/ui/` and reads and writes the same MongoDB database as the site.
+
+## Who can open it
+
+Only the emails in **`ADMIN_EMAILS`** (comma-separated, in `.env` locally and in Vercel's environment variables in production):
+
+```bash
+ADMIN_EMAILS=nil@craftui.space,you@gmail.com
+```
+
+| Visitor | Gets |
+| --- | --- |
+| Signed out | Sent to `/login?next=/admin-panel-craft`; the magic link brings them back |
+| Signed in, not in `ADMIN_EMAILS` | 404, so the panel doesn't reveal it exists |
+| Signed in admin | The panel |
+
+Admin emails may sign in **without a purchase** (`lib/auth.ts` skips the pay-first gate for them). Every write re-checks the admin on the server (`requireAdmin` in `lib/admin/session.ts`), so knowing the URL or an action's ID isn't enough. The route is `noindex` and disallowed in `robots.txt`.
+
+## Pages
+
+| Page | What it does |
+| --- | --- |
+| **Overview** | Users, active sessions, purchases (and how many grant access now), guest purchases, revenue (not refunded), latest purchases |
+| **Users** | Every user with their access (Lifetime, Yearly, N items), purchase and session counts, last activity. Search by email or name. **Add user**, optionally granting access at once |
+| **User page** | Edit name, email and verified flag. Their purchases (add, edit, delete), sessions (sign out of one or everywhere), linked accounts, pending sign-in links. **Delete user and all records** |
+| **Purchases** | Every purchase, guests included. Filter by email or ID, kind, status. Add, edit, delete |
+| **Collections** | The raw documents of `user`, `session`, `account`, `verification` and `purchase`, read-only, 20 per page. Session and sign-in tokens are shortened |
+
+## What the actions change
+
+All in `app/admin-panel-craft/actions.ts`. They change **our database only**: nothing is refunded, cancelled or charged in Dodo. Refund in Dodo's dashboard and the webhook marks the purchase refunded by itself.
+
+| Action | Effect |
+| --- | --- |
+| Add user | A `user` document. With access: also a purchase with `provider: "manual"`, no amount, `_id` `manual_<uuid>` |
+| Add purchase | A manual purchase for any email. A yearly one without a date runs a year from today |
+| Edit purchase | Kind, item, end date, status, email. Only status `active` grants access; to end access but keep the record, set `refunded` |
+| Edit user | Changing the email also moves their purchases to the new address, so their access follows |
+| Sign out | Deletes their `session` documents |
+| Delete purchase | Removes it; access from it ends at once |
+| Delete user and all records | Type the email to confirm. Removes the user, their sessions, accounts, pending sign-in links, and **all purchases** by user ID or email |
+
+## Files
+
+| File | Role |
+| --- | --- |
+| `app/admin-panel-craft/` | Layout (the admin check and the bar), Overview, `users/`, `users/[id]/`, `purchases/`, `collections/`, `actions.ts` |
+| `lib/admin/emails.ts` | `isAdminEmail` (reads `ADMIN_EMAILS`) |
+| `lib/admin/session.ts` | `requireAdminPage` (pages), `requireAdmin` (actions) |
+| `lib/admin/data.ts` | Every read: overview, users, a user's details, purchases, raw collections |
+| `components/admin-panel/` | Nav, the add/edit dialogs, delete confirmations, access badges |

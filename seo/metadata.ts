@@ -178,4 +178,9 @@ export const baseMetadata: Metadata = {
     images: [SITE.OG_IMAGE],
     title: `${SITE.NAME} – ${SITE.TAGLINE}`,
   },
+  // Google Search Console ownership: <meta name="google-site-verification">
+  // on every page. Keep it after verifying; removing it un-verifies the site.
+  verification: {
+    google: "pjJj0f3fm6sC8Sshy4wz7bHNGl1b0K7Mg-sZoT2pTOg",
+  },
 };

@@ -43,7 +43,7 @@ The codebase has four subsystems, and they all hang off one Next.js app:
 
 1. **`proxy.ts`** runs first (Next.js 16's name for middleware). It rewrites markdown requests: `/docs/foo.md`, or any `/docs/...` request with `Accept: text/markdown`, goes to `/llms.md/docs/foo/content.md`. A markdown request for `/` goes to `/llms.md/content.md`.
 2. **`app/layout.tsx`** (root) sets up fonts, global CSS, JSON-LD, and the provider stack: `SoundProvider`, then `ThemeProvider`, then the page, `Toaster` and `Analytics`.
-3. **`app/(app)/layout.tsx`** wraps every human-facing page with `SiteHeader`, `SiteFooter`, `WebMcpTools`, and a screen-reader-only agent directive.
+3. **`app/(app)/layout.tsx`** (site pages: pricing, sign-in, dashboard, the admin pages) and **`app/(home)/layout.tsx`** (the browse page and the docs) both wrap their pages in `BrowseShell`, the one navbar, plus `WebMcpTools` and a screen-reader-only agent directive. Site pages also get `SiteFooter`.
 4. The **route segment** renders. Docs pages are fully static (`force-static`, `dynamicParams = false`, `generateStaticParams` from the loader).
 
 ## Rendering model

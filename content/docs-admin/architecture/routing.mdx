@@ -17,7 +17,9 @@ description: Every URL the app serves, the proxy rewrites, redirects and respons
 
 | URL                                                                | File                                                                 | Content type                                   |
 | ------------------------------------------------------------------ | -------------------------------------------------------------------- | ---------------------------------------------- |
-| `/r/<name>.json`                                                   | `public/r/` (static file)                                            | JSON (shadcn registry item)                    |
+| `/r/<name>.json`                                                   | `public/r/` (static file) for free items; `app/r/[file]/route.ts` for paid items and product-code URLs | JSON (shadcn registry item). Paid items need `?t=<install token>`; see [Paid items](/docs-admin/architecture/registry-pipeline#paid-items) |
+| `/api/access`                                                      | `app/api/access/route.ts`                                            | JSON: the signed-in user's access and install token |
+| `/api/source/<name>`                                               | `app/api/source/[name]/route.ts`                                     | JSON `{ code, html }`; paid items for their owner only |
 | `/api/status`                                                      | `app/api/status/route.ts`                                            | JSON `{ status: "ok" }`, cached for 60 seconds |
 | `/llms.txt`                                                        | `app/llms.txt/route.ts`                                              | text, docs index                               |
 | `/llms-full.txt`                                                   | `app/llms-full.txt/route.ts`                                         | text, all docs concatenated                    |
@@ -44,7 +46,7 @@ It's a **rewrite**, so the browser URL stays the same.
 
 ## Redirects (`next.config.mjs`)
 
-- `/docs.mdx` goes to `/docs.md` (permanent)
+- `/docs`, `/docs.md` and `/docs.mdx` go to `/about` (permanent). The docs introduction became the about page (`app/(app)/about`, FAQ text in `constants/faq.ts`)
 - `/docs/:path*.mdx` goes to `/docs/:path*.md` (permanent)
 - `/homepage-new` goes to `/`, and `/homepage-new/docs/:path*` goes to `/docs/:path*` (temporary, 307). These are the browse page's old URLs
 
@@ -55,6 +57,6 @@ It's a **rewrite**, so the browser URL stays the same.
 ## Adding a new route
 
 1. Add the path to `ROUTES` in `constants/routes.ts`.
-2. Create the folder under `app/(app)/` if it needs the header and footer, under `app/(home)/` if it belongs in the browse shell (rail + top bar), or directly under `app/` if it needs neither.
-3. If it should appear in the navbar, add it to `navItems` in `components/site-header.tsx`. That list also feeds `MobileNav` and `CommandMenu`.
-4. If it's public, add it to `app/sitemap.ts`.
+2. Create the folder under `app/(app)/` for a site page (the navbar and the footer), under `app/(home)/` if it belongs with the browse page and the docs (the navbar only, kept mounted between them), or directly under `app/` if it needs neither. Both groups use the same navbar, `components/new-hero-section/browse/browse-top-bar.tsx`, through `BrowseShell`. On a site page it selects no library tab, and its search opens docs pages.
+3. If it should appear in the navbar, add it in `browse-top-bar.tsx` (Pricing is there now). Development-only links go in `devLinks` in `components/new-hero-section/browse/new-home.tsx`.
+4. If it's public, add it to `app/sitemap.ts`. Docs pages are added automatically, except placeholders: a page in a library folder (`/docs/<library>/…`) is listed only when a registry item points to it (`isIndexableDocsPage` in `lib/registry.ts`); the rest are noindex.

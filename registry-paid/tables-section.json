@@ -3,9 +3,7 @@
   "name": "tables-section",
   "title": "API keys table",
   "description": "Search, filters, row selection, pagination, and create, rotate and delete dialogs.",
-  "dependencies": [
-    "lucide-react"
-  ],
+  "dependencies": ["lucide-react"],
   "registryDependencies": [
     "table",
     "button",
@@ -27,19 +25,12 @@
     }
   ],
   "meta": {
-    "pro": false,
+    "id": "SEC-0004",
     "library": "templates",
-    "types": [
-      "tables"
-    ],
-    "styles": [
-      "minimal",
-      "dark-mode"
-    ],
+    "types": ["tables"],
+    "styles": ["minimal", "dark-mode"],
     "publishedAt": "2026-10-06"
   },
-  "categories": [
-    "data"
-  ],
+  "categories": ["data"],
   "type": "registry:block"
 }

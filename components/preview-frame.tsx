@@ -5,6 +5,8 @@ import * as React from "react";
 
 import type { PreviewView, PreviewWidth } from "@/components/preview-toolbar";
 import { PreviewToolbar } from "@/components/preview-toolbar";
+import { loadItemSource, useAccess } from "@/hooks/use-access";
+import { trackEvent } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
 // Container width per toolbar selection. "desktop" removes the max-width so
@@ -53,28 +55,56 @@ const CARD_VISIBLE = "inset(0% 0% 0% 0%)";
 // the card covers y, nested inside the curtain so it's confined to the
 // curtain's own reveal. Both cut in/out instantly (see INSTANT above).
 //
-// `copyValue` is the source "Copy for AI" copies; `locked` (a pro item)
-// swaps that for a jump to the Code view, where the paywall is. `installName`
-// also ids the box, so a shared link (toolbar Share) scrolls to this card.
+// `copyValue` is the source "Copy for AI" copies (free items). A `paid` item
+// (product code `itemId`) is locked unless the signed-in user owns it: then
+// Copy for AI and the install command jump to the Code view, where the plans
+// are. Owners get the source from /api/source and an install command with
+// their token. `installName` also ids the box, so a shared link (toolbar
+// Share) scrolls to this card.
 export const PreviewFrame = ({
   children,
   copyValue,
   installName,
-  locked = false,
+  itemId,
+  paid = false,
   source,
   title,
 }: {
   children: React.ReactNode;
   copyValue?: string | null;
   installName?: string;
-  locked?: boolean;
+  itemId?: string;
+  paid?: boolean;
   source?: React.ReactNode;
   title?: string;
 }) => {
+  const access = useAccess();
+  // Locked until access is confirmed, so nothing flashes unlocked.
+  const locked = paid && !(access.ready && access.canUse(itemId));
+  const unlockedPaid = paid && !locked;
   const [width, setWidth] = React.useState<PreviewWidth>("desktop");
   const [view, setView] = React.useState<PreviewView>("preview");
   const [reloadKey, setReloadKey] = React.useState(0);
   const boxRef = React.useRef<HTMLDivElement>(null);
+
+  // A locked item's Code view is its paywall: count each time it's opened
+  // (once access is known, so owners never count).
+  React.useEffect(() => {
+    if (access.ready && locked && view === "code") {
+      trackEvent({
+        name: "paywall_viewed",
+        properties: { item: installName ?? null },
+      });
+    }
+  }, [access.ready, installName, locked, view]);
+
+  const getPaidCode = React.useCallback(async () => {
+    if (!installName) {
+      return null;
+    }
+    const loaded = await loadItemSource(installName);
+    return loaded?.code ?? null;
+  }, [installName]);
 
   const curtainVariants = {
     hidden: { clipPath: CURTAIN_HIDDEN, transition: INSTANT },
@@ -109,7 +139,9 @@ export const PreviewFrame = ({
     >
       <PreviewToolbar
         copyValue={copyValue}
+        getCode={unlockedPaid ? getPaidCode : undefined}
         installName={installName}
+        installToken={unlockedPaid ? access.installToken : null}
         locked={locked}
         onLockedCopy={() => setView("code")}
         title={title}

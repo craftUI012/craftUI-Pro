@@ -37,7 +37,7 @@ import registry from "@/registry.json";
 //                        it has no R2 screenshot in content/media-manifest.json
 //                        (lib/media.ts); a placeholder otherwise
 //   meta.popularity    → "Most popular" order (install analytics, later)
-//   meta.pro           → the Pro badge
+//   meta.free          → no Pro badge (every other item is paid)
 //
 // The slugs are checked against constants/taxonomy.ts first
 // (assertRegistryTaxonomy), so a bad one fails the build, not the page.
@@ -48,7 +48,7 @@ interface RegistryItem extends TaxonomyRegistryItem {
     docs?: string;
     popularity?: number;
     preview?: string;
-    pro?: boolean;
+    free?: boolean;
   };
   title?: string;
 }
@@ -135,7 +135,7 @@ const toShowcaseItem = (
   return {
     href,
     id: item.name,
-    isPro: meta.pro === true,
+    isPro: meta.free !== true,
     name,
     popularity: meta.popularity ?? 0,
     preview: previewOf(item, name),

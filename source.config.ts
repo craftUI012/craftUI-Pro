@@ -34,6 +34,9 @@ export default defineConfig({
 // no menu item. Remove a line to bring its page back (and re-add it to its
 // folder's meta.json).
 const HIDDEN_DOCS = [
+  // The old introduction: its content is the about page now (/docs
+  // redirects to /about, see next.config.mjs).
+  "(root)/index.mdx",
   // Placeholder from the registry template, not a real component.
   "components/your-component.mdx",
 ];
@@ -50,7 +53,13 @@ const docsFrontmatter = frontmatterSchema.extend({
 export const docs = defineDocs({
   dir: DOCS_DIR,
   docs: {
-    files: ["**/*.mdx", ...HIDDEN_DOCS.map((path) => `!${path}`)],
+    // Parentheses (route groups like "(root)") are glob syntax, so escaped.
+    files: [
+      "**/*.mdx",
+      ...HIDDEN_DOCS.map(
+        (path) => `!${path.replaceAll(/[()]/g, (paren) => `\\${paren}`)}`
+      ),
+    ],
     postprocess: {
       includeProcessedMarkdown: true,
     },

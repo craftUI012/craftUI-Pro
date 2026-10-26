@@ -2,6 +2,7 @@
 
 import { SearchIcon, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { BrandContextMenu } from "@/components/brand-context-menu";
 import { LogoMark } from "@/components/logo";
@@ -169,6 +170,7 @@ export const BrowseTopBar = ({
   searchOpen: boolean;
 }) => {
   const account = useAccountLink();
+  const onPricing = usePathname() === ROUTES.PRICING;
 
   return (
     <header className="bg-background/90 sticky top-0 z-40 backdrop-blur">
@@ -270,14 +272,22 @@ export const BrowseTopBar = ({
               />
             </>
           )}
+          {/* Filled like an active library tab while on the pricing page. */}
           <Button
             asChild
             variant="ghost"
             size="sm"
             sound="click"
-            className={NAV_TYPE}
+            className={cn(
+              NAV_TYPE,
+              onPricing && "bg-accent text-accent-foreground"
+            )}
           >
-            <Link href={ROUTES.PRICING} transitionTypes={["nav-forward"]}>
+            <Link
+              href={ROUTES.PRICING}
+              aria-current={onPricing ? "page" : undefined}
+              transitionTypes={["nav-forward"]}
+            >
               Pricing
             </Link>
           </Button>

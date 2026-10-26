@@ -19,7 +19,7 @@ ${AGENT_DOCS_DIRECTIVE_MARKDOWN}
 
 - [Get started](${base}${ROUTES.DOCS_INSTALLATION}.md)
 - [Browse components](${base}${ROUTES.DOCS_COMPONENTS}.md)
-- [Documentation](${base}${ROUTES.DOCS}.md)
+- [About craftUI and FAQ](${base}${ROUTES.ABOUT})
 - [LLM index (llms.txt)](${base}${ROUTES.LLMS})
 - [API catalog](${base}${ROUTES.API_CATALOG})
 - [OpenAPI description](${base}${ROUTES.OPENAPI})

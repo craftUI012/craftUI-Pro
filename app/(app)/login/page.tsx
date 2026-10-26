@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,24 @@ const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [needsPlan, setNeedsPlan] = useState(false);
 
+  const [next, setNext] = useState<string>(ROUTES.DASHBOARD);
+
+  // From the checkout success page (?email=…): the email the purchase is
+  // stored under, so the magic link goes to the right address. ?next=/path
+  // (e.g. from the admin panel) is where the link lands; same-site paths
+  // only, so the link can't be pointed at another site.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromCheckout = params.get("email");
+    if (fromCheckout) {
+      setEmail(fromCheckout);
+    }
+    const nextPath = params.get("next");
+    if (nextPath?.startsWith("/") && !nextPath.startsWith("//")) {
+      setNext(nextPath);
+    }
+  }, []);
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setStatus("sending");
@@ -30,7 +48,7 @@ const LoginPage = () => {
     setNeedsPlan(false);
 
     const { error: authError } = await authClient.signIn.magicLink({
-      callbackURL: "/dashboard",
+      callbackURL: next,
       email: email.trim(),
     });
 

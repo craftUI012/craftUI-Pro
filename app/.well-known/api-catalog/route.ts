@@ -32,7 +32,7 @@ const catalogLinkset = (origin: string) => {
           { href: `${base}${ROUTES.OPENAPI}`, type: "application/json" },
         ],
         "service-doc": [
-          { href: `${base}${ROUTES.DOCS}`, type: "text/html" },
+          { href: `${base}${ROUTES.DOCS_INSTALLATION}`, type: "text/html" },
           { href: `${base}${ROUTES.LLMS}`, type: "text/plain" },
           { href: `${base}${ROUTES.LLMS_FULL}`, type: "text/plain" },
           { href: `${base}${homeContentRoute}`, type: "text/markdown" },
@@ -47,7 +47,9 @@ const catalogLinkset = (origin: string) => {
         "service-desc": [
           { href: `${base}${ROUTES.OPENAPI}`, type: "application/json" },
         ],
-        "service-doc": [{ href: `${base}${ROUTES.DOCS}`, type: "text/html" }],
+        "service-doc": [
+          { href: `${base}${ROUTES.DOCS_INSTALLATION}`, type: "text/html" },
+        ],
         status: [
           { href: `${base}${ROUTES.API_STATUS}`, type: "application/json" },
         ],

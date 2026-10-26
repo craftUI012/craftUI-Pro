@@ -37,6 +37,8 @@ const nextConfig = {
   },
   outputFileTracingIncludes: {
     "/*": ["./registry/**/*"],
+    // Paid items' built JSON, served to buyers by app/r/[file]/route.ts.
+    "/r/*": ["./registry-paid/**/*", "./public/r/**/*"],
   },
   redirects() {
     return [
@@ -48,8 +50,16 @@ const nextConfig = {
         permanent: false,
         source: "/homepage-new/docs/:path*",
       },
+      // The docs introduction became the about page. Its markdown mirrors
+      // go there too: the page they mirrored is gone.
+      { destination: ROUTES.ABOUT, permanent: true, source: ROUTES.DOCS },
       {
-        destination: `${ROUTES.DOCS}.md`,
+        destination: ROUTES.ABOUT,
+        permanent: true,
+        source: `${ROUTES.DOCS}.md`,
+      },
+      {
+        destination: ROUTES.ABOUT,
         permanent: true,
         source: `${ROUTES.DOCS}.mdx`,
       },
@@ -60,6 +70,27 @@ const nextConfig = {
       },
     ];
   },
+  // PostHog's reverse proxy (instrumentation-client.ts sends to /relay), so
+  // ad blockers don't drop events. US region hosts.
+  rewrites() {
+    return [
+      {
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+        source: "/relay/static/:path*",
+      },
+      {
+        destination: "https://us-assets.i.posthog.com/array/:path*",
+        source: "/relay/array/:path*",
+      },
+      {
+        destination: "https://us.i.posthog.com/:path*",
+        source: "/relay/:path*",
+      },
+    ];
+  },
+  // Some PostHog API paths end in a slash; without this, Next.js redirects
+  // them and the proxied requests fail.
+  skipTrailingSlashRedirect: true,
 };
 
 const withMDX = createMDX({});

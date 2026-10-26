@@ -14,7 +14,7 @@ This flag is checked in four places:
 
 | Where                                                        | Effect when `false`                                                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `components/site-header.tsx`                                 | "Docs Admin" is left out of `navItems`, so it's also absent from the mobile nav and command menu |
+| `components/new-hero-section/browse/new-home.tsx`            | "Docs admin" is left out of the navbar's `devLinks`                                              |
 | `app/(app)/docs-admin/layout.tsx`                            | Calls `notFound()`                                                                               |
 | `app/(app)/docs-admin/[[...slug]]/page.tsx`                  | `generateStaticParams` returns `[]`, and the page and metadata call `notFound()`                 |
 | (always) `app/robots.txt/route.ts`, `noIndex: true` metadata | Never crawled or indexed, even when enabled                                                      |

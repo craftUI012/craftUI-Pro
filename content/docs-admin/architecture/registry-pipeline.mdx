@@ -9,7 +9,8 @@ description: How a .tsx file becomes something anyone can install with npx shadc
 | ------------------------------------------------ | --------------- | --------------------- | ---------------------------------------------------------------- |
 | `registry/<library>/<name>.tsx`                  | yes             | you                   | `shadcn build`, the docs site (`ComponentSource`), the home page |
 | `registry.json`                                  | yes             | you                   | `shadcn build`, `components/command-box.tsx` (item names)        |
-| `public/r/<name>.json`, `public/r/registry.json` | yes (currently) | `pnpm registry:build` | the shadcn CLI on users' machines                                |
+| `public/r/<name>.json`, `public/r/registry.json` | yes (currently) | `pnpm registry:build` | the shadcn CLI on users' machines (free items and the index)     |
+| `registry-paid/<name>.json`                      | yes (currently) | `pnpm registry:build` | `app/r/[file]/route.ts`, for buyers only (see [Paid items](#paid-items)) |
 
 ## What `pnpm registry:build` does
 
@@ -31,6 +32,8 @@ For every item in `registry.json`, it:
 4. Writes `public/r/<item.name>.json`.
 
 It also writes `public/r/registry.json`, the index of all items. Because `public/` is served statically, the files are available at `https://<site>/r/<name>.json`.
+
+Then the script moves every **paid** item's JSON out of `public/r/` into `registry-paid/`, which isn't public. See [Paid items](#paid-items).
 
 A built item looks like this:
 
@@ -102,3 +105,44 @@ The code is then formatted (`lib/format-code.ts`) and highlighted (`lib/highligh
 
 - **`CommandBox`** (home page) shows `<pm> shadcn add` followed by flipping item names taken from `registry.json`.
 - **`RegistryAddButton`** shows `shadcn registry add <registryName>`, which is the command for adding the whole namespaced registry once it's listed in the shadcn directory.
+
+## Paid items
+
+Every library item (one with `meta.library`) is **paid** unless `registry.json` gives it `"free": true` in `meta`. `isPaidItem()` in `lib/registry.ts` is the one place that decides.
+
+### Where a paid item's code can and can't be reached
+
+| Place | Free item | Paid item |
+| --- | --- | --- |
+| `https://<site>/r/<name>.json` | Static file in `public/r/` | `app/r/[file]/route.ts`: needs `?t=<install token>` and access in the database |
+| `https://<site>/r/<product-code>.json` (e.g. `SEC-0003`) | Same as by name | Same as by name |
+| Docs page HTML | Source rendered by `ComponentSource` | **Never** in the page. The Code tab is `components/paid-source.tsx` |
+| Code tab | Source | Plans with checkout buttons (`components/paywall.tsx`), or, for an owner, the source from `/api/source/<name>` |
+| Copy for AI | Copies the source | Locked (opens the plans); an owner's copy fetches the source from `/api/source/<name>` |
+| Install command in the toolbar | Plain command | Locked (opens the plans); an owner copies the command with their token |
+| `public/r/registry.json` (index) | Listed | Listed (names and file paths only, never contents) |
+
+The live preview itself still ships the component's compiled, minified JavaScript to the browser: it has to, to render. Only the readable source and the installable files are gated.
+
+### Install tokens
+
+An owner's install command is `npx shadcn@latest add https://<site>/r/<name>.json?t=<token>`. The token (`lib/install-token.ts`) is the user's ID plus an HMAC-SHA256 signature made with `BETTER_AUTH_SECRET`, so only this server can issue one.
+
+- It **never expires** and there's no reset. The route checks the database on **every** install, so a refunded buyer or a lapsed yearly plan stops working at once.
+- The user gets their token from `/api/access` (read by `hooks/use-access.ts`). The token is only in the copied command, never in the visible text.
+- Changing `BETTER_AUTH_SECRET` invalidates every token. Owners just copy the command again.
+
+### What the route answers
+
+| Request | Response |
+| --- | --- |
+| Paid item, no token or a forged one | `401`, with a message pointing to the item's docs page. The shadcn CLI prints it |
+| Valid token, but the user doesn't own the item | `403`, with a link to pricing |
+| Valid token, all-access or a purchase of the item's product code | `200`, the item JSON, `Cache-Control: private, no-store` |
+| An unknown name or code | `404` |
+
+Installs are recorded in PostHog: free items by `proxy.ts`, paid items by the route itself. A granted paid install is `registry_item_fetched`, tied to the buyer's user ID. A refusal is `registry_access_denied`, with `reason` `no_token` or `no_access`, so refusals never count as installs.
+
+### Making an item free
+
+Add `"free": true` to its `meta` and run `pnpm registry:build`. Its JSON moves back to `public/r/`, and the docs page shows its source again. To make it paid again, remove the flag and rebuild.

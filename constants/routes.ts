@@ -1,4 +1,10 @@
 export const ROUTES = {
+  // What craftUI is, how it works, and the FAQ (app/(app)/about). Took over
+  // the old /docs introduction, which now redirects here.
+  ABOUT: "/about",
+  // Users, purchases and the raw MongoDB collections, for ADMIN_EMAILS only
+  // (app/admin-panel-craft).
+  ADMIN_PANEL: "/admin-panel-craft",
   AGENT_SKILLS_INDEX: "/.well-known/agent-skills/index.json",
   AGENT_SKILLS_SITE_SKILL: "/.well-known/agent-skills/site-skill.md",
   API_CATALOG: "/.well-known/api-catalog",
@@ -10,6 +16,8 @@ export const ROUTES = {
   // Changelog entries live under content/docs/changelog (see lib/changelog.ts
   // and the RSS feed). No index page or entries yet.
   CHANGELOG: "/docs/changelog",
+  // Where Dodo sends the buyer after paying (app/(app)/checkout/success).
+  CHECKOUT_SUCCESS: "/checkout/success",
   DASHBOARD: "/dashboard",
   DESIGN_ADMIN: "/design-admin",
   DOCS: "/docs",

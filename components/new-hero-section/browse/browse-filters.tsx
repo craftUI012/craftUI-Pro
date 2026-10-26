@@ -4,6 +4,7 @@ import type * as React from "react";
 import { createContext, use, useMemo, useState } from "react";
 
 import type { FilterGroupId, LibraryId } from "@/constants/taxonomy";
+import { trackEvent } from "@/lib/events";
 
 // What's picked in each filter group of one library, e.g.
 // { categories: ["marketing", "company"], styles: ["motion"] }. Several picks
@@ -121,14 +122,26 @@ export const useBrowseFilters = () => {
     );
   }
   const { selections, setSelections } = store;
+  const selection = selections[library] ?? {};
 
   return {
     clear: () => setSelections((current) => ({ ...current, [library]: {} })),
-    selection: selections[library] ?? {},
-    toggle: (groupId: FilterGroupId, value: string) =>
+    selection,
+    toggle: (groupId: FilterGroupId, value: string) => {
+      // Reported here, not inside the state update, which React may run twice.
+      trackEvent({
+        name: "filter_applied",
+        properties: {
+          group: groupId,
+          library,
+          selected: !(selection[groupId] ?? []).includes(value),
+          value,
+        },
+      });
       setSelections((current) => ({
         ...current,
         [library]: toggleValue(current[library] ?? {}, groupId, value),
-      })),
+      }));
+    },
   };
 };

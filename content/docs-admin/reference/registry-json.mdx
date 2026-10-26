@@ -40,7 +40,7 @@ description: Every field of the registry manifest and its items, with examples.
 | `css`                  | object   | Raw CSS rules (`@keyframes`, `@layer` and so on) merged into the user's CSS                                                                                                     |
 | `docs`                 | string   | Message printed by the CLI after installing                                                                                                                                     |
 | `categories`           | string[] | For directory and search grouping, and **the home page's Categories filter**. Lowercase slugs                                                                                   |
-| `meta`                 | object   | Free-form metadata. This site reads `library`, `types`, `styles`, `publishedAt`, `docs`, `preview`, `popularity` and `pro` from it; see below                                   |
+| `meta`                 | object   | Free-form metadata. This site reads `id`, `library`, `types`, `styles`, `publishedAt`, `docs`, `preview`, `popularity` and `free` from it; see below                                   |
 
 ## `meta` fields this site reads
 
@@ -55,7 +55,8 @@ These are ignored by `shadcn build` and the CLI. The home page and the docs read
 | `docs`        | no                         | Docs page slug when it isn't `name` (variants sharing a page)                                                                    |
 | `preview`     | no                         | Card screenshot path under `public/`                                                                                             |
 | `popularity`  | no                         | Most popular order                                                                                                               |
-| `pro`         | no                         | `true` puts the source behind the paywall                                                                                        |
+| `id`          | yes                        | Permanent product code (`SEC-0001`, `BLK-0001`…). Purchases store it; never change or reuse one. See [Product codes](/docs-admin/guides/browse-page-and-filters#product-codes) |
+| `free`        | no                         | `true` makes the item free: public install and source. Without it, every library item is paid. See [Paid items](/docs-admin/architecture/registry-pipeline#paid-items) |
 
 ## `files[]`
 
@@ -118,7 +119,7 @@ These are ignored by `shadcn build` and the CLI. The home page and the docs read
 | File                     | Contents                                                                                |
 | ------------------------ | --------------------------------------------------------------------------------------- |
 | `public/r/registry.json` | Index of all items (without file contents)                                              |
-| `public/r/<name>.json`   | The full item, with `files[].content` inlined and `$schema` set to `registry-item.json` |
+| `public/r/<name>.json`   | The full item, with `files[].content` inlined and `$schema` set to `registry-item.json`. **Free items only**: paid items go to `registry-paid/<name>.json` |
 
 <Callout title="Stale output">
   `shadcn build` doesn't delete JSON for items you removed. Delete old

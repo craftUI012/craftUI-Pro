@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { DocsArticle } from "@/components/docs-article";
 import { DocsRelated } from "@/components/docs-related";
 import { ROUTES } from "@/constants/routes";
-import { formatTitleFromSlug } from "@/lib/docs";
+import { LIBRARIES } from "@/constants/taxonomy";
+import { isIndexableDocsPage } from "@/lib/registry";
 import { getPageImage, source } from "@/lib/source";
+import { isLibraryId } from "@/lib/taxonomy";
 import { BreadcrumbJsonLd } from "@/seo/json-ld";
 import { createPageMetadata } from "@/seo/metadata";
 
@@ -30,6 +32,8 @@ export const generateMetadata = async (props: {
 
   return createPageMetadata({
     description: page.data.description,
+    // Placeholder pages (no registry item yet) stay out of search.
+    noIndex: !isIndexableDocsPage(page.slugs, page.url),
     ogImage: getPageImage(page).url,
     ogType: "article",
     path: page.url,
@@ -37,6 +41,9 @@ export const generateMetadata = async (props: {
   });
 };
 
+// Home → the item's library on the browse page → the page. There's no /docs
+// index (it redirects to /about) and no page per docs folder, so neither is
+// a crumb. Guides outside the library folders (Installation) are Home → page.
 const buildBreadcrumbs = (
   slugs: string[],
   pageTitle: string,
@@ -46,17 +53,13 @@ const buildBreadcrumbs = (
     { name: "Home", path: ROUTES.HOME },
   ];
 
-  if (slugs.length === 0) {
-    items.push({ name: pageTitle, path: pageUrl });
-    return items;
-  }
-
-  items.push({ name: "Docs", path: ROUTES.DOCS });
-
-  let currentPath: string = ROUTES.DOCS;
-  for (let i = 0; i < slugs.length - 1; i += 1) {
-    currentPath += `/${slugs[i]}`;
-    items.push({ name: formatTitleFromSlug(slugs[i]), path: currentPath });
+  const [folder] = slugs;
+  if (isLibraryId(folder)) {
+    const library = LIBRARIES[folder];
+    items.push({
+      name: library.label,
+      path: `${ROUTES.HOME}?library=${library.slug}`,
+    });
   }
 
   items.push({ name: pageTitle, path: pageUrl });

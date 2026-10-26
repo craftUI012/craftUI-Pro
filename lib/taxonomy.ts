@@ -9,6 +9,11 @@ export interface TaxonomyRegistryItem {
   name: string;
   categories?: string[];
   meta?: {
+    // Free to install without a plan. Everything else is paid.
+    free?: unknown;
+    // The product code purchases store, e.g. "SEC-0001" (see
+    // LibraryConfig.idPrefix).
+    id?: unknown;
     library?: string;
     publishedAt?: string;
     // Renamed to `types` (an item can have several). Still read, only to
@@ -20,6 +25,7 @@ export interface TaxonomyRegistryItem {
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const PRODUCT_ID = /^([A-Z]{3})-(\d{4})$/;
 
 // Groups an item must tag at least one value in. Styles can be empty: not
 // every item has a style worth filtering on.
@@ -51,6 +57,8 @@ export const validateRegistryTaxonomy = (
   items: TaxonomyRegistryItem[]
 ): string[] => {
   const errors: string[] = [];
+  // Product code → the item that took it, to catch a code used twice.
+  const ids = new Map<string, string>();
 
   for (const item of items) {
     const { meta } = item;
@@ -74,6 +82,29 @@ export const validateRegistryTaxonomy = (
     }
     if (!meta.publishedAt || !ISO_DATE.test(meta.publishedAt)) {
       errors.push(`${at}: meta.publishedAt must be a YYYY-MM-DD date.`);
+    }
+
+    // The product code: purchases point at it, so it must exist, match the
+    // library and never be shared. Never change one that has been sold.
+    const idMatch =
+      typeof meta.id === "string" ? PRODUCT_ID.exec(meta.id) : null;
+    if (!idMatch) {
+      errors.push(
+        `${at}: meta.id must be a product code like "${library.idPrefix}-0001" (the next unused number for ${library.label}).`
+      );
+    } else if (idMatch[1] !== library.idPrefix) {
+      errors.push(
+        `${at}: meta.id "${String(meta.id)}" must start with "${library.idPrefix}-", the ${library.label} prefix.`
+      );
+    } else if (ids.has(idMatch[0])) {
+      errors.push(
+        `${at}: meta.id "${idMatch[0]}" is already used by "${ids.get(idMatch[0])}". Give it the next unused number.`
+      );
+    } else {
+      ids.set(idMatch[0], item.name);
+    }
+    if (meta.free !== undefined && typeof meta.free !== "boolean") {
+      errors.push(`${at}: meta.free must be true or false.`);
     }
 
     const values = itemFilterValues(item);

@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 
 import { ComponentSource } from "@/components/component-source";
-import { Paywall } from "@/components/paywall";
+import { PaidSource } from "@/components/paid-source";
 import { PreviewFrame } from "@/components/preview-frame";
 import {
   getDemoSource,
-  getRegistrySource,
   getRegistryItemMeta,
   getRegistryItemTitle,
+  getRegistrySource,
+  isPaidItem,
   readOptionalFromRoot,
 } from "@/lib/registry";
 
@@ -38,26 +39,20 @@ export const ComponentPreview = async ({
   title?: string;
   children?: ReactNode;
 }) => {
-  // A pro item (registry.json's `meta.pro`) never reveals its source, even
-  // when the file exists in this repo: the Code tab shows the paywall
-  // instead. Everything else falls back to the real source, if any.
-  const isPro = name ? getRegistryItemMeta(name)?.pro === true : false;
-  const code = isPro ? null : await readSource({ name, src });
-  const showSource = Boolean(code);
+  // A paid item (every library item without `meta.free`) never puts its
+  // source in the page, even though the file is in this repo: its Code view
+  // (PaidSource) shows the plans, or fetches the source for its owner.
+  // Free items show their real source, if any.
+  const paid = name ? isPaidItem(name) : false;
+  const itemId = name ? getRegistryItemMeta(name)?.id : undefined;
+  const itemTitle = title ?? (name ? getRegistryItemTitle(name) : undefined);
+  const code = paid ? null : await readSource({ name, src });
 
   let sourceSlot: ReactNode = null;
 
-  if (isPro) {
-    sourceSlot = (
-      <div className="flex min-h-full items-center justify-center p-6">
-        <Paywall
-          className="w-full max-w-sm"
-          description="This template's source is part of craftUI all-access. Get it lifetime or yearly."
-          title="Unlock this template's source"
-        />
-      </div>
-    );
-  } else if (showSource) {
+  if (paid && name) {
+    sourceSlot = <PaidSource itemId={itemId} name={name} title={itemTitle} />;
+  } else if (code) {
     sourceSlot = (
       <ComponentSource
         collapsible={false}
@@ -72,9 +67,10 @@ export const ComponentPreview = async ({
     <PreviewFrame
       copyValue={code}
       installName={name}
-      locked={isPro}
+      itemId={itemId}
+      paid={paid}
       source={sourceSlot}
-      title={title ?? (name ? getRegistryItemTitle(name) : undefined)}
+      title={itemTitle}
     >
       {children}
     </PreviewFrame>

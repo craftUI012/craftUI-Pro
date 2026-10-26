@@ -119,6 +119,26 @@ export const BreadcrumbJsonLd = ({
   />
 );
 
+// A page of questions and answers (the about page's FAQ). Answers are plain
+// text, as search engines read them.
+export const FaqPageJsonLd = ({
+  items,
+}: {
+  items: { answer: string; question: string }[];
+}) => (
+  <JsonLdScript
+    data={{
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: items.map((item) => ({
+        "@type": "Question",
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+        name: item.question,
+      })),
+    }}
+  />
+);
+
 export const JsonLdScripts = () => (
   <>
     <WebsiteJsonLd />

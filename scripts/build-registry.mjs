@@ -10,7 +10,14 @@
 // registry.json is kept instead.
 
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 
 import { createJiti } from "jiti";
@@ -97,4 +104,23 @@ if (result.status === 0) {
       );
     }
   }
+}
+
+// Paid items (every library item without `meta.free`) must not be public
+// files: anyone could install them. Move them to PAID_DIR, outside public/,
+// where app/r/[file]/route.ts serves them only to buyers. Rebuilt from
+// scratch each time, so an item that turns free leaves no stale copy.
+const PAID_DIR = "./registry-paid";
+
+if (result.status === 0) {
+  rmSync(PAID_DIR, { force: true, recursive: true });
+  mkdirSync(PAID_DIR, { recursive: true });
+  const paid = registry.items.filter(
+    (item) => item.meta?.library !== undefined && item.meta.free !== true
+  );
+  for (const item of paid) {
+    const file = `${item.name}.json`;
+    renameSync(path.join(OUTPUT_DIR, file), path.join(PAID_DIR, file));
+  }
+  console.log(`Moved ${paid.length} paid item(s) to ${PAID_DIR}`);
 }

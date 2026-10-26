@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
+
 import { LINK } from "@/constants/links";
+import { ROUTES } from "@/constants/routes";
 import { SITE, UTM_PARAMS } from "@/constants/site";
 import { useFeedback } from "@/hooks/use-feedback";
 import { addQueryParams } from "@/lib/url";
@@ -26,6 +29,15 @@ export const SiteFooter = () => {
             >
               {SITE.AUTHOR.NAME}
             </a>
+            {/* A crawlable link to the about page from every site page. */}
+            {" · "}
+            <Link
+              href={ROUTES.ABOUT}
+              className="font-medium underline underline-offset-4"
+              onClick={playClick}
+            >
+              About
+            </Link>
           </div>
         </div>
       </div>

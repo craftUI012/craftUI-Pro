@@ -42,19 +42,25 @@ const BUTTON_CLS = "h-7 gap-2 px-2.5 text-xs";
 
 // "Copy for AI" on a preview card's toolbar: Copy Page's split button
 // (docs-copy-page.tsx) — copy on the left, the AI links in a dropdown on the
-// right — secondary, like the install command. Pro items (`locked`) keep
-// both halves behind the paywall: each one opens the Code view instead,
-// which shows the Paywall.
+// right — secondary, like the install command. Locked items (paid, not
+// owned) keep both halves behind the paywall: each one opens the Code view
+// instead, which shows the plans. An owned paid item has no `code` in the
+// page: `getCode` fetches it at copy time, and the brief's install command
+// carries the owner's `installToken`.
 export const PreviewCopyForAi = ({
   code,
+  getCode,
   installName,
+  installToken,
   locked,
   onLocked,
   title,
   url,
 }: {
   code?: string | null;
+  getCode?: () => Promise<string | null>;
   installName?: string;
+  installToken?: string | null;
   locked: boolean;
   onLocked: () => void;
   title: string;
@@ -62,13 +68,15 @@ export const PreviewCopyForAi = ({
 }) => {
   const [manager] = usePackageManager();
   const getBrief = useCallback(
-    () =>
+    async () =>
       toAiBrief({
-        code: code ?? "",
-        install: installName ? commandFor(manager, installName) : undefined,
+        code: code ?? (await getCode?.()) ?? "",
+        install: installName
+          ? commandFor(manager, installName, installToken)
+          : undefined,
         title,
       }),
-    [code, installName, manager, title]
+    [code, getCode, installName, installToken, manager, title]
   );
 
   if (locked) {
@@ -98,7 +106,7 @@ export const PreviewCopyForAi = ({
     );
   }
 
-  if (!code) {
+  if (!code && !getCode) {
     return null;
   }
 

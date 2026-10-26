@@ -3,11 +3,7 @@
   "name": "team-section",
   "title": "Team avatar grid",
   "description": "Clustered avatars synced to a list of roles and bios.",
-  "dependencies": [
-    "@hugeicons/core-free-icons",
-    "@hugeicons/react",
-    "motion"
-  ],
+  "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react", "motion"],
   "files": [
     {
       "path": "registry/sections/team-section.tsx",
@@ -23,18 +19,12 @@
     }
   ],
   "meta": {
-    "pro": false,
+    "id": "SEC-0001",
     "library": "templates",
-    "types": [
-      "team"
-    ],
-    "styles": [
-      "motion"
-    ],
+    "types": ["team"],
+    "styles": ["motion"],
     "publishedAt": "2026-09-08"
   },
-  "categories": [
-    "company"
-  ],
+  "categories": ["company"],
   "type": "registry:block"
 }

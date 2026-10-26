@@ -45,6 +45,9 @@ const DashboardPage = async () => {
     accessMessage = entitlements.hasLifetime
       ? "Lifetime all-access is active. Every component and template is unlocked."
       : "Yearly all-access is active. Every component and template is unlocked.";
+  } else if (entitlements.itemIds.length > 0) {
+    const count = entitlements.itemIds.length;
+    accessMessage = `You own ${count} ${count === 1 ? "item" : "items"}. Get lifetime or yearly all-access to unlock everything.`;
   } else {
     accessMessage = "No plan yet. Get lifetime or yearly all-access.";
   }

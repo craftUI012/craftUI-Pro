@@ -3,7 +3,7 @@ title: Adding a component
 description: The full checklist, from source file to installable JSON to docs page, using a worked example.
 ---
 
-Adding a component means touching **four places**, then rebuilding. Its `registry.json` entry also needs **browse metadata** (`categories`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`), using values from `constants/taxonomy.ts`, or it won't appear on the home page and `pnpm registry:build` fails. See [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
+Adding a component means touching **four places**, then rebuilding. Its `registry.json` entry also needs **browse metadata** (`categories`, `meta.id`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`), using values from `constants/taxonomy.ts`, or it won't appear on the home page and `pnpm registry:build` fails. See [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
 
 | #          | File                                 | Why                                                                                      |
 | ---------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
@@ -90,6 +90,7 @@ Add an entry to `items`:
       "dependencies": ["class-variance-authority"],
       "categories": ["feedback"],
       "meta": {
+        "id": "CMP-0001",
         "library": "components",
         "types": ["badge"],
         "styles": ["minimal", "dark-mode"],
@@ -123,7 +124,7 @@ Add an entry to `items`:
 pnpm registry:build
 ```
 
-Check that `public/r/status-badge.json` exists and that its `files[0].content` contains your code.
+Check that `registry-paid/status-badge.json` exists (or `public/r/status-badge.json`, if you marked it `"free": true`) and that its `files[0].content` contains your code. New items are paid by default.
 
 <Step>(Optional) Add a demo</Step>
 

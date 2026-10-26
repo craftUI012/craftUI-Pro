@@ -74,12 +74,12 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
   "description": "Headline and CTAs on one side, a drawn product panel on the other.",
   "categories": ["marketing"],
   "meta": {
+    "id": "SEC-0006",
     "library": "templates",
     "types": ["hero"],
     "styles": ["minimal", "dark-mode"],
     "publishedAt": "2026-09-30",
-    "docs": "hero-section",
-    "pro": false
+    "docs": "hero-section"
   },
   "files": [
     {
@@ -103,7 +103,8 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
 | `meta.docs`        | no                | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)                                       |
 | `meta.preview`     | no                | Local fallback screenshot under `public/`. Real card screenshots live on R2: see [Card screenshots](/docs-admin/guides/card-screenshots) |
 | `meta.popularity`  | no                | Sorts **Most popular**. Until there's install data, every item counts as 0 and the tab falls back to newest                              |
-| `meta.pro`         | no                | `true` puts the item behind the paywall: no source in the Code tab, and **Copy for AI** is locked                                        |
+| `meta.id`          | yes               | The item's permanent **product code**, e.g. `SEC-0006`. Purchases store it. See [Product codes](#product-codes)                          |
+| `meta.free`        | no                | `true` makes the item free. Without it the item is **paid**: its source, Copy for AI and install are for buyers only. See [Paid items](/docs-admin/architecture/registry-pipeline#paid-items) |
 
 `meta.types` replaced the old single `meta.section` string. The build rejects `meta.section` and says what to write instead.
 
@@ -118,9 +119,31 @@ Only tag a style the item really has. For example, use `motion` only if it anima
 - a slug that's in the pool but not listed for the item's library
 - no categories or no types
 - a missing or malformed `meta.publishedAt`
+- a missing or malformed `meta.id`, one with another library's prefix, or one already used by another item
+- a `meta.free` that isn't `true` or `false`
 - the old `meta.section` field
 
 Each error names the item, the field and the slug, and says which line of `constants/taxonomy.ts` to change.
+
+## Product codes
+
+Every browse item has a product code in `meta.id`: a three-letter library prefix and a four-digit number. Purchases store this code, not the item's name, so an item can be renamed without breaking anyone's purchase.
+
+| Library (`meta.library`) | Prefix | Example    |
+| ------------------------ | ------ | ---------- |
+| `templates` (Sections)   | `SEC`  | `SEC-0001` |
+| `blocks`                 | `BLK`  | `BLK-0001` |
+| `components`             | `CMP`  | `CMP-0001` |
+| `illustrations`          | `ILL`  | `ILL-0001` |
+| `isometric`              | `ISO`  | `ISO-0001` |
+
+`TPL` is kept for full-page templates, a separate product to come. The prefixes live in `LIBRARIES[…].idPrefix` in `constants/taxonomy.ts`.
+
+Rules:
+
+- **New item:** take the highest number already used with that prefix in `registry.json`, plus one.
+- **Never change a code** once the item is published, even if you rename the item or move it to another library. Someone may have bought it.
+- **Never reuse a code.** If an item is removed, its number stays retired.
 
 ## How filtering works
 
@@ -182,7 +205,7 @@ Pick its categories, types and styles from `constants/taxonomy.ts`. If one is mi
 
 <Step>Register it with its browse metadata</Step>
 
-In `registry.json`, add the item with `categories`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`, plus `meta.docs` if it's a variant.
+In `registry.json`, add the item with `categories`, `meta.id`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`, plus `meta.docs` if it's a variant.
 
 <Step>Build the registry</Step>
 

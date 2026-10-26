@@ -23,7 +23,7 @@
       "description": "Marketing hero with a cluster of data panels, rolling CTAs and a logo wall that cycles on scroll.",
       "categories": ["marketing"],
       "meta": {
-        "pro": true,
+        "id": "SEC-0003",
         "library": "templates",
         "types": ["hero"],
         "styles": ["motion", "dark-mode"],
@@ -55,7 +55,7 @@
       "description": "Four metrics against competitors, each drawn as its own chart: isometric bars, unit field, radar and stacked slabs.",
       "categories": ["marketing"],
       "meta": {
-        "pro": false,
+        "id": "SEC-0002",
         "library": "templates",
         "types": ["stats"],
         "styles": ["minimal", "dark-mode"],
@@ -82,7 +82,7 @@
       "description": "Clustered avatars synced to a list of roles and bios.",
       "categories": ["company"],
       "meta": {
-        "pro": false,
+        "id": "SEC-0001",
         "library": "templates",
         "types": ["team"],
         "styles": ["motion"],
@@ -113,7 +113,7 @@
       "description": "Search, filters, row selection, pagination, and create, rotate and delete dialogs.",
       "categories": ["data"],
       "meta": {
-        "pro": false,
+        "id": "SEC-0004",
         "library": "templates",
         "types": ["tables"],
         "styles": ["minimal", "dark-mode"],
@@ -147,7 +147,7 @@
       "description": "Help-desk queue with saved views, live SLA timers, inline status, priority and assignee, sorting, CSV export and a ticket detail sheet.",
       "categories": ["data"],
       "meta": {
-        "pro": false,
+        "id": "SEC-0005",
         "library": "templates",
         "types": ["tables"],
         "styles": ["minimal", "dark-mode"],
@@ -186,7 +186,7 @@
       "description": "A hero with your work on a turning film wheel: drag, swipe or use the keys to spin it, with a live caption and a scrolling client row.",
       "categories": ["portfolio"],
       "meta": {
-        "pro": false,
+        "id": "SEC-0006",
         "library": "templates",
         "types": ["hero"],
         "styles": ["motion", "dark-mode"],

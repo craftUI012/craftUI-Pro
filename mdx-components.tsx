@@ -209,7 +209,7 @@ export const mdxComponents = {
       return (
         <code
           className={cn(
-            "bg-muted relative rounded-md px-[0.3rem] py-[0.2rem] font-mono break-words outline-none",
+            "bg-muted relative rounded-md px-[0.3rem] py-[0.2rem] font-mono wrap-break-word outline-none",
             TYPE.cardLabel,
             className
           )}
@@ -353,14 +353,14 @@ export const mdxComponents = {
   ),
   p: ({ className, ...props }: React.ComponentProps<"p">) => (
     <p
-      className={cn("[&:not(:first-child)]:mt-6", TYPE.cardBody, className)}
+      className={cn("not-first:mt-6", TYPE.cardBody, className)}
       {...props}
     />
   ),
   pre: ({ className, children, ...props }: React.ComponentProps<"pre">) => (
     <pre
       className={cn(
-        "no-scrollbar min-w-0 overflow-x-auto px-4 py-3.5 outline-none has-data-highlighted-line:px-0 has-[[data-line-numbers]]:px-0 has-[[data-slot=tabs]]:p-0",
+        "no-scrollbar min-w-0 overflow-x-auto px-4 py-3.5 outline-none has-data-highlighted-line:px-0 has-data-line-numbers:px-0 has-data-[slot=tabs]:p-0",
         className
       )}
       {...props}

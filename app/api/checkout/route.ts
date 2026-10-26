@@ -1,28 +1,30 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 
+import { ROUTES } from "@/constants/routes";
 import { auth } from "@/lib/auth";
 import { LIFETIME_PLAN, YEARLY_PLAN } from "@/lib/billing/plans";
-import { isPolarConfigured, polar } from "@/lib/polar";
+import { getDodo, isDodoConfigured } from "@/lib/dodo";
 
 const siteUrl = () =>
   process.env.BETTER_AUTH_URL ??
   process.env.NEXT_PUBLIC_SITE_URL ??
   "http://localhost:3000";
 
-// Polar collects the buyer's email at checkout. The buyer then signs in
-// with a magic link using the same email. No session required here.
+// Pay first, sign in after: no session needed. Dodo collects the buyer's
+// email at checkout, the webhook (app/api/webhooks/dodo) stores the purchase
+// by that email, and the buyer then signs in with a magic link to the same
+// email. A signed-in buyer just gets their email prefilled and their user ID
+// in the metadata, so the purchase links to their account straight away.
 const checkoutSchema = z.object({
+  // The visitor's PostHog ID, so the purchase joins their browsing in the
+  // funnel (lib/billing/dodo-webhook.ts sends purchase_completed with it).
+  distinctId: z.string().max(200).optional(),
   plan: z.enum(["lifetime", "yearly"]),
 });
 
 export const POST = async (request: Request) => {
-  // Session is optional — a signed-in buyer just gets linked directly.
-  const session = await auth.api
-    .getSession({ headers: await headers() })
-    .catch(() => null);
-
-  if (!isPolarConfigured()) {
+  if (!isDodoConfigured()) {
     return Response.json(
       { error: "Payments are not configured yet." },
       { status: 503 }
@@ -39,38 +41,47 @@ export const POST = async (request: Request) => {
     );
   }
 
-  const { plan } = parsed.data;
-
-  const productId =
-    plan === "lifetime"
-      ? LIFETIME_PLAN.polarProductId
-      : YEARLY_PLAN.polarProductId;
-
+  const { distinctId, plan } = parsed.data;
+  const productId = (plan === "lifetime" ? LIFETIME_PLAN : YEARLY_PLAN)
+    .dodoProductId;
   if (!productId) {
     return Response.json(
-      { error: "This product is not wired to Polar yet." },
+      { error: "This plan is not set up in Dodo Payments yet." },
       { status: 503 }
     );
   }
 
-  const sessionEmail = session?.user.email?.toLowerCase() || undefined;
-  const sessionUserId = session?.user.id || undefined;
+  const session = await auth.api
+    .getSession({ headers: await headers() })
+    .catch(() => null);
+  const email = session?.user.email.toLowerCase();
 
-  const checkout = await polar.checkouts.create({
-    // Prefill when the buyer is signed in; otherwise Polar collects it
-    // and the webhook matches the purchase by email later.
-    ...(sessionEmail ? { customerEmail: sessionEmail } : {}),
-    // Link to the signed-in user when possible; guests match by email later.
-    ...(sessionUserId ? { externalCustomerId: sessionUserId } : {}),
-    // NOTE: never send empty strings here — Polar rejects them with a 422.
-    metadata: {
-      ...(sessionEmail ? { email: sessionEmail } : {}),
-      ...(sessionUserId ? { userId: sessionUserId } : {}),
-      kind: plan,
-    },
-    products: [productId],
-    successUrl: `${siteUrl()}/checkout/success?checkout_id={CHECKOUT_ID}`,
-  });
+  try {
+    const checkout = await getDodo().checkoutSessions.create({
+      ...(email
+        ? { customer: { email, name: session?.user.name || undefined } }
+        : {}),
+      // Read back by the webhook. Values must be strings, and empty ones
+      // are left out.
+      metadata: {
+        kind: plan,
+        ...(distinctId ? { posthogDistinctId: distinctId } : {}),
+        ...(session ? { userId: session.user.id } : {}),
+      },
+      product_cart: [{ product_id: productId, quantity: 1 }],
+      // Dodo adds ?status=…&email=… (and payment_id or subscription_id).
+      return_url: `${siteUrl()}${ROUTES.CHECKOUT_SUCCESS}`,
+    });
 
-  return Response.json({ url: checkout.url });
+    if (!checkout.checkout_url) {
+      throw new Error("Dodo returned no checkout URL.");
+    }
+    return Response.json({ url: checkout.checkout_url });
+  } catch (error) {
+    console.error("[checkout] Dodo checkout failed", error);
+    return Response.json(
+      { error: "Couldn't start checkout. Please try again." },
+      { status: 502 }
+    );
+  }
 };
