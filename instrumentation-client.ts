@@ -8,9 +8,13 @@ import { posthog } from "posthog-js";
 // PostHog: ad blockers (common with a developer audience) block PostHog's
 // own domains, not ours. The path is deliberately not "/posthog" or
 // "/analytics", which blockers also match.
+//
+// A page inside an iframe (the docs' live component previews, the landing
+// page's device previews) doesn't start it: it's part of the page around it,
+// not a visit of its own.
 const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
-if (token) {
+if (token && window.self === window.top) {
   posthog.init(token, {
     api_host: "/relay",
     // PostHog's recommended settings as of this date: $pageview and
