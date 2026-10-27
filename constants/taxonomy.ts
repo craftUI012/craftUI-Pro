@@ -52,6 +52,7 @@ export const TYPES = {
   features: { label: "Features" },
   footer: { label: "Footer" },
   forms: { label: "Forms" },
+  gallery: { label: "Gallery" },
   hero: { label: "Hero" },
   objects: { label: "Objects" },
   pricing: { label: "Pricing" },
@@ -122,14 +123,14 @@ export interface LibraryConfig {
 
 export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   blocks: {
-    categories: ["marketing", "data", "finance", "people"],
+    categories: ["marketing", "data", "finance", "people", "portfolio"],
     idPrefix: "BLK",
     itemLabel: { one: "block", other: "blocks" },
     label: "Blocks",
     searchPlaceholder: "Search blocks…",
     slug: "blocks",
     styles: ["motion", "dark-mode", "minimal"],
-    types: ["cards", "charts", "forms", "tables", "settings"],
+    types: ["cards", "charts", "gallery", "forms", "tables", "settings"],
   },
   // Not a navbar tab for now (see NAV_LIBRARIES). Kept so its items still
   // validate and it's one line away from coming back.

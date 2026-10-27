@@ -1,6 +1,7 @@
 {
   "title": "Blocks",
   "pages": [
+    "image-sphere",
     "savings-over-time",
     "payment-scheduler",
     "traffic-by-device",

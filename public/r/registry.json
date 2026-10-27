@@ -266,6 +266,45 @@
           "target": "components/blocks/hero-section-02-shared.ts"
         }
       ]
+    },
+    {
+      "name": "image-sphere",
+      "type": "registry:block",
+      "title": "Image sphere",
+      "description": "Your images on a WebGL globe you can hold: fling it, click an image and its group lands in a labelled pile.",
+      "categories": [
+        "marketing",
+        "portfolio"
+      ],
+      "meta": {
+        "id": "BLK-0001",
+        "library": "blocks",
+        "types": [
+          "gallery"
+        ],
+        "styles": [
+          "motion",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-27"
+      },
+      "files": [
+        {
+          "path": "registry/blocks/image-sphere.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/image-sphere.tsx"
+        },
+        {
+          "path": "registry/blocks/image-sphere-scene.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/image-sphere-scene.ts"
+        },
+        {
+          "path": "registry/blocks/image-sphere-gl.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/image-sphere-gl.ts"
+        }
+      ]
     }
   ]
 }
