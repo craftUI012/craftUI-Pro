@@ -18,6 +18,7 @@ export const ROUTES = {
   CHANGELOG: "/docs/changelog",
   // Where Dodo sends the buyer after paying (app/(app)/checkout/success).
   CHECKOUT_SUCCESS: "/checkout/success",
+  COMPONENT_PREVIEW: "/preview",
   DASHBOARD: "/dashboard",
   DESIGN_ADMIN: "/design-admin",
   DOCS: "/docs",

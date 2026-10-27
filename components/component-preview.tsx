@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { ComponentSource } from "@/components/component-source";
 import { PaidSource } from "@/components/paid-source";
 import { PreviewFrame } from "@/components/preview-frame";
+import { isLivePreview } from "@/constants/live-previews";
+import { ROUTES } from "@/constants/routes";
 import {
   getDemoSource,
   getRegistryItemMeta,
@@ -47,6 +49,10 @@ export const ComponentPreview = async ({
   const itemId = name ? getRegistryItemMeta(name)?.id : undefined;
   const itemTitle = title ?? (name ? getRegistryItemTitle(name) : undefined);
   const code = paid ? null : await readSource({ name, src });
+  // A live item (constants/live-previews.ts) runs in an iframe of its own
+  // page, so the toolbar's device widths switch its breakpoints too; the
+  // children are then only what the MDX shows and aren't rendered here.
+  const live = name !== undefined && isLivePreview(name);
 
   let sourceSlot: ReactNode = null;
 
@@ -69,10 +75,11 @@ export const ComponentPreview = async ({
       installName={name}
       itemId={itemId}
       paid={paid}
+      previewSrc={live ? `${ROUTES.COMPONENT_PREVIEW}/${name}` : undefined}
       source={sourceSlot}
       title={itemTitle}
     >
-      {children}
+      {live ? null : children}
     </PreviewFrame>
   );
 };
