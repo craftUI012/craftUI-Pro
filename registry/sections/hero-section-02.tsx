@@ -39,15 +39,16 @@ export type {
  *
  * Layout is CSS only, so the server's HTML is already in its final place:
  *
- *   --reel-s      the wheel's scale, stepped by container width
- *   @5xl          which wheel shows: WIDE beside the copy, or NARROW lying
+ *   --reel-s      the wheel's scale, stepped by screen width (two of its
+ *                 steps, 72rem and 90rem, sit between Tailwind's named
+ *                 breakpoints, so they're written min-[…])
+ *   lg            which wheel shows: WIDE beside the copy, or NARROW lying
  *                 across the top (both have 16:9 frames on screen)
  *
  * The copy column starts where the wheel's geometry says (LAYOUT, in design
  * units, times --reel-s), so the spokes band the copy instead of running
- * through it. Every size follows the section's own width (container
- * queries), not the viewport, so it's right in a sidebar layout or a
- * preview pane too.
+ * through it. Sizes follow the screen width (Tailwind's sm / md / lg / xl
+ * breakpoints), like the library's other sections.
  * ───────────────────────────────────────────────────────────────────────── */
 
 /* Keyframes the utilities can't express, rendered as a <style> inside the
@@ -311,7 +312,7 @@ const LogoMarquee = ({
   logos: ShowreelLogo[];
 }) => (
   <div
-    className="showreel-rise mt-10 flex w-full flex-col items-center @5xl:items-start"
+    className="showreel-rise mt-10 flex w-full flex-col items-center lg:items-start"
     style={{ "--i": 6 } as CSSProperties}
   >
     <p className="text-muted-foreground text-xs font-medium tracking-[0.14em] uppercase">
@@ -347,7 +348,7 @@ const LogoMarquee = ({
  * area either way), and a 0.96 press so a click feels physical.
  * Transitions name their properties. */
 const ACTION =
-  "focus-visible:ring-ring/50 inline-flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium @lg:h-12 @lg:text-[15px] whitespace-nowrap outline-none transition-[translate,scale,background-color,color,box-shadow,filter] duration-200 ease-out focus-visible:ring-[3px] active:translate-y-0 active:scale-[0.96] motion-reduce:active:scale-100 [&_svg]:size-4 [&_svg]:shrink-0";
+  "focus-visible:ring-ring/50 inline-flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium sm:h-12 sm:text-[15px] whitespace-nowrap outline-none transition-[translate,scale,background-color,color,box-shadow,filter] duration-200 ease-out focus-visible:ring-[3px] active:translate-y-0 active:scale-[0.96] motion-reduce:active:scale-100 [&_svg]:size-4 [&_svg]:shrink-0";
 
 /* The primary action, lit from above: a soft white sheen over the brand
  * colour, a hairline edge a shade darker than the fill, a white highlight
@@ -357,7 +358,7 @@ const ACTION =
 const PRIMARY_ACTION = cn(
   // The arrow side gets 2px less padding, so the label doesn't look pushed
   // left by the icon's empty space.
-  "group bg-primary text-primary-foreground pr-3.5 pl-4 @lg:pr-5.5 @lg:pl-6 [text-shadow:0_1px_0_rgb(0_0_0/0.18)]",
+  "group bg-primary text-primary-foreground pr-3.5 pl-4 sm:pr-5.5 sm:pl-6 [text-shadow:0_1px_0_rgb(0_0_0/0.18)]",
   "bg-linear-to-b from-white/20 to-white/0",
   "shadow-[0_0_0_1px_color-mix(in_oklab,var(--primary)_72%,black),inset_0_1px_0_0_rgb(255_255_255/0.35),inset_0_-1px_0_0_rgb(0_0_0/0.16)]",
   "hover:-translate-y-px hover:brightness-110",
@@ -370,7 +371,7 @@ const PRIMARY_ACTION = cn(
  * on dark ones, where depth shadows don't show. Shadows sit on any
  * background; a solid border only suits the one it was picked for. */
 const SECONDARY_ACTION = cn(
-  "bg-background hover:bg-accent hover:text-accent-foreground px-4 @lg:px-5",
+  "bg-background hover:bg-accent hover:text-accent-foreground px-4 sm:px-5",
   "shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.04)]",
   "hover:shadow-[0_0_0_1px_rgba(0,0,0,0.12),0_1px_2px_-1px_rgba(0,0,0,0.1),0_2px_4px_0_rgba(0,0,0,0.06)]",
   "dark:bg-input/30 dark:hover:bg-input/50 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)] dark:hover:shadow-[0_0_0_1px_rgba(255,255,255,0.16)]"
@@ -386,7 +387,7 @@ const Actions = ({
 }) =>
   primary || secondary ? (
     <div
-      className="showreel-rise mt-8 flex flex-wrap items-center justify-center gap-2 @lg:mt-9 @lg:gap-3 @5xl:justify-start"
+      className="showreel-rise mt-8 flex flex-wrap items-center justify-center gap-2 sm:mt-9 sm:gap-3 lg:justify-start"
       style={{ "--i": 5 } as CSSProperties}
     >
       {primary ? (
@@ -429,7 +430,7 @@ export const ShowreelHero = ({
       className={cn(
         // antialiased here, not only at the app root: a project that installs
         // just this block gets the same crisp text on macOS.
-        "bg-background text-foreground @container relative isolate w-full overflow-clip antialiased",
+        "bg-background text-foreground relative isolate w-full overflow-clip antialiased",
         className
       )}
       data-slot="showreel-hero"
@@ -449,11 +450,11 @@ export const ShowreelHero = ({
       <div
         className={cn(
           // Narrow: the wheel above (mirrored), caption and copy below it.
-          "relative flex flex-col pt-[calc(var(--reel-rim)*var(--reel-s)+7rem)] pb-14 @lg:pb-16",
-          "[--reel-s:0.8] @3xl:[--reel-s:0.86]",
+          "relative flex flex-col pt-[calc(var(--reel-rim)*var(--reel-s)+7rem)] pb-14 sm:pb-16",
+          "[--reel-s:0.8] md:[--reel-s:0.86]",
           // Wide: the wheel on the left edge, the copy beside it.
-          "@5xl:min-h-[44rem] @5xl:flex-row @5xl:items-center @5xl:py-20 @7xl:min-h-[48rem]",
-          "@5xl:[--reel-s:0.74] @6xl:[--reel-s:0.82] @7xl:[--reel-s:0.9] @[90rem]:[--reel-s:1]"
+          "lg:min-h-[44rem] lg:flex-row lg:items-center lg:py-20 xl:min-h-[48rem]",
+          "lg:[--reel-s:0.74] min-[72rem]:[--reel-s:0.82] xl:[--reel-s:0.9] min-[90rem]:[--reel-s:1]"
         )}
       >
         <ShowreelWheel
@@ -468,19 +469,19 @@ export const ShowreelHero = ({
             copy. Narrow: over the strip, running sideways. */}
         <FocusBlur
           band={WIDE.config.tangential / 2}
-          className="inset-y-0 left-0 hidden w-[calc(var(--reel-copy-x)*var(--reel-s)-2rem)] @5xl:block"
+          className="inset-y-0 left-0 hidden w-[calc(var(--reel-copy-x)*var(--reel-s)-2rem)] lg:block"
           direction="to bottom"
         />
         <FocusBlur
           band={NARROW.config.tangential / 2}
-          className="inset-x-0 top-0 h-[calc(var(--reel-rim)*var(--reel-s)+7rem)] @5xl:hidden"
+          className="inset-x-0 top-0 h-[calc(var(--reel-rim)*var(--reel-s)+7rem)] lg:hidden"
           direction="to right"
         />
 
         {/* min-w-0: the looping logo track is thousands of pixels wide, and
             without it that width would hold the column open past the edge. */}
-        <div className="relative z-30 flex min-w-0 flex-1 justify-center px-6 pt-8 @lg:pt-10 @5xl:justify-start @5xl:pt-0 @5xl:pr-12 @5xl:pl-0 @5xl:ml-[calc(var(--reel-copy-x)*var(--reel-s))]">
-          <div className="flex w-full max-w-xl flex-col items-center text-center @5xl:max-w-[34rem] @5xl:items-start @5xl:text-left">
+        <div className="relative z-30 flex min-w-0 flex-1 justify-center px-6 pt-8 sm:pt-10 lg:justify-start lg:pt-0 lg:pr-12 lg:pl-0 lg:ml-[calc(var(--reel-copy-x)*var(--reel-s))]">
+          <div className="flex w-full max-w-xl flex-col items-center text-center lg:max-w-[34rem] lg:items-start lg:text-left">
             {eyebrow ? (
               <p
                 className="showreel-rise text-primary text-xs font-medium tracking-[0.16em] uppercase"
@@ -497,7 +498,7 @@ export const ShowreelHero = ({
                 title to two lines at every size. */}
             <Heading
               className={cn(
-                "showreel-rise text-[clamp(1.625rem,7.4cqw,3rem)] leading-[1.08] font-semibold tracking-[-0.025em] text-balance @5xl:text-[clamp(1.75rem,2.9cqw,2.875rem)]",
+                "showreel-rise text-[clamp(1.625rem,7.4vw,3rem)] leading-[1.08] font-semibold tracking-[-0.025em] text-balance lg:text-[clamp(1.75rem,2.9vw,2.875rem)]",
                 eyebrow ? "mt-5" : null
               )}
               style={{ "--i": 3 } as CSSProperties}
@@ -513,7 +514,7 @@ export const ShowreelHero = ({
 
             {description ? (
               <p
-                className="showreel-rise text-muted-foreground mt-5 max-w-[30rem] text-[15px] leading-relaxed text-pretty @lg:mt-6 @lg:text-base"
+                className="showreel-rise text-muted-foreground mt-5 max-w-[30rem] text-[15px] leading-relaxed text-pretty sm:mt-6 sm:text-base"
                 style={{ "--i": 4 } as CSSProperties}
               >
                 {description}

@@ -28,8 +28,8 @@ import type {
 } from "./hero-section-02-shared";
 
 /* The wheel itself: frames, rims and their captions. Both wheels (WIDE
- * beside the copy, NARROW mirrored above it) are rendered, and a container
- * query shows one, so the server's HTML is already right at any width. Each
+ * beside the copy, NARROW mirrored above it) are rendered, and a breakpoint
+ * (lg) shows one, so the server's HTML is already right at any width. Each
  * is drawn in design units inside an anchor the section scales (--reel-s).
  *
  * One motion value, `position`, drives every frame: a float index that can
@@ -790,7 +790,7 @@ export const ShowreelWheel = ({
   return (
     <>
       <WheelView
-        className="top-1/2 left-0 hidden [transform:scale(var(--reel-s))] @5xl:block"
+        className="top-1/2 left-0 hidden [transform:scale(var(--reel-s))] lg:block"
         crestIndex={mod(crestRing, ringCount)}
         flip={false}
         handlers={handlers}
@@ -807,7 +807,7 @@ export const ShowreelWheel = ({
       {/* Mirrored across the diagonal: the same wheel, lying across the top
           and opening downward. */}
       <WheelView
-        className="top-0 left-1/2 [transform:scale(var(--reel-s))_matrix(0,1,1,0,0,0)] @5xl:hidden"
+        className="top-0 left-1/2 [transform:scale(var(--reel-s))_matrix(0,1,1,0,0,0)] lg:hidden"
         crestIndex={mod(crestRing, ringCount)}
         flip
         handlers={handlers}
