@@ -3,14 +3,18 @@
 import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import * as React from "react";
 
+import { PreviewIframe } from "@/components/preview-iframe";
 import type { PreviewView, PreviewWidth } from "@/components/preview-toolbar";
 import { PreviewToolbar } from "@/components/preview-toolbar";
 import { loadItemSource, useAccess } from "@/hooks/use-access";
 import { trackEvent } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
-// Container width per toolbar selection. "desktop" removes the max-width so
-// the preview goes back to filling the box.
+// Container width per toolbar selection, for previews rendered inline (a
+// screenshot, a small example). "desktop" removes the max-width so the
+// preview goes back to filling the box. Live items (`previewSrc`) run in an
+// iframe at a real device width instead (components/preview-iframe.tsx), so
+// their breakpoints switch too, not just their box.
 const WIDTH_CLASS: Record<PreviewWidth, string> = {
   desktop: "max-w-full",
   mobile: "max-w-[24rem]",
@@ -21,6 +25,9 @@ const WIDTH_CLASS: Record<PreviewWidth, string> = {
 // (transition: { duration: 0 } on every variant below). No stagger either —
 // curtain and card switch in the same instant.
 const INSTANT = { duration: 0 };
+
+// Box widths under this (px) start a live preview on the phone.
+const PHONE_BOX = 768;
 
 // clip-path insets, expressed as (top right bottom left). The curtain sweeps
 // along x, the card along y — perpendicular to each other. The card is a DOM
@@ -67,14 +74,17 @@ export const PreviewFrame = ({
   installName,
   itemId,
   paid = false,
+  previewSrc,
   source,
   title,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   copyValue?: string | null;
   installName?: string;
   itemId?: string;
   paid?: boolean;
+  // A live item's own page (/preview/<name>), shown in an iframe.
+  previewSrc?: string;
   source?: React.ReactNode;
   title?: string;
 }) => {
@@ -86,6 +96,14 @@ export const PreviewFrame = ({
   const [view, setView] = React.useState<PreviewView>("preview");
   const [reloadKey, setReloadKey] = React.useState(0);
   const boxRef = React.useRef<HTMLDivElement>(null);
+
+  // On a phone-sized box a live item opens on the phone: its desktop layout
+  // scaled down that far would be too small to read.
+  React.useLayoutEffect(() => {
+    if (previewSrc && (boxRef.current?.clientWidth ?? 0) < PHONE_BOX) {
+      setWidth("mobile");
+    }
+  }, [previewSrc]);
 
   // A locked item's Code view is its paywall: count each time it's opened
   // (once access is known, so owners never count).
@@ -155,15 +173,24 @@ export const PreviewFrame = ({
       />
       <div className="relative">
         <div className="flex justify-center overflow-auto p-6">
-          <div
-            className={cn(
-              "w-full transition-[max-width] duration-300 ease-out",
-              WIDTH_CLASS[width]
-            )}
-            key={reloadKey}
-          >
-            {children}
-          </div>
+          {previewSrc ? (
+            <PreviewIframe
+              key={reloadKey}
+              src={previewSrc}
+              title={title}
+              width={width}
+            />
+          ) : (
+            <div
+              className={cn(
+                "w-full transition-[max-width] duration-300 ease-out",
+                WIDTH_CLASS[width]
+              )}
+              key={reloadKey}
+            >
+              {children}
+            </div>
+          )}
         </div>
 
         <LazyMotion features={domAnimation}>

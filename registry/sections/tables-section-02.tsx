@@ -199,17 +199,14 @@ const ALL_COLUMNS: Record<ColumnId, boolean> = {
   status: true,
 };
 
-// Columns appear as the table's own box widens, most useful first. These
-// are container queries (the section is @container), so the table adapts to
-// the space it's given (a phone, a side panel, a narrow preview), not just
-// the window.
+// Columns appear as the screen widens, most useful first.
 const SHOW_FROM: Record<ColumnId, string> = {
-  assignee: "hidden @4xl:table-cell",
-  // Under @lg the due time moves into the ticket cell (TicketCell).
-  due: "hidden @lg:table-cell",
-  priority: "hidden @lg:table-cell",
-  requester: "hidden @5xl:table-cell",
-  status: "hidden @2xl:table-cell",
+  assignee: "hidden lg:table-cell",
+  // Under sm the due time moves into the ticket cell (TicketCell).
+  due: "hidden sm:table-cell",
+  priority: "hidden sm:table-cell",
+  requester: "hidden lg:table-cell",
+  status: "hidden md:table-cell",
 };
 
 const PAGE_SIZES = [10, 20, 50];
@@ -1100,7 +1097,7 @@ const ViewTabs = ({
     {/* One row that scrolls sideways on small screens. Tabs keep their own
         width (flex-none overrides the shadcn trigger's flex-1), so nothing
         stretches or wraps; the scrollbar is hidden. */}
-    <TabsList className="w-full justify-start overflow-x-auto [scrollbar-width:none] @xl:w-fit [&::-webkit-scrollbar]:hidden">
+    <TabsList className="w-full justify-start overflow-x-auto [scrollbar-width:none] sm:w-fit [&::-webkit-scrollbar]:hidden">
       {VIEWS.map((item) => (
         <TabsTrigger
           key={item.id}
@@ -1366,7 +1363,7 @@ const SearchBox = ({
 }) => (
   // Full width on phones (its own row above Filter / View), then shares the
   // toolbar from sm up.
-  <div className="relative w-full min-w-0 @xl:w-auto @xl:max-w-xs @xl:flex-1">
+  <div className="relative w-full min-w-0 sm:w-auto sm:max-w-xs sm:flex-1">
     <Search
       aria-hidden
       className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
@@ -1625,7 +1622,7 @@ const TicketCell = ({
         <span className="sr-only">Via {channel.label},</span>
         <span className="font-mono">{row.id}</span>
         {/* Narrow boxes hide the Due column; the due time rides here. */}
-        <DueLabel row={row} now={now} className="ml-1 text-xs @lg:hidden" />
+        <DueLabel row={row} now={now} className="ml-1 text-xs sm:hidden" />
       </span>
     </div>
   );
@@ -2048,7 +2045,7 @@ const TicketsFooter = ({
   onPageChange,
   ...bulk
 }: FooterProps) => (
-  <div className="border-border flex flex-col gap-3 border-t px-4 py-3 @xl:flex-row @xl:items-center @xl:justify-between">
+  <div className="border-border flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <p className="text-muted-foreground text-sm">
         {selectedCount} of {totalCount} ticket(s) selected.
@@ -2897,14 +2894,11 @@ export default function TablesSection02({
       ref={sectionRef}
       data-slot="tables-section-02"
       data-shortcuts=""
-      className={cn(
-        "bg-background text-foreground @container w-full",
-        className
-      )}
+      className={cn("bg-background text-foreground w-full", className)}
     >
       {/* Fills whatever it's placed in: the host page or app layout sets the
           width. Only side padding, so it never touches the edges. */}
-      <div className="w-full px-4 py-6 @xl:px-6 @xl:py-8">
+      <div className="w-full px-4 py-6 sm:px-6 sm:py-8">
         <TicketsHeader onExport={exportCsv} onNew={() => setNewOpen(true)} />
 
         <ViewTabs

@@ -144,14 +144,29 @@ export default function TeamCluster01({
   return (
     <section
       style={TEAM_VARS}
-      className={`w-full bg-[var(--team-surface)] py-16 sm:py-20 xl:py-28 ${className ?? ""}`}
+      className={`w-full bg-[var(--team-surface)] py-16 sm:py-20 lg:py-24 xl:py-28 ${className ?? ""}`}
     >
+      {/* Phones and tablets stack copy, cluster and roles in one column. From
+          lg the roles sit beside the cluster, so its pointer badges would only
+          repeat them; xl widens the cluster and tucks it under the copy. */}
       <style>
         {`
           .team-${scopeId} {
             display: grid;
             gap: 2.5rem;
             grid-template-areas: "copy" "cluster" "detail";
+          }
+          @media (min-width: 1024px) {
+            .team-${scopeId} {
+              grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
+              grid-template-areas: "copy cluster" "detail cluster";
+              align-items: center;
+              column-gap: 3rem;
+              row-gap: 2rem;
+            }
+            .team-${scopeId} [data-role-badge] {
+              display: none;
+            }
           }
           @media (min-width: 1280px) {
             .team-${scopeId} {
@@ -173,7 +188,7 @@ export default function TeamCluster01({
       >
         <div
           style={{ gridArea: "copy" }}
-          className="mx-auto max-w-xl text-left md:text-center xl:mx-0 xl:max-w-none xl:text-left"
+          className="mx-auto max-w-xl text-left sm:text-center lg:mx-0 lg:max-w-none lg:text-left"
         >
           <motion.p
             {...rise(TIMING.heading)}
@@ -189,7 +204,7 @@ export default function TeamCluster01({
           </motion.h2>
           <motion.p
             {...rise(TIMING.body)}
-            className="mx-auto mt-4 max-w-md text-base leading-relaxed text-pretty text-[var(--team-fg-muted)] xl:mx-0"
+            className="mt-4 max-w-md text-base leading-relaxed text-pretty text-[var(--team-fg-muted)] sm:mx-auto lg:mx-0"
           >
             {body}
           </motion.p>
@@ -210,16 +225,12 @@ export default function TeamCluster01({
                 </span>
               </span>
             )}
-            className="!p-0 !justify-start xl:[&>div]:max-w-[600px]"
+            className="!p-0 !justify-center xl:!justify-start xl:[&>div]:max-w-[600px]"
           />
         </div>
 
-        <motion.div
-          style={{ gridArea: "detail" }}
-          {...rise(TIMING.detail)}
-          className="hidden md:block"
-        >
-          <ul className="mx-auto max-w-md text-center [--hatch-ink:oklch(0_0_0_/_0.12)] xl:mx-0 xl:text-left dark:[--hatch-ink:oklch(1_0_0_/_0.16)]">
+        <motion.div style={{ gridArea: "detail" }} {...rise(TIMING.detail)}>
+          <ul className="w-full text-center [--hatch-ink:oklch(0_0_0_/_0.12)] sm:mx-auto sm:max-w-md lg:mx-0 lg:text-left dark:[--hatch-ink:oklch(1_0_0_/_0.16)]">
             {members.map((member, index) => {
               const isActive = activeId === member.id;
               return (
@@ -243,7 +254,7 @@ export default function TeamCluster01({
                       if (event.pointerType === "mouse")
                         setSelectedId(member.id);
                     }}
-                    className={`flex w-full cursor-pointer items-start justify-between gap-6 py-2.5 text-sm transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--team-ring)] ${
+                    className={`flex w-full cursor-pointer items-start justify-between gap-4 py-2.5 text-sm sm:gap-6 transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--team-ring)] ${
                       isActive
                         ? "font-medium text-[var(--team-fg)]"
                         : "text-[var(--team-fg-muted)] hover:text-[var(--team-fg)]"
@@ -273,7 +284,7 @@ export default function TeamCluster01({
                         {member.name}
                       </span>
                       {member.bio && (
-                        <span className="mt-0.5 line-clamp-1 text-xs leading-snug font-normal text-[var(--team-fg-muted)]">
+                        <span className="mt-0.5 text-xs leading-snug font-normal text-[var(--team-fg-muted)] sm:line-clamp-1">
                           {member.bio}
                         </span>
                       )}

@@ -9,6 +9,7 @@ export const GET = () => {
     `Disallow: ${ROUTES.DOCS_ADMIN}`,
     `Disallow: ${ROUTES.DESIGN_ADMIN}`,
     `Disallow: ${ROUTES.SEO_ADMIN}`,
+    `Disallow: ${ROUTES.COMPONENT_PREVIEW}/`,
     `Disallow: ${ROUTES.TEMPLATE_PREVIEW}`,
     `Disallow: ${ROUTES.DASHBOARD}`,
     "Disallow: /api/",

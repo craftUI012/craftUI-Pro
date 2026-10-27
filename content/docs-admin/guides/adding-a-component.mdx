@@ -184,6 +184,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 ````
 
 - `<ComponentPreview name="status-badge">` renders the children (the live preview), then the highlighted source for `status-badge`.
+- **Sections with breakpoints:** the preview toolbar's phone and tablet buttons only narrow the box, so `sm:`, `md:`, `lg:` and `xl:` classes (which follow the browser window) wouldn't switch. For an item like that, add its name to `LIVE_PREVIEWS` in `constants/live-previews.ts` and its component to `components/live-preview-components.ts`. Its preview then runs in an iframe of `/preview/<name>` at a real device width (390 phone, 834 tablet, 1440 desktop, scaled to fit), so it lays out exactly as on that device, and the MDX children aren't shown.
 - `<InstallCommand name="status-badge" />` renders the install command with npm, pnpm, yarn and bun tabs. The domain comes from `NEXT_PUBLIC_SITE_URL`, so never hard-code it in a code block. See [Changing the domain](/docs-admin/guides/changing-the-domain).
 - Usage examples should import from `@/components/ui/<name>`, **the path in the user's project**, not `@/registry/...`.
 

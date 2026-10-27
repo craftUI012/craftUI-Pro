@@ -1,7 +1,6 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SoundProvider } from "@web-kits/audio/react";
 import type { Metadata } from "next";
-import Script from "next/script";
 
 import { Analytics } from "@/components/analytics";
 import { PostHogIdentify } from "@/components/posthog-identify";
@@ -53,16 +52,6 @@ const RootLayout = ({
           <SpeedInsights />
         </ThemeProvider>
       </SoundProvider>
-      {/* Umami analytics. next/script's default strategy (afterInteractive)
-          loads it once the page is interactive, so it never blocks
-          rendering. Production builds only, so local visits don't count. */}
-      {process.env.NODE_ENV === "production" ? (
-        <Script
-          data-website-id="d4ba3a77-4ab2-4a15-bd56-5abd94afe5f5"
-          src="https://cloud.umami.is/script.js"
-          strategy="afterInteractive"
-        />
-      ) : null}
     </body>
   </html>
 );
