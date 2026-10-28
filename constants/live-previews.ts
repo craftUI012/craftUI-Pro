@@ -15,6 +15,7 @@ export const LIVE_PREVIEWS = [
   "tables-section",
   "tables-section-02",
   "team-section",
+  "testimonials-section",
 ] as const;
 
 export type LivePreview = (typeof LIVE_PREVIEWS)[number];
