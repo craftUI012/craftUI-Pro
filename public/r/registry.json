@@ -267,6 +267,126 @@
         }
       ]
     },
+
+
+
+        {
+      "name": "image-sphere",
+      "type": "registry:block",
+      "title": "Image sphere",
+      "description": "Your images on a WebGL globe you can hold: fling it, click an image and its group lands in a labelled pile.",
+      "categories": [
+        "marketing",
+        "portfolio"
+      ],
+      "meta": {
+        "id": "BLK-0001",
+        "library": "blocks",
+        "types": [
+          "gallery"
+        ],
+        "styles": [
+          "motion",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-27"
+      },
+      "files": [
+        {
+          "path": "registry/blocks/image-sphere.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/image-sphere.tsx"
+        },
+        {
+          "path": "registry/blocks/image-sphere-scene.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/image-sphere-scene.ts"
+        },
+        {
+          "path": "registry/blocks/image-sphere-gl.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/image-sphere-gl.ts"
+        }
+      ]
+    },
+    {
+      "name": "statement-section",
+      "type": "registry:block",
+      "title": "Parted statement",
+      "description": "A big statement parts round a growing image as you scroll, then a second statement rises out of the photo.",
+      "categories": [
+        "marketing",
+        "portfolio"
+      ],
+      "meta": {
+        "id": "SEC-0007",
+        "library": "templates",
+        "types": [
+          "editorial"
+        ],
+        "styles": [
+          "motion",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-27"
+      },
+      "files": [
+        {
+          "path": "registry/sections/statement-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/statement-section.tsx"
+        },
+        {
+          "path": "registry/sections/statement-section-flow.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/statement-section-flow.ts"
+        }
+      ]
+    },
+    {
+      "name": "feature-sphere-section",
+      "type": "registry:block",
+      "title": "Feature index sphere",
+      "description": "An editorial index of features in big type beside a live WebGL image sphere: choose a feature and its images fly out of the sphere into a pile.",
+      "categories": [
+        "marketing",
+        "portfolio"
+      ],
+      "meta": {
+        "id": "SEC-0008",
+        "library": "templates",
+        "types": [
+          "features"
+        ],
+        "styles": [
+          "motion",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-27"
+      },
+      "files": [
+        {
+          "path": "registry/sections/feature-sphere-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/feature-sphere-section.tsx"
+        },
+        {
+          "path": "registry/blocks/image-sphere.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/image-sphere.tsx"
+        },
+        {
+          "path": "registry/blocks/image-sphere-scene.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/image-sphere-scene.ts"
+        },
+        {
+          "path": "registry/blocks/image-sphere-gl.ts",
+          "type": "registry:lib",
+          "target": "components/blocks/image-sphere-gl.ts"
+        }
+      ]
+    },
     {
       "name": "testimonials-section",
       "type": "registry:block",
@@ -276,7 +396,7 @@
         "marketing"
       ],
       "meta": {
-        "id": "SEC-0007",
+        "id": "SEC-0009",
         "library": "templates",
         "types": [
           "testimonials"
@@ -299,5 +419,7 @@
         }
       ]
     }
+
+
   ]
 }
