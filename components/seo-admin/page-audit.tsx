@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SeoEditor } from "@/components/seo-admin/seo-editor";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -9,8 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SITE } from "@/constants/site";
 import { TYPE } from "@/constants/typography";
 import { LIMITS, auditPage, mapLimit } from "@/lib/seo-audit";
+import { readEditableSeo } from "@/lib/seo-edit";
 import { cn } from "@/lib/utils";
 
 // A character count, red when over the limit search results show.
@@ -40,6 +43,12 @@ export const PageAudit = async ({
   const audits = await mapLimit(pages, 4, (page) =>
     auditPage({ ...page, origin, siteUrl })
   );
+  // Docs pages can be edited here: their text, read from the files.
+  const editable = await readEditableSeo();
+  const rows = audits.map((audit) => ({
+    audit,
+    edit: editable.get(audit.path),
+  }));
   const failing = audits.filter((audit) => audit.issues.length > 0).length;
 
   return (
@@ -63,7 +72,7 @@ export const PageAudit = async ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {audits.map((audit) => (
+            {rows.map(({ audit, edit }) => (
               <TableRow key={audit.path} className="align-top">
                 <TableCell className="font-mono">
                   <Link
@@ -88,6 +97,16 @@ export const PageAudit = async ({
                       value={audit.description}
                     />
                   </div>
+                  {edit ? (
+                    <SeoEditor
+                      limits={{
+                        description: LIMITS.descriptionMax,
+                        title: LIMITS.titleMax,
+                      }}
+                      siteName={SITE.NAME}
+                      values={edit}
+                    />
+                  ) : null}
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col items-start gap-1">
