@@ -33,13 +33,16 @@ import type { ReactNode } from "react";
 export interface ShowreelViews {
   /** Read by screen readers ("YouTube views"); the icon stands in for it. */
   platform: string;
+  /** The count as shown, e.g. "1.2M". */
   value: string;
+  /** The platform's mark, shown before the count. */
   icon?: ReactNode;
 }
 
 export interface ShowreelReel {
   /** Image URL, ideally 16:9 (a video still). It's cropped to the frame. */
   src: string;
+  /** Describes the image for screen readers. */
   alt: string;
   /** What the piece is, in a line or two. Also names the frame. */
   description: string;
@@ -53,7 +56,9 @@ export interface ShowreelReel {
 
 /** Names a `ShowreelReel.category` id, shown above its description. */
 export interface ShowreelCategory {
+  /** Unique id that reels point at with their `category`. */
   id: string;
+  /** The category's name, shown above each of its reels' captions, e.g. "Brand film". */
   label: string;
 }
 

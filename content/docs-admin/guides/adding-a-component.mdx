@@ -1,21 +1,128 @@
 ---
 title: Adding a component
-description: The full checklist, from source file to installable JSON to docs page, using a worked example.
+description: Every step from an empty file to a deployed component, section or block, with each command and what it does, then a worked example.
 ---
 
-Adding a component means touching **four places**, then rebuilding. Its `registry.json` entry also needs **browse metadata** (`categories`, `meta.id`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`), using values from `constants/taxonomy.ts`, or it won't appear on the home page and `pnpm registry:build` fails. See [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
+The checklist comes first: every step, with its command and what it does, using a new section called `pricing-section`. The [worked example](#worked-example) after it goes through the same steps in detail for a small component, with the code.
 
-| #          | File                                 | Why                                                                                      |
-| ---------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
-| 1          | `registry/<library>/<name>.tsx`      | The component source you publish                                                         |
-| 2          | `registry.json`                      | Tells `shadcn build` the component exists, and puts it on the home page with its filters |
-| 3          | `content/docs/components/<name>.mdx` | Its docs page, with a live preview and source                                            |
-| 4          | `content/docs/components/meta.json`  | Makes the page appear in the sidebar                                                     |
-| (optional) | `examples/<name>.tsx`                | A usage demo shown as the preview source instead of the raw component                    |
+<Callout title="Every text you write follows one guideline">
+  The descriptions, use cases, tags, doc comments and card screenshot are what
+  Google and AI agents know about the item. Write them to [Writing for AI
+  agents](/docs-admin/guides/seo-and-ai-agents#writing-for-ai-agents). When an
+  AI adds the item for you, have it read that section and this page first,
+  and match an existing item's Markdown, such as
+  `/docs/templates/feature-sphere-section.md`.
+</Callout>
 
-Then run `pnpm registry:build`.
+## At a glance
 
-The walkthrough below adds a `status-badge` component.
+### 1. Write the component
+
+Create `registry/sections/pricing-section.tsx` (a block goes in `registry/blocks/`).
+
+- **Imports:** only npm packages, `@/lib/utils` or shadcn primitives (`@/components/ui/*`).
+- **Breakpoints:** plain `sm:`/`md:`/`lg:`/`xl:`; no container queries.
+- **Props:** a `/** doc comment */` above every prop, and above every field of the types they use, because that becomes the AI-agent docs.
+
+No command yet. Details: [Worked example](#worked-example).
+
+### 2. Register it in registry.json
+
+Add an entry with `name`, `title`, `description` (the **card** text), `files`, `dependencies`, and the browse metadata: `categories`, `meta.id` (next code, e.g. `SEC-0009`), `meta.library`, `meta.types`, `meta.styles`, `meta.useCases`, `meta.publishedAt`. Every category, type and style must exist in `constants/taxonomy.ts`.
+
+- **`meta.useCases`:** 2 to 5 short phrases saying who it's for, in a founder's words: `["SaaS pricing pages", "Developer tools with usage-based plans"]`. AI agents match requests against it. See [Use cases](/docs-admin/guides/seo-and-ai-agents#use-cases).
+- **Tags:** only what's true. Agents read them as well as the filters.
+
+Details: [Browse page and filters](/docs-admin/guides/browse-page-and-filters).
+
+### 3. Write its docs page
+
+- **The page:** `content/docs/templates/pricing-section.mdx`, with `title` and `description`. The description is the **search** text: "A shadcn/ui pricing section for … : …", 155 characters or fewer.
+- **The menu:** add `"pricing-section"` to `content/docs/templates/meta.json` so it appears in the sidebar.
+- **Live preview at device widths:** if the section uses breakpoints, add its name to `LIVE_PREVIEWS` in `constants/live-previews.ts`, and its component to `components/live-preview-components.ts`.
+
+Details: [SEO and AI agents](/docs-admin/guides/seo-and-ai-agents#writing-the-search-description).
+
+### 4. Build the registry
+
+```bash
+pnpm registry:build
+```
+
+What it does:
+
+1. **Checks your metadata** against `constants/taxonomy.ts`, and stops with the bad value named if anything's wrong.
+2. **Builds the install files:** `public/r/pricing-section.json`.
+3. **Moves the paid ones** into `registry-paid/`, since every item is paid unless marked free.
+4. **Writes the AI-agent reference:** `content/agent-reference.json`, with its props, defaults and comments.
+5. **Prints warnings** like `! pricing-section: prop "plans" has no doc comment` or `field "Plan.price" has no doc comment`. Fix any you see and run it again.
+
+Then normalise the formatting of the built files:
+
+```bash
+pnpm exec oxfmt registry-paid public/r
+```
+
+Details: [Registry pipeline](/docs-admin/architecture/registry-pipeline).
+
+### 5. Check it in the browser
+
+```bash
+pnpm dev
+```
+
+- **`/docs/templates/pricing-section`:** the preview, at mobile, tablet and desktop widths.
+- **`/`:** its card, in the right filters.
+- **`/docs/templates/pricing-section.md`:** what AI agents get (At a glance, Install, Usage, Props, Files). [Test it](/docs-admin/guides/seo-and-ai-agents#test-it-before-you-commit) against three requests a founder would type.
+- **`/seo-admin` → Page audit:** its row has no red issues. Fix the title or description there with **Edit SEO text**.
+
+### 6. Add the card screenshot or video
+
+Drop the capture into `public/content/`, then run:
+
+```bash
+pnpm media
+```
+
+It asks which file, proposes a name and asks you to confirm, makes the sizes, uploads them to R2 and updates `content/media-manifest.json`. The same screenshot is the image AI agents see (as a JPEG, linked from the item's Markdown and `llms.txt`), so show the item at its best.
+
+Details: [Card screenshots](/docs-admin/guides/card-screenshots) and [Card videos](/docs-admin/guides/card-videos).
+
+### 7. Check the code
+
+```bash
+pnpm typecheck
+pnpm check
+```
+
+`typecheck` runs the TypeScript compiler and `check` runs lint. Don't run `pnpm fix` on MDX files: it breaks their comments.
+
+### 8. Commit
+
+```bash
+git add -A
+git commit -m "feat: pricing section (SEC-0009)"
+```
+
+The pre-commit hook formats and lints code, and only formats JSON and CSS. Commit `registry.json`, the component, the docs page, `registry-paid/`, `public/r/`, `content/agent-reference.json` and the media manifest together.
+
+### 9. Deploy
+
+```bash
+git push
+```
+
+Vercel runs `pnpm build`, which runs `pnpm registry:build` again and then `next build`. So the install files and the AI reference are always regenerated from the code. Its sitemap entry, share image, `llms.txt` line and Markdown page all appear on their own.
+
+Details: [Deploying](/docs-admin/guides/deploying).
+
+### In short
+
+Write the component (with prop and field comments), register it with its use cases, write its docs page, all to [the guideline](/docs-admin/guides/seo-and-ai-agents#writing-for-ai-agents), then `pnpm registry:build`, check in `pnpm dev`, run `pnpm media` for the card, and commit. The rest is automatic.
+
+## Worked example
+
+The walkthrough below adds a `status-badge` component. Its library is `components`; the steps are the same for a section or a block.
 
 <Steps>
 
@@ -71,6 +178,7 @@ Rules for registry source:
 - Add `"use client"` at the top if you use state, effects, refs or event handlers.
 - Style with Tailwind classes and shadcn tokens (`bg-muted`, `text-foreground`) so the component adapts to each user's theme.
 - Add `data-slot="<name>"` on the root, following shadcn v4 conventions.
+- Put a `/** doc comment */` above **every prop** in the props interface. It's what AI agents read: the registry build copies each prop's type, default and comment into the item's Markdown (see [SEO and AI agents](/docs-admin/guides/seo-and-ai-agents)). A `/* plain comment */` doesn't count.
 
 <Step>Register it in registry.json</Step>
 
@@ -94,7 +202,8 @@ Add an entry to `items`:
         "library": "components",
         "types": ["badge"],
         "styles": ["minimal", "dark-mode"],
-        "publishedAt": "2026-10-01"
+        "publishedAt": "2026-10-01",
+        "useCases": ["SaaS dashboards", "Status and uptime pages"]
       },
       "files": [
         {
@@ -125,6 +234,8 @@ pnpm registry:build
 ```
 
 Check that `registry-paid/status-badge.json` exists (or `public/r/status-badge.json`, if you marked it `"free": true`) and that its `files[0].content` contains your code. New items are paid by default.
+
+The build ends by writing the item's agent reference (`content/agent-reference.json`). Read its output: a line like `! status-badge: prop "status" has no doc comment` means agents would see an empty description. Add the comment and build again.
 
 <Step>(Optional) Add a demo</Step>
 
@@ -187,6 +298,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 - **Sections with breakpoints:** the preview toolbar's phone and tablet buttons only narrow the box, so `sm:`, `md:`, `lg:` and `xl:` classes (which follow the browser window) wouldn't switch. For an item like that, add its name to `LIVE_PREVIEWS` in `constants/live-previews.ts` and its component to `components/live-preview-components.ts`. Its preview then runs in an iframe of `/preview/<name>` at a real device width (390 phone, 834 tablet, 1440 desktop, scaled to fit), so it lays out exactly as on that device, and the MDX children aren't shown.
 - `<InstallCommand name="status-badge" />` renders the install command with npm, pnpm, yarn and bun tabs. The domain comes from `NEXT_PUBLIC_SITE_URL`, so never hard-code it in a code block. See [Changing the domain](/docs-admin/guides/changing-the-domain).
 - Usage examples should import from `@/components/ui/<name>`, **the path in the user's project**, not `@/registry/...`.
+- The front matter's `description` is the page's **search description** (Google, share cards, AI answers), not the card text. Write it as an answer to "I want to build …": what it is, who it's for and the problem, then how it solves it, in 155 characters or fewer. See [SEO and AI agents](/docs-admin/guides/seo-and-ai-agents#writing-the-search-description). You can edit it later from `/seo-admin`.
 
 <Step>Add it to the sidebar</Step>
 
@@ -211,6 +323,8 @@ pnpm dev
 - `/docs/components` lists it.
 - On `/`, **Components** shows its card, and its category, primitive and style filters keep it.
 - `http://localhost:3000/r/status-badge.json` returns the JSON.
+- `http://localhost:3000/docs/components/status-badge.md` shows **At a glance, Install, Usage, Props and Files**, with every prop described.
+- `/seo-admin` → **Page audit**: its row has no issues (title and description within their limits).
 - In a scratch Next.js app with shadcn initialised, run `npx shadcn@latest add http://localhost:3000/r/status-badge.json`.
 - Run `pnpm check && pnpm typecheck`.
 

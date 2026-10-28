@@ -112,22 +112,32 @@ const MenuRadioGroup = ({ onValueChange, ...props }: MenuRadioGroupProps) => {
 export type ApiKeyStatus = "active" | "disabled";
 
 export interface ApiKeyRow {
+  /** Unique id for the key, used for selection and actions. Not shown. */
   id: string;
+  /** The key's name, as people chose it. Editable in the table. */
   name: string;
+  /** The key's visible start, e.g. "rl_prod_fuaZQ0fdm", never the full secret. Copyable. */
   prefix: string;
+  /** "active" or "disabled". A disabled key is shown dimmed. */
   status: ApiKeyStatus;
   /** Null means the key was never used ("No Activity"). */
   lastUsedAt: number | null;
+  /** Who created it: a username or name. */
   createdBy: string;
+  /** When it was created, in milliseconds since 1970 (`Date.now()`). */
   createdAt: number;
 }
 
 export interface ApiKeysSectionProps {
+  /** The keys the table starts with; it then manages its own list. */
   initialKeys?: ApiKeyRow[];
   /** Shown as the author of keys created from this UI. */
   currentUser?: string;
+  /** Where the toolbar's "SDK" link goes. */
   sdkHref?: string;
+  /** Where the toolbar's "Docs" link goes. */
   docsHref?: string;
+  /** Extra classes for the section's root element. */
   className?: string;
 }
 

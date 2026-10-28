@@ -47,14 +47,20 @@ const TRANSITION = {
 } as CSSProperties;
 
 export interface FeatureImage {
+  /** Image URL. The card keeps its shape, cropped only past tall portrait (0.62) or 16:9. */
   src: string;
+  /** Describes the image for screen readers. */
   alt: string;
 }
 
 export interface SphereFeature {
+  /** Unique id, used by `defaultFeature` and `onFeatureChange`. */
   id: string;
+  /** The feature's name: one of the big lines in the index, e.g. "Architecture". */
   label: string;
+  /** A sentence or two shown under the name while the feature is open. */
   description: ReactNode;
+  /** Where its link (`linkLabel`) goes. Without it, no link is shown. */
   href?: string;
   /** This feature's images: they form its pile. */
   images: FeatureImage[];
@@ -66,6 +72,7 @@ export interface FeatureSphereSectionProps extends Omit<
 > {
   /** The section's heading, for screen readers (the index is the visible title). */
   title?: string;
+  /** What you do: each becomes a line in the index and a pile of images. */
   features?: SphereFeature[];
   /** Images that belong to no feature: they fill out the sphere. */
   extraImages?: FeatureImage[];
@@ -73,6 +80,7 @@ export interface FeatureSphereSectionProps extends Omit<
   linkLabel?: string;
   /** The feature open at first, by id. Defaults to the first. */
   defaultFeature?: string;
+  /** Called with a feature's id when it opens. */
   onFeatureChange?: (feature: string) => void;
   /** 1 when this is the page's main heading; 2 when the page has its own h1. */
   headingLevel?: 1 | 2;

@@ -154,6 +154,21 @@ export const getCardMedia = (item: string) => {
   };
 };
 
+// The largest screenshot of a registry item, for AI agents: app/llms.md/preview
+// serves it as a JPEG, since models' image inputs don't take AVIF.
+export const getCardScreenshot = (item: string) => {
+  const found = imagesByItem.get(item);
+  const base = imagesBaseUrl();
+  if (!found || !base) {
+    return;
+  }
+  const width = Math.max(...MEDIA_WIDTHS);
+  return {
+    fingerprint: found.entry.fingerprint,
+    src: `${base}/${found.name}-${width}.${found.entry.fingerprint}.avif`,
+  };
+};
+
 // The card video for a registry item, when it has an uploaded one.
 export const getCardVideo = (item: string) => {
   const found = videosByItem.get(item);

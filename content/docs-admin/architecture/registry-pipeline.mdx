@@ -11,6 +11,7 @@ description: How a .tsx file becomes something anyone can install with npx shadc
 | `registry.json`                                  | yes             | you                   | `shadcn build`, `components/command-box.tsx` (item names)        |
 | `public/r/<name>.json`, `public/r/registry.json` | yes (currently) | `pnpm registry:build` | the shadcn CLI on users' machines (free items and the index)     |
 | `registry-paid/<name>.json`                      | yes (currently) | `pnpm registry:build` | `app/r/[file]/route.ts`, for buyers only (see [Paid items](#paid-items)) |
+| `content/agent-reference.json`                   | yes             | `pnpm registry:build` | `lib/agent-reference.ts`, for the docs' Markdown (see [What AI agents read](#what-ai-agents-read)) |
 
 ## What `pnpm registry:build` does
 
@@ -34,6 +35,14 @@ For every item in `registry.json`, it:
 It also writes `public/r/registry.json`, the index of all items. Because `public/` is served statically, the files are available at `https://<site>/r/<name>.json`.
 
 Then the script moves every **paid** item's JSON out of `public/r/` into `registry-paid/`, which isn't public. See [Paid items](#paid-items).
+
+### What AI agents read
+
+Last, `scripts/agent-reference.mjs` writes `content/agent-reference.json`: for every library item, what an AI agent needs to use it without its code. It reads `registry.json` and each item's main component (with `ts-morph`), and records the install address, the import path, every prop (type, default and its own `/** doc comment */`), the types those props use (and the types inside them), the files, the npm dependencies, the browse tags and `meta.useCases`.
+
+`lib/agent-reference.ts` turns that into the **At a glance** (Good for, tags, preview links), **Install, Usage, Props and Files** sections of the item's docs page in Markdown (`/docs/<library>/<name>.md`, `Accept: text/markdown` and `llms-full.txt`), in place of the live preview, which means nothing outside the site. MDX `{/* comments */}` are left out too. The pricing and about pages have Markdown versions built from their own data (`lib/agent-discovery/pages.ts`).
+
+The build lists any item with no description, any prop or type field with no doc comment, and any component whose props it can't find. Those gaps show up as empty cells for agents, so fix them in the component: the comment is the documentation.
 
 A built item looks like this:
 

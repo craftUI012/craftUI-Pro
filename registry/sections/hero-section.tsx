@@ -358,11 +358,14 @@ function SignalField() {
 }
 
 export interface AktaHero01Props {
-  /* The photographic plate behind the panel cluster. Purely decorative and
+  /**
+   * The photographic plate behind the panel cluster. Purely decorative and
    * painted as a CSS background layer, not an <img>: if the file is absent the
    * layer simply does not paint and the hatch beneath it shows through, so the
-   * block never ships a broken image. Pass `null` to force the hatch. */
+   * block never ships a broken image. Pass `null` to force the hatch.
+   */
   plateImage?: string | null;
+  /** Extra classes for the section's root element. */
   className?: string;
 }
 

@@ -146,38 +146,53 @@ export type TicketPriority = "urgent" | "high" | "medium" | "low";
 export type TicketChannel = "email" | "chat" | "phone" | "web";
 
 export interface TicketRequester {
+  /** The customer's name. */
   name: string;
+  /** Their email address: searched and exported. */
   email: string;
+  /** Their company, shown under the name. */
   company: string;
 }
 
 export interface TicketRow {
+  /** Unique ticket number, shown in the table and searchable, e.g. "TCK-1048". */
   id: string;
+  /** The ticket's title: the main text of its row. */
   subject: string;
   /** The latest message, shown in the detail sheet. */
   preview: string;
+  /** The customer who opened it: name, email and optional company. */
   requester: TicketRequester;
+  /** Where it is: "open", "pending", "on-hold", "solved" or "closed". Editable inline. */
   status: TicketStatus;
+  /** "urgent", "high", "medium" or "low". Editable inline and sortable. */
   priority: TicketPriority;
   /** Null means unassigned. */
   assignee: string | null;
+  /** How it came in: "email", "chat", "phone" or "web". */
   channel: TicketChannel;
+  /** Free-form labels, shown as chips, searched and exported. Can be empty. */
   tags: string[];
+  /** How many replies it has. Not shown by the table: kept with the ticket for your own columns or views. */
   replies: number;
   /** A customer reply nobody has read yet. */
   unread: boolean;
+  /** When it was opened, in milliseconds since 1970 (`Date.now()`). */
   createdAt: number;
+  /** Last change, in milliseconds since 1970: shown as "Updated 2h ago" and sorts the table. */
   updatedAt: number;
   /** When the next response is due under the SLA. */
   slaDueAt: number;
 }
 
 export interface TicketsSectionProps {
+  /** The tickets the table starts with; it then manages its own list. */
   initialTickets?: TicketRow[];
   /** Agents tickets can be assigned to. */
   agents?: string[];
   /** The signed-in agent: "Mine" and new tickets' default assignee. */
   currentUser?: string;
+  /** Extra classes for the section's root element. */
   className?: string;
 }
 

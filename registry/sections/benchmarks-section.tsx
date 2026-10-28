@@ -180,24 +180,40 @@ const GUTTER = "px-4 sm:px-6 lg:px-10";
  * axis label, which has a 66px lane to live in; `n` is the raw number for forms
  * that need to place a value on an absolute scale rather than a 0–1 ratio. */
 export type BenchmarkRow = {
+  /** The provider's name, e.g. "GPT-5.5". */
   name: string;
+  /** A short name for the isometric chart's rotated axis label, which has little room. Defaults to `name`. */
   short?: string;
+  /** The figure as shown, e.g. "62.5". */
   value: string;
+  /** The value against the largest in this metric, from 0 to 1: what the chart draws. */
   ratio: number;
+  /** The raw number, for chart forms that place it on an absolute scale. */
   n?: number;
+  /** Marks your own row: the one the section is about, and the only one drawn in the brand colour. */
   brand?: boolean;
 };
 
 export type BenchmarkMetric = {
+  /** The metric's name, at the top of its cell, e.g. "F1 Score". */
   title: string;
+  /** What it measures, in brackets after the title, e.g. "accuracy × recall". */
   qualifier: string;
+  /** How to read it, above the chart: "Higher is better" or "Lower is better". */
   direction: string;
+  /** A Hugeicons icon shown before the title. */
   icon: typeof ChartAverageIcon;
-  /* Unit line beside the headline figure. The figure itself is always the
-   * brand row's own value, so there is one source for the number. */
+  /** Unit line beside the headline figure, e.g. "top F1 score". The figure
+   * itself is always the brand row's own value, so there is one source for
+   * the number. */
   headline: string;
+  /** One or two sentences under the title on why this metric matters. */
   blurb: string;
+  /** How the rows are drawn: "iso" (isometric bars), "units" (a field of
+   * units), "radar" (a polar plot), "slab" (stacked slabs) or "bars" (a bar
+   * list). Pick the form that tells this metric's story. */
   chart: "iso" | "units" | "radar" | "slab" | "bars";
+  /** One row per provider, yours included (mark it with `brand: true`). */
   rows: BenchmarkRow[];
 };
 
@@ -1074,11 +1090,15 @@ function MetricCell({ metric }: { metric: BenchmarkMetric }) {
  * Header on the grid, then a full-bleed band whose top and bottom rules cross
  * the viewport while the cells stay on the 1440 grid. */
 export interface AktaBenchmarks01Props {
+  /** Small label above the heading. */
   eyebrow?: string;
+  /** The section's main line. */
   heading?: string;
+  /** A sentence under the heading, in the muted colour. */
   description?: string;
-  /* Replace the four default readouts. Each metric picks its own chart form. */
+  /** Replace the four default readouts. Each metric picks its own chart form. */
   metrics?: BenchmarkMetric[];
+  /** Extra classes for the section's root element. */
   className?: string;
 }
 

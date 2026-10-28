@@ -1,0 +1,1512 @@
+{
+  "hero-section": {
+    "component": "AktaHero01",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "@tabler/icons-react",
+      "motion"
+    ],
+    "description": "Marketing hero with a cluster of data panels, rolling CTAs and a logo wall that cycles on scroll.",
+    "docs": "/docs/templates/hero-section",
+    "extends": null,
+    "files": [
+      "components/blocks/hero-section.tsx",
+      "components/blocks/drawing-styles.ts"
+    ],
+    "id": "SEC-0003",
+    "import": "@/components/blocks/hero-section",
+    "library": "templates",
+    "name": "hero-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The photographic plate behind the panel cluster. Purely decorative and painted as a CSS background layer, not an <img>: if the file is absent the layer simply does not paint and the hatch beneath it shows through, so the block never ships a broken image. Pass `null` to force the hatch.",
+        "name": "plateImage",
+        "optional": true,
+        "type": "string | null",
+        "default": "\"/images/data-panel-hero-plate.webp\""
+      },
+      {
+        "description": "Extra classes for the section's root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": "\"\""
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Data panel hero",
+    "types": [],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["hero"]
+    },
+    "useCases": [
+      "SaaS and AI product landing pages",
+      "Analytics, data and dashboard products",
+      "Launch pages that need proof above the fold"
+    ]
+  },
+  "benchmarks-section": {
+    "component": "AktaBenchmarks01",
+    "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react"],
+    "description": "Four metrics against competitors, each drawn as its own chart: isometric bars, unit field, radar and stacked slabs.",
+    "docs": "/docs/templates/benchmarks-section",
+    "extends": null,
+    "files": [
+      "components/blocks/benchmarks-section.tsx",
+      "components/blocks/drawing-styles.ts"
+    ],
+    "id": "SEC-0002",
+    "import": "@/components/blocks/benchmarks-section",
+    "library": "templates",
+    "name": "benchmarks-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "Small label above the heading.",
+        "name": "eyebrow",
+        "optional": true,
+        "type": "string",
+        "default": "\"Benchmarks\""
+      },
+      {
+        "description": "The section's main line.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"We Ranked Top as News Provider\""
+      },
+      {
+        "description": "A sentence under the heading, in the muted colour.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Best news quality at the lowest cost across News APIs, Agentic Search APIs, LL…"
+      },
+      {
+        "description": "Replace the four default readouts. Each metric picks its own chart form.",
+        "name": "metrics",
+        "optional": true,
+        "type": "BenchmarkMetric[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Extra classes for the section's root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": "\"\""
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Competitor benchmarks",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The metric's name, at the top of its cell, e.g. \"F1 Score\".",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What it measures, in brackets after the title, e.g. \"accuracy × recall\".",
+            "name": "qualifier",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "How to read it, above the chart: \"Higher is better\" or \"Lower is better\".",
+            "name": "direction",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A Hugeicons icon shown before the title.",
+            "name": "icon",
+            "optional": false,
+            "type": "typeof ChartAverageIcon"
+          },
+          {
+            "description": "Unit line beside the headline figure, e.g. \"top F1 score\". The figure itself is always the brand row's own value, so there is one source for the number.",
+            "name": "headline",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One or two sentences under the title on why this metric matters.",
+            "name": "blurb",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "How the rows are drawn: \"iso\" (isometric bars), \"units\" (a field of units), \"radar\" (a polar plot), \"slab\" (stacked slabs) or \"bars\" (a bar list). Pick the form that tells this metric's story.",
+            "name": "chart",
+            "optional": false,
+            "type": "\"iso\" | \"units\" | \"radar\" | \"slab\" | \"bars\""
+          },
+          {
+            "description": "One row per provider, yours included (mark it with `brand: true`).",
+            "name": "rows",
+            "optional": false,
+            "type": "BenchmarkRow[]"
+          }
+        ],
+        "name": "BenchmarkMetric"
+      },
+      {
+        "fields": [
+          {
+            "description": "The provider's name, e.g. \"GPT-5.5\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A short name for the isometric chart's rotated axis label, which has little room. Defaults to `name`.",
+            "name": "short",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The figure as shown, e.g. \"62.5\".",
+            "name": "value",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The value against the largest in this metric, from 0 to 1: what the chart draws.",
+            "name": "ratio",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "The raw number, for chart forms that place it on an absolute scale.",
+            "name": "n",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "Marks your own row: the one the section is about, and the only one drawn in the brand colour.",
+            "name": "brand",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "BenchmarkRow"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["minimal", "dark-mode"],
+      "types": ["stats"]
+    },
+    "useCases": [
+      "Comparison pages: why you over a competitor",
+      "SaaS and developer-tool landing pages",
+      "Launch or investor pages that lead with numbers"
+    ]
+  },
+  "team-section": {
+    "component": "TeamCluster01",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "motion"
+    ],
+    "description": "Clustered avatars synced to a list of roles and bios.",
+    "docs": "/docs/templates/team-section",
+    "extends": null,
+    "files": [
+      "components/blocks/team-section.tsx",
+      "components/blocks/avatar-grid.tsx"
+    ],
+    "id": "SEC-0001",
+    "import": "@/components/blocks/team-section",
+    "library": "templates",
+    "name": "team-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "Small label above the heading.",
+        "name": "eyebrow",
+        "optional": true,
+        "type": "string",
+        "default": "\"Know my team\""
+      },
+      {
+        "description": "The section's main line.",
+        "name": "heading",
+        "optional": true,
+        "type": "React.ReactNode",
+        "default": "\"The people behind the work\""
+      },
+      {
+        "description": "A paragraph under the heading.",
+        "name": "body",
+        "optional": true,
+        "type": "React.ReactNode",
+        "default": "\"Six of us, one studio, and a shared refusal to ship things that feel almost ri…"
+      },
+      {
+        "description": "The people in the avatar cluster, each with their role and bio.",
+        "name": "members",
+        "optional": true,
+        "type": "TeamMember[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Extra classes for the section's root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Team avatar grid",
+    "types": [],
+    "tags": {
+      "categories": ["company"],
+      "styles": ["motion"],
+      "types": ["team"]
+    },
+    "useCases": [
+      "About and company pages",
+      "Careers and hiring pages",
+      "Agency and studio team pages"
+    ]
+  },
+  "tables-section": {
+    "component": "TablesSection",
+    "dependencies": ["lucide-react"],
+    "description": "Search, filters, row selection, pagination, and create, rotate and delete dialogs.",
+    "docs": "/docs/templates/tables-section",
+    "extends": null,
+    "files": ["components/blocks/tables-section.tsx"],
+    "id": "SEC-0004",
+    "import": "@/components/blocks/tables-section",
+    "library": "templates",
+    "name": "tables-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The keys the table starts with; it then manages its own list.",
+        "name": "initialKeys",
+        "optional": true,
+        "type": "ApiKeyRow[]",
+        "default": null
+      },
+      {
+        "description": "Shown as the author of keys created from this UI.",
+        "name": "currentUser",
+        "optional": true,
+        "type": "string",
+        "default": "\"you\""
+      },
+      {
+        "description": "Where the toolbar's \"SDK\" link goes.",
+        "name": "sdkHref",
+        "optional": true,
+        "type": "string",
+        "default": "\"#\""
+      },
+      {
+        "description": "Where the toolbar's \"Docs\" link goes.",
+        "name": "docsHref",
+        "optional": true,
+        "type": "string",
+        "default": "\"#\""
+      },
+      {
+        "description": "Extra classes for the section's root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [
+      "table",
+      "button",
+      "checkbox",
+      "dialog",
+      "dropdown-menu",
+      "input",
+      "kbd",
+      "label",
+      "skeleton",
+      "avatar"
+    ],
+    "title": "API keys table",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id for the key, used for selection and actions. Not shown.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The key's name, as people chose it. Editable in the table.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The key's visible start, e.g. \"rl_prod_fuaZQ0fdm\", never the full secret. Copyable.",
+            "name": "prefix",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "\"active\" or \"disabled\". A disabled key is shown dimmed.",
+            "name": "status",
+            "optional": false,
+            "type": "ApiKeyStatus"
+          },
+          {
+            "description": "Null means the key was never used (\"No Activity\").",
+            "name": "lastUsedAt",
+            "optional": false,
+            "type": "number | null"
+          },
+          {
+            "description": "Who created it: a username or name.",
+            "name": "createdBy",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "When it was created, in milliseconds since 1970 (`Date.now()`).",
+            "name": "createdAt",
+            "optional": false,
+            "type": "number"
+          }
+        ],
+        "name": "ApiKeyRow"
+      }
+    ],
+    "tags": {
+      "categories": ["data"],
+      "styles": ["minimal", "dark-mode"],
+      "types": ["tables"]
+    },
+    "useCases": [
+      "Developer platforms and API dashboards",
+      "Admin panels that manage keys or tokens",
+      "SaaS settings and account pages"
+    ]
+  },
+  "tables-section-02": {
+    "component": "TablesSection02",
+    "dependencies": ["lucide-react"],
+    "description": "Help-desk queue with saved views, live SLA timers, inline status, priority and assignee, sorting, CSV export and a ticket detail sheet.",
+    "docs": "/docs/templates/tables-section-02",
+    "extends": null,
+    "files": ["components/blocks/tables-section-02.tsx"],
+    "id": "SEC-0005",
+    "import": "@/components/blocks/tables-section-02",
+    "library": "templates",
+    "name": "tables-section-02",
+    "paid": true,
+    "props": [
+      {
+        "description": "The tickets the table starts with; it then manages its own list.",
+        "name": "initialTickets",
+        "optional": true,
+        "type": "TicketRow[]",
+        "default": null
+      },
+      {
+        "description": "Agents tickets can be assigned to.",
+        "name": "agents",
+        "optional": true,
+        "type": "string[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The signed-in agent: \"Mine\" and new tickets' default assignee.",
+        "name": "currentUser",
+        "optional": true,
+        "type": "string",
+        "default": "AGENTS[0]"
+      },
+      {
+        "description": "Extra classes for the section's root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [
+      "table",
+      "avatar",
+      "badge",
+      "button",
+      "checkbox",
+      "dialog",
+      "dropdown-menu",
+      "input",
+      "kbd",
+      "label",
+      "native-select",
+      "sheet",
+      "skeleton",
+      "tabs",
+      "textarea"
+    ],
+    "title": "Support tickets table",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique ticket number, shown in the table and searchable, e.g. \"TCK-1048\".",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The ticket's title: the main text of its row.",
+            "name": "subject",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The latest message, shown in the detail sheet.",
+            "name": "preview",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The customer who opened it: name, email and optional company.",
+            "name": "requester",
+            "optional": false,
+            "type": "TicketRequester"
+          },
+          {
+            "description": "Where it is: \"open\", \"pending\", \"on-hold\", \"solved\" or \"closed\". Editable inline.",
+            "name": "status",
+            "optional": false,
+            "type": "TicketStatus"
+          },
+          {
+            "description": "\"urgent\", \"high\", \"medium\" or \"low\". Editable inline and sortable.",
+            "name": "priority",
+            "optional": false,
+            "type": "TicketPriority"
+          },
+          {
+            "description": "Null means unassigned.",
+            "name": "assignee",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "description": "How it came in: \"email\", \"chat\", \"phone\" or \"web\".",
+            "name": "channel",
+            "optional": false,
+            "type": "TicketChannel"
+          },
+          {
+            "description": "Free-form labels, shown as chips, searched and exported. Can be empty.",
+            "name": "tags",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "description": "How many replies it has. Not shown by the table: kept with the ticket for your own columns or views.",
+            "name": "replies",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "A customer reply nobody has read yet.",
+            "name": "unread",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "description": "When it was opened, in milliseconds since 1970 (`Date.now()`).",
+            "name": "createdAt",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "Last change, in milliseconds since 1970: shown as \"Updated 2h ago\" and sorts the table.",
+            "name": "updatedAt",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "When the next response is due under the SLA.",
+            "name": "slaDueAt",
+            "optional": false,
+            "type": "number"
+          }
+        ],
+        "name": "TicketRow"
+      },
+      {
+        "fields": [
+          {
+            "description": "The customer's name.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their email address: searched and exported.",
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their company, shown under the name.",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "TicketRequester"
+      }
+    ],
+    "tags": {
+      "categories": ["data"],
+      "styles": ["minimal", "dark-mode"],
+      "types": ["tables"]
+    },
+    "useCases": [
+      "Help-desk and customer-support tools",
+      "Internal ops and admin dashboards",
+      "SaaS apps with a filterable queue of records"
+    ]
+  },
+  "hero-section-02": {
+    "component": "ShowreelHero",
+    "dependencies": ["lucide-react", "motion"],
+    "description": "A hero with your work on a turning film wheel: drag, swipe or use the keys to spin it, with a live caption and a scrolling client row.",
+    "docs": "/docs/templates/hero-section-02",
+    "extends": "section",
+    "files": [
+      "components/blocks/hero-section-02.tsx",
+      "components/blocks/hero-section-02-wheel.tsx",
+      "components/blocks/hero-section-02-logos.tsx",
+      "components/blocks/hero-section-02-shared.ts"
+    ],
+    "id": "SEC-0006",
+    "import": "@/components/blocks/hero-section-02",
+    "library": "templates",
+    "name": "hero-section-02",
+    "paid": true,
+    "props": [
+      {
+        "description": "Small label above the title.",
+        "name": "eyebrow",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "The hero's main line.",
+        "name": "title",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Product launch videos\""
+      },
+      {
+        "description": "A second line, in the muted colour.",
+        "name": "titleMuted",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"that show what you built.\""
+      },
+      {
+        "description": "A sentence or two under the title.",
+        "name": "description",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"We script, film and edit launch videos for software products, from the main fi…"
+      },
+      {
+        "description": "The main button. Pass null to hide it.",
+        "name": "primaryAction",
+        "optional": true,
+        "type": "ShowreelAction | null",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "The second, quieter button. Pass null to hide it.",
+        "name": "secondaryAction",
+        "optional": true,
+        "type": "ShowreelAction | null",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Label before the scrolling row of client logos.",
+        "name": "logosLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Trusted by\""
+      },
+      {
+        "description": "Scroll by in a loop under the actions. Pass [] to hide the row.",
+        "name": "logos",
+        "optional": true,
+        "type": "ShowreelLogo[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Your work: one frame on the wheel each, with its description.",
+        "name": "reels",
+        "optional": true,
+        "type": "ShowreelReel[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Names for the reels' `category` ids, shown above each description.",
+        "name": "categories",
+        "optional": true,
+        "type": "ShowreelCategory[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Which reel faces the viewer at first.",
+        "name": "initialIndex",
+        "optional": true,
+        "type": "number",
+        "default": "0"
+      },
+      {
+        "description": "Advances while the section is on screen and nobody's using it.",
+        "name": "autoplay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Milliseconds between autoplay steps.",
+        "name": "autoplayInterval",
+        "optional": true,
+        "type": "number",
+        "default": "5000"
+      },
+      {
+        "description": "1 when this is the page's hero; 2 when the page has its own h1.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2",
+        "default": "1"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Showreel wheel hero",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Where the button goes: a page, an anchor (\"#contact\") or a mailto: link.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The button's text, e.g. \"Book a call\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ShowreelAction"
+      },
+      {
+        "fields": [
+          {
+            "description": "The client's name, shown in the scrolling client row and read by screen readers.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The client's mark, shown before the name at 20px.",
+            "name": "logo",
+            "optional": true,
+            "type": "ReactNode"
+          }
+        ],
+        "name": "ShowreelLogo"
+      },
+      {
+        "fields": [
+          {
+            "description": "Image URL, ideally 16:9 (a video still). It's cropped to the frame.",
+            "name": "src",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Describes the image for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What the piece is, in a line or two. Also names the frame.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Matches a `ShowreelCategory.id`, whose label shows above it.",
+            "name": "category",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Makes the description a link (a case study, the film itself).",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Where it was watched, and how much. Two or three read best.",
+            "name": "views",
+            "optional": true,
+            "type": "ShowreelViews[]"
+          }
+        ],
+        "name": "ShowreelReel"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id that reels point at with their `category`.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The category's name, shown above each of its reels' captions, e.g. \"Brand film\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ShowreelCategory"
+      },
+      {
+        "fields": [
+          {
+            "description": "Read by screen readers (\"YouTube views\"); the icon stands in for it.",
+            "name": "platform",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The count as shown, e.g. \"1.2M\".",
+            "name": "value",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The platform's mark, shown before the count.",
+            "name": "icon",
+            "optional": true,
+            "type": "ReactNode"
+          }
+        ],
+        "name": "ShowreelViews"
+      }
+    ],
+    "tags": {
+      "categories": ["portfolio"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["hero"]
+    },
+    "useCases": [
+      "Agency, studio and freelancer portfolios",
+      "Photographers', filmmakers' and creators' showreels",
+      "Brand sites that lead with their work"
+    ]
+  },
+  "testimonials-section": {
+    "component": "TestimonialSection",
+    "dependencies": ["lucide-react", "motion"],
+    "description": "Customer stories with auto-scrolling progress timer, cross-fading quotes, and live KPI impact metrics.",
+    "docs": "/docs/templates/testimonials-section",
+    "extends": "section",
+    "files": ["components/blocks/testimonials-section.tsx"],
+    "id": "SEC-0009",
+    "import": "@/components/blocks/testimonials-section",
+    "library": "templates",
+    "name": "testimonials-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "Your customers' stories, in the order they play.",
+        "name": "testimonials",
+        "optional": true,
+        "type": "TestimonialItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The heading above the stories. Wrap the words to stress in `<span className=\"text-foreground\">`: the rest is muted. Defaults to \"Real impact on real businesses.\"",
+        "name": "title",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "( <> Real impact on <span className=\"text-foreground\">real businesses.</span> <…"
+      },
+      {
+        "description": "The names of the two results each story shows. Defaults to [\"Conversion Rate\", \"Avg. Sales Cycle\"].",
+        "name": "metricLabels",
+        "optional": true,
+        "type": "[string, string]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Seconds each story stays before the next. Defaults to 6.",
+        "name": "interval",
+        "optional": true,
+        "type": "number",
+        "default": "6"
+      },
+      {
+        "description": "The heading's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Metrics testimonials section",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: what the animations key on.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The customer's name.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their job title, e.g. \"VP of Operations\".",
+            "name": "role",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their company, shown after the role.",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Portrait URL, ideally 4:5 or taller. Shown in black and white, in colour on hover.",
+            "name": "image",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What they said, without quotation marks: the section adds them. Two to four sentences read best.",
+            "name": "quote",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The two results they got, in the order of `metricLabels`.",
+            "name": "metrics",
+            "optional": false,
+            "type": "[TestimonialMetric, TestimonialMetric]"
+          }
+        ],
+        "name": "TestimonialItem"
+      },
+      {
+        "fields": [
+          {
+            "description": "The result, large, e.g. \"42.8%\" or \"18 days\".",
+            "name": "value",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A shorter value for phones, where space is tight, e.g. \"18D\". Defaults to `value`.",
+            "name": "short",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The change it shows, beside the value, e.g. \"+14.6%\" or \"-12 days\".",
+            "name": "change",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Which way the change went: \"up\" or \"down\". Picks the arrow; both read as an improvement.",
+            "name": "trend",
+            "optional": false,
+            "type": "\"up\" | \"down\""
+          }
+        ],
+        "name": "TestimonialMetric"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["testimonials"]
+    },
+    "useCases": [
+      "SaaS and B2B landing pages",
+      "Sales, CRM and revenue tool websites",
+      "Customer story and case study pages"
+    ]
+  },
+  "image-sphere": {
+    "component": "ImageSphere",
+    "dependencies": [],
+    "description": "Your images on a WebGL globe you can hold: fling it, click an image and its group lands in a labelled pile.",
+    "docs": "/docs/blocks/image-sphere",
+    "extends": "section",
+    "files": [
+      "components/blocks/image-sphere.tsx",
+      "components/blocks/image-sphere-scene.ts",
+      "components/blocks/image-sphere-gl.ts"
+    ],
+    "id": "BLK-0001",
+    "import": "@/components/blocks/image-sphere",
+    "library": "blocks",
+    "name": "image-sphere",
+    "paid": true,
+    "props": [
+      {
+        "description": "Your images. Each can belong to a group, which gathers into a pile.",
+        "name": "items",
+        "optional": true,
+        "type": "ImageSphereItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The groups items belong to, by id, with the label shown on hover.",
+        "name": "groups",
+        "optional": true,
+        "type": "ImageSphereGroup[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Cards on the sphere; items repeat round it to fill them. Defaults to 240, or 140 on screens narrower than 40rem. Never fewer than items.",
+        "name": "count",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Turns slowly while nobody's using it and no group is open.",
+        "name": "autoRotate",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "The group open at first, by id.",
+        "name": "defaultGroup",
+        "optional": true,
+        "type": "string | null",
+        "default": "null"
+      },
+      {
+        "description": "The open group, when the parent decides it (e.g. from scroll). Clicks then only report through `onGroupChange`, and the block's own keyboard buttons are left out: the parent's controls take their place.",
+        "name": "group",
+        "optional": true,
+        "type": "string | null",
+        "default": null
+      },
+      {
+        "description": "Called when a group opens (its id) or closes (null).",
+        "name": "onGroupChange",
+        "optional": true,
+        "type": "(group: string | null) => void",
+        "default": null
+      },
+      {
+        "description": "The keyboard button that closes the open group.",
+        "name": "allLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"All\""
+      },
+      {
+        "description": "The line in the top corner, until the first touch. Pass null to hide it.",
+        "name": "hint",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Drag to spin · Click an image\""
+      },
+      {
+        "description": "Seconds the globe takes for one full turn when idle. Defaults to 45.",
+        "name": "turnDuration",
+        "optional": true,
+        "type": "number",
+        "default": "45"
+      },
+      {
+        "description": "Most images a group's pile shows. Defaults to 12.",
+        "name": "pileSize",
+        "optional": true,
+        "type": "number",
+        "default": "CLUSTER_MAX"
+      },
+      {
+        "description": "How curved the pile's images are, from 0 (flat) to 1 (most curved). Defaults to 0.6.",
+        "name": "pileCurve",
+        "optional": true,
+        "type": "number",
+        "default": "0.6"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Image sphere",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Image URL. The card keeps its shape, cropped only past tall portrait (0.62) or 16:9.",
+            "name": "src",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Describes the image for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A group's `id`. Items without one stay on the sphere.",
+            "name": "group",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "ImageSphereItem"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id that items point at with their `group`.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The group's name: the tag beside the pointer on hover, and its keyboard button.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ImageSphereGroup"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "portfolio"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["gallery"]
+    },
+    "useCases": [
+      "Portfolio and gallery pages",
+      "Agency and studio websites",
+      "Brand, product or campaign image showcases",
+      "Event and launch microsites"
+    ]
+  },
+  "statement-section": {
+    "component": "StatementSection",
+    "dependencies": [],
+    "description": "A big statement parts round a growing image as you scroll, then a second statement rises out of the photo.",
+    "docs": "/docs/templates/statement-section",
+    "extends": "section",
+    "files": [
+      "components/blocks/statement-section.tsx",
+      "components/blocks/statement-section-flow.ts"
+    ],
+    "id": "SEC-0007",
+    "import": "@/components/blocks/statement-section",
+    "library": "templates",
+    "name": "statement-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The statement. Plain text; it's set word by word.",
+        "name": "text",
+        "optional": true,
+        "type": "string",
+        "default": "\"We make things for the quiet hours, the first light and the long road home, th…"
+      },
+      {
+        "description": "A phrase in `text` set in the italic accent face.",
+        "name": "emphasis",
+        "optional": true,
+        "type": "string",
+        "default": "\"the quiet hours,\""
+      },
+      {
+        "description": "The second statement, which rises out of the photo at the end.",
+        "name": "reveal",
+        "optional": true,
+        "type": "string",
+        "default": "\"Made slowly, built to last.\""
+      },
+      {
+        "description": "The photo in the circle that grows to fill the screen.",
+        "name": "image",
+        "optional": true,
+        "type": "StatementImage",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Small text in the top corner.",
+        "name": "eyebrow",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"(02) — Field notes\""
+      },
+      {
+        "description": "How long the stage stays pinned, in screen heights.",
+        "name": "length",
+        "optional": true,
+        "type": "number",
+        "default": "3"
+      },
+      {
+        "description": "The element that scrolls, when it isn't the page (a custom scroll container, a smooth-scroll wrapper). The stage is then as tall as it.",
+        "name": "scroller",
+        "optional": true,
+        "type": "RefObject<HTMLElement | null>",
+        "default": null
+      },
+      {
+        "description": "1 when this is the page's main heading; 2 when the page has its own h1.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Parted statement",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Image URL. A large landscape photo: it ends up filling the screen.",
+            "name": "src",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Describes the photo for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The photo's subject, as a CSS position (\"21% 40%\"): the small circle frames it at the start, then eases out to the whole photo.",
+            "name": "focus",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "StatementImage"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "portfolio"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["editorial"]
+    },
+    "useCases": [
+      "Brand stories and manifesto sections",
+      "Agency, studio and fashion websites",
+      "Launch pages that need a cinematic moment"
+    ]
+  },
+  "feature-sphere-section": {
+    "component": "FeatureSphereSection",
+    "dependencies": [],
+    "description": "An editorial index of features in big type beside a live WebGL image sphere: choose a feature and its images fly out of the sphere into a pile.",
+    "docs": "/docs/templates/feature-sphere-section",
+    "extends": "section",
+    "files": [
+      "components/blocks/feature-sphere-section.tsx",
+      "components/blocks/image-sphere.tsx",
+      "components/blocks/image-sphere-scene.ts",
+      "components/blocks/image-sphere-gl.ts"
+    ],
+    "id": "SEC-0008",
+    "import": "@/components/blocks/feature-sphere-section",
+    "library": "templates",
+    "name": "feature-sphere-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The section's heading, for screen readers (the index is the visible title).",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": "\"What we do\""
+      },
+      {
+        "description": "What you do: each becomes a line in the index and a pile of images.",
+        "name": "features",
+        "optional": true,
+        "type": "SphereFeature[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Images that belong to no feature: they fill out the sphere.",
+        "name": "extraImages",
+        "optional": true,
+        "type": "FeatureImage[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Text on each feature's link.",
+        "name": "linkLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"View work\""
+      },
+      {
+        "description": "The feature open at first, by id. Defaults to the first.",
+        "name": "defaultFeature",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Called with a feature's id when it opens.",
+        "name": "onFeatureChange",
+        "optional": true,
+        "type": "(feature: string) => void",
+        "default": null
+      },
+      {
+        "description": "1 when this is the page's main heading; 2 when the page has its own h1.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2",
+        "default": "2"
+      },
+      {
+        "description": "Which side the sphere sits on, on wide screens. Defaults to \"right\".",
+        "name": "sphereSide",
+        "optional": true,
+        "type": "\"left\" | \"right\"",
+        "default": "\"right\""
+      },
+      {
+        "description": "Any of the image sphere's own options: `count`, `turnDuration`, `pileSize`, `pileCurve`, `autoRotate`, `hint`, `className`, `aria-label` and so on. The section sets its images, groups and open group itself.",
+        "name": "sphere",
+        "optional": true,
+        "type": "Omit< ImageSphereProps, \"items\" | \"groups\" | \"group\" | \"defaultGroup\" | \"onGroupChange\" >",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Feature index sphere",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id, used by `defaultFeature` and `onFeatureChange`.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The feature's name: one of the big lines in the index, e.g. \"Architecture\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A sentence or two shown under the name while the feature is open.",
+            "name": "description",
+            "optional": false,
+            "type": "ReactNode"
+          },
+          {
+            "description": "Where its link (`linkLabel`) goes. Without it, no link is shown.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "This feature's images: they form its pile.",
+            "name": "images",
+            "optional": false,
+            "type": "FeatureImage[]"
+          }
+        ],
+        "name": "SphereFeature"
+      },
+      {
+        "fields": [
+          {
+            "description": "Image URL. The card keeps its shape, cropped only past tall portrait (0.62) or 16:9.",
+            "name": "src",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Describes the image for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "FeatureImage"
+      },
+      {
+        "fields": [
+          {
+            "description": "Your images. Each can belong to a group, which gathers into a pile.",
+            "name": "items",
+            "optional": true,
+            "type": "ImageSphereItem[]"
+          },
+          {
+            "description": "The groups items belong to, by id, with the label shown on hover.",
+            "name": "groups",
+            "optional": true,
+            "type": "ImageSphereGroup[]"
+          },
+          {
+            "description": "Cards on the sphere; items repeat round it to fill them. Defaults to 240, or 140 on screens narrower than 40rem. Never fewer than items.",
+            "name": "count",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "Turns slowly while nobody's using it and no group is open.",
+            "name": "autoRotate",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "description": "The group open at first, by id.",
+            "name": "defaultGroup",
+            "optional": true,
+            "type": "string | null"
+          },
+          {
+            "description": "The open group, when the parent decides it (e.g. from scroll). Clicks then only report through `onGroupChange`, and the block's own keyboard buttons are left out: the parent's controls take their place.",
+            "name": "group",
+            "optional": true,
+            "type": "string | null"
+          },
+          {
+            "description": "Called when a group opens (its id) or closes (null).",
+            "name": "onGroupChange",
+            "optional": true,
+            "type": "(group: string | null) => void"
+          },
+          {
+            "description": "The keyboard button that closes the open group.",
+            "name": "allLabel",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The line in the top corner, until the first touch. Pass null to hide it.",
+            "name": "hint",
+            "optional": true,
+            "type": "ReactNode"
+          },
+          {
+            "description": "Seconds the globe takes for one full turn when idle. Defaults to 45.",
+            "name": "turnDuration",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "Most images a group's pile shows. Defaults to 12.",
+            "name": "pileSize",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "How curved the pile's images are, from 0 (flat) to 1 (most curved). Defaults to 0.6.",
+            "name": "pileCurve",
+            "optional": true,
+            "type": "number"
+          }
+        ],
+        "name": "ImageSphereProps"
+      },
+      {
+        "fields": [
+          {
+            "description": "Image URL. The card keeps its shape, cropped only past tall portrait (0.62) or 16:9.",
+            "name": "src",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Describes the image for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A group's `id`. Items without one stay on the sphere.",
+            "name": "group",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "ImageSphereItem"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id that items point at with their `group`.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The group's name: the tag beside the pointer on hover, and its keyboard button.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ImageSphereGroup"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "portfolio"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["features"]
+    },
+    "useCases": [
+      "Agency and studio services pages",
+      "Product feature overviews with imagery",
+      "Editorial and portfolio websites"
+    ]
+  }
+}

@@ -40,7 +40,7 @@ description: Every field of the registry manifest and its items, with examples.
 | `css`                  | object   | Raw CSS rules (`@keyframes`, `@layer` and so on) merged into the user's CSS                                                                                                     |
 | `docs`                 | string   | Message printed by the CLI after installing                                                                                                                                     |
 | `categories`           | string[] | For directory and search grouping, and **the home page's Categories filter**. Lowercase slugs                                                                                   |
-| `meta`                 | object   | Free-form metadata. This site reads `id`, `library`, `types`, `styles`, `publishedAt`, `docs`, `preview`, `popularity` and `free` from it; see below                                   |
+| `meta`                 | object   | Free-form metadata. This site reads `id`, `library`, `types`, `styles`, `useCases`, `publishedAt`, `docs`, `preview`, `popularity` and `free` from it; see below                                   |
 
 ## `meta` fields this site reads
 
@@ -52,6 +52,7 @@ These are ignored by `shadcn build` and the CLI. The home page and the docs read
 | `types`       | yes                        | Slugs (one or more) for the **Type** (**Primitives**) filter. Replaced the old `section` string                                  |
 | `styles`      | no (can be empty)          | Slugs for the **Styles** filter                                                                                                  |
 | `publishedAt` | yes                        | `YYYY-MM-DD`. Latest order, What's new                                                                                           |
+| `useCases`    | yes                        | 2–5 short phrases saying who it's for ("Agency and studio portfolios"). Shown to AI agents as **Good for**. See [Writing for AI agents](/docs-admin/guides/seo-and-ai-agents#writing-for-ai-agents) |
 | `docs`        | no                         | Docs page slug when it isn't `name` (variants sharing a page)                                                                    |
 | `preview`     | no                         | Card screenshot path under `public/`                                                                                             |
 | `popularity`  | no                         | Most popular order                                                                                                               |

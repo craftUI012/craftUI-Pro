@@ -28,10 +28,15 @@ export type TeamMember = AvatarMember & {
 };
 
 export interface TeamCluster01Props {
+  /** Small label above the heading. */
   eyebrow?: string;
+  /** The section's main line. */
   heading?: React.ReactNode;
+  /** A paragraph under the heading. */
   body?: React.ReactNode;
+  /** The people in the avatar cluster, each with their role and bio. */
   members?: TeamMember[];
+  /** Extra classes for the section's root element. */
   className?: string;
 }
 

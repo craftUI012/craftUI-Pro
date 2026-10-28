@@ -97,7 +97,9 @@ const MOTION_BLUR = { max: 3, perSpeed: 0.004 } as const;
 const SCROLL_SPRING = { stiffness: 140 } as const;
 
 export interface StatementImage {
+  /** Image URL. A large landscape photo: it ends up filling the screen. */
   src: string;
+  /** Describes the photo for screen readers. */
   alt: string;
   /**
    * The photo's subject, as a CSS position ("21% 40%"): the small circle
@@ -116,6 +118,7 @@ export interface StatementSectionProps extends Omit<
   emphasis?: string;
   /** The second statement, which rises out of the photo at the end. */
   reveal?: string;
+  /** The photo in the circle that grows to fill the screen. */
   image?: StatementImage;
   /** Small text in the top corner. */
   eyebrow?: ReactNode;

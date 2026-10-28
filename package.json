@@ -49,6 +49,7 @@
     "recharts": "3.8.0",
     "rehype-pretty-code": "^0.14.3",
     "reloop-email": "^2.1.0",
+    "sharp": "0.34.5",
     "shiki": "^4.0.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",

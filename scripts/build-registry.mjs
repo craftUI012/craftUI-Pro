@@ -124,3 +124,10 @@ if (result.status === 0) {
   }
   console.log(`Moved ${paid.length} paid item(s) to ${PAID_DIR}`);
 }
+
+// What AI agents read about each item (install, usage, props), from the
+// registry and the components' own types: see scripts/agent-reference.mjs.
+if (result.status === 0) {
+  const { writeAgentReference } = await import("./agent-reference.mjs");
+  writeAgentReference(registry);
+}

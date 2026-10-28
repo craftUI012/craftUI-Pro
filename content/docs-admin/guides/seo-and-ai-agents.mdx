@@ -1,0 +1,138 @@
+---
+title: SEO and AI agents
+description: Where each page's search text comes from, how to edit it in /seo-admin, and how the Markdown that AI agents read is generated.
+---
+
+Every docs page has two audiences besides the people browsing it: **search engines** (Google, share cards) and **AI agents** (ChatGPT, Claude, Cursor and the like, reading Markdown). Nearly all of it is generated. What you write by hand is a few short texts per item, and [Writing for AI agents](#writing-for-ai-agents) is the guideline for every one of them.
+
+## Where the SEO data comes from
+
+Nothing is stored in a database or a separate SEO file. Each page's metadata is built from these places when the page is served:
+
+| SEO field                                      | Comes from                                                    | Edit it in                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Title                                          | `title:` in the page's front matter                           | `content/docs/<library>/<name>.mdx`, or `/seo-admin`                     |
+| Description                                    | `description:` in the same front matter                       | Same                                                                     |
+| Indexed (`index, follow`) or not              | Whether a `registry.json` item points at the page             | `registry.json` (`meta.library` and `name`), checked in `lib/registry-items.ts` |
+| Canonical URL                                  | The page's address                                            | Automatic (`seo/metadata.ts`)                                            |
+| Share image (1200×630)                         | The page's title and description                              | Automatic (`app/og/docs/[...slug]/route.tsx`, design in `seo/og-image.tsx`) |
+| Breadcrumbs (structured data)                  | Home, then the library, then the page                         | Automatic (`app/(home)/docs/[[...slug]]/page.tsx`)                       |
+| Organization, website and `SoftwareSourceCode` | Site-wide, the same on every page                             | `seo/json-ld.tsx`, `constants/site.ts`                                   |
+| Sitemap entry                                  | Every indexable page                                          | Automatic (`app/sitemap.ts`)                                             |
+| Hide a page completely                         | A hidden list                                                 | `HIDDEN_DOCS` in `source.config.ts`                                      |
+
+Pages outside `/docs` (home, pricing, about) set their metadata in code, in their own `page.tsx`.
+
+## Two descriptions, for two readers
+
+Every section and block has **two** descriptions. They're usually close, but they're written for different people:
+
+| | 1. Search description | 2. Card description |
+| --- | --- | --- |
+| Where | The docs page's front matter (`description:`) | `registry.json` (the item's `description`) |
+| Who reads it | Google's results, share cards, AI answers | People on the browse page; the install data the shadcn CLI and AI tools read |
+| How it reads | Starts "A shadcn/ui …" (what people search for) and answers a need | Plain, for someone already browsing the library |
+
+## Editing them in /seo-admin
+
+In development, open `/seo-admin` and go to **Page audit**. Every docs page has an **Edit SEO text** button, with two numbered groups that say where each text appears and which file it's saved to:
+
+1. **SEO & search**: the page title and search description, saved to the page's MDX file. Only those two lines change; the rest of the file is left as it is, and the formatter never runs on it.
+2. **Component description for the website**: the card description, saved to `registry.json`. Saving it rebuilds the registry, so the install data matches.
+
+The counters use the audit's own limits: 60 characters for the title (including the " | craftUI" added to it) and 160 for the description. Edits are ordinary file changes: review them with `git diff` and commit them. `/seo-admin` doesn't exist in production, so nothing can be changed on the live site.
+
+## Writing the search description
+
+Write it as the answer to a founder asking Google or an AI "I want to build a … section":
+
+1. **What it is**, with the words people search for: "A shadcn/ui hero section …"
+2. **Who it's for, and their problem**: "… for SaaS landing pages that need to prove value at first glance:"
+3. **How it solves it**, with the concrete features: "live data panels, rotating CTAs and a customer logo wall."
+
+Keep it to **155 characters or fewer**, or search results cut it off.
+
+## Writing for AI agents
+
+This is the guideline for everything you write about an item. Follow it for every new section, block or component, and whenever you change one. To have an AI do it, ask it to read this section and [Adding a component](/docs-admin/guides/adding-a-component) first, then an existing item's Markdown (for example `/docs/templates/feature-sphere-section.md`) as the model to match.
+
+A founder asks an AI something like *"I need a dark, animated portfolio site for my studio"*. The AI recommends an item only when that request matches what the item says about itself, and these texts are all it has to go on. It can't see the live preview, so every text has to say plainly who the item is for and what it does.
+
+### The seven things to write
+
+| # | What | Where | The rule |
+| --- | --- | --- | --- |
+| 1 | Search description | `description:` in the docs page's front matter | "A shadcn/ui *what* for *who* that *need*: *how*." 155 characters or fewer. See [Writing the search description](#writing-the-search-description) |
+| 2 | Card description | `description` in `registry.json` | One plain line for someone already browsing: what it does, with its standout features. Don't repeat the name |
+| 3 | Use cases | `meta.useCases` in `registry.json` | Who it's for: 2 to 5 short phrases in a founder's words. See [Use cases](#use-cases) |
+| 4 | Tags | `categories`, `meta.types`, `meta.styles` | Only what's true. `motion` only if it animates; `dark-mode` only if it has a dark theme |
+| 5 | Prop comments | A `/** doc comment */` above every prop | What it changes, in the user's terms, with the unit and the default when it's not obvious: "Seconds the globe takes for one full turn when idle. Defaults to 45." |
+| 6 | Field comments | A `/** doc comment */` above every field of a type a prop uses (`SphereFeature.label`), and of the types those use in turn (`TestimonialMetric.trend`) | The same, so an agent filling in real content doesn't guess. "—" in a Markdown table means one is missing |
+| 7 | Card screenshot | `pnpm media` | The image agents see and pass on. Show the item at its best, the part that sells it, inside the 16:10 crop |
+
+Items 1, 3, 4 and 7 are what an agent **matches** on; 2, 5 and 6 are what it needs to **use** the item well.
+
+### Use cases
+
+`meta.useCases` becomes the **Good for** line on the item's Markdown page and in `llms.txt`. It's the closest thing to the words a founder types, so it carries the most weight.
+
+- **Name a kind of site or page, and who it's for:** "Agency and studio portfolios", "About and careers pages", "Help-desk and support tools".
+- **Write as a founder would ask, not as a designer would describe it:** no technology (WebGL, shadcn, Motion) and no praise ("stunning", "modern"). The search description and tags already cover those.
+- **Make each phrase different:** cover different businesses or different pages, not the same idea reworded.
+- **Keep the form:** 2 to 5 phrases, each under 60 characters, plural, no period at the end. The build enforces this.
+
+| Avoid | Write | Why |
+| --- | --- | --- |
+| "Websites" | "Agency and studio websites" | Too vague to match anything |
+| "Stunning hero for modern brands" | "SaaS and AI product landing pages" | Praise matches no request |
+| "WebGL image gallery" | "Portfolio and gallery pages" | Founders ask for the result, not the technology |
+| "Landing pages", "Home pages", "Marketing pages" | "SaaS landing pages", "Launch pages that need proof above the fold" | Three phrases, one idea |
+
+### Test it before you commit
+
+1. Write down three requests the item should win, as a founder would type them: *"a cinematic about section for my fashion brand"*.
+2. Open `/docs/<library>/<name>.md` and read **At a glance** and the description. Every request should share its key words (the kind of site, the page, the feel) with what's there. If one doesn't, change the use cases or the description, not the request.
+3. Open the screenshot link. Would it make the founder want to see the live preview?
+
+### Asking an AI to write them
+
+> Read `content/docs-admin/guides/seo-and-ai-agents.mdx` (Writing for AI agents) and `content/docs-admin/guides/adding-a-component.mdx`. Then, for `<item>`, write or check its search description, card description, `meta.useCases`, tags and every prop and field doc comment against the guideline. Run `pnpm registry:build`, fix every warning, and show me `/docs/<library>/<item>.md`.
+
+## What AI agents read
+
+Agents read Markdown, not HTML. These are served for them:
+
+| Address                                             | What                                                        |
+| --------------------------------------------------- | ----------------------------------------------------------- |
+| `/llms.txt`                                         | The index: every page, with its search description          |
+| `/llms-full.txt`                                    | Every docs page's Markdown in one file                      |
+| `/docs/<library>/<name>.md`                         | One page as Markdown                                        |
+| Any docs URL, the home page, `/pricing` and `/about`, with an `Accept: text/markdown` header | The same Markdown, without the `.md` |
+| `/pricing.md`, `/about.md`                          | Pricing and about, built from `constants/pricing.ts` and `constants/faq.ts` (prices from `.env`) |
+| `/llms.md/preview/<name>.<fingerprint>.jpg`         | An item's card screenshot as a JPEG. The R2 originals are AVIF, which models can't read as an image input, so this route converts them (`lib/agent-discovery/preview-image.ts`) |
+| `/.well-known/agent-skills/site-skill.md`           | The agent skill: how to find an item for a user's need, read its Markdown, recommend it and install it, and how paid access works. Written in `lib/agent-discovery/site-agent-skill.ts`; edit it there when the flow changes |
+
+The Markdown isn't stored as files. It's assembled when it's asked for, from the docs page and from `content/agent-reference.json`.
+
+### The agent reference
+
+`pnpm registry:build` ends by writing `content/agent-reference.json` (see [Registry pipeline](/docs-admin/architecture/registry-pipeline#what-ai-agents-read)). For every section and block it records the install address, the import path, every prop (type, default and doc comment), the types the props use, the files and the dependencies, read from `registry.json` and the component's own TypeScript.
+
+On an item's Markdown page, the live preview (meaningless outside the site) is replaced by sections built from it, and MDX comments are left out:
+
+- **At a glance:** Good for (`meta.useCases`), the Category, Type and Style tags by their labels, and links to the live preview, the screenshot JPEG and the card video, with the screenshot shown as an image.
+- **Install, Usage, Props, Types and Files.**
+
+In `llms.txt`, each item's line also gets its Good for, its tags and its screenshot after the description, so an agent can shortlist items from the index alone.
+
+Every deploy runs `pnpm registry:build` first (`pnpm build`), so production is always current. Locally, run `pnpm registry:build` to see a change before you deploy, and commit `content/agent-reference.json` with it.
+
+## What you do by hand
+
+| When                       | Do                                                                                                             |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| You add or rename a prop or a field of its types | Write a `/** doc comment */` above it. The build lists any without one. A `/* plain comment */` doesn't count |
+| You add a section or block | Write the [seven things](#the-seven-things-to-write), check its row in `/seo-admin` and [test it](#test-it-before-you-commit) |
+| You change prices          | Change them in `.env` and restart the dev server; on Vercel, set them and redeploy                             |
+
+Everything else, from install commands, props tables, the sitemap and share images to `llms.txt`, follows on its own.

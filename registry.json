@@ -27,7 +27,12 @@
         "library": "templates",
         "types": ["hero"],
         "styles": ["motion", "dark-mode"],
-        "publishedAt": "2026-09-21"
+        "publishedAt": "2026-09-21",
+        "useCases": [
+          "SaaS and AI product landing pages",
+          "Analytics, data and dashboard products",
+          "Launch pages that need proof above the fold"
+        ]
       },
       "dependencies": [
         "@hugeicons/core-free-icons",
@@ -59,7 +64,12 @@
         "library": "templates",
         "types": ["stats"],
         "styles": ["minimal", "dark-mode"],
-        "publishedAt": "2026-09-14"
+        "publishedAt": "2026-09-14",
+        "useCases": [
+          "Comparison pages: why you over a competitor",
+          "SaaS and developer-tool landing pages",
+          "Launch or investor pages that lead with numbers"
+        ]
       },
       "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react"],
       "files": [
@@ -86,7 +96,12 @@
         "library": "templates",
         "types": ["team"],
         "styles": ["motion"],
-        "publishedAt": "2026-09-08"
+        "publishedAt": "2026-09-08",
+        "useCases": [
+          "About and company pages",
+          "Careers and hiring pages",
+          "Agency and studio team pages"
+        ]
       },
       "dependencies": [
         "@hugeicons/core-free-icons",
@@ -117,7 +132,12 @@
         "library": "templates",
         "types": ["tables"],
         "styles": ["minimal", "dark-mode"],
-        "publishedAt": "2026-10-06"
+        "publishedAt": "2026-10-06",
+        "useCases": [
+          "Developer platforms and API dashboards",
+          "Admin panels that manage keys or tokens",
+          "SaaS settings and account pages"
+        ]
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": [
@@ -151,7 +171,12 @@
         "library": "templates",
         "types": ["tables"],
         "styles": ["minimal", "dark-mode"],
-        "publishedAt": "2026-10-23"
+        "publishedAt": "2026-10-23",
+        "useCases": [
+          "Help-desk and customer-support tools",
+          "Internal ops and admin dashboards",
+          "SaaS apps with a filterable queue of records"
+        ]
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": [
@@ -190,7 +215,12 @@
         "library": "templates",
         "types": ["hero"],
         "styles": ["motion", "dark-mode"],
-        "publishedAt": "2026-10-23"
+        "publishedAt": "2026-10-23",
+        "useCases": [
+          "Agency, studio and freelancer portfolios",
+          "Photographers', filmmakers' and creators' showreels",
+          "Brand sites that lead with their work"
+        ]
       },
       "dependencies": ["lucide-react", "motion"],
       "files": [
@@ -216,7 +246,6 @@
         }
       ]
     },
-    
     {
       "name": "testimonials-section",
       "type": "registry:block",
@@ -228,7 +257,12 @@
         "library": "templates",
         "types": ["testimonials"],
         "styles": ["motion", "dark-mode"],
-        "publishedAt": "2026-10-28"
+        "publishedAt": "2026-10-28",
+        "useCases": [
+          "SaaS and B2B landing pages",
+          "Sales, CRM and revenue tool websites",
+          "Customer story and case study pages"
+        ]
       },
       "dependencies": ["lucide-react", "motion"],
       "files": [
@@ -250,7 +284,13 @@
         "library": "blocks",
         "types": ["gallery"],
         "styles": ["motion", "dark-mode"],
-        "publishedAt": "2026-10-27"
+        "publishedAt": "2026-10-27",
+        "useCases": [
+          "Portfolio and gallery pages",
+          "Agency and studio websites",
+          "Brand, product or campaign image showcases",
+          "Event and launch microsites"
+        ]
       },
       "files": [
         {
@@ -281,7 +321,12 @@
         "library": "templates",
         "types": ["editorial"],
         "styles": ["motion", "dark-mode"],
-        "publishedAt": "2026-10-27"
+        "publishedAt": "2026-10-27",
+        "useCases": [
+          "Brand stories and manifesto sections",
+          "Agency, studio and fashion websites",
+          "Launch pages that need a cinematic moment"
+        ]
       },
       "files": [
         {
@@ -307,7 +352,12 @@
         "library": "templates",
         "types": ["features"],
         "styles": ["motion", "dark-mode"],
-        "publishedAt": "2026-10-27"
+        "publishedAt": "2026-10-27",
+        "useCases": [
+          "Agency and studio services pages",
+          "Product feature overviews with imagery",
+          "Editorial and portfolio websites"
+        ]
       },
       "files": [
         {
@@ -332,7 +382,5 @@
         }
       ]
     }
-
-
   ]
 }
