@@ -10,6 +10,10 @@
  *
  * Per card, from the scene (image-sphere-scene.ts), in CSS pixels:
  *
+ *   poster      each card is a fine grid, wrapped onto the sphere it sits
+ *               on (the globe, or the pile's bigger sphere) and seen
+ *               through the same camera, so it curves with the surface;
+ *               the light shades it along the curve
  *   transform   a 2×2 matrix: foreshortening, stretch, squash, rotation
  *   light       shade from the light, a rim highlight, paleness toward
  *               the page colour (cards stay opaque: depth by occlusion)
@@ -51,8 +55,40 @@ const EDGE = {
   sizeTo: 48,
 } as const;
 
-/** Floats per instance: box (4), matrix (4), uv (4), look (4), light (4). */
-const STRIDE = 20;
+/** The grid each card is drawn as, so it can bend onto its sphere. */
+const MESH = { columns: 16, rows: 12 } as const;
+
+/**
+ * Shading along a card's curve: toward the light (top left, in front, as
+ * in the scene) and how strongly the curve's turn changes it.
+ */
+const CURVE = { light: [-0.45, 0.55, 0.7], shade: 0.35 } as const;
+
+/** Floats per instance: box, matrix, uv, look, light, frame (4 each). */
+const STRIDE = 24;
+
+/** Corner points of the card's grid (−0.5 to 0.5) and its triangles. */
+const grid = () => {
+  const { columns, rows } = MESH;
+  const points: number[] = [];
+  for (let r = 0; r <= rows; r += 1) {
+    for (let c = 0; c <= columns; c += 1) {
+      points.push(c / columns - 0.5, r / rows - 0.5);
+    }
+  }
+  const indices: number[] = [];
+  for (let r = 0; r < rows; r += 1) {
+    for (let c = 0; c < columns; c += 1) {
+      const a = r * (columns + 1) + c;
+      const below = a + columns + 1;
+      indices.push(a, a + 1, below, a + 1, below + 1, below);
+    }
+  }
+  return {
+    indices: new Uint16Array(indices),
+    points: new Float32Array(points),
+  };
+};
 
 const VERTEX = `#version 300 es
 layout(location = 0) in vec2 a_corner;
@@ -61,13 +97,19 @@ layout(location = 2) in vec4 a_mat;
 layout(location = 3) in vec4 a_uv;
 layout(location = 4) in vec4 a_look;
 layout(location = 5) in vec4 a_light;
+layout(location = 6) in vec4 a_frame;
 uniform vec2 u_view;
+uniform float u_unit;
+uniform float u_camera;
+uniform vec3 u_lightDir;
+uniform float u_curveShade;
 out vec2 v_local;
 out vec2 v_half;
 out vec2 v_uv;
 out vec4 v_look;
 out vec4 v_light;
 out float v_soft;
+out float v_curve;
 void main() {
   // a_light.w: -1 for a card, its height (0+) for its shadow.
   float elev = a_light.w;
@@ -76,13 +118,32 @@ void main() {
   vec2 local = a_corner * (a_box.zw + soft * 2.0);
   // Light falls from above, so the shadow drops straight down.
   vec2 drop = shadow ? vec2(0.0, 1.5 + 12.0 * elev) : vec2(0.0);
-  vec2 p = a_box.xy + mat2(a_mat.xy, a_mat.zw) * local + drop;
+  vec2 t = mat2(a_mat.xy, a_mat.zw) * local;
+  vec2 p = a_box.xy + t + drop;
+  float curve = 1.0;
+  if (!shadow && a_frame.w > 0.0) {
+    // Wrap the card onto its sphere (frame: normal at its centre, radius in
+    // globe radii) round its centre, which stays where the scene put it;
+    // the rest follows the surface and is seen in perspective.
+    vec3 n = normalize(a_frame.xyz);
+    vec3 c = n * a_frame.w;
+    vec3 up = abs(n.y) > 0.99 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+    vec3 east = normalize(cross(up, n));
+    vec3 north = cross(n, east);
+    float pc = u_camera / (u_camera - c.z);
+    vec2 g = t / (u_unit * pc);
+    vec3 q = normalize(c + east * g.x - north * g.y) * a_frame.w;
+    float pq = u_camera / (u_camera - q.z);
+    p = a_box.xy + vec2(q.x * pq - c.x * pc, c.y * pc - q.y * pq) * u_unit;
+    curve = 1.0 + (dot(normalize(q), u_lightDir) - dot(n, u_lightDir)) * u_curveShade;
+  }
   v_local = local;
   v_half = a_box.zw * 0.5;
   v_uv = mix(a_uv.xy, a_uv.zw, a_corner + 0.5);
   v_look = a_look;
   v_light = a_light;
   v_soft = soft;
+  v_curve = curve;
   vec2 clip = p / u_view * 2.0 - 1.0;
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
 }`;
@@ -101,6 +162,7 @@ in vec2 v_uv;
 in vec4 v_look;
 in vec4 v_light;
 in float v_soft;
+in float v_curve;
 out vec4 o_color;
 float roundBox(vec2 p, vec2 b, float r) {
   vec2 q = abs(p) - b + r;
@@ -122,7 +184,7 @@ void main() {
   vec3 front = tex.rgb + u_paper * (1.0 - tex.a);
   vec3 color = mix(u_paper, front, v_look.y);
   color = mix(color, u_paper, v_look.w);
-  color = color * v_light.x + v_light.y;
+  color = color * v_light.x * v_curve + v_light.y;
 
   // The edge, in screen pixels: a hairline ring, a highlight along the
   // top edge, a shade inside the bottom one. Only on a card's face, and
@@ -161,8 +223,18 @@ export interface SpriteList {
   back: Float32Array;
   blur: Float32Array;
   elev: Float32Array;
+  /** The sphere each card is a poster on: normal (3) and radius. */
+  frame: Float32Array;
   /** Per item, not per card: how far its image has loaded in. */
   fade: Float32Array;
+}
+
+/** The globe on screen: centre, radius (px) and camera distance (radii). */
+export interface GlobeView {
+  x: number;
+  y: number;
+  r: number;
+  camera: number;
 }
 
 type Rgb = [number, number, number];
@@ -172,7 +244,12 @@ export interface SphereRenderer {
   setImage: (item: number, image: HTMLImageElement) => number;
   /** The cards' paper and the page behind them, as 0–1 RGB. */
   setColors: (paper: Rgb, page: Rgb) => void;
-  draw: (sprites: SpriteList, width: number, height: number) => void;
+  draw: (
+    sprites: SpriteList,
+    width: number,
+    height: number,
+    globe: GlobeView
+  ) => void;
   dispose: () => void;
 }
 
@@ -241,6 +318,10 @@ const writeInstance = (
   data[o + 17] = s.rim[i];
   data[o + 18] = s.fog[i];
   data[o + 19] = elev;
+  data[o + 20] = s.frame[i * 4];
+  data[o + 21] = s.frame[i * 4 + 1];
+  data[o + 22] = s.frame[i * 4 + 2];
+  data[o + 23] = s.frame[i * 4 + 3];
 };
 
 /**
@@ -367,20 +448,20 @@ export const createSphereRenderer = (
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
 
+  const mesh = grid();
   const corners = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, corners);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5]),
-    gl.STATIC_DRAW
-  );
+  gl.bufferData(gl.ARRAY_BUFFER, mesh.points, gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  const triangles = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangles);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
 
   const instances = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, instances);
   const bytes = STRIDE * 4;
-  for (let location = 1; location <= 5; location += 1) {
+  for (let location = 1; location <= 6; location += 1) {
     gl.enableVertexAttribArray(location);
     gl.vertexAttribPointer(
       location,
@@ -403,11 +484,21 @@ export const createSphereRenderer = (
   const uRing = gl.getUniformLocation(program, "u_ring");
   const uLip = gl.getUniformLocation(program, "u_lip");
   const uShade = gl.getUniformLocation(program, "u_shade");
+  const uUnit = gl.getUniformLocation(program, "u_unit");
+  const uCamera = gl.getUniformLocation(program, "u_camera");
+  const uLightDir = gl.getUniformLocation(program, "u_lightDir");
+  const uCurveShade = gl.getUniformLocation(program, "u_curveShade");
+  const lightLength = Math.hypot(...CURVE.light);
 
   let paper: Rgb = [0.9, 0.9, 0.9];
   let page: Rgb = [1, 1, 1];
 
-  const draw = (sprites: SpriteList, width: number, height: number) => {
+  const draw = (
+    sprites: SpriteList,
+    width: number,
+    height: number,
+    globe: GlobeView
+  ) => {
     const { count, order } = sprites;
     // Up to two instances per card: its shadow, then itself.
     if (data.length < count * 2 * STRIDE) {
@@ -451,6 +542,15 @@ export const createSphereRenderer = (
     gl.uniform4f(uRing, edge.ring[0], edge.ring[1], edge.ring[2], edge.ring[3]);
     gl.uniform1f(uLip, edge.lip);
     gl.uniform1f(uShade, edge.shade);
+    gl.uniform1f(uUnit, globe.r);
+    gl.uniform1f(uCamera, globe.camera);
+    gl.uniform3f(
+      uLightDir,
+      CURVE.light[0] / lightLength,
+      CURVE.light[1] / lightLength,
+      CURVE.light[2] / lightLength
+    );
+    gl.uniform1f(uCurveShade, CURVE.shade);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -462,12 +562,19 @@ export const createSphereRenderer = (
       data.subarray(0, n * STRIDE),
       gl.DYNAMIC_DRAW
     );
-    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n);
+    gl.drawElementsInstanced(
+      gl.TRIANGLES,
+      mesh.indices.length,
+      gl.UNSIGNED_SHORT,
+      0,
+      n
+    );
     gl.bindVertexArray(null);
   };
 
   const dispose = () => {
     gl.deleteBuffer(corners);
+    gl.deleteBuffer(triangles);
     gl.deleteBuffer(instances);
     gl.deleteVertexArray(vao);
     gl.deleteTexture(texture);

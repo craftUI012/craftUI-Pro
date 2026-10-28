@@ -11,9 +11,15 @@
  *                 friction and air drag and stops cleanly; a small motor
  *                 keeps it turning when idle; tilting it swings back to
  *                 rest like a pendulum, with give past the limit.
- *   a card        lit from the top left, flattened as it turns side-on
- *                 (foreshortening), a blank paper back on the far side,
- *                 paler with distance (opaque: nothing shows through).
+ *   a card        a poster pasted on a sphere: on the globe, its surface;
+ *                 in a pile, an invisible sphere 1.7× the globe's size round
+ *                 it. So a card curves with the surface and foreshortens as
+ *                 it turns away. Lit from the top left, a blank paper back
+ *                 on the far side, paler with distance (opaque).
+ *   send-off      before the journey the chosen cards press into the globe
+ *                 together, a breath in; then each springs free in turn,
+ *                 swelling as it lifts off, and bends from the globe's
+ *                 curve to the pile's as it travels.
  *   in flight     a card leaves the ball still carrying the ball's motion,
  *                 so its path curves (a Bézier bowed the way it was
  *                 moving) before it bends into its spot. A spring drives
@@ -27,11 +33,12 @@
  *   touch         pressing gives a card a little under the finger.
  *
  * OPENING A GROUP
- *     0ms   the sphere coasts to a stop, the rest blurs and pales
- *    50ms   the outermost card leaves the sphere (the rest follow, 35ms
- *           apart, inward)
- *   ~450ms  first card lands: squash, settle
- *   ~900ms  the centre card lands last, on top of the pile
+ *     0ms   the sphere coasts to a stop, the rest blurs and pales; the
+ *           chosen cards press into the globe together (0.86×, darker)
+ *   160ms   the outermost card springs free, swelling to its peak a third
+ *           of the way out (the rest follow, 35ms apart, inward)
+ *   ~600ms  first card lands on the pile's sphere: squash, settle
+ *  ~1050ms  the centre card lands last, on top of the pile
  *
  * Every value that sets the feel is in the tables below.
  * ───────────────────────────────────────────────────────────────────────── */
@@ -109,6 +116,38 @@ const PRESS = {
   stiffness: 600,
 } as const;
 
+/**
+ * The moment before the journey: the chosen cards press into the globe
+ * together, then spring free one by one.
+ */
+const SEND_OFF = {
+  /** How much darker a pressed card gets. */
+  darken: 0.12,
+  /** Where in the flight the swell peaks (0–1): early, so it reads as a pop. */
+  peakAt: 0.33,
+  /** Size while pressed, as a share of normal. */
+  press: 0.86,
+  /** Seconds to press in, before the first card leaves. */
+  pressTime: 0.16,
+  /** Swell at the peak (scale), on the way into the pile. */
+  swell: 0.35,
+} as const;
+
+/** Every card is a poster on a sphere. */
+const POSTER = {
+  /**
+   * How tightly each card in the pile is bent: the radius of the sphere
+   * it's curved round, in globe radii. Smaller is more curved; 1 bends it
+   * like a piece cut from the globe itself.
+   */
+  pileBend: 0.75,
+  /**
+   * Where the pile sits: an invisible sphere round the globe, in globe
+   * radii. It sets which way each card faces (bigger is flatter-on).
+   */
+  pileRadius: 1.7,
+} as const;
+
 /** The rest of the sphere while a group is open. */
 const FOCUS = {
   /** Mipmap levels of softness. */
@@ -135,7 +174,7 @@ const CAMERA = 3.2;
 /** The globe's resting tilt, so its top shows a little. */
 const REST_TILT = 0.22;
 /** Most images a cluster shows. */
-const CLUSTER_MAX = 12;
+export const CLUSTER_MAX = 12;
 /** Space kept clear round the cluster, inside the block's edges. */
 const MARGIN = 24;
 /** Spring integration step: small enough to stay stable when stiff. */
@@ -284,6 +323,11 @@ export class SphereScene {
   readonly h: Float32Array;
   /** Each card's 2×2 transform, column-major: (m00, m10, m01, m11). */
   readonly mat: Float32Array;
+  /**
+   * The sphere each card is a poster on: its unit normal at the card's
+   * centre (view space, y up) and its radius in globe radii.
+   */
+  readonly frame: Float32Array;
   readonly alpha: Float32Array;
   readonly shade: Float32Array;
   readonly rim: Float32Array;
@@ -306,6 +350,13 @@ export class SphereScene {
   private readonly facing: Float32Array;
   private readonly sphereShade: Float32Array;
   private readonly sphereRim: Float32Array;
+  /** Each card's normal on the globe, and at its spot on the pile's sphere. */
+  private readonly sphereN: Float32Array;
+  private readonly slotN: Float32Array;
+  /** The frame a flight started from, to bend away from. */
+  private readonly fromFrame: Float32Array;
+  /** How far a chosen card is pressed into the globe before it leaves. */
+  private readonly pressIn: Float32Array;
   private readonly depthFog: Float32Array;
   private readonly depth: Float32Array;
 
@@ -380,6 +431,12 @@ export class SphereScene {
 
   autoRotate: boolean;
   reducedMotion: boolean;
+  /** Idle turning speed, radians per second (the block's `turnDuration`). */
+  idleSpin: number = SPIN.idle;
+  /** Most images a pile shows (the block's `pileSize`). */
+  pileMax = CLUSTER_MAX;
+  /** Radius each pile card is bent round (from the block's `pileCurve`). */
+  pileBend: number = POSTER.pileBend;
 
   constructor({
     autoRotate,
@@ -397,7 +454,7 @@ export class SphereScene {
     this.count = Math.max(count, this.itemCount);
     this.autoRotate = autoRotate;
     this.reducedMotion = reducedMotion;
-    this.motorSpeed = autoRotate && !reducedMotion ? SPIN.idle : 0;
+    this.motorSpeed = autoRotate && !reducedMotion ? this.idleSpin : 0;
 
     const n = this.count;
     const f32 = () => new Float32Array(n);
@@ -408,6 +465,11 @@ export class SphereScene {
     this.w = f32();
     this.h = f32();
     this.mat = new Float32Array(n * 4);
+    this.frame = new Float32Array(n * 4);
+    this.fromFrame = new Float32Array(n * 4);
+    this.sphereN = new Float32Array(n * 3);
+    this.slotN = new Float32Array(n * 3);
+    this.pressIn = f32();
     this.alpha = f32().fill(1);
     this.shade = f32();
     this.rim = f32();
@@ -649,7 +711,7 @@ export class SphereScene {
       return 0;
     }
     // Someone looking closely: the turntable slows so cards stay put.
-    return this.pointer ? SPIN.idle * SPIN.attention : SPIN.idle;
+    return this.pointer ? this.idleSpin * SPIN.attention : this.idleSpin;
   }
 
   /** The same orientation with its axis put back at rest. */
@@ -786,7 +848,10 @@ export class SphereScene {
     // One copy of each of the group's items: the one facing the viewer
     // most, so every card flies out from somewhere visible.
     for (let item = 0; item < this.itemCount; item += 1) {
-      if (this.itemGroup[item] === group && this.members.length < CLUSTER_MAX) {
+      if (
+        this.itemGroup[item] === group &&
+        this.members.length < this.pileMax
+      ) {
         let best = -1;
         for (const i of this.copies[item]) {
           if (best < 0 || this.facing[i] > this.facing[best]) {
@@ -821,7 +886,7 @@ export class SphereScene {
         // Outer cards leave first, so the biggest, centre card lands
         // last, on top of the pile.
         const turn = this.members.length - 1 - j;
-        this.delay[i] = 0.05 + turn * FLIGHT.stagger;
+        this.delay[i] = SEND_OFF.pressTime + turn * FLIGHT.stagger;
       }
     }
   }
@@ -873,6 +938,7 @@ export class SphereScene {
     this.fromX[i] = this.bx[i];
     this.fromY[i] = this.by[i];
     this.fromS[i] = this.bs[i];
+    this.fromFrame.set(this.frame.subarray(i * 4, i * 4 + 4), i * 4);
     this.prog[i] = 0;
     this.vprog[i] = 0;
     this.lofted[i] = lofted ? 1 : 0;
@@ -939,6 +1005,7 @@ export class SphereScene {
       this.slotX[i] = cx + Math.cos(angle) * r;
       this.slotY[i] = cy + Math.sin(angle) * r;
       this.slotS[i] = s;
+      this.normalAt(this.slotX[i], this.slotY[i], POSTER.pileRadius, i);
       if (stagger) {
         this.rotTarget[i] = this.toss(i);
       } else if (this.prog[i] === 1 && this.vprog[i] === 0) {
@@ -953,6 +1020,27 @@ export class SphereScene {
         }
       }
     }
+  }
+
+  /**
+   * Where the pile's sphere (radius in globe radii) is under screen point
+   * (px, py), as seen by the camera: its unit normal there, into slotN.
+   */
+  private normalAt(px: number, py: number, radius: number, i: number) {
+    const unit = this.radius || 1;
+    const x = (px - this.centerX) / unit;
+    const y = -(py - this.centerY) / unit;
+    // A point on the sphere seen at (x, y) is (x·k, y·k, C·(1 − k)); the
+    // nearer of the two solutions of |p| = radius.
+    const c2 = CAMERA * CAMERA;
+    const a = x * x + y * y + c2;
+    const disc = Math.max(c2 * c2 - a * (c2 - radius * radius), 0);
+    const k = (c2 - Math.sqrt(disc)) / a;
+    const pz = CAMERA * (1 - k);
+    const length = Math.hypot(x * k, y * k, pz) || 1;
+    this.slotN[i * 3] = (x * k) / length;
+    this.slotN[i * 3 + 1] = (y * k) / length;
+    this.slotN[i * 3 + 2] = pz / length;
   }
 
   // ── Frame ──────────────────────────────────────────────────────────────
@@ -995,6 +1083,9 @@ export class SphereScene {
     }
     this.sphereX[i] = sx;
     this.sphereY[i] = sy;
+    this.sphereN[i * 3] = nx;
+    this.sphereN[i * 3 + 1] = ny;
+    this.sphereN[i * 3 + 2] = nz;
 
     // Facing the camera itself, not just the screen: the visible rim of a
     // ball seen in perspective is a little in front of its equator.
@@ -1014,11 +1105,29 @@ export class SphereScene {
     this.depthFog[i] = 0.5 * (1 - (nz + 1) / 2) ** 1.5 + 0.47 * away;
   }
 
-  /** Press give: a spring. */
+  /** Size share of a card pressed in for its send-off (1 when not). */
+  private pressed01(i: number) {
+    return 1 - (1 - SEND_OFF.press) * smoothstep(0, 1, this.pressIn[i]);
+  }
+
+  /** Press give (a spring), and the send-off press (a short ramp). */
   private stepTouch(i: number, dt: number) {
+    const holdTarget =
+      this.mode[i] === MODE_MEMBER && this.delay[i] > 0 && !this.reducedMotion
+        ? 1
+        : 0;
+    let held = false;
+    if (this.pressIn[i] !== holdTarget) {
+      const ramp = dt / SEND_OFF.pressTime;
+      this.pressIn[i] =
+        holdTarget > this.pressIn[i]
+          ? Math.min(this.pressIn[i] + ramp, 1)
+          : Math.max(this.pressIn[i] - ramp, 0);
+      held = true;
+    }
     const pressTarget = i === this.pressed ? 1 : 0;
     if (this.prs[i] === pressTarget && this.vprs[i] === 0) {
-      return false;
+      return held;
     }
     const moving = spring(
       this.prs[i],
@@ -1031,17 +1140,17 @@ export class SphereScene {
     );
     this.prs[i] = out.x;
     this.vprs[i] = out.v;
-    return moving;
+    return moving || held;
   }
 
   /** A card off the sphere: flies its curve to its spot, lands, settles. */
   private stepBody(i: number, dt: number) {
     if (this.delay[i] > 0) {
-      // Still waiting its turn: it rides the sphere.
+      // Still waiting its turn: it rides the sphere, pressed in.
       this.delay[i] -= dt;
       this.bx[i] = this.sphereX[i];
       this.by[i] = this.sphereY[i];
-      this.bs[i] = this.sphereSize[i];
+      this.bs[i] = this.sphereSize[i] * this.pressed01(i);
       if (this.delay[i] <= 0) {
         // It leaves the ball carrying the ball's motion: that sets the bow.
         this.delay[i] = -1;
@@ -1193,7 +1302,13 @@ export class SphereScene {
       this.bx[i] - this.sphereX[i],
       this.by[i] - this.sphereY[i]
     );
-    return Math.max(smoothstep(0, this.baseSize * 3, away), 1e-4);
+    const byDistance = smoothstep(0, this.baseSize * 3, away);
+    // On the way into the pile it's clear of the globe as soon as it's
+    // under way, however close its old spot is on screen: a card from the
+    // far side starts inside the globe's outline, maybe right by its slot.
+    const byFlight =
+      this.mode[i] === MODE_MEMBER ? smoothstep(0, 0.25, this.prog[i]) : 0;
+    return Math.max(byDistance, byFlight, 1e-4);
   }
 
   /** Mid-flight rise toward the viewer, 0 at both ends of a flight. */
@@ -1206,14 +1321,24 @@ export class SphereScene {
     ) {
       return 0;
     }
-    return Math.sin(Math.PI * clamp(this.prog[i], 0, 1)) * FLIGHT.arc;
+    const t = clamp(this.prog[i], 0, 1);
+    if (this.mode[i] === MODE_RETURNING) {
+      return Math.sin(Math.PI * t) * FLIGHT.arc;
+    }
+    // On the way in the swell peaks early (at SEND_OFF.peakAt): a pop off
+    // the globe, then a long settle down to its size in the pile.
+    const shape = Math.log(0.5) / Math.log(SEND_OFF.peakAt);
+    return Math.sin(Math.PI * t ** shape) * SEND_OFF.swell;
   }
 
   /** Card i's position and size. */
   private place2d(i: number, free: number, arc: number) {
     const onBall = free === 0;
     const touch = 1 - PRESS.give * this.prs[i];
-    const size = (onBall ? this.sphereSize[i] : this.bs[i] * (1 + arc)) * touch;
+    const size =
+      (onBall
+        ? this.sphereSize[i] * this.pressed01(i)
+        : this.bs[i] * (1 + arc)) * touch;
     const root = Math.sqrt(this.aspect[this.item[i]]);
     this.x[i] = onBall ? this.sphereX[i] : this.bx[i];
     this.y[i] = onBall ? this.sphereY[i] : this.by[i];
@@ -1222,19 +1347,16 @@ export class SphereScene {
   }
 
   /**
-   * Card i's 2×2 transform: foreshortened on the ball, stretched by speed
-   * in flight, squashed by impact, tilted by the toss.
+   * Card i's 2×2 transform, in the plane of its poster: stretched by speed
+   * in flight, squashed by impact, tilted by the toss. (Foreshortening
+   * isn't here: the renderer bends the card onto its sphere, which does
+   * it.)
    */
   private transform(i: number, free: number) {
     this.m00 = 1;
     this.m01 = 0;
     this.m10 = 0;
     this.m11 = 1;
-    const ux = this.sphereX[i] - this.centerX;
-    const uy = this.sphereY[i] - this.centerY;
-    const ul = Math.hypot(ux, uy) || 1;
-    const flat = Math.max(Math.abs(this.facing[i]), 0.05);
-    this.axisScale(1 + (flat - 1) * (1 - free), 1, ux / ul, uy / ul);
     const speed = Math.hypot(this.bvx[i], this.bvy[i]);
     if (free > 0 && speed > 1 && !this.reducedMotion) {
       const k = 1 + Math.min(speed * FLIGHT.stretch, FLIGHT.stretchMax);
@@ -1252,17 +1374,68 @@ export class SphereScene {
     this.mat[o + 1] = this.m10;
     this.mat[o + 2] = this.m01;
     this.mat[o + 3] = this.m11;
+    // The hit box, though, is the card as seen: flattened as it turns.
+    const ux = this.sphereX[i] - this.centerX;
+    const uy = this.sphereY[i] - this.centerY;
+    const ul = Math.hypot(ux, uy) || 1;
+    const flat = Math.max(Math.abs(this.facing[i]), 0.05);
+    this.axisScale(1 + (flat - 1) * (1 - free), 1, ux / ul, uy / ul);
     const w2 = this.w[i] / 2;
     const h2 = this.h[i] / 2;
     this.ex[i] = Math.abs(this.m00) * w2 + Math.abs(this.m01) * h2;
     this.ey[i] = Math.abs(this.m10) * w2 + Math.abs(this.m11) * h2;
   }
 
+  /**
+   * The sphere card i is a poster on: the globe where it sits, the pile's
+   * outer sphere at its spot there, and in flight a blend of the two, so
+   * the card bends from one curve to the other as it travels.
+   */
+  private bendFrame(i: number) {
+    const o = i * 4;
+    const n = i * 3;
+    const f = this.frame;
+    if (this.mode[i] === MODE_SPHERE || this.delay[i] > 0) {
+      f[o] = this.sphereN[n];
+      f[o + 1] = this.sphereN[n + 1];
+      f[o + 2] = this.sphereN[n + 2];
+      f[o + 3] = 1;
+      return;
+    }
+    const home = this.mode[i] === MODE_RETURNING;
+    const to = home ? this.sphereN : this.slotN;
+    const radius = home ? 1 : this.pileBend;
+    const e = clamp(this.prog[i], 0, 1);
+    const from = this.fromFrame;
+    let x = from[o] + (to[n] - from[o]) * e;
+    let y = from[o + 1] + (to[n + 1] - from[o + 1]) * e;
+    let z = from[o + 2] + (to[n + 2] - from[o + 2]) * e;
+    const length = Math.hypot(x, y, z);
+    if (length < 1e-3) {
+      [x, y, z] = [to[n], to[n + 1], to[n + 2]];
+    } else {
+      x /= length;
+      y /= length;
+      z /= length;
+    }
+    f[o] = x;
+    f[o + 1] = y;
+    f[o + 2] = z;
+    f[o + 3] = from[o + 3] + (radius - from[o + 3]) * e;
+  }
+
+  /** The globe on screen, for the renderer's projection. */
+  get globe() {
+    return { camera: CAMERA, r: this.radius, x: this.centerX, y: this.centerY };
+  }
+
   /** Light, depth and focus for card i. */
   private look(i: number, free: number) {
     const ball = 1 - free;
     const background = this.mode[i] === MODE_SPHERE ? this.dim : 0;
-    this.shade[i] = 1 + (this.sphereShade[i] - 1) * ball;
+    this.shade[i] =
+      (1 + (this.sphereShade[i] - 1) * ball) *
+      (1 - SEND_OFF.darken * smoothstep(0, 1, this.pressIn[i]));
     this.rim[i] = this.sphereRim[i] * ball;
     this.back[i] = smoothstep(0.08, -0.08, this.facing[i]) * ball;
     const depth = this.depthFog[i] * ball;
@@ -1331,6 +1504,7 @@ export class SphereScene {
       const arc = this.arc(i);
       this.place2d(i, free, arc);
       this.transform(i, free);
+      this.bendFrame(i);
       this.look(i, free);
       this.stack(i, free, arc);
     }

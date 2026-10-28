@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import type { ComponentProps, CSSProperties, ReactNode } from "react";
+import { useId, useRef, useState } from "react";
+import type {
+  ComponentProps,
+  CSSProperties,
+  KeyboardEvent,
+  ReactNode,
+} from "react";
 
 import { cn } from "@/lib/utils";
 
 import { ImageSphere } from "./image-sphere";
-import type { ImageSphereGroup, ImageSphereItem } from "./image-sphere";
+import type {
+  ImageSphereGroup,
+  ImageSphereItem,
+  ImageSphereProps,
+} from "./image-sphere";
 
 /* ─────────────────────────────────────────────────────────────────────────
  * Feature index sphere. An editorial index of what you do, set large,
@@ -67,6 +76,17 @@ export interface FeatureSphereSectionProps extends Omit<
   onFeatureChange?: (feature: string) => void;
   /** 1 when this is the page's main heading; 2 when the page has its own h1. */
   headingLevel?: 1 | 2;
+  /** Which side the sphere sits on, on wide screens. Defaults to "right". */
+  sphereSide?: "left" | "right";
+  /**
+   * Any of the image sphere's own options: `count`, `turnDuration`,
+   * `pileSize`, `pileCurve`, `autoRotate`, `hint`, `className`, `aria-label`
+   * and so on. The section sets its images, groups and open group itself.
+   */
+  sphere?: Omit<
+    ImageSphereProps,
+    "items" | "groups" | "group" | "defaultGroup" | "onGroupChange"
+  >;
 }
 
 const unsplash = (id: string) =>
@@ -178,82 +198,126 @@ const DEFAULT_EXTRAS: FeatureImage[] = photos([
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-const Heading = ({ children, level }: { children: ReactNode; level: 1 | 2 }) =>
+const Heading = ({
+  children,
+  id,
+  level,
+}: {
+  children: ReactNode;
+  id: string;
+  level: 1 | 2;
+}) =>
   level === 1 ? (
-    <h1 className="sr-only">{children}</h1>
+    <h1 className="sr-only" id={id}>
+      {children}
+    </h1>
   ) : (
-    <h2 className="sr-only">{children}</h2>
+    <h2 className="sr-only" id={id}>
+      {children}
+    </h2>
   );
 
-/** One line of the index: number, name, and when active, its story. */
+/** A feature's name is a heading one level under the section's. */
+const FeatureHeading = ({
+  children,
+  level,
+}: {
+  children: ReactNode;
+  level: 2 | 3;
+}) => (level === 2 ? <h2>{children}</h2> : <h3>{children}</h3>);
+
+/**
+ * One line of the index: number, name, and when active, its story. An
+ * accordion where one panel is always open: the open line's button is
+ * aria-disabled (it can't close), and closed panels are inert, so their
+ * text and link are neither read nor focusable while folded away.
+ */
 const IndexLine = ({
   active,
   feature,
+  headingLevel,
   index,
   linkLabel,
   onSelect,
+  buttonRef,
 }: {
   active: boolean;
   feature: SphereFeature;
+  headingLevel: 2 | 3;
   index: number;
   linkLabel: string;
   onSelect: () => void;
-}) => (
-  <li className="border-border/60 relative border-t first:border-t-0">
-    {/* The count, pinned to the row's top-right corner. */}
-    <span
-      aria-hidden
-      className={cn(
-        "pointer-events-none absolute top-2.5 right-0 font-mono text-[0.6875rem] tracking-[0.08em] tabular-nums transition-colors duration-[var(--index-duration)] motion-reduce:transition-none lg:top-3.5",
-        active ? "text-foreground" : "text-muted-foreground/60"
-      )}
-    >
-      {pad(index + 1)}
-    </span>
-    <button
-      aria-expanded={active}
-      className="group/line focus-visible:outline-ring flex w-full items-baseline py-1.5 pr-8 text-left outline-offset-4 focus-visible:outline-2 lg:py-2"
-      onClick={onSelect}
-      type="button"
-    >
+  buttonRef: (node: HTMLButtonElement | null) => void;
+}) => {
+  const panelId = useId();
+  return (
+    <li className="border-border/60 relative border-t first:border-t-0">
+      {/* The count, pinned to the row's top-right corner. It repeats the
+          list's own order, so it's hidden from screen readers. */}
       <span
+        aria-hidden
         className={cn(
-          "text-[1.75rem] leading-[1.05] tracking-[-0.035em] transition-[color,font-weight] duration-[var(--index-duration)] ease-[var(--index-ease)] motion-reduce:transition-none sm:text-5xl lg:text-6xl xl:text-7xl",
-          active
-            ? "text-foreground font-semibold"
-            : "text-muted-foreground/45 group-hover/line:text-muted-foreground font-light"
+          "pointer-events-none absolute top-2.5 right-0 font-mono text-[0.6875rem] tracking-[0.08em] tabular-nums transition-colors duration-[var(--index-duration)] motion-reduce:transition-none lg:top-3.5",
+          active ? "text-foreground" : "text-muted-foreground"
         )}
       >
-        {feature.label}
+        {pad(index + 1)}
       </span>
-    </button>
+      <FeatureHeading level={headingLevel}>
+        <button
+          ref={buttonRef}
+          aria-controls={panelId}
+          aria-disabled={active || undefined}
+          aria-expanded={active}
+          className="group/line focus-visible:outline-foreground flex w-full items-baseline py-1.5 pr-8 text-left outline-offset-4 focus-visible:outline-2 lg:py-2"
+          onClick={onSelect}
+          type="button"
+        >
+          <span
+            className={cn(
+              "text-[1.75rem] leading-[1.05] tracking-[-0.035em] [overflow-wrap:anywhere] transition-[color,font-weight] duration-[var(--index-duration)] ease-[var(--index-ease)] motion-reduce:transition-none sm:text-5xl lg:text-6xl xl:text-7xl",
+              // Dimmed, but at 3:1 or more for large text in both themes.
+              active
+                ? "text-foreground font-semibold"
+                : "text-muted-foreground/80 group-hover/line:text-muted-foreground font-light"
+            )}
+          >
+            {feature.label}
+          </span>
+        </button>
+      </FeatureHeading>
 
-    {/* Unfolds under the active line, on the same left edge as the name. */}
-    <div
-      className={cn(
-        "grid transition-[grid-template-rows,opacity] duration-[var(--index-duration)] ease-[var(--index-ease)] motion-reduce:transition-none",
-        active ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-      )}
-    >
-      <div className="overflow-hidden">
-        <div className="flex flex-col gap-3 pt-1 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6 lg:pb-5">
-          <p className="text-muted-foreground max-w-[22rem] text-sm leading-relaxed text-pretty sm:text-[0.9375rem]">
-            {feature.description}
-          </p>
-          {feature.href ? (
-            <a
-              className="text-foreground focus-visible:outline-ring shrink-0 font-mono text-[0.6875rem] tracking-[0.08em] uppercase underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
-              href={feature.href}
-              tabIndex={active ? undefined : -1}
-            >
-              {linkLabel} →
-            </a>
-          ) : null}
+      {/* Unfolds under the active line, on the same left edge as the name. */}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-[var(--index-duration)] ease-[var(--index-ease)] motion-reduce:transition-none",
+          active ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+        id={panelId}
+        inert={!active}
+      >
+        {/* Padded inside the clip, so the link's focus ring isn't cut off. */}
+        <div className="-mx-1 overflow-hidden px-1">
+          <div className="flex flex-col gap-3 pt-1 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6 lg:pb-5">
+            <p className="text-muted-foreground max-w-[22rem] text-sm leading-relaxed text-pretty sm:text-[0.9375rem]">
+              {feature.description}
+            </p>
+            {feature.href ? (
+              <a
+                className="text-foreground focus-visible:outline-foreground inline-flex min-h-6 shrink-0 items-center gap-1.5 font-mono text-[0.6875rem] tracking-[0.08em] uppercase underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                href={feature.href}
+              >
+                {linkLabel}
+                <span className="sr-only">: {feature.label}</span>
+                <span aria-hidden>→</span>
+              </a>
+            ) : null}
+          </div>
         </div>
       </div>
-    </div>
-  </li>
-);
+    </li>
+  );
+};
 
 export const FeatureSphereSection = ({
   title = "What we do",
@@ -263,10 +327,14 @@ export const FeatureSphereSection = ({
   defaultFeature,
   onFeatureChange,
   headingLevel = 2,
+  sphereSide = "right",
+  sphere,
   className,
   style,
   ...props
 }: FeatureSphereSectionProps) => {
+  const titleId = useId();
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const [active, setActive] = useState(() =>
     Math.max(
       features.findIndex((f) => f.id === defaultFeature),
@@ -282,6 +350,29 @@ export const FeatureSphereSection = ({
     onFeatureChange?.(features[index].id);
   };
 
+  // Tab moves through the index like any list of buttons; the arrow keys
+  // also step between features, and Home and End jump to the ends (the
+  // accordion pattern's optional keys).
+  const onIndexKeyDown = (event: KeyboardEvent<HTMLOListElement>) => {
+    const from = buttons.current.indexOf(event.target as HTMLButtonElement);
+    if (from === -1) {
+      return;
+    }
+    const last = features.length - 1;
+    const to = {
+      ArrowDown: from === last ? 0 : from + 1,
+      ArrowUp: from === 0 ? last : from - 1,
+      End: last,
+      Home: 0,
+    }[event.key];
+    if (to !== undefined) {
+      event.preventDefault();
+      buttons.current[to]?.focus();
+    }
+  };
+
+  const sphereLeft = sphereSide === "left";
+
   // The sphere's items and groups, from the features.
   const groups: ImageSphereGroup[] = features.map((f) => ({
     id: f.id,
@@ -295,40 +386,68 @@ export const FeatureSphereSection = ({
   ];
 
   return (
+    // No fixed height: the index grows with its text (zoomed or enlarged
+    // text is never clipped); the sphere has its own height.
     <section
+      aria-labelledby={titleId}
       className={cn(
-        "bg-background text-foreground grid h-[46rem] grid-rows-[minmax(0,46fr)_minmax(0,54fr)] overflow-hidden lg:h-[48rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:grid-rows-1",
+        "bg-background text-foreground grid lg:min-h-[48rem]",
+        sphereLeft
+          ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
+          : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]",
         className
       )}
       style={{ ...TRANSITION, ...style }}
       {...props}
     >
-      <Heading level={headingLevel}>{title}</Heading>
+      <Heading id={titleId} level={headingLevel}>
+        {title}
+      </Heading>
 
       {/* The index. */}
-      <div className="order-2 flex flex-col justify-center px-5 pt-2 pb-6 sm:px-8 lg:order-1 lg:py-12 lg:pr-4 lg:pl-12 xl:pl-16">
-        <ol>
+      <div
+        className={cn(
+          "order-2 flex flex-col justify-center px-5 pt-2 pb-6 sm:px-8 lg:py-12",
+          sphereLeft
+            ? "lg:order-2 lg:pr-12 lg:pl-4 xl:pr-16"
+            : "lg:order-1 lg:pr-4 lg:pl-12 xl:pl-16"
+        )}
+      >
+        <ol onKeyDown={onIndexKeyDown}>
           {features.map((feature, k) => (
             <IndexLine
               key={feature.id}
               active={k === active}
               feature={feature}
+              headingLevel={headingLevel === 1 ? 2 : 3}
               index={k}
               linkLabel={linkLabel}
               onSelect={() => select(k)}
+              buttonRef={(node) => {
+                buttons.current[k] = node;
+              }}
             />
           ))}
         </ol>
       </div>
 
       {/* The sphere. */}
-      <div className="relative order-1 min-h-0 lg:order-2">
+      <div
+        className={cn(
+          "relative order-1 h-[21rem] min-h-0 sm:h-[28rem] lg:h-auto",
+          sphereLeft ? "lg:order-1" : "lg:order-2"
+        )}
+      >
         <ImageSphere
           aria-label="Images for each feature"
-          className="aspect-auto h-full sm:aspect-auto lg:aspect-auto"
+          hint={null}
+          {...sphere}
+          className={cn(
+            "aspect-auto h-full sm:aspect-auto lg:aspect-auto",
+            sphere?.className
+          )}
           group={features[active]?.id ?? null}
           groups={groups}
-          hint={null}
           items={items}
           onGroupChange={(id) => {
             if (id) {

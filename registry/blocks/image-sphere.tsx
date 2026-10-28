@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 import { createSphereRenderer } from "./image-sphere-gl";
 import type { SphereRenderer } from "./image-sphere-gl";
-import { SphereScene } from "./image-sphere-scene";
+import { CLUSTER_MAX, SphereScene } from "./image-sphere-scene";
 
 /* ─────────────────────────────────────────────────────────────────────────
  * Image sphere. Your images on a globe you can hold, drawn with WebGL:
@@ -70,7 +70,36 @@ export interface ImageSphereProps extends Omit<
   allLabel?: string;
   /** The line in the top corner, until the first touch. Pass null to hide it. */
   hint?: ReactNode;
+  /** Seconds the globe takes for one full turn when idle. Defaults to 45. */
+  turnDuration?: number;
+  /** Most images a group's pile shows. Defaults to 12. */
+  pileSize?: number;
+  /**
+   * How curved the pile's images are, from 0 (flat) to 1 (most curved).
+   * Defaults to 0.6.
+   */
+  pileCurve?: number;
 }
+
+/** A pile curve of 0–1 as the radius its cards are bent round (globe radii). */
+const bendFor = (curve: number) =>
+  curve <= 0.01 ? 1000 : 0.45 / Math.min(curve, 1);
+
+/** The props that tune the scene, applied to it as they change. */
+const applySettings = (
+  scene: SphereScene,
+  settings: {
+    autoRotate: boolean;
+    pileCurve: number;
+    pileSize: number;
+    turnDuration: number;
+  }
+) => {
+  scene.autoRotate = settings.autoRotate;
+  scene.idleSpin = (2 * Math.PI) / Math.max(settings.turnDuration, 1);
+  scene.pileMax = Math.max(Math.round(settings.pileSize), 1);
+  scene.pileBend = bendFor(settings.pileCurve);
+};
 
 /** Pixels a press can wander before it becomes a drag. */
 const TAP_SLOP = 6;
@@ -262,7 +291,7 @@ const GroupButtons = ({
       <button
         key={group.id ?? "all"}
         aria-pressed={active === group.id}
-        className="border-border bg-background/80 text-muted-foreground hover:text-foreground aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:text-background focus-visible:outline-ring rounded-full border px-3 py-1.5 font-mono text-[0.6875rem] tracking-[0.08em] uppercase backdrop-blur-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="border-border bg-background/80 text-muted-foreground hover:text-foreground aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:text-background focus-visible:outline-foreground rounded-full border px-3 py-1.5 font-mono text-[0.6875rem] tracking-[0.08em] uppercase backdrop-blur-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
         onClick={() => onSelect(group.id)}
         type="button"
       >
@@ -306,6 +335,22 @@ const syncHoverTag = (
   }
 };
 
+/** The open group, its images, and what's announced when it opens. */
+const summarize = (
+  groups: ImageSphereGroup[],
+  items: ImageSphereItem[],
+  active: string | null
+) => {
+  const activeGroup = groups.find((group) => group.id === active);
+  const activeItems = active
+    ? items.filter((item) => item.group === active)
+    : items;
+  const announcement = activeGroup
+    ? `${activeGroup.label}: ${activeItems.length} images`
+    : "";
+  return { activeGroup, activeItems, announcement };
+};
+
 export const ImageSphere = ({
   items = DEFAULT_ITEMS,
   groups = DEFAULT_GROUPS,
@@ -316,6 +361,9 @@ export const ImageSphere = ({
   onGroupChange,
   allLabel = "All",
   hint = "Drag to spin · Click an image",
+  turnDuration = 45,
+  pileSize = CLUSTER_MAX,
+  pileCurve = 0.6,
   className,
   onKeyDown,
   ...props
@@ -367,6 +415,9 @@ export const ImageSphere = ({
     [controlled, onGroupChange]
   );
 
+  const settings = { autoRotate, pileCurve, pileSize, turnDuration };
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
   const selectRef = useRef(select);
   const activeRef = useRef(active);
   const groupsRef = useRef(groups);
@@ -395,6 +446,8 @@ export const ImageSphere = ({
       itemGroups: model.itemGroups,
       reducedMotion: reduced,
     });
+    // Settings first: the first pile opens below and must use them.
+    applySettings(scene, settingsRef.current);
     sceneRef.current = scene;
 
     let renderer: SphereRenderer | null = createSphereRenderer(
@@ -471,7 +524,7 @@ export const ImageSphere = ({
     };
 
     const render = () => {
-      renderer?.draw(scene, width, height);
+      renderer?.draw(scene, width, height, scene.globe);
       followHover();
       syncHoverTag(scene, overlay, hovered);
     };
@@ -659,6 +712,16 @@ export const ImageSphere = ({
       }
     };
 
+    // Escape dismisses the hover tag without moving the pointer (it can
+    // cover the cards beside it); it comes back on the next move.
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape" && hovered >= 0) {
+        scene.setPointer(null);
+        wake();
+      }
+    };
+    window.addEventListener("keydown", onEscape);
+
     stage.addEventListener("pointerdown", onPointerDown);
     stage.addEventListener("pointermove", onPointerMove);
     stage.addEventListener("pointerup", onPointerUp);
@@ -708,6 +771,7 @@ export const ImageSphere = ({
       stage.removeEventListener("pointerup", onPointerUp);
       stage.removeEventListener("pointercancel", onPointerCancel);
       stage.removeEventListener("pointerleave", onPointerLeave);
+      window.removeEventListener("keydown", onEscape);
       canvas.removeEventListener("webglcontextlost", onLost);
       canvas.removeEventListener("webglcontextrestored", onRestored);
       renderer?.dispose();
@@ -717,13 +781,26 @@ export const ImageSphere = ({
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- autoRotate is applied live below; a rebuild would reload every image.
   }, [model, count]);
 
+  // Motion and pile settings apply live, without rebuilding the scene.
   useEffect(() => {
     const scene = sceneRef.current;
     if (scene) {
-      scene.autoRotate = autoRotate;
+      applySettings(scene, settingsRef.current);
       wakeRef.current?.();
     }
-  }, [autoRotate]);
+  }, [autoRotate, turnDuration, pileCurve]);
+
+  // A new pile size re-forms the open pile with that many cards.
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (scene && scene.pileMax !== Math.max(Math.round(pileSize), 1)) {
+      applySettings(scene, settingsRef.current);
+      const open = activeRef.current;
+      scene.open(-1);
+      scene.open(open === null ? -1 : (model.groupIndex.get(open) ?? -1));
+      wakeRef.current?.();
+    }
+  }, [pileSize, model]);
 
   // Open and close groups in the scene as `active` changes.
   useEffect(() => {
@@ -741,13 +818,11 @@ export const ImageSphere = ({
     }
   };
 
-  const activeGroup = groups.find((group) => group.id === active);
-  const activeItems = active
-    ? items.filter((item) => item.group === active)
-    : items;
-  const announcement = activeGroup
-    ? `${activeGroup.label}: ${activeItems.length} images`
-    : "";
+  const { activeGroup, activeItems, announcement } = summarize(
+    groups,
+    items,
+    active
+  );
 
   return (
     <section
@@ -799,6 +874,16 @@ export const ImageSphere = ({
           onSelect={select}
         />
       )}
+
+      {/* The canvas is hidden from screen readers, so the open pile's
+          images are listed for them here, by their alt text. */}
+      {!fallback && activeGroup ? (
+        <ul aria-label={`${activeGroup.label} images`} className="sr-only">
+          {activeItems.slice(0, pileSize).map((item) => (
+            <li key={item.src}>{item.alt}</li>
+          ))}
+        </ul>
+      ) : null}
 
       <p aria-live="polite" className="sr-only">
         {announcement}
