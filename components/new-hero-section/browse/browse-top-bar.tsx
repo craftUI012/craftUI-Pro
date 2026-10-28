@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { BrandContextMenu } from "@/components/brand-context-menu";
 import { LogoMark } from "@/components/logo";
+import { ModeSwitcher } from "@/components/mode-switcher";
 import type {
   FilterGroupId,
   LibraryId,
@@ -288,6 +289,7 @@ export const BrowseTopBar = ({
               <Link href={ROUTES.ADMIN_PANEL}>Admin panel</Link>
             </Button>
           )}
+          <ModeSwitcher />
           {/* Filled like an active library tab while on the pricing page. */}
           <Button
             asChild
