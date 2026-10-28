@@ -59,6 +59,12 @@ export interface ImageSphereProps extends Omit<
   autoRotate?: boolean;
   /** The group open at first, by id. */
   defaultGroup?: string | null;
+  /**
+   * The open group, when the parent decides it (e.g. from scroll). Clicks
+   * then only report through `onGroupChange`, and the block's own
+   * keyboard buttons are left out: the parent's controls take their place.
+   */
+  group?: string | null;
   onGroupChange?: (group: string | null) => void;
   /** The keyboard button that closes the open group. */
   allLabel?: string;
@@ -306,6 +312,7 @@ export const ImageSphere = ({
   count,
   autoRotate = true,
   defaultGroup = null,
+  group: openGroup,
   onGroupChange,
   allLabel = "All",
   hint = "Drag to spin · Click an image",
@@ -324,7 +331,9 @@ export const ImageSphere = ({
   const sceneRef = useRef<SphereScene | null>(null);
   const wakeRef = useRef<(() => void) | null>(null);
 
-  const [active, setActive] = useState<string | null>(defaultGroup);
+  const controlled = openGroup !== undefined;
+  const [ownGroup, setOwnGroup] = useState<string | null>(defaultGroup);
+  const active = controlled ? openGroup : ownGroup;
   const [hoverGroup, setHoverGroup] = useState(-1);
   const [fallback, setFallback] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -348,12 +357,14 @@ export const ImageSphere = ({
   }, [itemsKey, groupsKey]);
 
   const select = useCallback(
-    (group: string | null) => {
-      setActive(group);
+    (next: string | null) => {
+      if (!controlled) {
+        setOwnGroup(next);
+      }
       setTouched(true);
-      onGroupChange?.(group);
+      onGroupChange?.(next);
     },
-    [onGroupChange]
+    [controlled, onGroupChange]
   );
 
   const selectRef = useRef(select);
@@ -780,12 +791,14 @@ export const ImageSphere = ({
         </>
       )}
 
-      <GroupButtons
-        active={active}
-        allLabel={allLabel}
-        groups={groups}
-        onSelect={select}
-      />
+      {controlled ? null : (
+        <GroupButtons
+          active={active}
+          allLabel={allLabel}
+          groups={groups}
+          onSelect={select}
+        />
+      )}
 
       <p aria-live="polite" className="sr-only">
         {announcement}

@@ -47,6 +47,7 @@ export const TYPES = {
   charts: { label: "Charts" },
   cta: { label: "CTA" },
   devices: { label: "Devices" },
+  editorial: { label: "Editorial" },
   "empty-states": { label: "Empty states" },
   faq: { label: "FAQ" },
   features: { label: "Features" },
@@ -175,6 +176,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
     styles: ["motion", "dark-mode", "minimal"],
     types: [
       "hero",
+      "editorial",
       "features",
       "pricing",
       "testimonials",

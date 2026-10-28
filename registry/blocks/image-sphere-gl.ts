@@ -18,6 +18,11 @@
  *               way a loading image comes into focus
  *   shadow      a soft contact shadow, drawn as its own instance just
  *               before the card, offset and softened by its height
+ *   edge        what lifts a card off the page: a hairline ring where it
+ *               meets the background, a one-pixel highlight along its top
+ *               edge (light from above catching its thickness), and a
+ *               slight shade inside its bottom edge. Set for light and dark
+ *               pages; faded out on tiny, far or out-of-focus cards
  * ───────────────────────────────────────────────────────────────────────── */
 
 /** Largest atlas cell, in texels: sharp enough for the cluster's big cards. */
@@ -29,6 +34,22 @@ export const ASPECT_MIN = 0.62;
 export const ASPECT_MAX = 1.78;
 /** Mip levels of blur a loading image starts at. */
 const LOAD_BLUR = 3.5;
+
+/**
+ * The card edge, per page tone. ring: hairline colour and strength; lip:
+ * top highlight strength; shade: bottom inner shade strength and how far
+ * up the card it reaches (share of its height).
+ */
+const EDGE = {
+  dark: { lip: 0.16, ring: [1, 1, 1, 0.1], shade: 0.2 },
+  light: { lip: 0.3, ring: [0, 0, 0, 0.09], shade: 0.12 },
+  /** Shade reach, as a share of the card's height. */
+  shadeReach: 0.18,
+  /** Cards smaller than this (px, shorter side) get no edge… */
+  sizeFrom: 14,
+  /** …and the full edge from this size up. */
+  sizeTo: 48,
+} as const;
 
 /** Floats per instance: box (4), matrix (4), uv (4), look (4), light (4). */
 const STRIDE = 20;
@@ -71,6 +92,9 @@ precision mediump float;
 uniform sampler2D u_atlas;
 uniform vec3 u_paper;
 uniform vec3 u_page;
+uniform vec4 u_ring;
+uniform float u_lip;
+uniform float u_shade;
 in vec2 v_local;
 in vec2 v_half;
 in vec2 v_uv;
@@ -99,6 +123,23 @@ void main() {
   vec3 color = mix(u_paper, front, v_look.y);
   color = mix(color, u_paper, v_look.w);
   color = color * v_light.x + v_light.y;
+
+  // The edge, in screen pixels: a hairline ring, a highlight along the
+  // top edge, a shade inside the bottom one. Only on a card's face, and
+  // fading on small, pale or blurred cards.
+  float pixel = max(fwidth(d), 1e-4);
+  float inside = clamp(-d / pixel, 0.0, 1.0);
+  float size = min(v_half.x, v_half.y) * 2.0;
+  float show = smoothstep(${EDGE.sizeFrom.toFixed(1)}, ${EDGE.sizeTo.toFixed(1)}, size)
+    * (1.0 - v_look.w) * (1.0 - v_light.z) * (1.0 - min(v_look.z / 3.0, 0.7));
+  float fromTop = (v_local.y + v_half.y) / pixel;
+  float fromBottom = v_half.y - v_local.y;
+  float lip = (1.0 - smoothstep(0.0, 2.0, fromTop)) * inside;
+  float shade = 1.0 - smoothstep(0.0, v_half.y * ${(EDGE.shadeReach * 2).toFixed(2)}, fromBottom);
+  color *= 1.0 - shade * u_shade * show;
+  color += lip * u_lip * show;
+  color = mix(color, u_ring.rgb, (1.0 - inside) * u_ring.a * show);
+
   color = mix(color, u_page, v_light.z);
   o_color = vec4(color, 1.0) * cover * alpha;
 }`;
@@ -359,6 +400,9 @@ export const createSphereRenderer = (
   const uAtlas = gl.getUniformLocation(program, "u_atlas");
   const uPaper = gl.getUniformLocation(program, "u_paper");
   const uPage = gl.getUniformLocation(program, "u_page");
+  const uRing = gl.getUniformLocation(program, "u_ring");
+  const uLip = gl.getUniformLocation(program, "u_lip");
+  const uShade = gl.getUniformLocation(program, "u_shade");
 
   let paper: Rgb = [0.9, 0.9, 0.9];
   let page: Rgb = [1, 1, 1];
@@ -401,6 +445,12 @@ export const createSphereRenderer = (
     gl.uniform2f(uView, width, height);
     gl.uniform3f(uPaper, paper[0], paper[1], paper[2]);
     gl.uniform3f(uPage, page[0], page[1], page[2]);
+    // The edge follows the page: light on dark pages, dark on light ones.
+    const luminance = 0.2126 * page[0] + 0.7152 * page[1] + 0.0722 * page[2];
+    const edge = luminance < 0.5 ? EDGE.dark : EDGE.light;
+    gl.uniform4f(uRing, edge.ring[0], edge.ring[1], edge.ring[2], edge.ring[3]);
+    gl.uniform1f(uLip, edge.lip);
+    gl.uniform1f(uShade, edge.shade);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
