@@ -310,7 +310,7 @@
       "name": "statement-section",
       "type": "registry:block",
       "title": "Parted statement",
-      "description": "A big statement parted round a round image: scrolling grows the image, the lines condense and reflow round it, and the text is pushed off the edges.",
+      "description": "A big statement parted round a round image: scrolling grows the image, each line parts round its curve and slides away, and a second statement rises out of the photo.",
       "categories": [
         "marketing",
         "portfolio"

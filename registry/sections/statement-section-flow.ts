@@ -3,388 +3,329 @@
  * the words, hands their widths in, and moves the spans to where this
  * says, every frame.
  *
- * The image is a circle in the middle of the paragraph, and the words are
- * set round it, line by line, the way water parts round a stone:
+ * The lines are set once, balanced (as even in length as the line count
+ * allows, so no word is left alone) and centred. The image is a circle in
+ * the middle of the paragraph, and as it grows the text parts round it the
+ * way water parts round a stone. Two ways, by the stage's width:
  *
- *   wrap      each line is cut where it meets the circle (its true chord,
- *             not a box), with a gap; a piece too narrow to hold a word is
- *             left empty, so on phones lines pass above and below instead
- *   squeeze   a word already on a line resists being pushed off it: the
- *             line condenses (the font's width axis) to keep it, and only
- *             when it can condense no further does the word move down
- *   mass      every word springs to its place, critically damped (no
- *             bounce); words near the circle are stiffer than words far
- *             from it, so a push ripples outward, and a word dropping a
- *             line moves across a little faster than down, on a curve
+ *   sideways  (wide) each line is split at its middle; the halves of every
+ *             line the circle reaches stop where the line meets it (its
+ *             true chord, plus a gap), so the opening traces the circle,
+ *             and pushed far enough they slide off the sides. Lines are set
+ *             so each half fits beside the circle at rest.
+ *   apart     (narrow, where halves beside the circle would hold a word or
+ *             two) lines stay whole; the circle opens a gap in the middle
+ *             of the block, pushing the lines above up and those below
+ *             down, and off the top and bottom.
  *
- * The block is centred on the circle, so as the circle grows the text is
- * pushed up and down, and finally off the edges.
+ * Words fade as they cross the stage's edge. They never change lines and
+ * nothing here has momentum: every word's place is a direct, continuous
+ * function of the circle's size, so scrolling can never make words jump,
+ * reflow or cross each other; the only smoothing is the section's spring.
  * ───────────────────────────────────────────────────────────────────────── */
 
 export const WRAP = {
-  /** Share of the line height the letters fill, which the wrap hugs. */
+  /** Share of the line height the letters fill, which the opening hugs. */
   band: 0.78,
   /** Space between the circle and the words, in ems. */
   gap: 0.35,
   /** Space kept clear at the sides, in ems. */
   margin: 0.5,
-  /** Narrowest piece of a line beside the circle worth setting, in ems. */
-  minPiece: 2.4,
+  /** Widest a line is set, in ems. */
+  measure: 16,
+  /** Narrowest a half beside the circle may be before lines part vertically, in ems. */
+  minHalf: 3.5,
 } as const;
 
-export const SQUEEZE = {
-  /** Narrowest a line may condense to, as a share of its normal width. */
-  min: 0.7,
-  /** The same, faked by scaling, for a font with no width axis. */
-  synthetic: 0.92,
-} as const;
-
-/** Spring stiffness of a word; damping is always critical (2·√k). */
-const WORD = {
-  /** Vertical moves are this much softer, so a line change curves. */
-  drop: 0.8,
-  /** How quickly stiffness falls off with distance, in ems. */
-  falloff: 6,
-  /** Far from the circle: follows a beat later. */
-  far: 150,
-  /** Right next to the circle: responds first. */
-  near: 380,
-  /** Width changes. */
-  squeeze: 320,
-} as const;
-
-/** Spring integration step, small enough for the stiffest spring. */
-const STEP = 1 / 120;
+/**
+ * How gently a line starts to part, in ems. A circle's edge is vertical
+ * where it meets a line, so followed exactly, the opening (and the words)
+ * would lurch apart the moment it touched, many times faster than the
+ * circle grows. `onset` rounds the opening's first growth; `takeUp` lets a
+ * half ease into motion instead of starting at full speed. Both are paid
+ * back in a slightly wider reach, so words never come nearer the circle.
+ */
+const EASE = { onset: 0.5, takeUp: 0.6 } as const;
 
 export interface FlowMetrics {
-  /** Each word's width at its normal width, and fully condensed, in px. */
+  /** Each word's width, in px. */
   natural: number[];
-  condensed: number[];
   space: number;
-  spaceCondensed: number;
   fontSize: number;
   lineHeight: number;
 }
 
-const ALIGN_START = 0;
-const ALIGN_END = 1;
-const ALIGN_CENTER = 2;
+interface Line {
+  /** First word, the first word of the right half, and one past the last. */
+  start: number;
+  split: number;
+  end: number;
+  /** Width of each half, in px. With no split, all of it is the left. */
+  leftWidth: number;
+  rightWidth: number;
+}
 
-/** A critically damped spring step toward target; writes x, v into out[at], out[at + 1]. */
-const critical = (
-  x: number,
-  v: number,
-  target: number,
-  stiffness: number,
-  dt: number,
-  out: Float32Array,
-  at: number
-) => {
-  const damping = 2 * Math.sqrt(stiffness);
-  let px = x;
-  let pv = v;
-  const steps = Math.ceil(dt / STEP);
-  const h = steps > 0 ? dt / steps : 0;
-  for (let s = 0; s < steps; s += 1) {
-    pv += (-stiffness * (px - target) - damping * pv) * h;
-    px += pv * h;
+const smooth = (t: number) => {
+  const c = Math.min(Math.max(t, 0), 1);
+  return c * c * (3 - 2 * c);
+};
+
+/**
+ * Half the opening's width on a line, at distance d from the circle's
+ * centre (radius `reach`): the circle's chord, with its first growth
+ * rounded by `soft` px so it starts at a finite speed.
+ */
+const openingAt = (reach: number, d: number, soft: number) => {
+  const r = reach + soft;
+  const overlap = r - d;
+  if (overlap <= 0) {
+    return 0;
   }
-  out[at] = px;
-  out[at + 1] = pv;
+  return Math.max(
+    Math.sqrt(overlap * (2 * r - overlap) + soft * soft) - soft,
+    0
+  );
+};
+
+/**
+ * How far something pushed by x px moves: nothing until x is positive,
+ * then easing up to full speed over `knee` px (smooth, so no sudden start).
+ */
+const takeUp = (x: number, knee: number) => {
+  if (x <= 0) {
+    return 0;
+  }
+  return x < knee ? (x * x) / (2 * knee) : x - knee / 2;
 };
 
 export class StatementFlow {
   readonly count: number;
-  /** Where each word is drawn now: left edge, top of its line, and width share. */
+  /** Where each word is drawn (left edge, line top) and how faded it is. */
   readonly x: Float32Array;
   readonly y: Float32Array;
-  readonly stretch: Float32Array;
-  private readonly vx: Float32Array;
-  private readonly vy: Float32Array;
-  private readonly vs: Float32Array;
-  private readonly tx: Float32Array;
-  private readonly ty: Float32Array;
-  private readonly ts: Float32Array;
-  private readonly stiffness: Float32Array;
-  /** The line piece each word sat in last frame (line·2 + side), or -1. */
-  private readonly slot: Int32Array;
-  private readonly scratch = new Float32Array(2);
+  readonly opacity: Float32Array;
   private metrics: FlowMetrics | null = null;
-  private minStretch: number = SQUEEZE.min;
-  private top = Number.NaN;
-  private circle = { r: 0, x: 0, y: 0 };
-
-  reducedMotion = false;
+  private lines: Line[] = [];
+  private sideways = true;
+  private setFor = "";
 
   constructor(count: number) {
     this.count = count;
     this.x = new Float32Array(count);
     this.y = new Float32Array(count);
-    this.stretch = new Float32Array(count).fill(1);
-    this.vx = new Float32Array(count);
-    this.vy = new Float32Array(count);
-    this.vs = new Float32Array(count);
-    this.tx = new Float32Array(count);
-    this.ty = new Float32Array(count);
-    this.ts = new Float32Array(count).fill(1);
-    this.stiffness = new Float32Array(count).fill(WORD.far);
-    this.slot = new Int32Array(count).fill(-1);
+    this.opacity = new Float32Array(count).fill(1);
   }
 
-  /**
-   * The words' measured widths. `minStretch` is the share of normal width
-   * the condensed measurement was taken at.
-   */
-  setMetrics(metrics: FlowMetrics, minStretch: number) {
+  setMetrics(metrics: FlowMetrics) {
     this.metrics = metrics;
-    this.minStretch = minStretch;
-    this.top = Number.NaN;
-    this.slot.fill(-1);
+    this.setFor = "";
   }
 
   get lineHeight() {
     return this.metrics?.lineHeight ?? 0;
   }
 
-  /** A word's width at a given width share. */
-  private widthAt(i: number, stretch: number) {
+  /** Width of words a…b−1 set on one line. */
+  private span(a: number, b: number) {
     const m = this.metrics;
-    if (!m) {
+    if (!m || b <= a) {
       return 0;
     }
-    const t = (stretch - this.minStretch) / (1 - this.minStretch);
-    return m.condensed[i] + (m.natural[i] - m.condensed[i]) * t;
+    let total = m.space * (b - a - 1);
+    for (let i = a; i < b; i += 1) {
+      total += m.natural[i];
+    }
+    return total;
   }
 
-  private spaceAt(stretch: number) {
-    const m = this.metrics;
-    if (!m) {
-      return 0;
+  /** The split of words a…b−1 that leaves its wider half narrowest. */
+  private bestSplit(a: number, b: number) {
+    let split = a;
+    let widest = Number.POSITIVE_INFINITY;
+    for (let k = a; k <= b; k += 1) {
+      const w = Math.max(this.span(a, k), this.span(k, b));
+      if (w < widest) {
+        widest = w;
+        split = k;
+      }
     }
-    const t = (stretch - this.minStretch) / (1 - this.minStretch);
-    return m.spaceCondensed + (m.space - m.spaceCondensed) * t;
+    return { split, widest };
+  }
+
+  /** How wide a line of words a…b−1 is, for fitting: its wider half when split. */
+  private extent(a: number, b: number) {
+    return this.sideways ? this.bestSplit(a, b).widest : this.span(a, b);
+  }
+
+  /** Greedy line breaks at most `limit` wide: each line's [start, end). */
+  private breakAt(limit: number) {
+    const breaks: [number, number][] = [];
+    let start = 0;
+    while (start < this.count) {
+      let end = start + 1;
+      while (end < this.count && this.extent(start, end + 1) <= limit) {
+        end += 1;
+      }
+      breaks.push([start, end]);
+      start = end;
+    }
+    return breaks;
   }
 
   /**
-   * Sets every word's target round a circle of radius r at (cx, cy) in a
-   * stage `width` wide. The block is centred on the circle: its height
-   * depends on how the words wrap, so it settles in a few passes.
+   * Picks the mode, breaks the words into lines no wider than the room,
+   * then narrows that width as far as it goes without adding a line, so
+   * the lines come out even. Done once per stage width: lines never change
+   * while scrolling.
    */
-  layout(width: number, cx: number, cy: number, r: number) {
+  private setLines(width: number, reserve: number) {
     const m = this.metrics;
     if (!m) {
       return;
     }
-    this.circle = { r, x: cx, y: cy };
-    let top = Number.isNaN(this.top) ? cy - m.lineHeight * 2 : this.top;
-    for (let pass = 0; pass < 4; pass += 1) {
-      const lines = this.fill(top, width, false);
-      const centred = cy - (lines * m.lineHeight) / 2;
-      const settled = Math.abs(centred - top) < 0.5;
-      top = centred;
-      if (settled) {
-        break;
-      }
-    }
-    this.fill(top, width, true);
-    this.top = top;
-  }
-
-  /** Sets lines from `top` down; with `commit`, writes targets. Returns the line count. */
-  private fill(top: number, width: number, commit: boolean) {
-    const m = this.metrics;
-    if (!m) {
-      return 0;
-    }
-    const em = m.fontSize;
-    const lineH = m.lineHeight;
-    const left = WRAP.margin * em;
-    const right = width - WRAP.margin * em;
-    const reach = this.circle.r + WRAP.gap * em;
-    const half = (lineH * WRAP.band) / 2;
-    const minPiece = WRAP.minPiece * em;
-    let k = 0;
-    let line = 0;
-    while (k < this.count && line < 400) {
-      const y = top + line * lineH;
-      // Distance from the circle's centre to the nearest edge of the
-      // letters' band on this line. The line parts only where the circle
-      // reaches the letters themselves (a line it merely passes close to
-      // stays whole); the gap is then cut at the half chord plus margin.
-      const d = Math.max(0, Math.abs(y + lineH / 2 - this.circle.y) - half);
-      const chord = d < this.circle.r ? Math.sqrt(reach * reach - d * d) : 0;
-      if (chord === 0) {
-        k = this.piece(k, left, right, ALIGN_CENTER, y, line * 2, commit, true);
+    const usable = width - WRAP.margin * 2 * m.fontSize;
+    const half = Math.min(
+      (usable - reserve) / 2,
+      (WRAP.measure * m.fontSize) / 2
+    );
+    this.sideways = half >= WRAP.minHalf * m.fontSize;
+    const room = this.sideways
+      ? half
+      : Math.min(usable, WRAP.measure * m.fontSize);
+    const lineCount = this.breakAt(room).length;
+    let lo = 0;
+    let hi = room;
+    for (let k = 0; k < 24; k += 1) {
+      const mid = (lo + hi) / 2;
+      if (this.breakAt(mid).length <= lineCount) {
+        hi = mid;
       } else {
-        const leftEnd = this.circle.x - chord;
-        const rightStart = this.circle.x + chord;
-        if (leftEnd - left >= minPiece) {
-          k = this.piece(
-            k,
-            left,
-            leftEnd,
-            ALIGN_END,
-            y,
-            line * 2,
-            commit,
-            false
-          );
-        }
-        if (k < this.count && right - rightStart >= minPiece) {
-          k = this.piece(
-            k,
-            rightStart,
-            right,
-            ALIGN_START,
-            y,
-            line * 2 + 1,
-            commit,
-            false
-          );
-        }
+        lo = mid;
       }
-      line += 1;
     }
-    return line;
+    this.lines = this.breakAt(hi).map(([start, end]) => {
+      const split = this.sideways ? this.bestSplit(start, end).split : end;
+      return {
+        end,
+        leftWidth: this.span(start, split),
+        rightWidth: this.span(split, end),
+        split,
+        start,
+      };
+    });
+    this.setFor = `${width}/${reserve}`;
   }
 
   /**
-   * Fills one piece of a line, from word k. A word joins if it fits at its
-   * normal width, or, if it sat in this same piece last frame, if it fits
-   * condensed: words resist being pushed out. Returns the next word.
+   * Sets words a…b−1 from x on the line at y, each fading as it crosses
+   * the edge of a stage width × height.
    */
-  private piece(
-    k: number,
-    from: number,
-    to: number,
-    align: number,
+  private place(
+    a: number,
+    b: number,
+    x: number,
     y: number,
-    slot: number,
-    commit: boolean,
-    force: boolean
+    width: number,
+    height: number
   ) {
     const m = this.metrics;
     if (!m) {
-      return k;
+      return;
     }
-    const room = to - from;
-    let n = 0;
-    let natural = 0;
-    let condensed = 0;
-    while (k + n < this.count) {
-      const i = k + n;
-      const nextNatural = natural + (n > 0 ? m.space : 0) + m.natural[i];
-      const nextCondensed =
-        condensed + (n > 0 ? m.spaceCondensed : 0) + m.condensed[i];
-      const fits =
-        nextNatural <= room ||
-        (this.slot[i] === slot && nextCondensed <= room) ||
-        (force && n === 0);
-      if (!fits) {
-        break;
-      }
-      natural = nextNatural;
-      condensed = nextCondensed;
-      n += 1;
-    }
-    if (n === 0 || !commit) {
-      return k + n;
-    }
-
-    // Condense just enough to fit, never past the limit.
-    let stretch = 1;
-    if (natural > room && natural > condensed) {
-      const t = (room - condensed) / (natural - condensed);
-      stretch = Math.min(
-        Math.max(this.minStretch + t * (1 - this.minStretch), this.minStretch),
-        1
+    // Solid until it crosses the margin; gone once half of it is past the
+    // stage's edge.
+    const fade = WRAP.margin * m.fontSize;
+    const lineH = m.lineHeight;
+    const toEdgeY = Math.min(y, height - (y + lineH));
+    const vertical = smooth((toEdgeY + lineH / 2) / (fade + lineH / 2));
+    let left = x;
+    for (let i = a; i < b; i += 1) {
+      const w = m.natural[i];
+      this.x[i] = left;
+      this.y[i] = y;
+      const toEdgeX = Math.min(left, width - (left + w));
+      this.opacity[i] = Math.min(
+        smooth((toEdgeX + w / 2) / (fade + w / 2)),
+        vertical
       );
+      left += w + m.space;
     }
-    let used = -this.spaceAt(stretch);
-    for (let j = 0; j < n; j += 1) {
-      used += this.spaceAt(stretch) + this.widthAt(k + j, stretch);
-    }
-    let x = from;
-    if (align === ALIGN_END) {
-      x = to - used;
-    } else if (align === ALIGN_CENTER) {
-      x = from + (room - used) / 2;
-    }
+  }
 
+  /**
+   * Places every word round a circle of radius r at (cx, cy), on a stage
+   * width × height. The block of lines is centred on the circle.
+   * `restRadius` is the circle's size at rest: the lines are set so they
+   * part round it without touching the edges.
+   */
+  layout(
+    width: number,
+    height: number,
+    cx: number,
+    cy: number,
+    r: number,
+    restRadius = 0
+  ) {
+    const m = this.metrics;
+    if (!m) {
+      return;
+    }
     const em = m.fontSize;
-    for (let j = 0; j < n; j += 1) {
-      const i = k + j;
-      const w = this.widthAt(i, stretch);
-      this.tx[i] = x;
-      this.ty[i] = y;
-      this.ts[i] = stretch;
-      this.slot[i] = slot;
-      // Stiffer near the circle, so a push ripples outward.
-      const away = Math.max(
-        Math.hypot(
-          x + w / 2 - this.circle.x,
-          y + m.lineHeight / 2 - this.circle.y
-        ) - this.circle.r,
-        0
-      );
-      this.stiffness[i] =
-        WORD.far +
-        (WORD.near - WORD.far) * Math.exp(-away / (WORD.falloff * em));
-      x += w + this.spaceAt(stretch);
+    const reserve = restRadius > 0 ? 2 * (restRadius + WRAP.gap * em) : 0;
+    if (this.setFor !== `${width}/${reserve}`) {
+      this.setLines(width, reserve);
     }
-    return k + n;
-  }
+    const lineH = m.lineHeight;
+    const knee = EASE.takeUp * em;
+    // Half the knee is paid back here, so a half that has fully taken up
+    // sits exactly as far from the circle as it would without easing.
+    const reach = r + WRAP.gap * em + knee / 2;
+    const top = cy - (this.lines.length * lineH) / 2;
 
-  /** Puts every word straight at its target (first frame, resize). */
-  snap() {
-    this.x.set(this.tx);
-    this.y.set(this.ty);
-    this.stretch.set(this.ts);
-    this.vx.fill(0);
-    this.vy.fill(0);
-    this.vs.fill(0);
-  }
-
-  /** Advances the words' springs. Returns whether any is still moving. */
-  step(dt: number) {
-    if (this.reducedMotion) {
-      this.snap();
-      return false;
-    }
-    let moving = false;
-    const out = this.scratch;
-    for (let i = 0; i < this.count; i += 1) {
-      const k = this.stiffness[i];
-      critical(this.x[i], this.vx[i], this.tx[i], k, dt, out, 0);
-      [this.x[i], this.vx[i]] = out;
-      critical(this.y[i], this.vy[i], this.ty[i], k * WORD.drop, dt, out, 0);
-      [this.y[i], this.vy[i]] = out;
-      critical(
-        this.stretch[i],
-        this.vs[i],
-        this.ts[i],
-        WORD.squeeze,
-        dt,
-        out,
-        0
-      );
-      [this.stretch[i], this.vs[i]] = out;
-      if (
-        Math.abs(this.x[i] - this.tx[i]) > 0.2 ||
-        Math.abs(this.y[i] - this.ty[i]) > 0.2 ||
-        Math.abs(this.vx[i]) + Math.abs(this.vy[i]) > 1 ||
-        Math.abs(this.stretch[i] - this.ts[i]) > 1e-3
-      ) {
-        moving = true;
-      } else {
-        this.x[i] = this.tx[i];
-        this.y[i] = this.ty[i];
-        this.stretch[i] = this.ts[i];
-        this.vx[i] = 0;
-        this.vy[i] = 0;
-        this.vs[i] = 0;
+    if (!this.sideways) {
+      // The block opens at its middle: the lines above move up, those
+      // below move down, just enough to clear the circle.
+      const middle = Math.floor(this.lines.length / 2);
+      const seam = top + middle * lineH;
+      const up = -takeUp(seam - (cy - reach), knee);
+      const down = takeUp(cy + reach - seam, knee);
+      for (const [n, line] of this.lines.entries()) {
+        const y = top + n * lineH + (n < middle ? up : down);
+        const x = cx - line.leftWidth / 2;
+        this.place(line.start, line.end, x, y, width, height);
       }
+      return;
     }
-    return moving;
+
+    const half = (lineH * WRAP.band) / 2;
+    for (const [n, line] of this.lines.entries()) {
+      const y = top + n * lineH;
+      // Half the opening's width on this line: where the circle (plus the
+      // gap) crosses the nearer edge of the letters. It grows from 0 at the
+      // circle's edge, so a line starts parting without a jump.
+      const d = Math.max(0, Math.abs(y + lineH / 2 - cy) - half);
+      const chord = openingAt(reach, d, EASE.onset * em);
+
+      // Where the halves sit with no circle: the whole line centred.
+      const total = line.leftWidth + m.space + line.rightWidth;
+      const naturalLeftEnd = cx - total / 2 + line.leftWidth;
+      const naturalRightStart = naturalLeftEnd + m.space;
+
+      // Each half is pushed by however far the opening reaches past it,
+      // easing into motion; pushed far enough, it slides off the side.
+      const leftEnd =
+        naturalLeftEnd - takeUp(chord - (cx - naturalLeftEnd), knee);
+      this.place(
+        line.start,
+        line.split,
+        leftEnd - line.leftWidth,
+        y,
+        width,
+        height
+      );
+      const rightStart =
+        naturalRightStart + takeUp(chord - (naturalRightStart - cx), knee);
+      this.place(line.split, line.end, rightStart, y, width, height);
+    }
   }
 }
