@@ -246,7 +246,6 @@
         }
       ]
     },
-    
     {
       "name": "testimonials-section",
       "type": "registry:block",
@@ -258,7 +257,12 @@
         "library": "templates",
         "types": ["testimonials"],
         "styles": ["motion", "dark-mode"],
-        "publishedAt": "2026-10-28"
+        "publishedAt": "2026-10-28",
+        "useCases": [
+          "SaaS and B2B landing pages",
+          "Sales, CRM and revenue tool websites",
+          "Customer story and case study pages"
+        ]
       },
       "dependencies": ["lucide-react", "motion"],
       "files": [
@@ -378,7 +382,5 @@
         }
       ]
     }
-
-
   ]
 }

@@ -747,6 +747,41 @@
       "Brand sites that lead with their work"
     ]
   },
+  "testimonials-section": {
+    "component": "TestimonialSection",
+    "dependencies": ["lucide-react", "motion"],
+    "description": "Customer stories with auto-scrolling progress timer, cross-fading quotes, and live KPI impact metrics.",
+    "docs": "/docs/templates/testimonials-section",
+    "extends": "section",
+    "files": ["components/blocks/testimonials-section.tsx"],
+    "id": "SEC-0009",
+    "import": "@/components/blocks/testimonials-section",
+    "library": "templates",
+    "name": "testimonials-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The heading's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Metrics testimonials section",
+    "types": [],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["testimonials"]
+    },
+    "useCases": [
+      "SaaS and B2B landing pages",
+      "Sales, CRM and revenue tool websites",
+      "Customer story and case study pages"
+    ]
+  },
   "image-sphere": {
     "component": "ImageSphere",
     "dependencies": [],

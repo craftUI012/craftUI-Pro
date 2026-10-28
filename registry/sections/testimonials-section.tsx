@@ -134,6 +134,7 @@ const TESTIMONIALS: TestimonialItem[] = [
 ];
 
 export interface TestimonialSectionProps extends ComponentProps<"section"> {
+  /** The heading's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. Defaults to 2. */
   headingLevel?: 1 | 2 | 3;
 }
 
