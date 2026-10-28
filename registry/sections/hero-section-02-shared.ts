@@ -33,7 +33,9 @@ import type { ReactNode } from "react";
 export interface ShowreelViews {
   /** Read by screen readers ("YouTube views"); the icon stands in for it. */
   platform: string;
+  /** The count as shown, e.g. "1.2M". */
   value: string;
+  /** The platform's mark, shown before the count. */
   icon?: ReactNode;
 }
 

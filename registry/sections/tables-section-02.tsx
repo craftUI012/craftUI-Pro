@@ -146,8 +146,11 @@ export type TicketPriority = "urgent" | "high" | "medium" | "low";
 export type TicketChannel = "email" | "chat" | "phone" | "web";
 
 export interface TicketRequester {
+  /** The customer's name. */
   name: string;
+  /** Their email address: searched and exported. */
   email: string;
+  /** Their company, shown under the name. */
   company: string;
 }
 

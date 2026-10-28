@@ -180,11 +180,17 @@ const GUTTER = "px-4 sm:px-6 lg:px-10";
  * axis label, which has a 66px lane to live in; `n` is the raw number for forms
  * that need to place a value on an absolute scale rather than a 0–1 ratio. */
 export type BenchmarkRow = {
+  /** The provider's name, e.g. "GPT-5.5". */
   name: string;
+  /** A short name for the isometric chart's rotated axis label, which has little room. Defaults to `name`. */
   short?: string;
+  /** The figure as shown, e.g. "62.5". */
   value: string;
+  /** The value against the largest in this metric, from 0 to 1: what the chart draws. */
   ratio: number;
+  /** The raw number, for chart forms that place it on an absolute scale. */
   n?: number;
+  /** Marks your own row: the one the section is about, and the only one drawn in the brand colour. */
   brand?: boolean;
 };
 

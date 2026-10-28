@@ -156,6 +156,47 @@
           }
         ],
         "name": "BenchmarkMetric"
+      },
+      {
+        "fields": [
+          {
+            "description": "The provider's name, e.g. \"GPT-5.5\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A short name for the isometric chart's rotated axis label, which has little room. Defaults to `name`.",
+            "name": "short",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The figure as shown, e.g. \"62.5\".",
+            "name": "value",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The value against the largest in this metric, from 0 to 1: what the chart draws.",
+            "name": "ratio",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "The raw number, for chart forms that place it on an absolute scale.",
+            "name": "n",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "Marks your own row: the one the section is about, and the only one drawn in the brand colour.",
+            "name": "brand",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "BenchmarkRow"
       }
     ],
     "tags": {
@@ -510,6 +551,29 @@
           }
         ],
         "name": "TicketRow"
+      },
+      {
+        "fields": [
+          {
+            "description": "The customer's name.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their email address: searched and exported.",
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their company, shown under the name.",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "TicketRequester"
       }
     ],
     "tags": {
@@ -734,6 +798,29 @@
           }
         ],
         "name": "ShowreelCategory"
+      },
+      {
+        "fields": [
+          {
+            "description": "Read by screen readers (\"YouTube views\"); the icon stands in for it.",
+            "name": "platform",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The count as shown, e.g. \"1.2M\".",
+            "name": "value",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The platform's mark, shown before the count.",
+            "name": "icon",
+            "optional": true,
+            "type": "ReactNode"
+          }
+        ],
+        "name": "ShowreelViews"
       }
     ],
     "tags": {
@@ -761,6 +848,34 @@
     "paid": true,
     "props": [
       {
+        "description": "Your customers' stories, in the order they play.",
+        "name": "testimonials",
+        "optional": true,
+        "type": "TestimonialItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The heading above the stories. Wrap the words to stress in `<span className=\"text-foreground\">`: the rest is muted. Defaults to \"Real impact on real businesses.\"",
+        "name": "title",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "( <> Real impact on <span className=\"text-foreground\">real businesses.</span> <…"
+      },
+      {
+        "description": "The names of the two results each story shows. Defaults to [\"Conversion Rate\", \"Avg. Sales Cycle\"].",
+        "name": "metricLabels",
+        "optional": true,
+        "type": "[string, string]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Seconds each story stays before the next. Defaults to 6.",
+        "name": "interval",
+        "optional": true,
+        "type": "number",
+        "default": "6"
+      },
+      {
         "description": "The heading's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. Defaults to 2.",
         "name": "headingLevel",
         "optional": true,
@@ -770,7 +885,84 @@
     ],
     "registryDependencies": [],
     "title": "Metrics testimonials section",
-    "types": [],
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: what the animations key on.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The customer's name.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their job title, e.g. \"VP of Operations\".",
+            "name": "role",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their company, shown after the role.",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Portrait URL, ideally 4:5 or taller. Shown in black and white, in colour on hover.",
+            "name": "image",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What they said, without quotation marks: the section adds them. Two to four sentences read best.",
+            "name": "quote",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The two results they got, in the order of `metricLabels`.",
+            "name": "metrics",
+            "optional": false,
+            "type": "[TestimonialMetric, TestimonialMetric]"
+          }
+        ],
+        "name": "TestimonialItem"
+      },
+      {
+        "fields": [
+          {
+            "description": "The result, large, e.g. \"42.8%\" or \"18 days\".",
+            "name": "value",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A shorter value for phones, where space is tight, e.g. \"18D\". Defaults to `value`.",
+            "name": "short",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The change it shows, beside the value, e.g. \"+14.6%\" or \"-12 days\".",
+            "name": "change",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Which way the change went: \"up\" or \"down\". Picks the arrow; both read as an improvement.",
+            "name": "trend",
+            "optional": false,
+            "type": "\"up\" | \"down\""
+          }
+        ],
+        "name": "TestimonialMetric"
+      }
+    ],
     "tags": {
       "categories": ["marketing"],
       "styles": ["motion", "dark-mode"],
@@ -1264,6 +1456,46 @@
           }
         ],
         "name": "ImageSphereProps"
+      },
+      {
+        "fields": [
+          {
+            "description": "Image URL. The card keeps its shape, cropped only past tall portrait (0.62) or 16:9.",
+            "name": "src",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Describes the image for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A group's `id`. Items without one stay on the sphere.",
+            "name": "group",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "ImageSphereItem"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id that items point at with their `group`.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The group's name: the tag beside the pointer on hover, and its keyboard button.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ImageSphereGroup"
       }
     ],
     "tags": {

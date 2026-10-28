@@ -204,13 +204,26 @@ const fieldGapsIn = (item, relatedTypes) =>
   );
 
 /** The types its props mention by name, documented alongside. */
+const namesIn = (members) =>
+  members.flatMap((member) => member.type.match(/\b[A-Z]\w+\b/g) ?? []);
+
+/**
+ * The types its props mention by name, and the types those mention in turn
+ * (a story's metrics), documented alongside, in the order they're met.
+ */
 const relatedTypesOf = (props, types, propsType) => {
-  const mentioned = new Set(
-    props.flatMap((prop) => prop.type.match(/\b[A-Z]\w+\b/g) ?? [])
-  );
-  return [...mentioned]
-    .filter((name) => name !== propsType && types.has(name))
-    .map((name) => ({ fields: membersOf(types.get(name)), name }))
+  const found = new Map();
+  const queue = namesIn(props);
+  while (queue.length > 0) {
+    const name = queue.shift();
+    if (name !== propsType && types.has(name) && !found.has(name)) {
+      const fields = membersOf(types.get(name));
+      found.set(name, fields);
+      queue.push(...namesIn(fields));
+    }
+  }
+  return [...found]
+    .map(([name, fields]) => ({ fields, name }))
     .filter((type) => type.fields.length > 0);
 };
 
