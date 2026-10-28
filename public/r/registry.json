@@ -267,7 +267,10 @@
         }
       ]
     },
-    {
+
+
+
+        {
       "name": "image-sphere",
       "type": "registry:block",
       "title": "Image sphere",
@@ -383,6 +386,40 @@
           "target": "components/blocks/image-sphere-gl.ts"
         }
       ]
+    },
+    {
+      "name": "testimonials-section",
+      "type": "registry:block",
+      "title": "Metrics testimonials section",
+      "description": "Customer stories with auto-scrolling progress timer, cross-fading quotes, and live KPI impact metrics.",
+      "categories": [
+        "marketing"
+      ],
+      "meta": {
+        "id": "SEC-0009",
+        "library": "templates",
+        "types": [
+          "testimonials"
+        ],
+        "styles": [
+          "motion",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-28"
+      },
+      "dependencies": [
+        "lucide-react",
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/sections/testimonials-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/testimonials-section.tsx"
+        }
+      ]
     }
+
+
   ]
 }
