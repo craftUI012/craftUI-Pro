@@ -182,7 +182,7 @@ export const writeCardText = async (url: string, description: string) => {
     }
   };
   run("pnpm", ["exec", "oxfmt", "registry.json"]);
-  run("node", ["scripts/build-registry.mjs"]);
+  run("pnpm", ["registry:build"]);
   run("pnpm", ["exec", "oxfmt", "registry-paid", "public/r"]);
   return true;
 };

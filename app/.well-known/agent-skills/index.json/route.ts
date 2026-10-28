@@ -12,7 +12,7 @@ export const GET = (request: Request) => {
       $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
       skills: [
         {
-          description: `Install and use ${SITE.NAME} components from this shadcn registry and its documentation site.`,
+          description: `Find, recommend and install ${SITE.NAME} website sections, blocks and components (shadcn/ui), including paid items.`,
           digest: siteAgentSkillDigest(),
           name: "craftui-pro",
           type: "skill-md",

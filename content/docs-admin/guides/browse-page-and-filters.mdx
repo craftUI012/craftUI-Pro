@@ -79,7 +79,11 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
     "types": ["hero"],
     "styles": ["minimal", "dark-mode"],
     "publishedAt": "2026-09-30",
-    "docs": "hero-section"
+    "docs": "hero-section",
+    "useCases": [
+      "SaaS and AI product landing pages",
+      "Launch pages that need proof above the fold"
+    ]
   },
   "files": [
     {
@@ -98,6 +102,7 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
 | `meta.types`       | yes, one or more  | The **Type** filter group. It's labelled **Primitives** in Components                                                                    |
 | `meta.styles`      | no (can be empty) | The **Styles** filter group                                                                                                              |
 | `meta.publishedAt` | yes               | ISO date (`YYYY-MM-DD`). Sorts **Latest**                                                                                                |
+| `meta.useCases`    | yes, 2 to 5       | Who it's for, as short phrases. Not a filter: AI agents read it as **Good for**, with the tags. See [Writing for AI agents](/docs-admin/guides/seo-and-ai-agents#writing-for-ai-agents) |
 | `title`            | yes               | The card's name. Use the variant's heading on its docs page ("API keys table"), not the page title                                       |
 | `description`      | yes               | The card's one-line tagline. It's truncated, so lead with the point and don't repeat the name                                            |
 | `meta.docs`        | no                | The docs page the item lives on, when it isn't its own name. See [Variants](#variants-on-one-page)                                       |
@@ -108,7 +113,7 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
 
 `meta.types` replaced the old single `meta.section` string. The build rejects `meta.section` and says what to write instead.
 
-Only tag a style the item really has. For example, use `motion` only if it animates, and `dark-mode` only if it has dark styles or uses theme tokens.
+Only tag a style the item really has. For example, use `motion` only if it animates, and `dark-mode` only if it has dark styles or uses theme tokens. AI agents read the tags too: a wrong one makes them recommend the item for the wrong site.
 
 ## Strict validation
 
@@ -121,6 +126,7 @@ Only tag a style the item really has. For example, use `motion` only if it anima
 - a missing or malformed `meta.publishedAt`
 - a missing or malformed `meta.id`, one with another library's prefix, or one already used by another item
 - a `meta.free` that isn't `true` or `false`
+- a missing `meta.useCases`, fewer than 2 or more than 5 entries, or an entry that's empty, over 60 characters or ends with a period
 - the old `meta.section` field
 
 Each error names the item, the field and the slug, and says which line of `constants/taxonomy.ts` to change.
@@ -205,7 +211,7 @@ Pick its categories, types and styles from `constants/taxonomy.ts`. If one is mi
 
 <Step>Register it with its browse metadata</Step>
 
-In `registry.json`, add the item with `categories`, `meta.id`, `meta.library`, `meta.types`, `meta.styles` and `meta.publishedAt`, plus `meta.docs` if it's a variant.
+In `registry.json`, add the item with `categories`, `meta.id`, `meta.library`, `meta.types`, `meta.styles`, `meta.useCases` and `meta.publishedAt`, plus `meta.docs` if it's a variant.
 
 <Step>Build the registry</Step>
 

@@ -4,7 +4,11 @@ import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 
 import { ROUTES } from "@/constants/routes";
-import { docsContentRoute, homeContentRoute } from "@/lib/docs";
+import {
+  docsContentRoute,
+  homeContentRoute,
+  pageContentRoutes,
+} from "@/lib/docs";
 import {
   anonymousId,
   captureServerEvent,
@@ -93,6 +97,17 @@ const proxy = (request: NextRequest, event: NextFetchEvent) => {
     url.pathname = homeContentRoute;
 
     return NextResponse.rewrite(url);
+  }
+
+  // Pricing and about: /pricing.md, or /pricing asked for as Markdown.
+  const { pathname } = request.nextUrl;
+  const page = pathname.endsWith(".md") ? pathname.slice(0, -3) : pathname;
+  const pageContent = pageContentRoutes[page];
+  if (
+    pageContent &&
+    (pathname.endsWith(".md") || isMarkdownPreferred(request))
+  ) {
+    return NextResponse.rewrite(new URL(pageContent, request.nextUrl));
   }
 
   const result = rewriteSuffix(request.nextUrl.pathname);

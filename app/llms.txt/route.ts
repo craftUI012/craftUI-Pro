@@ -4,6 +4,7 @@ import { LINK } from "@/constants/links";
 import { ROUTES } from "@/constants/routes";
 import { SITE } from "@/constants/site";
 import { requestOrigin } from "@/lib/agent-discovery/request-origin";
+import { indexNote } from "@/lib/agent-reference";
 import { source } from "@/lib/source";
 
 export const revalidate = false;
@@ -11,13 +12,21 @@ export const revalidate = false;
 const documentationIndex = async (base: string) => {
   const index = await llms(source).index();
 
-  return index
-    .replace(/^#\s+(.+)$/m, "## $1")
-    .replaceAll(
-      /\]\((\/docs(?:\/[^)#\s]+)?)(#[^)]+)?\)/g,
-      (_, pathname: string, hash = "") => `](${base}${pathname}.md${hash})`
-    )
-    .trim();
+  return (
+    index
+      .replace(/^#\s+(.+)$/m, "## $1")
+      .replaceAll(
+        /\]\((\/docs(?:\/[^)#\s]+)?)(#[^)]+)?\)/g,
+        (_, pathname: string, hash = "") => `](${base}${pathname}.md${hash})`
+      )
+      // A library item's line also gets who it's for, its tags and a screenshot.
+      .replaceAll(
+        /^(\s*- \[[^\]]+\]\(([^)\s]+)\.md\).*)$/gm,
+        (line: string, _: string, url: string) =>
+          `${line}${indexNote(url.slice(base.length))}`
+      )
+      .trim()
+  );
 };
 
 const docsIndex = async (origin: string) => {

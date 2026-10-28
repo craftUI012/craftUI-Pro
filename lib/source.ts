@@ -4,6 +4,7 @@ import { loader } from "fumadocs-core/source";
 import { docs, docsAdmin } from "@/.source/server";
 import { ROUTES } from "@/constants/routes";
 import { AGENT_DOCS_DIRECTIVE_MARKDOWN } from "@/lib/agent-discovery/directive";
+import { agentBody } from "@/lib/agent-reference";
 import { docsContentRoute, docsImageRoute } from "@/lib/docs";
 
 export const source = loader({
@@ -35,7 +36,9 @@ export const getPageMarkdownUrl = (page: InferPageType<typeof source>) => {
 };
 
 export const getLLMText = async (page: InferPageType<typeof source>) => {
-  const processed = await page.data.getText("processed");
+  // Editor comments out; a library item's live preview swapped for its
+  // install, usage and props (lib/agent-reference.ts).
+  const processed = agentBody(page.url, await page.data.getText("processed"));
 
   const sections = [
     page.data.description,

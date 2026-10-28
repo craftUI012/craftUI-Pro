@@ -33,14 +33,18 @@ import { CLUSTER_MAX, SphereScene } from "./image-sphere-scene";
  * ───────────────────────────────────────────────────────────────────────── */
 
 export interface ImageSphereItem {
+  /** Image URL. The card keeps its shape, cropped only past tall portrait (0.62) or 16:9. */
   src: string;
+  /** Describes the image for screen readers. */
   alt: string;
   /** A group's `id`. Items without one stay on the sphere. */
   group?: string;
 }
 
 export interface ImageSphereGroup {
+  /** Unique id that items point at with their `group`. */
   id: string;
+  /** The group's name: the tag beside the pointer on hover, and its keyboard button. */
   label: string;
 }
 
@@ -48,7 +52,9 @@ export interface ImageSphereProps extends Omit<
   ComponentProps<"section">,
   "children"
 > {
+  /** Your images. Each can belong to a group, which gathers into a pile. */
   items?: ImageSphereItem[];
+  /** The groups items belong to, by id, with the label shown on hover. */
   groups?: ImageSphereGroup[];
   /**
    * Cards on the sphere; items repeat round it to fill them. Defaults to
@@ -65,6 +71,7 @@ export interface ImageSphereProps extends Omit<
    * keyboard buttons are left out: the parent's controls take their place.
    */
   group?: string | null;
+  /** Called when a group opens (its id) or closes (null). */
   onGroupChange?: (group: string | null) => void;
   /** The keyboard button that closes the open group. */
   allLabel?: string;

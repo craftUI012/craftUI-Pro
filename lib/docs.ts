@@ -21,3 +21,11 @@ export const formatTitleFromSlug = (slug: string): string =>
 export const homeContentRoute = `${ROUTES.LLMS_MD}/content.md`;
 export const docsContentRoute = `${ROUTES.LLMS_MD}${ROUTES.DOCS}`;
 export const docsImageRoute = `${ROUTES.OG}${ROUTES.DOCS}`;
+
+// Pages outside /docs with a Markdown version for agents: the page, and the
+// route that serves its Markdown (proxy.ts maps /<page>.md and Accept:
+// text/markdown to it).
+export const pageContentRoutes: Record<string, string> = {
+  [ROUTES.ABOUT]: `${ROUTES.LLMS_MD}/about.md`,
+  [ROUTES.PRICING]: `${ROUTES.LLMS_MD}/pricing.md`,
+};

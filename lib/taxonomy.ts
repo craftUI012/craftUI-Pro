@@ -21,6 +21,9 @@ export interface TaxonomyRegistryItem {
     section?: unknown;
     styles?: string[];
     types?: string[];
+    // Who it's for, in a founder's words ("Agency and studio portfolios"):
+    // what AI agents match a request against (lib/agent-reference.ts).
+    useCases?: unknown;
   };
 }
 
@@ -30,6 +33,36 @@ const PRODUCT_ID = /^([A-Z]{3})-(\d{4})$/;
 // Groups an item must tag at least one value in. Styles can be empty: not
 // every item has a style worth filtering on.
 const REQUIRED_GROUPS = new Set<FilterGroupId>(["categories", "types"]);
+
+// meta.useCases: a short list of short phrases, so each one reads as a tag.
+const USE_CASES = { max: 5, maxLength: 60, min: 2 };
+
+const useCaseErrors = (at: string, useCases: unknown): string[] => {
+  const example = `e.g. "useCases": ["SaaS landing pages", "Product launch pages"]`;
+  if (!Array.isArray(useCases)) {
+    return [`${at}: meta.useCases is missing: list who it's for, ${example}.`];
+  }
+  const errors: string[] = [];
+  if (useCases.length < USE_CASES.min || useCases.length > USE_CASES.max) {
+    errors.push(
+      `${at}: meta.useCases needs ${USE_CASES.min} to ${USE_CASES.max} entries (it has ${useCases.length}).`
+    );
+  }
+  for (const useCase of useCases) {
+    if (typeof useCase !== "string" || useCase.trim() === "") {
+      errors.push(`${at}: meta.useCases entries must be text, ${example}.`);
+    } else if (useCase.length > USE_CASES.maxLength) {
+      errors.push(
+        `${at}: meta.useCases "${useCase}" is over ${USE_CASES.maxLength} characters. Keep each to a short phrase.`
+      );
+    } else if (useCase.endsWith(".")) {
+      errors.push(
+        `${at}: meta.useCases "${useCase}" shouldn't end with a period.`
+      );
+    }
+  }
+  return errors;
+};
 
 export const isLibraryId = (value: unknown): value is LibraryId =>
   typeof value === "string" && Object.hasOwn(LIBRARIES, value);
@@ -106,6 +139,7 @@ export const validateRegistryTaxonomy = (
     if (meta.free !== undefined && typeof meta.free !== "boolean") {
       errors.push(`${at}: meta.free must be true or false.`);
     }
+    errors.push(...useCaseErrors(at, meta.useCases));
 
     const values = itemFilterValues(item);
     for (const group of FILTER_GROUPS) {

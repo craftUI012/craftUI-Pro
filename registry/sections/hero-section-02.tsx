@@ -68,11 +68,14 @@ const CSS = `
 `;
 
 export interface ShowreelAction {
+  /** Where the button goes: a page, an anchor ("#contact") or a mailto: link. */
   href: string;
+  /** The button's text, e.g. "Book a call". */
   label: string;
 }
 
 export interface ShowreelLogo {
+  /** The client's name, shown in the scrolling client row and read by screen readers. */
   name: string;
   /** The client's mark, shown before the name at 20px. */
   logo?: ReactNode;
@@ -82,19 +85,27 @@ export interface ShowreelHeroProps extends Omit<
   ComponentProps<"section">,
   "title"
 > {
+  /** Small label above the title. */
   eyebrow?: ReactNode;
+  /** The hero's main line. */
   title?: ReactNode;
   /** A second line, in the muted colour. */
   titleMuted?: ReactNode;
+  /** A sentence or two under the title. */
   description?: ReactNode;
+  /** The main button. Pass null to hide it. */
   primaryAction?: ShowreelAction | null;
+  /** The second, quieter button. Pass null to hide it. */
   secondaryAction?: ShowreelAction | null;
+  /** Label before the scrolling row of client logos. */
   logosLabel?: string;
   /** Scroll by in a loop under the actions. Pass [] to hide the row. */
   logos?: ShowreelLogo[];
+  /** Your work: one frame on the wheel each, with its description. */
   reels?: ShowreelReel[];
   /** Names for the reels' `category` ids, shown above each description. */
   categories?: ShowreelCategory[];
+  /** Which reel faces the viewer at first. */
   initialIndex?: number;
   /** Advances while the section is on screen and nobody's using it. */
   autoplay?: boolean;
