@@ -224,7 +224,7 @@ export default function TestimonialSection({
     <section
       data-slot="testimonials-section"
       className={cn(
-        "w-full bg-muted/30 py-16 sm:py-20 lg:py-24 transition-colors duration-200",
+        "w-full bg-background text-foreground py-16 sm:py-20 lg:py-24 transition-colors duration-200",
         className
       )}
       {...props}
