@@ -466,6 +466,43 @@
           "target": "components/blocks/image-sphere-gl.ts"
         }
       ]
+    },
+    {
+      "name": "feature-section-02",
+      "type": "registry:block",
+      "title": "Developer tool features",
+      "description": "A big headline over three cards, each with a detailed drawing of its claim: a DevTools page-weight treemap, a code editor with its deployment on top and one visitor's journey, step by step. Follows your light and dark theme.",
+      "categories": [
+        "marketing",
+        "data"
+      ],
+      "meta": {
+        "id": "SEC-0010",
+        "library": "templates",
+        "types": [
+          "features"
+        ],
+        "styles": [
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-29",
+        "useCases": [
+          "SaaS and analytics product landing pages",
+          "Developer tool feature overviews",
+          "Product pages that explain an approach in three points"
+        ]
+      },
+      "registryDependencies": [
+        "card"
+      ],
+      "files": [
+        {
+          "path": "registry/sections/feature-section-02.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/feature-section-02.tsx"
+        }
+      ]
     }
   ]
 }

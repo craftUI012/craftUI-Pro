@@ -116,12 +116,12 @@ The Markdown isn't stored as files. It's assembled when it's asked for, from the
 
 ### The agent reference
 
-`pnpm registry:build` ends by writing `content/agent-reference.json` (see [Registry pipeline](/docs-admin/architecture/registry-pipeline#what-ai-agents-read)). For every section and block it records the install address, the import path, every prop (type, default and doc comment), the types the props use, the files and the dependencies, read from `registry.json` and the component's own TypeScript.
+`pnpm registry:build` ends by writing `content/agent-reference.json` (see [Registry pipeline](/docs-admin/architecture/registry-pipeline#what-ai-agents-read)). For every section and block it records the install address, the import path, every prop (type, default and doc comment), the types the props use, the files, the npm dependencies and the shadcn/ui components it uses (`registryDependencies`), read from `registry.json` and the component's own TypeScript.
 
 On an item's Markdown page, the live preview (meaningless outside the site) is replaced by sections built from it, and MDX comments are left out:
 
 - **At a glance:** Good for (`meta.useCases`), the Category, Type and Style tags by their labels, and links to the live preview, the screenshot JPEG and the card video, with the screenshot shown as an image.
-- **Install, Usage, Props, Types and Files.**
+- **Install, Usage, Props, Types and Files.** Files also names the npm packages and the shadcn/ui components the install brings in, so an agent knows what lands in the project.
 
 In `llms.txt`, each item's line also gets its Good for, its tags and its screenshot after the description, so an agent can shortlist items from the index alone.
 

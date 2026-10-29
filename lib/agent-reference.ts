@@ -167,7 +167,14 @@ export const referenceMarkdown = (item: ItemReference) => {
     item.dependencies.length > 0
       ? `\n\nnpm dependencies (installed for you): ${item.dependencies.map((dep) => `\`${dep}\``).join(", ")}.`
       : "\n\nNo npm dependencies beyond React and Tailwind CSS.";
-  sections.push(`## Files\n\nThe install adds:\n\n${files}${dependencies}`);
+  // Bare names are shadcn/ui primitives; full URLs are other registry items.
+  const registryDependencies =
+    item.registryDependencies.length > 0
+      ? `\n\nshadcn/ui components it uses (the shadcn CLI adds any that are missing): ${item.registryDependencies.map((dep) => `\`${dep}\``).join(", ")}.`
+      : "";
+  sections.push(
+    `## Files\n\nThe install adds:\n\n${files}${dependencies}${registryDependencies}`
+  );
 
   return sections.join("\n\n");
 };

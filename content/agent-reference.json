@@ -1508,5 +1508,90 @@
       "Product feature overviews with imagery",
       "Editorial and portfolio websites"
     ]
+  },
+  "feature-section-02": {
+    "component": "FeatureSection02",
+    "dependencies": [],
+    "description": "A big headline over three cards, each with a detailed drawing of its claim: a DevTools page-weight treemap, a code editor with its deployment on top and one visitor's journey, step by step. Follows your light and dark theme.",
+    "docs": "/docs/templates/feature-section-02",
+    "extends": "section",
+    "files": ["components/blocks/feature-section-02.tsx"],
+    "id": "SEC-0010",
+    "import": "@/components/blocks/feature-section-02",
+    "library": "templates",
+    "name": "feature-section-02",
+    "paid": true,
+    "props": [
+      {
+        "description": "The big line above the cards: the outcome the features add up to. Defaults to \"See every visitor's journey without slowing your site down.\"",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"See every visitor’s journey without slowing your site down.\""
+      },
+      {
+        "description": "The cards, in order. Three fill a row on tablets and desktops; phones stack them.",
+        "name": "features",
+        "optional": true,
+        "type": "FeatureSection02Item[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The heading's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. The card titles take the next level. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": ["card"],
+    "title": "Developer tool features",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the list keys on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The card's title. Lead with the number or the result when there is one: \"Under 1KB\", \"Live in 5 minutes\".",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One or two short sentences under the title, about 80 characters at most, so every card's title lines up.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The drawing above the title. Use `FeatureBundleIcon`, `FeatureDeployIcon` or `FeatureJourneyIcon` from this file, or any SVG that shows the card's claim, drawn on a 240 × 226 canvas with its content in the top 210: the card scales it to its width and fades the bottom.",
+            "name": "icon",
+            "optional": false,
+            "type": "ReactNode"
+          },
+          {
+            "description": "Where the card leads, e.g. \"/docs/install\". The whole card becomes a link, with an arrow after the title. Leave it out for a plain card.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "FeatureSection02Item"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "data"],
+      "styles": ["minimal", "dark-mode"],
+      "types": ["features"]
+    },
+    "useCases": [
+      "SaaS and analytics product landing pages",
+      "Developer tool feature overviews",
+      "Product pages that explain an approach in three points"
+    ]
   }
 }
