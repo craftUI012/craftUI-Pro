@@ -167,24 +167,34 @@ export const referenceMarkdown = (item: ItemReference) => {
     item.dependencies.length > 0
       ? `\n\nnpm dependencies (installed for you): ${item.dependencies.map((dep) => `\`${dep}\``).join(", ")}.`
       : "\n\nNo npm dependencies beyond React and Tailwind CSS.";
-  sections.push(`## Files\n\nThe install adds:\n\n${files}${dependencies}`);
+  // Bare names are shadcn/ui primitives; full URLs are other registry items.
+  const registryDependencies =
+    item.registryDependencies.length > 0
+      ? `\n\nshadcn/ui components it uses (the shadcn CLI adds any that are missing): ${item.registryDependencies.map((dep) => `\`${dep}\``).join(", ")}.`
+      : "";
+  sections.push(
+    `## Files\n\nThe install adds:\n\n${files}${dependencies}${registryDependencies}`
+  );
 
   return sections.join("\n\n");
 };
 
 /** MDX `{/* … *\/}` comments: notes for editors, never for readers. */
 const MDX_COMMENT = /\{\/\*[\s\S]*?\*\/\}\s*/g;
+/** The heading ids fumadocs appends to processed Markdown: "## Fonts [#fonts]". */
+const HEADING_ID = /^(#{1,6} .+?) \[#[\w-]+\]$/gm;
 /** A live preview: <ComponentPreview …>…</ComponentPreview> or self-closed. */
 const PREVIEW =
   /<ComponentPreview\b[^>]*?(?:\/>|>[\s\S]*?<\/ComponentPreview>)\s*/g;
 
 /**
- * A docs page's Markdown body, for agents: editor comments removed, and
- * the live preview (meaningless outside the site) replaced by the item's
- * reference, or the reference added at the end if the page has no preview.
+ * A docs page's Markdown body, for agents: editor comments and heading-id
+ * markers removed, and the live preview (meaningless outside the site)
+ * replaced by the item's reference, or the reference added at the end if
+ * the page has no preview.
  */
 export const agentBody = (url: string, body: string) => {
-  const cleaned = body.replaceAll(MDX_COMMENT, "");
+  const cleaned = body.replaceAll(MDX_COMMENT, "").replaceAll(HEADING_ID, "$1");
   const item = referenceFor(url);
   if (!item) {
     return cleaned.replaceAll(PREVIEW, "").replaceAll(/\n{3,}/g, "\n\n");

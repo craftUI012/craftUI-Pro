@@ -167,7 +167,15 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
     types: ["objects", "scenes", "devices"],
   },
   templates: {
-    categories: ["marketing", "company", "data", "ai", "portfolio"],
+    categories: [
+      "marketing",
+      "company",
+      "data",
+      "ai",
+      "portfolio",
+      "ecommerce",
+      "finance",
+    ],
     idPrefix: "SEC",
     itemLabel: { one: "section", other: "sections" },
     label: "Sections",

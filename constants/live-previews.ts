@@ -10,6 +10,9 @@
 // this list. Adding a live item: its name here, its component there.
 export const LIVE_PREVIEWS = [
   "benchmarks-section",
+  "feature-section-02",
+  "feature-section-03",
+  "feature-section-04",
   "feature-sphere-section",
   "hero-section",
   "hero-section-02",

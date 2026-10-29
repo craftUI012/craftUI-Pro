@@ -2,6 +2,9 @@ import StatementSectionPreview from "@/components/previews/statement-section-pre
 import type { LivePreview } from "@/constants/live-previews";
 import { ImageSphere } from "@/registry/blocks/image-sphere";
 import BenchmarksSection from "@/registry/sections/benchmarks-section";
+import FeatureSection02 from "@/registry/sections/feature-section-02";
+import FeatureSection03 from "@/registry/sections/feature-section-03";
+import FeatureSection04 from "@/registry/sections/feature-section-04";
 import { FeatureSphereSection } from "@/registry/sections/feature-sphere-section";
 import HeroSection from "@/registry/sections/hero-section";
 import HeroSection02 from "@/registry/sections/hero-section-02";
@@ -16,6 +19,9 @@ import TestimonialSection from "@/registry/sections/testimonials-section";
 export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
   {
     "benchmarks-section": BenchmarksSection,
+    "feature-section-02": FeatureSection02,
+    "feature-section-03": FeatureSection03,
+    "feature-section-04": FeatureSection04,
     "feature-sphere-section": FeatureSphereSection,
     "hero-section": HeroSection,
     "hero-section-02": HeroSection02,

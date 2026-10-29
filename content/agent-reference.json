@@ -1508,5 +1508,295 @@
       "Product feature overviews with imagery",
       "Editorial and portfolio websites"
     ]
+  },
+  "feature-section-02": {
+    "component": "FeatureSection02",
+    "dependencies": [],
+    "description": "A big headline over three cards, each with a detailed drawing of its claim: a DevTools page-weight treemap, a code editor with its deployment on top and one visitor's journey, step by step. Follows your light and dark theme.",
+    "docs": "/docs/templates/feature-section-02",
+    "extends": "section",
+    "files": ["components/blocks/feature-section-02.tsx"],
+    "id": "SEC-0010",
+    "import": "@/components/blocks/feature-section-02",
+    "library": "templates",
+    "name": "feature-section-02",
+    "paid": true,
+    "props": [
+      {
+        "description": "The big line above the cards: the outcome the features add up to. Defaults to \"See every visitor's journey without slowing your site down.\"",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"See every visitor’s journey without slowing your site down.\""
+      },
+      {
+        "description": "The cards, in order. Three fill a row on tablets and desktops; phones stack them.",
+        "name": "features",
+        "optional": true,
+        "type": "FeatureSection02Item[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The heading's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. The card titles take the next level. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": ["card"],
+    "title": "Developer tool features",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the list keys on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The card's title. Lead with the number or the result when there is one: \"Under 1KB\", \"Live in 5 minutes\".",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One or two short sentences under the title, about 80 characters at most, so every card's title lines up.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The drawing above the title. Use `FeatureBundleIcon`, `FeatureDeployIcon` or `FeatureJourneyIcon` from this file, or any SVG that shows the card's claim, drawn on a 240 × 226 canvas with its content in the top 210: the card scales it to its width and fades the bottom.",
+            "name": "icon",
+            "optional": false,
+            "type": "ReactNode"
+          },
+          {
+            "description": "Where the card leads, e.g. \"/docs/install\". The whole card becomes a link, with an arrow after the title. Leave it out for a plain card.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "FeatureSection02Item"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "data"],
+      "styles": ["minimal", "dark-mode"],
+      "types": ["features"]
+    },
+    "useCases": [
+      "SaaS and analytics product landing pages",
+      "Developer tool feature overviews",
+      "Product pages that explain an approach in three points"
+    ]
+  },
+  "feature-section-03": {
+    "component": "FeatureSection03",
+    "dependencies": [],
+    "description": "A big headline and lead beside a 2 × 2 grid of features, each with a detailed isometric drawing on a warm paper tile, framed by crop marks.",
+    "docs": "/docs/templates/feature-section-03",
+    "extends": "section",
+    "files": ["components/blocks/feature-section-03.tsx"],
+    "id": "SEC-0011",
+    "import": "@/components/blocks/feature-section-03",
+    "library": "templates",
+    "name": "feature-section-03",
+    "paid": true,
+    "props": [
+      {
+        "description": "The headline, its first line indented round the badge. Defaults to \"Orders out the door by noon.\"",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Orders out the door by noon.\""
+      },
+      {
+        "description": "The round badge set into the headline's first line. Defaults to `FeatureParcelBadge`; pass `null` for none.",
+        "name": "badge",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "<FeatureParcelBadge />"
+      },
+      {
+        "description": "The lead paragraph beside the headline, set large and muted: what the product is and does, in two or three sentences.",
+        "name": "intro",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Parcel connects your storefront to a network of 40 warehouses. We store, pick,…"
+      },
+      {
+        "description": "The features, in order: a 2 × 2 grid on tablets and desktops, one column on phones. Four read best.",
+        "name": "features",
+        "optional": true,
+        "type": "FeatureSection03Item[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The headline's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. The feature titles take the next level. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": ["separator"],
+    "title": "Isometric feature grid",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the list keys on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The feature's title, short and declarative: \"Packed with care.\"",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One or two sentences under the title, about 100 characters.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The drawing on the feature's tile. Use `FeatureShelvesArt`, `FeatureBoxArt`, `FeatureTruckArt` or `FeatureReturnsArt` from this file, or any SVG drawn on a 440 × 440 canvas: the tile scales it to fit.",
+            "name": "art",
+            "optional": false,
+            "type": "ReactNode"
+          }
+        ],
+        "name": "FeatureSection03Item"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "ecommerce"],
+      "styles": ["minimal"],
+      "types": ["features"]
+    },
+    "useCases": [
+      "E-commerce and logistics landing pages",
+      "Fulfillment, shipping and Shopify app websites",
+      "Product pages with illustrated feature grids"
+    ]
+  },
+  "feature-section-04": {
+    "component": "FeatureSection04",
+    "dependencies": [],
+    "description": "A headline beside a phone on a blurred landscape and a masonry of five feature tiles, each with a tinted, engraved icon plate.",
+    "docs": "/docs/templates/feature-section-04",
+    "extends": "section",
+    "files": ["components/blocks/feature-section-04.tsx"],
+    "id": "SEC-0012",
+    "import": "@/components/blocks/feature-section-04",
+    "library": "templates",
+    "name": "feature-section-04",
+    "paid": true,
+    "props": [
+      {
+        "description": "The headline. Wrap the words to mute in a `<span>` with a muted colour, as the default does with \"by design.\". Defaults to \"Secure by design.\"",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "( <> Secure{\" \"} <span className=\"whitespace-nowrap text-[1.15em] text-(--fs4-i…"
+      },
+      {
+        "description": "The paragraph under the headline: the promise the features back up, in one or two sentences.",
+        "name": "intro",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Your funds are completely under your control and secured by your biometrics. N…"
+      },
+      {
+        "description": "The photo behind the device, shown blurred: a calm landscape works best; 1200px wide is plenty. Defaults to a misty dawn.",
+        "name": "image",
+        "optional": true,
+        "type": "string",
+        "default": "\"https://pub-52b0d9cec7c64f638ba3f33a29718fa6.r2.dev/section-assets/feature-sec…"
+      },
+      {
+        "description": "What stands in the panel, over the photo. Defaults to `FeatureWalletPhone`, a phone on a wallet's setup screen.",
+        "name": "visual",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "<FeatureWalletPhone />"
+      },
+      {
+        "description": "The features: the first two fill the left column, the rest the right (one column on phones). Five read best, as in the default.",
+        "name": "features",
+        "optional": true,
+        "type": "FeatureSection04Item[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The headline's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. The feature titles take the next level. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": ["card"],
+    "title": "Security features with device",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the list keys on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The feature's title, a few words: \"Biometric authentication\".",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One or two short sentences under the title.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The glyph on the feature's plate, drawn in white (`currentColor`). Use `FeatureFingerprintGlyph`, `FeaturePasskeyGlyph`, `FeatureWalletGlyph`, `FeatureRecoveryGlyph` or `FeatureHardwareKeyGlyph` from this file, or any square line icon.",
+            "name": "icon",
+            "optional": false,
+            "type": "ReactNode"
+          },
+          {
+            "description": "The plate's colour: \"orange\", \"blue\" or \"violet\".",
+            "name": "tone",
+            "optional": false,
+            "type": "keyof typeof TONES"
+          },
+          {
+            "description": "The tile's height in its column: \"tall\" and \"medium\" stack the plate above the text, \"short\" sets it beside the text. Defaults to \"medium\".",
+            "name": "size",
+            "optional": true,
+            "type": "\"tall\" | \"medium\" | \"short\""
+          }
+        ],
+        "name": "FeatureSection04Item"
+      }
+    ],
+    "tags": {
+      "categories": ["finance", "marketing"],
+      "styles": ["minimal"],
+      "types": ["features"]
+    },
+    "useCases": [
+      "Crypto wallet and fintech app websites",
+      "Security and privacy feature pages",
+      "Mobile app landing pages with a device mockup"
+    ]
   }
 }
