@@ -408,6 +408,33 @@
           "target": "components/blocks/feature-section-02.tsx"
         }
       ]
+    },
+    {
+      "name": "feature-section-03",
+      "type": "registry:block",
+      "title": "Isometric feature grid",
+      "description": "A big headline and lead beside a 2 × 2 grid of features, each with a detailed isometric drawing on a warm paper tile, framed by crop marks.",
+      "categories": ["marketing", "ecommerce"],
+      "meta": {
+        "id": "SEC-0011",
+        "library": "templates",
+        "types": ["features"],
+        "styles": ["minimal"],
+        "publishedAt": "2026-10-29",
+        "useCases": [
+          "E-commerce and logistics landing pages",
+          "Fulfillment, shipping and Shopify app websites",
+          "Product pages with illustrated feature grids"
+        ]
+      },
+      "registryDependencies": ["separator"],
+      "files": [
+        {
+          "path": "registry/sections/feature-section-03.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/feature-section-03.tsx"
+        }
+      ]
     }
   ]
 }

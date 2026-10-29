@@ -1593,5 +1593,98 @@
       "Developer tool feature overviews",
       "Product pages that explain an approach in three points"
     ]
+  },
+  "feature-section-03": {
+    "component": "FeatureSection03",
+    "dependencies": [],
+    "description": "A big headline and lead beside a 2 × 2 grid of features, each with a detailed isometric drawing on a warm paper tile, framed by crop marks.",
+    "docs": "/docs/templates/feature-section-03",
+    "extends": "section",
+    "files": ["components/blocks/feature-section-03.tsx"],
+    "id": "SEC-0011",
+    "import": "@/components/blocks/feature-section-03",
+    "library": "templates",
+    "name": "feature-section-03",
+    "paid": true,
+    "props": [
+      {
+        "description": "The headline, its first line indented round the badge. Defaults to \"Orders out the door by noon.\"",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Orders out the door by noon.\""
+      },
+      {
+        "description": "The round badge set into the headline's first line. Defaults to `FeatureParcelBadge`; pass `null` for none.",
+        "name": "badge",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "<FeatureParcelBadge />"
+      },
+      {
+        "description": "The lead paragraph beside the headline, set large and muted: what the product is and does, in two or three sentences.",
+        "name": "intro",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Parcel connects your storefront to a network of 40 warehouses. We store, pick,…"
+      },
+      {
+        "description": "The features, in order: a 2 × 2 grid on tablets and desktops, one column on phones. Four read best.",
+        "name": "features",
+        "optional": true,
+        "type": "FeatureSection03Item[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The headline's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. The feature titles take the next level. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": ["separator"],
+    "title": "Isometric feature grid",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the list keys on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The feature's title, short and declarative: \"Packed with care.\"",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One or two sentences under the title, about 100 characters.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The drawing on the feature's tile. Use `FeatureShelvesArt`, `FeatureBoxArt`, `FeatureTruckArt` or `FeatureReturnsArt` from this file, or any SVG drawn on a 440 × 440 canvas: the tile scales it to fit.",
+            "name": "art",
+            "optional": false,
+            "type": "ReactNode"
+          }
+        ],
+        "name": "FeatureSection03Item"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "ecommerce"],
+      "styles": ["minimal"],
+      "types": ["features"]
+    },
+    "useCases": [
+      "E-commerce and logistics landing pages",
+      "Fulfillment, shipping and Shopify app websites",
+      "Product pages with illustrated feature grids"
+    ]
   }
 }

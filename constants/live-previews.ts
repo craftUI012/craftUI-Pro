@@ -11,6 +11,7 @@
 export const LIVE_PREVIEWS = [
   "benchmarks-section",
   "feature-section-02",
+  "feature-section-03",
   "feature-sphere-section",
   "hero-section",
   "hero-section-02",
