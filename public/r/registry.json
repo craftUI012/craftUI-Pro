@@ -539,6 +539,42 @@
           "target": "components/blocks/feature-section-03.tsx"
         }
       ]
+    },
+    {
+      "name": "feature-section-04",
+      "type": "registry:block",
+      "title": "Security features with device",
+      "description": "A headline beside a phone on a blurred landscape and a masonry of five feature tiles, each with a tinted, engraved icon plate.",
+      "categories": [
+        "finance",
+        "marketing"
+      ],
+      "meta": {
+        "id": "SEC-0012",
+        "library": "templates",
+        "types": [
+          "features"
+        ],
+        "styles": [
+          "minimal"
+        ],
+        "publishedAt": "2026-10-29",
+        "useCases": [
+          "Crypto wallet and fintech app websites",
+          "Security and privacy feature pages",
+          "Mobile app landing pages with a device mockup"
+        ]
+      },
+      "registryDependencies": [
+        "card"
+      ],
+      "files": [
+        {
+          "path": "registry/sections/feature-section-04.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/feature-section-04.tsx"
+        }
+      ]
     }
   ]
 }

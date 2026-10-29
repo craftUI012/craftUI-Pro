@@ -174,6 +174,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
       "ai",
       "portfolio",
       "ecommerce",
+      "finance",
     ],
     idPrefix: "SEC",
     itemLabel: { one: "section", other: "sections" },
