@@ -151,7 +151,7 @@ export default function TestimonialsSection02({
     }
     const cardWidth =
       el.querySelector<HTMLElement>("[data-testimonial-card]")?.offsetWidth ??
-      440;
+      el.clientWidth;
     const scrollAmount = (cardWidth + 24) * (direction === "left" ? -1 : 1);
     el.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
@@ -168,7 +168,7 @@ export default function TestimonialsSection02({
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header row: Title on left, Carousel controls on right */}
         <div className="flex items-center justify-between gap-4">
-          <HeadingTag className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+          <HeadingTag className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl md:text-4xl lg:text-5xl">
             {title}
           </HeadingTag>
 
@@ -180,13 +180,13 @@ export default function TestimonialsSection02({
                 aria-label="Previous testimonials"
                 disabled={!canScrollLeft}
                 className={cn(
-                  "flex size-12 sm:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "flex size-10 sm:size-12 lg:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   canScrollLeft
                     ? "cursor-pointer hover:bg-muted group"
                     : "opacity-35"
                 )}
               >
-                <ArrowLeft className="size-6 group-active:scale-x-110 group-active:-translate-x-0.5 transition-transform duration-150" />
+                <ArrowLeft className="size-5 sm:size-6 group-active:scale-x-110 group-active:-translate-x-0.5 transition-transform duration-150" />
               </button>
 
               <button
@@ -195,13 +195,13 @@ export default function TestimonialsSection02({
                 aria-label="Next testimonials"
                 disabled={!canScrollRight}
                 className={cn(
-                  "flex size-12 sm:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "flex size-10 sm:size-12 lg:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   canScrollRight
                     ? "cursor-pointer hover:bg-muted group"
                     : "opacity-35"
                 )}
               >
-                <ArrowRight className="size-6 group-active:scale-x-110 group-active:translate-x-0.5 transition-transform duration-150" />
+                <ArrowRight className="size-5 sm:size-6 group-active:scale-x-110 group-active:translate-x-0.5 transition-transform duration-150" />
               </button>
             </div>
           )}
@@ -211,7 +211,7 @@ export default function TestimonialsSection02({
         {items.length > 0 ? (
           <div
             ref={scrollRef}
-            className="mt-24 flex gap-6 overflow-x-auto  snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="mt-10 sm:mt-16 lg:mt-24 flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {items.map((item, index) => (
               <motion.figure
@@ -224,29 +224,29 @@ export default function TestimonialsSection02({
                   delay: index * 0.05,
                   ease: "easeOut",
                 }}
-                className="group flex w-[30vw] shrink-0 snap-start flex-col justify-between border border-border bg-background p-8 rounded-none sm:max-w-none"
+                className="group flex w-full sm:w-[calc((100%-1.5rem)/1.6)] md:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/2.4)] xl:w-[calc((100%-3rem)/2.5)] shrink-0 snap-start flex-col justify-between border border-border bg-background p-6 sm:p-8 md:p-10 rounded-none"
               >
                 {/* Quote with opening and closing quotation marks */}
-                <blockquote className="text-base sm:text-lg font-normal leading-[1.65] text-foreground">
+                <blockquote className="text-sm sm:text-base md:text-lg font-normal leading-[1.65] text-foreground">
                   &ldquo; {item.quote} &rdquo;
                 </blockquote>
 
                 {/* Author row at bottom */}
-                <figcaption className="mt-8 sm:mt-12 flex items-center gap-4">
+                <figcaption className="mt-6 sm:mt-8 md:mt-12 flex items-center gap-3 sm:gap-4">
                   <img
                     src={item.author.avatar}
                     alt={item.author.name}
-                    className="size-16 shrink-0 rounded-none object-cover grayscale transition-all duration-300 ease-out group-hover:grayscale-0 hover:grayscale-0"
+                    className="size-12 sm:size-14 md:size-16 shrink-0 rounded-none object-cover grayscale transition-all duration-300 ease-out group-hover:grayscale-0 hover:grayscale-0"
                     loading="lazy"
                   />
                   <div className="min-w-0">
-                    <div className="text-base sm:text-lg font-medium text-foreground tracking-tight">
+                    <div className="text-sm sm:text-base md:text-lg font-medium text-foreground tracking-tight">
                       {item.author.name}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
+                    <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                       {item.author.role}
                     </div>
-                    <div className="text-xs  text-muted-foreground">
+                    <div className="text-xs sm:text-sm text-muted-foreground">
                       {item.author.company}
                     </div>
                   </div>
