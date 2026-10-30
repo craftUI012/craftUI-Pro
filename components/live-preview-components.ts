@@ -1,5 +1,6 @@
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
 import type { LivePreview } from "@/constants/live-previews";
+import ArcCarousel from "@/registry/blocks/arc-carousel";
 import { ImageSphere } from "@/registry/blocks/image-sphere";
 import BenchmarksSection from "@/registry/sections/benchmarks-section";
 import FeatureSection02 from "@/registry/sections/feature-section-02";
@@ -18,6 +19,7 @@ import TestimonialSection from "@/registry/sections/testimonials-section";
 // file, so docs pages keep loading just the section they show.
 export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
   {
+    "arc-carousel": ArcCarousel,
     "benchmarks-section": BenchmarksSection,
     "feature-section-02": FeatureSection02,
     "feature-section-03": FeatureSection03,
