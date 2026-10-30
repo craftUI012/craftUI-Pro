@@ -1798,5 +1798,117 @@
       "Security and privacy feature pages",
       "Mobile app landing pages with a device mockup"
     ]
+  },
+  "arc-carousel": {
+    "component": "ArcCarousel",
+    "dependencies": ["motion"],
+    "description": "Project names turn on a curved dial beside a linked image: it steps on a spring, drags and flicks by hand with detents, and opens the project in the centre.",
+    "docs": "/docs/blocks/arc-carousel",
+    "extends": "div",
+    "files": ["components/blocks/arc-carousel.tsx"],
+    "id": "BLK-0002",
+    "import": "@/components/blocks/arc-carousel",
+    "library": "blocks",
+    "name": "arc-carousel",
+    "paid": true,
+    "props": [
+      {
+        "description": "The items, in order: each a label on the dial and the image shown while it's active. Five to eight read best. Defaults to `arcCarouselItems`, an architecture studio's selected projects.",
+        "name": "items",
+        "optional": true,
+        "type": "ArcCarouselItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Seconds the dial holds on each item before stepping on. Defaults to 2.",
+        "name": "dwell",
+        "optional": true,
+        "type": "number",
+        "default": "2"
+      },
+      {
+        "description": "How the dial steps: \"soft\" barely overshoots, \"snappy\" a little, \"bouncy\" visibly. Defaults to \"snappy\".",
+        "name": "spring",
+        "optional": true,
+        "type": "\"soft\" | \"snappy\" | \"bouncy\"",
+        "default": "\"snappy\""
+      },
+      {
+        "description": "Whether the dial wraps round from the last item to the first. With `false` it has ends: a drag past one gives way less and less and springs back, and autoplay rewinds to the start. Defaults to `true`.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "What the dial is called for screen readers, e.g. \"Collections\". Defaults to \"Selected projects\".",
+        "name": "dialLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Selected projects\""
+      },
+      {
+        "description": "The words on an item's link, shown over its image on hover and focus and read with the item's name: \"View project: Timber House\". Defaults to \"View project\".",
+        "name": "linkText",
+        "optional": true,
+        "type": "string",
+        "default": "\"View project\""
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Arc carousel",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the dial and the image key on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The item's name on the dial, one to three words: \"Timber House\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A short note after the label, such as a year: \"2025\". Optional.",
+            "name": "meta",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "URL of the item's image, shown at 3:2 beside the dial. 1200px wide is plenty.",
+            "name": "image",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What the image shows, for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where the item leads: the image becomes a link to it, and tapping the active label (or pressing Enter on the dial) opens it. Leave it out for no link.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "ArcCarouselItem"
+      }
+    ],
+    "tags": {
+      "categories": ["portfolio", "marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["gallery"]
+    },
+    "useCases": [
+      "Architecture and design studio websites",
+      "Portfolio and selected work pages",
+      "Collection and campaign showcases"
+    ]
   }
 }

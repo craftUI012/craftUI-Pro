@@ -575,6 +575,44 @@
           "target": "components/blocks/feature-section-04.tsx"
         }
       ]
+    },
+    {
+      "name": "arc-carousel",
+      "type": "registry:block",
+      "title": "Arc carousel",
+      "description": "Project names turn on a curved dial beside a linked image: it steps on a spring, drags and flicks by hand with detents, and opens the project in the centre.",
+      "categories": [
+        "portfolio",
+        "marketing"
+      ],
+      "meta": {
+        "id": "BLK-0002",
+        "library": "blocks",
+        "types": [
+          "gallery"
+        ],
+        "styles": [
+          "motion",
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-30",
+        "useCases": [
+          "Architecture and design studio websites",
+          "Portfolio and selected work pages",
+          "Collection and campaign showcases"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/blocks/arc-carousel.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/arc-carousel.tsx"
+        }
+      ]
     }
   ]
 }

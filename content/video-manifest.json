@@ -6,5 +6,13 @@
     "item": "hero-section-02",
     "retired": [],
     "updatedAt": "2026-10-24"
+  },
+  "gallery-arc-carousel": {
+    "bytes": 6922934,
+    "ext": ".mp4",
+    "fingerprint": "1e4c795b",
+    "item": "arc-carousel",
+    "retired": [],
+    "updatedAt": "2026-10-30"
   }
 }

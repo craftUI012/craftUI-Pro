@@ -2,6 +2,7 @@
   "title": "Blocks",
   "pages": [
     "image-sphere",
+    "arc-carousel",
     "savings-over-time",
     "payment-scheduler",
     "traffic-by-device",

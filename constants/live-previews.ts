@@ -9,6 +9,7 @@
 // components/live-preview-components.ts, which TypeScript keeps in step with
 // this list. Adding a live item: its name here, its component there.
 export const LIVE_PREVIEWS = [
+  "arc-carousel",
   "benchmarks-section",
   "feature-section-02",
   "feature-section-03",
