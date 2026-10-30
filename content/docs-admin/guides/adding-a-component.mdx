@@ -28,7 +28,9 @@ No command yet. Details: [Worked example](#worked-example).
 
 ### 2. Register it in registry.json
 
-Add an entry with `name`, `title`, `description` (the **card** text), `files`, `dependencies`, and the browse metadata: `categories`, `meta.id` (next code, e.g. `SEC-0009`), `meta.library`, `meta.types`, `meta.styles`, `meta.useCases`, `meta.publishedAt`. Every category, type and style must exist in `constants/taxonomy.ts`.
+Add an entry with `name`, `title`, `description` (the **card** text), `files`, `dependencies`, and the browse metadata: `categories`, `meta.library`, `meta.types`, `meta.styles`, `meta.useCases`, `meta.publishedAt`. Every category, type and style must exist in `constants/taxonomy.ts`.
+
+- **`meta.id`:** leave it out. The product code is random (`SEC-7K3QX9`), and step 4 adds it for you. Don't copy one from another item: the build rejects a code used twice. See [Product codes](/docs-admin/guides/browse-page-and-filters#product-codes).
 
 - **`meta.useCases`:** 2 to 5 short phrases saying who it's for, in a founder's words: `["SaaS pricing pages", "Developer tools with usage-based plans"]`. AI agents match requests against it. See [Use cases](/docs-admin/guides/seo-and-ai-agents#use-cases).
 - **Tags:** only what's true. Agents read them as well as the filters.
@@ -51,11 +53,12 @@ pnpm registry:build
 
 What it does:
 
-1. **Checks your metadata** against `constants/taxonomy.ts`, and stops with the bad value named if anything's wrong.
-2. **Builds the install files:** `public/r/pricing-section.json`.
-3. **Moves the paid ones** into `registry-paid/`, since every item is paid unless marked free.
-4. **Writes the AI-agent reference:** `content/agent-reference.json`, with its props, defaults and comments.
-5. **Prints warnings** like `! pricing-section: prop "plans" has no doc comment` or `field "Plan.price" has no doc comment`. Fix any you see and run it again.
+1. **Gives a new item its product code:** an item with no `meta.id` gets a random one, written into `registry.json` and printed: `Gave "pricing-section" the product code SEC-7K3QX9 in registry.json`. Commit that line with the item. It only happens on your machine: a deploy never makes one up, and fails if a code is missing.
+2. **Checks your metadata** against `constants/taxonomy.ts`, and stops with the bad value named if anything's wrong.
+3. **Builds the install files:** `public/r/pricing-section.json`.
+4. **Moves the paid ones** into `registry-paid/`, since every item is paid unless marked free.
+5. **Writes the AI-agent reference:** `content/agent-reference.json`, with its props, defaults and comments.
+6. **Prints warnings** like `! pricing-section: prop "plans" has no doc comment` or `field "Plan.price" has no doc comment`. Fix any you see and run it again.
 
 Then normalise the formatting of the built files:
 
@@ -101,7 +104,7 @@ pnpm check
 
 ```bash
 git add -A
-git commit -m "feat: pricing section (SEC-0009)"
+git commit -m "feat: pricing section (SEC-7K3QX9)"
 ```
 
 The pre-commit hook formats and lints code, and only formats JSON and CSS. Commit `registry.json`, the component, the docs page, `registry-paid/`, `public/r/`, `content/agent-reference.json` and the media manifest together.
@@ -198,7 +201,7 @@ Add an entry to `items`:
       "dependencies": ["class-variance-authority"],
       "categories": ["feedback"],
       "meta": {
-        "id": "CMP-0001",
+        "id": "CMP-4N8WQ2",
         "library": "components",
         "types": ["badge"],
         "styles": ["minimal", "dark-mode"],

@@ -104,10 +104,11 @@ export type LibraryId =
 
 export interface LibraryConfig {
   label: string;
-  // Prefix of every item's product code (meta.id, e.g. "SEC-0001"). The code
-  // is what purchases store, so it never changes once an item is published,
-  // even if the item's slug or title does. "TPL" is kept for full-page
-  // templates, a separate product to come.
+  // Prefix of every item's product code (meta.id, e.g. "SEC-7K3QX9"; older
+  // items have four digits, "SEC-0001"). `pnpm registry:build` gives a new
+  // item its code. The code is what purchases store, so it never changes
+  // once an item is published, even if the item's slug or title does. "TPL"
+  // is kept for full-page templates, a separate product to come.
   idPrefix: string;
   // The library's key in the browse page's URL (/?library=blocks).
   slug: string;
