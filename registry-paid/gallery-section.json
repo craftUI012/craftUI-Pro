@@ -12,7 +12,7 @@
     }
   ],
   "meta": {
-    "id": "SEC-0013",
+    "id": "SEC-0014",
     "library": "templates",
     "types": ["features", "gallery"],
     "styles": ["motion", "minimal", "dark-mode"],

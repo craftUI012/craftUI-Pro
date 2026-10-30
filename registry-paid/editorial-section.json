@@ -14,7 +14,7 @@
     }
   ],
   "meta": {
-    "id": "SEC-0014",
+    "id": "SEC-0015",
     "library": "templates",
     "types": ["editorial"],
     "styles": ["motion", "minimal", "dark-mode"],
