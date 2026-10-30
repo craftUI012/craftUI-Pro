@@ -160,7 +160,7 @@ export default function TestimonialsSection02({
     <section
       data-slot="testimonials-section-02"
       className={cn(
-        "relative flex min-h-screen w-full flex-col justify-center bg-background py-12 text-foreground",
+        "relative w-full bg-background py-16 sm:py-20 lg:py-24 text-foreground",
         className
       )}
       {...props}
@@ -211,7 +211,12 @@ export default function TestimonialsSection02({
         {items.length > 0 ? (
           <div
             ref={scrollRef}
-            className="mt-10 sm:mt-16 lg:mt-24 flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className={cn(
+              "mt-10 sm:mt-16 lg:mt-24 flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+              "lg:-mx-8 lg:px-8 lg:scroll-pl-8 lg:scroll-pr-8",
+              "lg:[mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)]",
+              "lg:[-webkit-mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)]"
+            )}
           >
             {items.map((item, index) => (
               <motion.figure

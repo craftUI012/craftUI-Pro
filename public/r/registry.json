@@ -613,6 +613,44 @@
           "target": "components/blocks/arc-carousel.tsx"
         }
       ]
+    },
+    {
+      "name": "testimonials-section-02",
+      "type": "registry:block",
+      "title": "Testimonials carousel",
+      "description": "A clean testimonials slider with square monochrome cards, author avatars, and previous/next carousel controls.",
+      "categories": [
+        "marketing"
+      ],
+      "meta": {
+        "id": "SEC-0013",
+        "library": "templates",
+        "types": [
+          "testimonials"
+        ],
+        "styles": [
+          "minimal",
+          "dark-mode",
+          "motion"
+        ],
+        "publishedAt": "2026-10-30",
+        "useCases": [
+          "SaaS and B2B product landing pages",
+          "Developer tool and software showcase sites",
+          "Customer proof and wall-of-love pages"
+        ]
+      },
+      "dependencies": [
+        "lucide-react",
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/sections/testimonials-section-02.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/testimonials-section-02.tsx"
+        }
+      ]
     }
   ]
 }

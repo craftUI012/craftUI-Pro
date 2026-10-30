@@ -1910,5 +1910,107 @@
       "Portfolio and selected work pages",
       "Collection and campaign showcases"
     ]
+  },
+  "testimonials-section-02": {
+    "component": "TestimonialsSection02",
+    "dependencies": ["lucide-react", "motion"],
+    "description": "A clean testimonials slider with square monochrome cards, author avatars, and previous/next carousel controls.",
+    "docs": "/docs/templates/testimonials-section-02",
+    "extends": "section",
+    "files": ["components/blocks/testimonials-section-02.tsx"],
+    "id": "SEC-0013",
+    "import": "@/components/blocks/testimonials-section-02",
+    "library": "templates",
+    "name": "testimonials-section-02",
+    "paid": true,
+    "props": [
+      {
+        "description": "Main section heading. Defaults to \"Trusted by Teams\".",
+        "name": "title",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Trusted by Teams\""
+      },
+      {
+        "description": "Customer testimonial items. If omitted, default sample stories are shown. If passed as an empty array, no stories are rendered.",
+        "name": "testimonials",
+        "optional": true,
+        "type": "TestimonialItem[]",
+        "default": null
+      },
+      {
+        "description": "The heading's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Testimonials carousel",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique identifier for the story.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Author details including name, role, company and avatar.",
+            "name": "author",
+            "optional": false,
+            "type": "TestimonialAuthor"
+          },
+          {
+            "description": "Customer quote text. Displayed enclosed in quotation marks.",
+            "name": "quote",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "TestimonialItem"
+      },
+      {
+        "fields": [
+          {
+            "description": "The customer's full name, e.g. \"Sam Davies\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their job title or role, e.g. \"VP of Revenue Operations\".",
+            "name": "role",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their company or organization, e.g. \"Lattice Corp.\".",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Portrait photo URL. Rendered as a square monochrome avatar.",
+            "name": "avatar",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "TestimonialAuthor"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["minimal", "dark-mode", "motion"],
+      "types": ["testimonials"]
+    },
+    "useCases": [
+      "SaaS and B2B product landing pages",
+      "Developer tool and software showcase sites",
+      "Customer proof and wall-of-love pages"
+    ]
   }
 }
