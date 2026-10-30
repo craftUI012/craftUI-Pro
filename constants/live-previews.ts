@@ -11,10 +11,12 @@
 export const LIVE_PREVIEWS = [
   "arc-carousel",
   "benchmarks-section",
+  "editorial-section",
   "feature-section-02",
   "feature-section-03",
   "feature-section-04",
   "feature-sphere-section",
+  "gallery-section",
   "hero-section",
   "hero-section-02",
   "image-sphere",

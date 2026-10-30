@@ -14,5 +14,21 @@
     "item": "arc-carousel",
     "retired": [],
     "updatedAt": "2026-10-30"
+  },
+  "features-dock-gallery": {
+    "bytes": 12315877,
+    "ext": ".mp4",
+    "fingerprint": "e3a26caa",
+    "item": "gallery-section",
+    "retired": [],
+    "updatedAt": "2026-10-30"
+  },
+  "editorial-press-stack": {
+    "bytes": 14670404,
+    "ext": ".mp4",
+    "fingerprint": "e6d3a89b",
+    "item": "editorial-section",
+    "retired": [],
+    "updatedAt": "2026-10-30"
   }
 }

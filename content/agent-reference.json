@@ -2012,5 +2012,237 @@
       "Developer tool and software showcase sites",
       "Customer proof and wall-of-love pages"
     ]
+  },
+  "gallery-section": {
+    "component": "GallerySection",
+    "dependencies": [],
+    "description": "A headline over a drifting rail of photos that swell like a dock under the pointer and open large on click, with a cursor that becomes a View and Close disc.",
+    "docs": "/docs/templates/gallery-section",
+    "extends": "section",
+    "files": ["components/blocks/gallery-section.tsx"],
+    "id": "SEC-0014",
+    "import": "@/components/blocks/gallery-section",
+    "library": "templates",
+    "name": "gallery-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The headline above the rail. Defaults to \"Furniture for how people sit, lean and gather.\"",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Furniture for how people sit, lean and gather.\""
+      },
+      {
+        "description": "The photos on the rail, in order. It loops, so six or more read best. Defaults to `galleryItems`.",
+        "name": "items",
+        "optional": true,
+        "type": "GallerySectionItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Pixels a second the rail drifts while nothing is hovered or open. `0` holds it still. Defaults to 28.",
+        "name": "speed",
+        "optional": true,
+        "type": "number",
+        "default": "28"
+      },
+      {
+        "description": "The word in the cursor disc over a closed tile. Defaults to \"View\".",
+        "name": "viewLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"View\""
+      },
+      {
+        "description": "The word in the cursor disc while a tile is open. Defaults to \"Close\".",
+        "name": "closeLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Close\""
+      },
+      {
+        "description": "The headline's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Dock gallery",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the rail keys on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "URL of the photo, shown at about 4:5. Use one about 1000px wide: an open tile scales it up nearly 3×.",
+            "name": "image",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What the photo shows, for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "GallerySectionItem"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["features", "gallery"]
+    },
+    "useCases": [
+      "Furniture, product and lifestyle brand websites",
+      "Campaign and lookbook pages",
+      "Studio and portfolio home pages"
+    ]
+  },
+  "editorial-section": {
+    "component": "EditorialSection",
+    "dependencies": ["motion"],
+    "description": "Newspaper and magazine features about your company that slide and stack as the page scrolls, and open on click into more of the article and a link to it.",
+    "docs": "/docs/templates/editorial-section",
+    "extends": "section",
+    "files": ["components/blocks/editorial-section.tsx"],
+    "id": "SEC-0015",
+    "import": "@/components/blocks/editorial-section",
+    "library": "templates",
+    "name": "editorial-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The headline above the cards.",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"As featured in\""
+      },
+      {
+        "description": "The press features, newest first. Each is a card; clicking one opens it. Defaults to `pressFeatures`, the exported demo set.",
+        "name": "features",
+        "optional": true,
+        "type": "EditorialSectionFeature[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Locale for the dates (\"en-GB\" gives \"18 September 2026\").",
+        "name": "locale",
+        "optional": true,
+        "type": "string",
+        "default": "\"en-US\""
+      },
+      {
+        "description": "Shown on every card, at the end of the row with its date.",
+        "name": "readLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Read more\""
+      },
+      {
+        "description": "Screen-reader name of the open feature's close button.",
+        "name": "closeLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Close\""
+      },
+      {
+        "description": "The open feature's button to its `href`, when it has one.",
+        "name": "linkLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Read the article\""
+      },
+      {
+        "description": "The element that scrolls, when it isn't the page (a custom scroll container, a smooth-scroll wrapper). The stage is then as tall as it.",
+        "name": "scroller",
+        "optional": true,
+        "type": "RefObject<HTMLElement | null>",
+        "default": null
+      },
+      {
+        "description": "1 when this is the page's main heading; 2 when the page has its own h1.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": ["button", "card"],
+    "title": "Press stack",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the deck keys on it, and it names the open card's labels.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The newspaper or magazine that ran it (\"The Material Review\").",
+            "name": "publication",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What kind of piece it is (\"Interview\"): beside the date, or the publication on phones.",
+            "name": "kind",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The article's headline. Keep it to about three lines on the card.",
+            "name": "headline",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One or two sentences under the headline: what the piece says about you. The card shows up to five lines.",
+            "name": "excerpt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Publication date, as an ISO date (\"2026-09-18\").",
+            "name": "date",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The open card's paragraphs: more of what the article says.",
+            "name": "body",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "description": "The article on the publication's site. When set, the open card ends with a button to it.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "EditorialSectionFeature"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing", "company"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["editorial"]
+    },
+    "useCases": [
+      "Press and media pages",
+      "'As featured in' strips on company and about pages",
+      "Studios, agencies and brands with magazine coverage"
+    ]
   }
 }
