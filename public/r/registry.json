@@ -613,6 +613,41 @@
           "target": "components/blocks/arc-carousel.tsx"
         }
       ]
+    },
+    {
+      "name": "gallery-section",
+      "type": "registry:block",
+      "title": "Dock gallery",
+      "description": "A headline over a drifting rail of photos that swell like a dock under the pointer and open large on click, with a cursor that becomes a View and Close disc.",
+      "categories": [
+        "marketing"
+      ],
+      "meta": {
+        "id": "SEC-0013",
+        "library": "templates",
+        "types": [
+          "features",
+          "gallery"
+        ],
+        "styles": [
+          "motion",
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-10-30",
+        "useCases": [
+          "Furniture, product and lifestyle brand websites",
+          "Campaign and lookbook pages",
+          "Studio and portfolio home pages"
+        ]
+      },
+      "files": [
+        {
+          "path": "registry/sections/gallery-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/gallery-section.tsx"
+        }
+      ]
     }
   ]
 }

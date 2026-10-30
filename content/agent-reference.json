@@ -1910,5 +1910,99 @@
       "Portfolio and selected work pages",
       "Collection and campaign showcases"
     ]
+  },
+  "gallery-section": {
+    "component": "GallerySection",
+    "dependencies": [],
+    "description": "A headline over a drifting rail of photos that swell like a dock under the pointer and open large on click, with a cursor that becomes a View and Close disc.",
+    "docs": "/docs/templates/gallery-section",
+    "extends": "section",
+    "files": ["components/blocks/gallery-section.tsx"],
+    "id": "SEC-0013",
+    "import": "@/components/blocks/gallery-section",
+    "library": "templates",
+    "name": "gallery-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The headline above the rail. Defaults to \"Furniture for how people sit, lean and gather.\"",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Furniture for how people sit, lean and gather.\""
+      },
+      {
+        "description": "The photos on the rail, in order. It loops, so six or more read best. Defaults to `galleryItems`.",
+        "name": "items",
+        "optional": true,
+        "type": "GallerySectionItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Pixels a second the rail drifts while nothing is hovered or open. `0` holds it still. Defaults to 28.",
+        "name": "speed",
+        "optional": true,
+        "type": "number",
+        "default": "28"
+      },
+      {
+        "description": "The word in the cursor disc over a closed tile. Defaults to \"View\".",
+        "name": "viewLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"View\""
+      },
+      {
+        "description": "The word in the cursor disc while a tile is open. Defaults to \"Close\".",
+        "name": "closeLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Close\""
+      },
+      {
+        "description": "The headline's level: 1 when this is the page's main heading, 2 or 3 to fit under the page's own. Defaults to 2.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Dock gallery",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique id: the rail keys on it.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "URL of the photo, shown at about 4:5. Use one about 1000px wide: an open tile scales it up nearly 3×.",
+            "name": "image",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What the photo shows, for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "GallerySectionItem"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["features", "gallery"]
+    },
+    "useCases": [
+      "Furniture, product and lifestyle brand websites",
+      "Campaign and lookbook pages",
+      "Studio and portfolio home pages"
+    ]
   }
 }

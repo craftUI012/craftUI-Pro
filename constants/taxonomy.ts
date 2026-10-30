@@ -186,6 +186,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
       "hero",
       "editorial",
       "features",
+      "gallery",
       "pricing",
       "testimonials",
       "stats",
