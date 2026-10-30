@@ -1,8 +1,10 @@
 // Builds public/r/*.json with `shadcn build`, taking the registry "homepage"
 // from NEXT_PUBLIC_SITE_URL instead of the value hard-coded in registry.json.
 //
-// registry.json itself is never modified: the script builds from a temporary
-// copy, so local builds don't leave a diff behind.
+// registry.json itself is modified in one case only: a new item without a
+// product code (meta.id) gets one, on a local build (see assignProductIds).
+// Everything else builds from a temporary copy, so local builds don't leave
+// a diff behind.
 //
 // NEXT_PUBLIC_SITE_URL comes from the environment (Vercel dashboard) or, when
 // running locally, from .env. A localhost value is ignored, so a local build
@@ -36,12 +38,73 @@ const isLocalhost = (url) =>
 
 const registry = JSON.parse(readFileSync("registry.json", "utf-8"));
 
-// Strict browse metadata: every category, type and style an item uses must be
-// in constants/taxonomy.ts and listed by its library. Fails before building.
 const jiti = createJiti(import.meta.url, {
   alias: { "@": path.resolve(import.meta.dirname, "..") },
 });
-const { validateRegistryTaxonomy } = await jiti.import("../lib/taxonomy.ts");
+const { newProductId, validateRegistryTaxonomy } =
+  await jiti.import("../lib/taxonomy.ts");
+const { LIBRARIES } = await jiti.import("../constants/taxonomy.ts");
+
+/** registry.json's text with `"id": code` added as the first key of the
+ * named item's meta, keeping the file's own formatting; null if the item's
+ * meta isn't laid out one key per line. */
+const withProductId = (text, name, code) => {
+  const at = text.indexOf(`"name": ${JSON.stringify(name)}`);
+  const nextItem = text.indexOf('"name": ', at + 1);
+  const meta = text.indexOf('"meta": {\n', at);
+  if (at === -1 || meta === -1 || (nextItem !== -1 && meta > nextItem)) {
+    return null;
+  }
+  const lineEnd = text.indexOf("\n", meta);
+  const [indent] = /^[ \t]*/.exec(text.slice(lineEnd + 1));
+  return `${text.slice(0, lineEnd + 1)}${indent}"id": ${JSON.stringify(code)},\n${text.slice(lineEnd + 1)}`;
+};
+
+// Product codes: a new item leaves meta.id out, and its first local build
+// gives it a random one (lib/taxonomy.ts newProductId) and writes it into
+// registry.json, to commit with the item. Random, not "the next number", so
+// two people adding items on separate branches never take the same code. A
+// deploy (CI, Vercel) never makes one up: an item's code must be the same in
+// every build, so a missing one fails there, in the check below.
+const assignProductIds = () => {
+  const missing = registry.items.filter(
+    (item) =>
+      item.meta &&
+      item.meta.id === undefined &&
+      Object.hasOwn(LIBRARIES, item.meta.library ?? "")
+  );
+  if (missing.length === 0 || process.env.CI || process.env.VERCEL) {
+    return;
+  }
+  const taken = new Set(
+    registry.items.map((item) => item.meta?.id).filter(Boolean)
+  );
+  let text = readFileSync("registry.json", "utf-8");
+  for (const item of missing) {
+    const code = newProductId(LIBRARIES[item.meta.library].idPrefix, taken);
+    const updated = withProductId(text, item.name, code);
+    const written = updated
+      ? JSON.parse(updated).items.find((entry) => entry.name === item.name)
+      : null;
+    if (written?.meta?.id !== code) {
+      console.error(
+        `Couldn't add a product code to "${item.name}" in registry.json. Add "id": "${code}" to its meta by hand.`
+      );
+      process.exit(1);
+    }
+    text = updated;
+    taken.add(code);
+    item.meta.id = code;
+    console.log(
+      `Gave "${item.name}" the product code ${code} in registry.json: commit it with the item.`
+    );
+  }
+  writeFileSync("registry.json", text);
+};
+assignProductIds();
+
+// Strict browse metadata: every category, type and style an item uses must be
+// in constants/taxonomy.ts and listed by its library. Fails before building.
 const taxonomyErrors = validateRegistryTaxonomy(registry.items);
 if (taxonomyErrors.length > 0) {
   console.error(

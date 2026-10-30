@@ -56,7 +56,7 @@ These are ignored by `shadcn build` and the CLI. The home page and the docs read
 | `docs`        | no                         | Docs page slug when it isn't `name` (variants sharing a page)                                                                    |
 | `preview`     | no                         | Card screenshot path under `public/`                                                                                             |
 | `popularity`  | no                         | Most popular order                                                                                                               |
-| `id`          | yes                        | Permanent product code (`SEC-0001`, `BLK-0001`…). Purchases store it; never change or reuse one. See [Product codes](/docs-admin/guides/browse-page-and-filters#product-codes) |
+| `id`          | yes                        | Permanent product code (`SEC-7K3QX9`, `BLK-2DW8MF`…; older items `SEC-0001`). Purchases store it; never change or reuse one. Leave it out on a new item: `pnpm registry:build` adds a random one. See [Product codes](/docs-admin/guides/browse-page-and-filters#product-codes) |
 | `free`        | no                         | `true` makes the item free: public install and source. Without it, every library item is paid. See [Paid items](/docs-admin/architecture/registry-pipeline#paid-items) |
 
 ## `files[]`
