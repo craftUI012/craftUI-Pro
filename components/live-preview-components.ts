@@ -1,3 +1,4 @@
+import EditorialSectionPreview from "@/components/previews/editorial-section-preview";
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
 import type { LivePreview } from "@/constants/live-previews";
 import ArcCarousel from "@/registry/blocks/arc-carousel";
@@ -22,6 +23,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
   {
     "arc-carousel": ArcCarousel,
     "benchmarks-section": BenchmarksSection,
+    "editorial-section": EditorialSectionPreview,
     "feature-section-02": FeatureSection02,
     "feature-section-03": FeatureSection03,
     "feature-section-04": FeatureSection04,
