@@ -16,6 +16,7 @@ import TablesSection02 from "@/registry/sections/tables-section-02";
 import TeamSection from "@/registry/sections/team-section";
 import TestimonialSection from "@/registry/sections/testimonials-section";
 import TestimonialsSection02 from "@/registry/sections/testimonials-section-02";
+import TestimonialsSection03 from "@/registry/sections/testimonials-section-03";
 
 // The component behind each live preview (constants/live-previews.ts),
 // rendered alone by the /preview/[name] page. Only that page imports this
@@ -39,4 +40,5 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "team-section": TeamSection,
     "testimonials-section": TestimonialSection,
     "testimonials-section-02": TestimonialsSection02,
+    "testimonials-section-03": TestimonialsSection03,
   };
