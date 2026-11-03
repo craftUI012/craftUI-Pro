@@ -2346,5 +2346,891 @@
       "'As featured in' strips on company and about pages",
       "Studios, agencies and brands with magazine coverage"
     ]
+  },
+  "two-step-sign-in": {
+    "component": "TwoStepSignIn",
+    "dependencies": ["motion"],
+    "description": "In isometric ink: a sign-in screen floating over a construction grid asks for a code, the phone hops as the text lands, the code pops off as a lit chip and is tossed into the input, the screen takes the hit, and the user is in. Objects move as solids; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/two-step-sign-in",
+    "extends": null,
+    "files": [
+      "components/isometric/two-step-sign-in.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-R87FKV",
+    "import": "@/components/isometric/two-step-sign-in",
+    "library": "isometric",
+    "name": "two-step-sign-in",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of lit details (buttons, wallpaper, the code chip). Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "Flat ink drawing (default), soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` 0.3 is a 1.3 px outline at any size; rims or outlines elsewhere.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "App name shown on the text message, up to about 10 characters.",
+        "name": "appName",
+        "optional": true,
+        "type": "string",
+        "default": "\"Acme\""
+      },
+      {
+        "description": "The six-digit code sent and entered.",
+        "name": "code",
+        "optional": true,
+        "type": "string",
+        "default": "\"481927\""
+      },
+      {
+        "description": "Where the code was sent, shown on the screen (about 12 characters).",
+        "name": "destination",
+        "optional": true,
+        "type": "string",
+        "default": "\"+1 ••• 4242\""
+      },
+      {
+        "description": "First name in the welcome line, up to about 10 characters.",
+        "name": "name",
+        "optional": true,
+        "type": "string",
+        "default": "\"Jane\""
+      },
+      {
+        "description": "Your own UI inside the screen instead of the built-in sign-in: any React node, or a function of the story's state (`step`, `code`) so your UI follows the phone. It renders at 472 × 236 CSS px (the screen is 11.8 × 5.9 units at 40 px per unit) and is projected into the scene; the chip still lifts off the phone and lands on it.",
+        "name": "screen",
+        "optional": true,
+        "type": "ReactNode | ((state: SignInScreenState) => ReactNode)",
+        "default": null
+      },
+      {
+        "description": "Play when the scene scrolls into view. Off shows the signed-in end state.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Replay after a pause. Off plays once and holds the end state.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Clicking the scene replays the story.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-18, 30]: further toward the screen than away from it, so the copy stays readable. Each side is capped at 40.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Film grain over the scene (off in ink).",
+        "name": "grain",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Two-step sign-in",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The six-digit code the phone received.",
+            "name": "code",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "\"waiting\" for the code, \"entered\" (digits in the boxes), \"verified\", \"signedIn\".",
+            "name": "step",
+            "optional": false,
+            "type": "\"waiting\" | \"entered\" | \"verified\" | \"signedIn\""
+          }
+        ],
+        "name": "SignInScreenState"
+      }
+    ],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Auth and identity product sites",
+      "SaaS security and login feature sections",
+      "Developer tools explaining two-factor sign-in",
+      "Onboarding and account security pages"
+    ]
+  },
+  "push-to-deploy": {
+    "component": "PushToDeploy",
+    "dependencies": ["motion"],
+    "description": "In isometric ink: git push on a terminal tile that presses in on enter sends a pulse down a cable to the dashboard floating behind it, which takes the hit as the deployment slides in, builds and goes live. Objects move as solids; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/push-to-deploy",
+    "extends": null,
+    "files": [
+      "components/isometric/push-to-deploy.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-RPVRYG",
+    "import": "@/components/isometric/push-to-deploy",
+    "library": "isometric",
+    "name": "push-to-deploy",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of lit details (status, build bar, the pulse). Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "Flat ink drawing (default), soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` 0.3 is a 1.3 px outline at any size; rims or outlines elsewhere.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Project name on the dashboard and in the terminal, up to about 14 characters.",
+        "name": "project",
+        "optional": true,
+        "type": "string",
+        "default": "\"acme-web\""
+      },
+      {
+        "description": "Production domain, up to about 14 characters.",
+        "name": "domain",
+        "optional": true,
+        "type": "string",
+        "default": "\"acme.com\""
+      },
+      {
+        "description": "Branch pushed, up to about 8 characters.",
+        "name": "branch",
+        "optional": true,
+        "type": "string",
+        "default": "\"main\""
+      },
+      {
+        "description": "Commit message on the new deployment, up to about 28 characters.",
+        "name": "commit",
+        "optional": true,
+        "type": "string",
+        "default": "\"Update pricing page\""
+      },
+      {
+        "description": "Build time shown when it's ready, e.g. \"24s\".",
+        "name": "buildTime",
+        "optional": true,
+        "type": "string",
+        "default": "\"24s\""
+      },
+      {
+        "description": "Command typed in the terminal, up to about 24 characters.",
+        "name": "command",
+        "optional": true,
+        "type": "string",
+        "default": "\"git push\""
+      },
+      {
+        "description": "Your own UI inside the dashboard instead of the built-in one: any React node, or a function of the story's state (`step` and the copy) so your UI follows the push. It renders at 472 × 236 CSS px (the screen is 11.8 × 5.9 units at 40 px per unit) and is projected into the scene; the terminal and the cable still play.",
+        "name": "screen",
+        "optional": true,
+        "type": "ReactNode | ((state: DeployScreenState) => ReactNode)",
+        "default": null
+      },
+      {
+        "description": "Play when the scene scrolls into view. Off shows the live end state.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Replay after a pause. Off plays once and holds the end state.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Clicking the scene replays the story.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-12, 30]: further toward the dashboard than away from it, so the copy stays readable. Each side is capped at 40.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Film grain over the scene (off in ink).",
+        "name": "grain",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Push to deploy",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "\"idle\", \"pushed\" (command sent), \"building\", \"ready\", \"live\".",
+            "name": "step",
+            "optional": false,
+            "type": "\"idle\" | \"pushed\" | \"building\" | \"ready\" | \"live\""
+          },
+          {
+            "description": "Project name.",
+            "name": "project",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Production domain.",
+            "name": "domain",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Branch pushed.",
+            "name": "branch",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Commit message of the new deployment.",
+            "name": "commit",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Build time shown once ready.",
+            "name": "buildTime",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "DeployScreenState"
+      }
+    ],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Hosting and deployment platform sites",
+      "Developer tools explaining git-based workflows",
+      "CI/CD and preview environment feature sections",
+      "Developer onboarding and docs landing pages"
+    ]
+  },
+  "gradual-rollout": {
+    "component": "GradualRollout",
+    "dependencies": ["motion"],
+    "description": "In isometric ink: a feature flag's console moves a new version from 10% to 100% of traffic; the new server hops and lights up as its share jumps, the router presses, the old server sinks, and packets on light rails shift across. Objects move as solids; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/gradual-rollout",
+    "extends": null,
+    "files": [
+      "components/isometric/gradual-rollout.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-7PVTRP",
+    "import": "@/components/isometric/gradual-rollout",
+    "library": "isometric",
+    "name": "gradual-rollout",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of lit details (rails, packets of the new version, slider, lights). Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "Flat ink drawing (default), soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` 0.3 is a 1.3 px outline at any size; rims and rails or outlines elsewhere.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Feature flag name on the console, up to about 16 characters.",
+        "name": "flag",
+        "optional": true,
+        "type": "string",
+        "default": "\"new-checkout\""
+      },
+      {
+        "description": "The three rollout steps in percent, e.g. [10, 50, 100]. Default [10, 50, 100].",
+        "name": "steps",
+        "optional": true,
+        "type": "readonly [number, number, number]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Error rate shown on the console, e.g. \"0.00%\".",
+        "name": "errorRate",
+        "optional": true,
+        "type": "string",
+        "default": "\"0.00%\""
+      },
+      {
+        "description": "p95 latency shown on the console, e.g. \"212 ms\".",
+        "name": "latency",
+        "optional": true,
+        "type": "string",
+        "default": "\"212 ms\""
+      },
+      {
+        "description": "Label on the stable server's front, up to about 4 characters.",
+        "name": "stableLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"v1\""
+      },
+      {
+        "description": "Label on the new server's front, up to about 4 characters.",
+        "name": "canaryLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"v2\""
+      },
+      {
+        "description": "Your own UI inside the console instead of the built-in one: any React node, or a function of the story's state (`step`, `percent` and the copy) so your UI follows the rollout. It renders at 452 × 220 CSS px (the screen is 11.3 × 5.5 units at 40 px per unit) and is projected into the scene; the rails and servers still play.",
+        "name": "screen",
+        "optional": true,
+        "type": "ReactNode | ((state: RolloutScreenState) => ReactNode)",
+        "default": null
+      },
+      {
+        "description": "Play when the scene scrolls into view. Off shows the rolled-out end state.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Replay after a pause. Off plays once and holds the end state.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Clicking the scene replays the story.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-15, 30]: further toward the console than away from it, so the copy stays readable. Each side is capped at 40.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Film grain over the scene (off in ink).",
+        "name": "grain",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Gradual rollout",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "\"start\" (first step), \"half\", \"healthy\", \"full\", \"done\".",
+            "name": "step",
+            "optional": false,
+            "type": "\"start\" | \"half\" | \"healthy\" | \"full\" | \"done\""
+          },
+          {
+            "description": "The rollout percentage at this step.",
+            "name": "percent",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "The feature flag's name.",
+            "name": "flag",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Error rate copy, e.g. \"0.00%\".",
+            "name": "errorRate",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "p95 latency copy, e.g. \"212 ms\".",
+            "name": "latency",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "RolloutScreenState"
+      }
+    ],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Feature flag and experimentation product sites",
+      "Edge and hosting platforms explaining safe releases",
+      "Canary and progressive delivery feature sections",
+      "Developer tools landing pages about shipping safely"
+    ]
+  },
+  "wallet-coins": {
+    "component": "WalletCoins",
+    "dependencies": ["motion"],
+    "description": "In isometric ink: a thin stitched wallet in a pastel of your brand, the brand card sliding out of its slit, and three currency coins ($ € £) following it out with an overshoot, fanning into an arc and swinging upright while the wallet dips, then idling on a sine wave. A hero object for fintech and banking sites; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/wallet-coins",
+    "extends": null,
+    "files": [
+      "components/isometric/wallet-coins.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-A0SDZZ",
+    "import": "@/components/isometric/wallet-coins",
+    "library": "isometric",
+    "name": "wallet-coins",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. The wallet is a pastel of it.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of the card and strap, at full strength. Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "Flat ink drawing (default), soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` 0.3 is a 1.3 px outline at any size.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Name printed on the card, up to about 14 characters.",
+        "name": "cardName",
+        "optional": true,
+        "type": "string",
+        "default": "\"Jane Doe\""
+      },
+      {
+        "description": "Last four digits printed on the card.",
+        "name": "last4",
+        "optional": true,
+        "type": "string",
+        "default": "\"4242\""
+      },
+      {
+        "description": "Currency glyphs on the coins, up to three (one character each).",
+        "name": "currencies",
+        "optional": true,
+        "type": "readonly string[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Card and coins come out of the wallet when the scene scrolls into view. Off holds their places.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "After coming out, the coins keep swaying and bobbing on a sine, out of phase; the card breathes.",
+        "name": "idle",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "No shadow (default), or the soft cast shadow.",
+        "name": "shadow",
+        "optional": true,
+        "type": "\"soft\" | \"none\"",
+        "default": "\"none\""
+      },
+      {
+        "description": "Dashed construction grid on the floor. Off by default for a hero.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default 22.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "22"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Wallet, card and currencies",
+    "types": [],
+    "tags": {
+      "categories": ["finance"],
+      "styles": ["flat", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Fintech and neobank hero sections",
+      "Wallet, savings and payments feature sections",
+      "Pricing and onboarding pages for banking apps",
+      "Empty states for balances and transactions"
+    ]
+  },
+  "bank-deposit": {
+    "component": "BankDeposit",
+    "dependencies": ["motion"],
+    "description": "In isometric ink: a small bank in a pastel of your brand, five coins on the ground beside it that leap into the door one by one on an arc, and a balance card on the left whose dollar figure counts up with every credit. A hero object for banking, savings and fintech sites; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/bank-deposit",
+    "extends": null,
+    "files": [
+      "components/isometric/bank-deposit.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-RJJ8GD",
+    "import": "@/components/isometric/bank-deposit",
+    "library": "isometric",
+    "name": "bank-deposit",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. The bank is a pastel of it.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of the card. Default a lime green, `oklch(0.88 0.2 128)`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"oklch(0.88 0.2 128)\""
+      },
+      {
+        "description": "Wordmark printed top-right on the card, up to about 8 characters.",
+        "name": "cardBrand",
+        "optional": true,
+        "type": "string",
+        "default": "\"wise\""
+      },
+      {
+        "description": "Colour of the coins. Default an amber, `oklch(0.8 0.16 80)`.",
+        "name": "coinTone",
+        "optional": true,
+        "type": "string",
+        "default": "\"oklch(0.8 0.16 80)\""
+      },
+      {
+        "description": "Glyph on the coins, one character.",
+        "name": "glyph",
+        "optional": true,
+        "type": "string",
+        "default": "\"$\""
+      },
+      {
+        "description": "Label above the balance, up to about 12 characters.",
+        "name": "label",
+        "optional": true,
+        "type": "string",
+        "default": "\"Balance\""
+      },
+      {
+        "description": "Balance at the start of each cycle, in whole dollars.",
+        "name": "start",
+        "optional": true,
+        "type": "number",
+        "default": "1240"
+      },
+      {
+        "description": "Credit per coin, in whole dollars.",
+        "name": "credit",
+        "optional": true,
+        "type": "number",
+        "default": "25"
+      },
+      {
+        "description": "Flat ink drawing (default), soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` 0.3 is a 1.3 px outline at any size.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Coins deposit while in view, five per cycle. Off holds the coins at their spots and the total on the card.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "No shadow (default), or the soft cast shadow.",
+        "name": "shadow",
+        "optional": true,
+        "type": "\"soft\" | \"none\"",
+        "default": "\"none\""
+      },
+      {
+        "description": "Dashed construction grid on the floor. Off by default for a hero.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default 20.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "20"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Bank deposit",
+    "types": [],
+    "tags": {
+      "categories": ["finance"],
+      "styles": ["flat", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Banking and savings product heroes",
+      "Deposits, top-ups and round-ups feature sections",
+      "Fintech onboarding pages about funding an account",
+      "Empty states for balances and transactions"
+    ]
   }
 }
