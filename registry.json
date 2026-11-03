@@ -413,7 +413,7 @@
       "name": "feature-section-03",
       "type": "registry:block",
       "title": "Isometric feature grid",
-      "description": "A big headline and lead beside a 2 × 2 grid of features, each with a detailed isometric drawing on a warm paper tile, framed by crop marks.",
+      "description": "A big headline and lead beside a 2 \u00d7 2 grid of features, each with a detailed isometric drawing on a warm paper tile, framed by crop marks.",
       "categories": ["marketing", "ecommerce"],
       "meta": {
         "id": "SEC-0011",
@@ -568,6 +568,105 @@
           "path": "registry/sections/editorial-section.tsx",
           "type": "registry:block",
           "target": "components/blocks/editorial-section.tsx"
+        }
+      ]
+    },
+    {
+      "name": "two-step-sign-in",
+      "type": "registry:block",
+      "title": "Two-step sign-in",
+      "description": "A laptop on a desk asks for a code, the phone beside it lights up with the text, the code arcs across and fills the boxes, and the user is signed in. Isometric, animated, in your theme.",
+      "categories": ["technology"],
+      "meta": {
+        "id": "ISO-R87FKV",
+        "library": "isometric",
+        "types": ["scenes"],
+        "styles": ["gradient", "dark-mode"],
+        "publishedAt": "2026-11-02",
+        "useCases": [
+          "Auth and identity product sites",
+          "SaaS security and login feature sections",
+          "Developer tools explaining two-factor sign-in",
+          "Onboarding and account security pages"
+        ]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/isometric/two-step-sign-in.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/two-step-sign-in.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
+      "name": "push-to-deploy",
+      "type": "registry:block",
+      "title": "Push to deploy",
+      "description": "On a desk, git push in the laptop's terminal starts a deployment that builds and goes live on the monitor's dashboard behind it. Isometric, animated, turnable, in your theme.",
+      "categories": ["technology"],
+      "meta": {
+        "id": "ISO-RPVRYG",
+        "library": "isometric",
+        "types": ["scenes"],
+        "styles": ["gradient", "dark-mode"],
+        "publishedAt": "2026-11-02",
+        "useCases": [
+          "Hosting and deployment platform sites",
+          "Developer tools explaining git-based workflows",
+          "CI/CD and preview environment feature sections",
+          "Developer onboarding and docs landing pages"
+        ]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/isometric/push-to-deploy.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/push-to-deploy.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
+      "name": "gradual-rollout",
+      "type": "registry:block",
+      "title": "Gradual rollout",
+      "description": "A feature flag's console moves a new version from 10% to 100% of traffic while packets on the floor's rails shift from the stable server to the new one. Isometric, animated, turnable, in your theme.",
+      "categories": ["technology"],
+      "meta": {
+        "id": "ISO-7PVTRP",
+        "library": "isometric",
+        "types": ["scenes"],
+        "styles": ["gradient", "dark-mode"],
+        "publishedAt": "2026-11-02",
+        "useCases": [
+          "Feature flag and experimentation product sites",
+          "Edge and hosting platforms explaining safe releases",
+          "Canary and progressive delivery feature sections",
+          "Developer tools landing pages about shipping safely"
+        ]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/isometric/gradual-rollout.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/gradual-rollout.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
         }
       ]
     }

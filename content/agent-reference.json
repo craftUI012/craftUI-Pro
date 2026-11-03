@@ -2244,5 +2244,423 @@
       "'As featured in' strips on company and about pages",
       "Studios, agencies and brands with magazine coverage"
     ]
+  },
+  "two-step-sign-in": {
+    "component": "TwoStepSignIn",
+    "dependencies": ["motion"],
+    "description": "A laptop on a desk asks for a code, the phone beside it lights up with the text, the code arcs across and fills the boxes, and the user is signed in. Isometric, animated, in your theme.",
+    "docs": "/docs/isometric/two-step-sign-in",
+    "extends": null,
+    "files": [
+      "components/isometric/two-step-sign-in.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-R87FKV",
+    "import": "@/components/isometric/two-step-sign-in",
+    "library": "isometric",
+    "name": "two-step-sign-in",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of lit details (buttons, wallpaper, code flight). Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "Soft tint, full colour, or outlined.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"duotone\""
+      },
+      {
+        "description": "Edge weight in canvas units: rims and hairlines, or outlines in `line`.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "App name shown on the text message, up to about 10 characters.",
+        "name": "appName",
+        "optional": true,
+        "type": "string",
+        "default": "\"Acme\""
+      },
+      {
+        "description": "The six-digit code sent and entered.",
+        "name": "code",
+        "optional": true,
+        "type": "string",
+        "default": "\"481927\""
+      },
+      {
+        "description": "Where the code was sent, shown on the laptop (about 10 characters).",
+        "name": "destination",
+        "optional": true,
+        "type": "string",
+        "default": "\"•••• 4242\""
+      },
+      {
+        "description": "First name in the welcome line, up to about 10 characters.",
+        "name": "name",
+        "optional": true,
+        "type": "string",
+        "default": "\"Jane\""
+      },
+      {
+        "description": "Play when the scene scrolls into view. Off shows the signed-in end state.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Replay after a pause. Off plays once and holds the end state.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Let the viewer turn the desk: \"drag\" (drag sideways or use the arrow keys; it springs back on release), \"pointer\" (leans toward the pointer), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"drag\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-20, 35]: further toward the laptop screen than away from it, so the copy stays readable. Each side is capped at 40.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Two-step sign-in",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Auth and identity product sites",
+      "SaaS security and login feature sections",
+      "Developer tools explaining two-factor sign-in",
+      "Onboarding and account security pages"
+    ]
+  },
+  "push-to-deploy": {
+    "component": "PushToDeploy",
+    "dependencies": ["motion"],
+    "description": "On a desk, git push in the laptop's terminal starts a deployment that builds and goes live on the monitor's dashboard behind it. Isometric, animated, turnable, in your theme.",
+    "docs": "/docs/isometric/push-to-deploy",
+    "extends": null,
+    "files": [
+      "components/isometric/push-to-deploy.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-RPVRYG",
+    "import": "@/components/isometric/push-to-deploy",
+    "library": "isometric",
+    "name": "push-to-deploy",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of lit details (status, build bar, push flight). Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "Soft tint, full colour, or outlined.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"duotone\""
+      },
+      {
+        "description": "Edge weight in canvas units: rims and hairlines, or outlines in `line`.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Project name on the dashboard and in the terminal, up to about 14 characters.",
+        "name": "project",
+        "optional": true,
+        "type": "string",
+        "default": "\"acme-web\""
+      },
+      {
+        "description": "Production domain, up to about 14 characters.",
+        "name": "domain",
+        "optional": true,
+        "type": "string",
+        "default": "\"acme.com\""
+      },
+      {
+        "description": "Branch pushed, up to about 8 characters.",
+        "name": "branch",
+        "optional": true,
+        "type": "string",
+        "default": "\"main\""
+      },
+      {
+        "description": "Commit message on the new deployment, up to about 28 characters.",
+        "name": "commit",
+        "optional": true,
+        "type": "string",
+        "default": "\"Update pricing page\""
+      },
+      {
+        "description": "Build time shown when it's ready, e.g. \"24s\".",
+        "name": "buildTime",
+        "optional": true,
+        "type": "string",
+        "default": "\"24s\""
+      },
+      {
+        "description": "Command typed in the terminal, up to about 24 characters.",
+        "name": "command",
+        "optional": true,
+        "type": "string",
+        "default": "\"git push\""
+      },
+      {
+        "description": "Play when the scene scrolls into view. Off shows the live end state.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Replay after a pause. Off plays once and holds the end state.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Let the viewer turn the desk: \"drag\" (drag sideways or use the arrow keys; it springs back on release), \"pointer\" (leans toward the pointer), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"drag\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-12, 35]: further toward the screens than away from them, so the copy stays readable. Each side is capped at 40.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Push to deploy",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Hosting and deployment platform sites",
+      "Developer tools explaining git-based workflows",
+      "CI/CD and preview environment feature sections",
+      "Developer onboarding and docs landing pages"
+    ]
+  },
+  "gradual-rollout": {
+    "component": "GradualRollout",
+    "dependencies": ["motion"],
+    "description": "A feature flag's console moves a new version from 10% to 100% of traffic while packets on the floor's rails shift from the stable server to the new one. Isometric, animated, turnable, in your theme.",
+    "docs": "/docs/isometric/gradual-rollout",
+    "extends": null,
+    "files": [
+      "components/isometric/gradual-rollout.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-7PVTRP",
+    "import": "@/components/isometric/gradual-rollout",
+    "library": "isometric",
+    "name": "gradual-rollout",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of lit details (packets of the new version, slider, lights). Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "Soft tint, full colour, or outlined.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"duotone\""
+      },
+      {
+        "description": "Edge weight in canvas units: rims, hairlines and rails, or outlines in `line`.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Feature flag name on the console, up to about 16 characters.",
+        "name": "flag",
+        "optional": true,
+        "type": "string",
+        "default": "\"new-checkout\""
+      },
+      {
+        "description": "The three rollout steps in percent, e.g. [10, 50, 100]. Default [10, 50, 100].",
+        "name": "steps",
+        "optional": true,
+        "type": "readonly [number, number, number]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Error rate shown on the console, e.g. \"0.00%\".",
+        "name": "errorRate",
+        "optional": true,
+        "type": "string",
+        "default": "\"0.00%\""
+      },
+      {
+        "description": "p95 latency shown on the console, e.g. \"212 ms\".",
+        "name": "latency",
+        "optional": true,
+        "type": "string",
+        "default": "\"212 ms\""
+      },
+      {
+        "description": "Label on the stable server's front, up to about 4 characters.",
+        "name": "stableLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"v1\""
+      },
+      {
+        "description": "Label on the new server's front, up to about 4 characters.",
+        "name": "canaryLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"v2\""
+      },
+      {
+        "description": "Play when the scene scrolls into view. Off shows the rolled-out end state.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Replay after a pause. Off plays once and holds the end state.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Let the viewer turn the plate: \"drag\" (drag sideways or use the arrow keys; it springs back on release), \"pointer\" (leans toward the pointer), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"drag\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-15, 30]: further toward the console than away from it, so the copy stays readable. Each side is capped at 40.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Gradual rollout",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Feature flag and experimentation product sites",
+      "Edge and hosting platforms explaining safe releases",
+      "Canary and progressive delivery feature sections",
+      "Developer tools landing pages about shipping safely"
+    ]
   }
 }
