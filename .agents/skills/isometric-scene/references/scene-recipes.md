@@ -15,13 +15,13 @@ everything else.
 
 | Connector | What it is | Reads as | Owner |
 | --- | --- | --- | --- |
-| **Arc comet** | A quadratic arc in 3D through a raised peak, sampled and projected; one comet dash (pathLength 100) flies along it, with a faint dotted track while in flight | something sent through the air (a code, a push) | two-step-sign-in |
-| **Rails with trailing dashes** | Grooves cut into the floor (filled rectangles in the floor's plane, padded at turns) edged by two hairline rails (mitred offsets of the polyline, projected then stroked). Packets are one dash pattern per path: tiny trailing dashes growing into a head, then a gap longer than the rail (pathLength 100); several per rail, staggered with negative animation delays; their count shows the traffic share | steady traffic, routing, splits | gradual-rollout |
-| **Cable** | A thick rounded cable lying on the desk (a 3D bezier hugging z = top), with a light pulse running inside it | wired connection, sync, power | free |
+| **Arc comet** | A quadratic arc in 3D through a raised peak, sampled and projected; one comet dash (pathLength 100) flies along it, with a faint dotted track while in flight | something sent through the air (a code, a push) | free |
+| **Rails with trailing dashes** | Light tracks on the implicit floor (faint brand-coloured rectangles in the floor's plane, padded at turns) edged by two brand hairlines (mitred offsets of the polyline, projected then stroked). Packets are one dash pattern per path: tiny trailing dashes growing into a head, then a gap longer than the rail (pathLength 100); several per rail, staggered with negative animation delays; their count shows the traffic share | steady traffic, routing, splits | gradual-rollout |
+| **Cable** | A thick rounded cable lying on the floor (a 3D cubic bezier at z ≈ 0.16, sampled and projected through the camera) in the surface colour with a rim hairline, and a light pulse (pathLength 100 dash) running along it on the beat | wired connection, sync, power | push-to-deploy |
 | **Beam** | A vertical column of light rising from a device, fading upward, with motes drifting up | upload, publish, broadcast to the cloud | free |
 | **Ripples** | Concentric ellipses expanding on a floor or face from a source (exact √3 : 1 ellipses, scale up and fade) | notification, webhook fired, alert | free |
 | **Packet hop** | Small cubes hopping node to node along a path (parabolic hops in z) | queues, jobs, batches | free |
-| **Continuity** | The same UI element visibly moves from one screen to the other (a card lifts off one screen and lands on the other) | handoff between devices | free |
+| **Continuity** | The same UI element visibly moves from one screen to the other: in two-step-sign-in the code is a solid `Slab` chip that lifts off the phone's message and glides into the input (a straight 3D line lifted by sin(πt), moved in screen space with a motion value; its shadow follows on the floor) | handoff between devices | two-step-sign-in |
 
 Rules for any connector:
 - Motion is caused by the story (it fires on a stage) or encodes data

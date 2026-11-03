@@ -111,6 +111,28 @@ closed by the bottom ellipse's front half.
 
 ## 5. Light and shading
 
+### Ink (the default for scenes)
+
+Three flat values per face, lightest on top, one even ink outline. No
+Lambert, no gradient. Neutral (`surface`) faces step down from the card's
+lightness, held at L ≥ 0.33 so a dark page still gets a lit top face;
+coloured (`main`, `accent`) faces step around the tone:
+
+| Face | Surface (from `--card`) | Coloured (from the tone) |
+| --- | --- | --- |
+| Top | max(l, 0.33) | l + 0.08 |
+| Left wall | max(l, 0.33) − 0.06 | l |
+| Right wall | max(l, 0.33) − 0.13 | l − 0.09 |
+
+On a white card that is 1 / 0.94 / 0.87; on a dark card (l ≈ 0.2) it is
+0.33 / 0.27 / 0.20, the graded dark ramp of the reference drawings. The
+outline is `--iso-ink` (foreground mixed 88% into the card) at
+`strokeWidth × 4.33` px, held in pixels by `vector-effect:
+non-scaling-stroke`, miter joins. Guides are the same ink at 30% and
+`strokeWidth × 3` px. Shadows (below) are unchanged.
+
+### Lit (`duotone`, `solid`)
+
 One light for everything: **L = (1, 2, 3) / √14**, coming from the upper
 left. Face brightness is Lambert's n · L:
 
@@ -132,6 +154,7 @@ Top and right sit exactly ±0.2673 either side of the left wall. So the
 | duotone | 0.33 | +0.088 | −0.088 | tone mixed 28% into `--card` (surface: ink 6%) |
 | solid | 0.40 | +0.107 | −0.107 | the tone itself (surface: ink 12% into card) |
 | line | 0 | flat | flat | `--card`; accents keep a duotone tint |
+| ink | 0 | see the ink table | | `--card` (surface) or the tone |
 
 In CSS: `oklch(from <base> clamp(0, calc(l + ΔL), 1) c h)`. Steps are added
 to lightness rather than mixed toward white or black, so contrast between
@@ -214,6 +237,21 @@ at the upper left:
 Text or asymmetric glyphs on faces read backwards when mirrored. A
 `mirrorable={false}` guard isn't built yet (see Known gaps).
 
+## 7a. The rig transform
+
+An object that acts is posed before the camera: `p' = pivot + R · S ·
+(p − pivot) + offset`, with R a rotation about one world axis (x, y or z)
+through the pivot, S a uniform or per-axis scale about the pivot, and
+`offset` in world units. Rigs compose outer ∘ inner, so a lid rides its
+box. Directions (face axes, extrusion depth) go through the linear part
+only. Because everything happens in world units before projection, a
+posed object is still an exact parallel projection at every yaw; only its
+flat-value shading keeps the unrotated face names (fine in ink and for
+small turns).
+
+Shadows are not rigged: a hop leaves its shadow on the floor (correct),
+and a tossed part's shadow is drawn by a second, translation-only rig.
+
 ## 7b. Turning the view (orbit)
 
 The camera can orbit the scene about a vertical axis through a pivot by a
@@ -244,8 +282,9 @@ then projected with the formula of §2:
 
 - **viewBox `-12 -17 24 24`**, a 24-unit canvas like Lucide. Icons are
   shown far larger than Lucide's 24px, so the default `strokeWidth` is
-  **0.3** canvas units (≈1.4px at 112px). In `duotone` and `solid` it sets
-  rim and hairline weight; in `line` it is the outline.
+  **0.3**: in `ink` a pixel weight (× 4.33 = 1.3 px at any size); in
+  `duotone` and `solid` rim and hairline weight in canvas units; in `line`
+  the outline.
 - **S = 1.25** canvas units per world unit.
 - **Reference cube:** world x, y ∈ [−4, 4], z ∈ [0, 8]. On screen that is
   sx ∈ [−8.66, 8.66] and sy ∈ [−15, 5]: a hexagon 17.32 wide and 20 tall,

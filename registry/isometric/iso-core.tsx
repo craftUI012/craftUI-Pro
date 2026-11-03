@@ -1,4 +1,11 @@
 import {
+  motionValue,
+  useAnimationFrame,
+  useMotionValue,
+  useMotionValueEvent,
+} from "motion/react";
+import type { MotionValue } from "motion/react";
+import {
   createContext,
   useContext,
   useEffect,
@@ -61,6 +68,8 @@ export const project = ([x, y, z]: Vec3): [number, number] => [
 export interface IsoCamera {
   pivot: readonly [number, number];
   yaw: number;
+  /** A rigid transform applied to world points before the camera (see `Rig`). */
+  model?: IsoModel;
 }
 
 export const HOME_CAMERA: IsoCamera = { pivot: [0, 0], yaw: 0 };
@@ -70,8 +79,116 @@ const CameraContext = createContext<IsoCamera>(HOME_CAMERA);
 /** The camera of the stage around this part (home view outside a stage). */
 const useCamera = () => useContext(CameraContext);
 
+/* -------------------------------- Model --------------------------------- */
+
+/**
+ * A 3D affine transform in world units: p' = m · p + t, as a row-major 3 × 3
+ * linear part and a translation. Built by `Rig` from a pivot, a rotation
+ * about one world axis, a scale and an offset, so an object can hop, toss,
+ * press and slide as a solid, and still project as exact isometric.
+ */
+export interface IsoModel {
+  m: readonly [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
+  t: Vec3;
+}
+
+const modelApply = ({ m, t }: IsoModel, [x, y, z]: Vec3): Vec3 => [
+  m[0] * x + m[1] * y + m[2] * z + t[0],
+  m[3] * x + m[4] * y + m[5] * z + t[1],
+  m[6] * x + m[7] * y + m[8] * z + t[2],
+];
+
+const modelLinear = ({ m }: IsoModel, [x, y, z]: Vec3): Vec3 => [
+  m[0] * x + m[1] * y + m[2] * z,
+  m[3] * x + m[4] * y + m[5] * z,
+  m[6] * x + m[7] * y + m[8] * z,
+];
+
+/** outer ∘ inner: inner is applied to a point first. */
+const modelCompose = (outer: IsoModel, inner: IsoModel): IsoModel => {
+  const a = outer.m;
+  const b = inner.m;
+  const m = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  for (let r = 0; r < 3; r += 1) {
+    for (let c = 0; c < 3; c += 1) {
+      m[r * 3 + c] =
+        a[r * 3] * b[c] + a[r * 3 + 1] * b[3 + c] + a[r * 3 + 2] * b[6 + c];
+    }
+  }
+  return {
+    m: m as unknown as IsoModel["m"],
+    t: modelApply(outer, inner.t),
+  };
+};
+
+export type IsoAxis = "x" | "y" | "z";
+
+/** The pose a `Rig` holds: turn about one world axis, scale, and slide. */
+export interface IsoPose {
+  /** Degrees about `axis`, through the pivot. */
+  rotate?: number;
+  axis?: IsoAxis;
+  /** Uniform, or per world axis, about the pivot. */
+  scale?: number | Vec3;
+  /** World units added after the turn and scale. */
+  offset?: Vec3;
+}
+
+const rotation = (axis: IsoAxis, deg: number): IsoModel["m"] => {
+  const a = (deg * Math.PI) / 180;
+  const c = Math.cos(a);
+  const sn = Math.sin(a);
+  if (axis === "x") {
+    return [1, 0, 0, 0, c, -sn, 0, sn, c];
+  }
+  if (axis === "y") {
+    return [c, 0, sn, 0, 1, 0, -sn, 0, c];
+  }
+  return [c, -sn, 0, sn, c, 0, 0, 0, 1];
+};
+
+/** p' = pivot + R · S · (p − pivot) + offset. */
+export const poseModel = (pivot: Vec3, pose: IsoPose): IsoModel => {
+  const sc = pose.scale ?? 1;
+  const [sx, sy, sz] = typeof sc === "number" ? [sc, sc, sc] : sc;
+  const r = rotation(pose.axis ?? "z", pose.rotate ?? 0);
+  const m: number[] = [
+    r[0] * sx,
+    r[1] * sy,
+    r[2] * sz,
+    r[3] * sx,
+    r[4] * sy,
+    r[5] * sz,
+    r[6] * sx,
+    r[7] * sy,
+    r[8] * sz,
+  ];
+  const linear = { m: m as unknown as IsoModel["m"], t: [0, 0, 0] as Vec3 };
+  const moved = modelLinear(linear, pivot);
+  const off = pose.offset ?? [0, 0, 0];
+  return {
+    m: linear.m,
+    t: [
+      pivot[0] - moved[0] + off[0],
+      pivot[1] - moved[1] + off[1],
+      pivot[2] - moved[2] + off[2],
+    ],
+  };
+};
+
 // Turning the camera by +yaw is turning the world by −yaw about the pivot.
-const toView = (cam: IsoCamera, [x, y, z]: Vec3): Vec3 => {
+const toView = (cam: IsoCamera, p0: Vec3): Vec3 => {
+  const [x, y, z] = cam.model ? modelApply(cam.model, p0) : p0;
   if (cam.yaw === 0) {
     return [x, y, z];
   }
@@ -89,10 +206,289 @@ const toView = (cam: IsoCamera, [x, y, z]: Vec3): Vec3 => {
 export const projectWith = (cam: IsoCamera, p: Vec3) => project(toView(cam, p));
 
 // A world direction (no pivot) → canvas vector.
-const projectDir = (cam: IsoCamera, d: Vec3): [number, number] => {
+const projectDir = (cam: IsoCamera, d0: Vec3): [number, number] => {
+  const d = cam.model ? modelLinear(cam.model, d0) : d0;
   const [x, y, z] = toView({ pivot: [0, 0], yaw: cam.yaw }, d);
   return [ISO_S * (x - y) * C, ISO_S * ((x + y) / 2 - z)];
 };
+
+const STILL_CLOCK = motionValue(0);
+
+/**
+ * Poses everything inside it as one solid: a turn about one world axis
+ * through `pivot`, a scale about the pivot, and an offset, all in world
+ * units before projection, so the result is still exact isometric at every
+ * camera angle. Rigs nest (a lid on a box on a cart). Give it a `clock`
+ * and a `pose` function to animate: the pose is sampled on every frame of
+ * the clock and only re-rendered when it changes.
+ */
+export const Rig = ({
+  pivot,
+  rotate = 0,
+  axis = "z",
+  scale = 1,
+  offset = [0, 0, 0],
+  clock,
+  pose,
+  children,
+}: IsoPose & {
+  pivot: Vec3;
+  /** Milliseconds, from `useClock`. */
+  clock?: MotionValue<number>;
+  /** The pose at a time on the clock. Return the same values to hold still. */
+  pose?: (ms: number) => IsoPose;
+  children: ReactNode;
+}) => {
+  const cam = useCamera();
+  const [live, setLive] = useState<IsoPose>(() => (pose ? pose(0) : {}));
+  const last = useRef("");
+  useMotionValueEvent(clock ?? STILL_CLOCK, "change", (ms) => {
+    if (!pose) {
+      return;
+    }
+    const next = pose(ms);
+    const key = JSON.stringify(next);
+    if (key !== last.current) {
+      last.current = key;
+      setLive(next);
+    }
+  });
+  const local = poseModel(pivot, {
+    axis: live.axis ?? axis,
+    offset: live.offset ?? offset,
+    rotate: live.rotate ?? rotate,
+    scale: live.scale ?? scale,
+  });
+  const model = cam.model ? modelCompose(cam.model, local) : local;
+  return (
+    <CameraContext.Provider value={{ ...cam, model }}>
+      {children}
+    </CameraContext.Provider>
+  );
+};
+
+/** Where a world point lands after the rigs around this part, for anything a scene projects itself. */
+export const useRigged = () => {
+  const cam = useCamera();
+  return (p: Vec3): Vec3 => (cam.model ? modelApply(cam.model, p) : p);
+};
+
+/* ------------------------------- Clock ---------------------------------- */
+
+/**
+ * Milliseconds since `running` last became true or `restart` last changed
+ * (0 while not running), as a motion value that ticks every frame without
+ * re-rendering the scene. Drive `Rig` poses and `sample`d tracks from it.
+ */
+export const useClock = (running: boolean, restart: unknown = 0) => {
+  const ms = useMotionValue(0);
+  const start = useRef<number | null>(null);
+  useEffect(() => {
+    start.current = null;
+    ms.set(0);
+  }, [running, restart, ms]);
+  useAnimationFrame((now) => {
+    if (!running) {
+      return;
+    }
+    if (start.current === null) {
+      start.current = now;
+    }
+    ms.set(now - start.current);
+  });
+  return ms;
+};
+
+/* ------------------------------- Tracks --------------------------------- */
+
+/** A cubic bezier ease as its two control points (CSS cubic-bezier order). */
+export type IsoEase = readonly [number, number, number, number];
+
+/** The eases every preset is built from; name them, never invent numbers in a scene. */
+export const EASE = {
+  /** Lands softly from full speed: things dropping in, settling. */
+  drop: [0.2, 0, 0, 1] as IsoEase,
+  /** The all-purpose sway, every half swing of a spring. */
+  easy: [0.33, 0, 0.67, 1] as IsoEase,
+  /** Leaves slowly, arrives fast: a slam, a latch shutting. */
+  in: [0.8, 0, 1, 1] as IsoEase,
+  /** Fast out, smooth in: a part moving from one slot to another. */
+  snap: [0.8, 0, 0.2, 1] as IsoEase,
+  /** A soft pop: stars, chips, badges growing in. */
+  soft: [0.16, 1, 0.3, 1] as IsoEase,
+} as const;
+
+const solvers = new Map<string, (x: number) => number>();
+
+/** y(x) of a cubic bezier ease, solved by Newton steps then bisection. */
+export const bezierEase = ([x1, y1, x2, y2]: IsoEase) => {
+  const key = `${x1},${y1},${x2},${y2}`;
+  const hit = solvers.get(key);
+  if (hit) {
+    return hit;
+  }
+  const ax = 1 + 3 * x1 - 3 * x2;
+  const bx = 3 * x2 - 6 * x1;
+  const cx = 3 * x1;
+  const ay = 1 + 3 * y1 - 3 * y2;
+  const by = 3 * y2 - 6 * y1;
+  const cy = 3 * y1;
+  const sx = (u: number) => ((ax * u + bx) * u + cx) * u;
+  const sy = (u: number) => ((ay * u + by) * u + cy) * u;
+  const dx = (u: number) => (3 * ax * u + 2 * bx) * u + cx;
+  const fn = (x: number) => {
+    if (x <= 0) {
+      return 0;
+    }
+    if (x >= 1) {
+      return 1;
+    }
+    let u = x;
+    for (let i = 0; i < 8; i += 1) {
+      const err = sx(u) - x;
+      const slope = dx(u);
+      if (Math.abs(err) < 1e-6) {
+        return sy(u);
+      }
+      if (Math.abs(slope) < 1e-6) {
+        break;
+      }
+      u -= err / slope;
+    }
+    let lo = 0;
+    let hi = 1;
+    u = x;
+    for (let i = 0; i < 40 && Math.abs(sx(u) - x) > 1e-6; i += 1) {
+      if (sx(u) < x) {
+        lo = u;
+      } else {
+        hi = u;
+      }
+      u = (lo + hi) / 2;
+    }
+    return sy(u);
+  };
+  solvers.set(key, fn);
+  return fn;
+};
+
+/**
+ * One key of a track: a time in ms, a value, and the ease into the next key
+ * ("hold" keeps this value until the next key; none is linear).
+ */
+export type IsoKey = readonly [
+  ms: number,
+  value: number,
+  ease?: IsoEase | "hold",
+];
+export type IsoTrack = readonly IsoKey[];
+
+/** A track's value at a time: held before its first key and after its last. */
+export const sample = (track: IsoTrack, ms: number): number => {
+  if (track.length === 0) {
+    return 0;
+  }
+  if (ms <= track[0][0]) {
+    return track[0][1];
+  }
+  for (let i = 0; i < track.length - 1; i += 1) {
+    const [t0, a, ease] = track[i];
+    const [t1, b] = track[i + 1];
+    if (ms >= t1) {
+      continue;
+    }
+    if (ease === "hold") {
+      return a;
+    }
+    const x = (ms - t0) / (t1 - t0);
+    const y = ease ? bezierEase(ease)(x) : x;
+    return a + (b - a) * y;
+  }
+  return track.at(-1)?.[1] ?? 0;
+};
+
+/** Shifts a track along the timeline, for staggering one preset across parts. */
+export const shiftTrack = (track: IsoTrack, by: number): IsoTrack =>
+  track.map(([t, v, e]) => [t + by, v, e] as const);
+
+/** Scales a track's values, for a follower that moves less (or more, or mirrored). */
+export const scaleTrack = (track: IsoTrack, k: number): IsoTrack =>
+  track.map(([t, v, e]) => [t, v * k, e] as const);
+
+/**
+ * The baked settle every preset lands with: 1 → overshoot 1.42 → 0.83 →
+ * 1.09 → 0.96 → 1.01 → 1, each swing an easy ease, about 900 ms to rest.
+ * Values are relative to the travel; pass the travel to scale.
+ */
+export const settle = (to: number, start = 0, pace = 1, from = 0): IsoTrack => {
+  const reach = [1.42, 0.83, 1.09, 0.96, 1.012, 1];
+  const gaps = [220, 260, 260, 250, 250, 260];
+  let t = start;
+  const keys: IsoKey[] = [[t, from, [0.17, 0.17, 0.55, 1]]];
+  for (const [i, k] of reach.entries()) {
+    t += Math.round(gaps[i] * pace);
+    keys.push([
+      t,
+      from + (to - from) * k,
+      i < reach.length - 1 ? EASE.easy : undefined,
+    ]);
+  }
+  return keys;
+};
+
+/* Verb presets. Every one is deltas over rest, in world units or degrees. */
+
+/** Something landing on it: rises, slams down through rest, rebounds twice. */
+export const hop = (height = 1.6, start = 0): IsoTrack => [
+  [start, 0, EASE.drop],
+  [start + 200, height, EASE.in],
+  [start + 380, 0, EASE.drop],
+  [start + 480, height * 0.28, EASE.in],
+  [start + 580, 0, EASE.drop],
+  [start + 650, height * 0.08, EASE.in],
+  [start + 720, 0],
+];
+
+/** A hinged part thrown open: winds back, whips past, settles. Degrees. */
+export const toss = (deg = 55, start = 0): IsoTrack => [
+  [start, 0, EASE.easy],
+  [start + 160, -deg * 0.18, EASE.in],
+  [start + 420, deg * 1.1, EASE.easy],
+  [start + 640, deg * 0.92, EASE.easy],
+  [start + 820, deg * 1.02, EASE.easy],
+  [start + 980, deg],
+];
+
+/** Pushed into its base and back, then pops proud and settles. A z scale. */
+export const press = (depth = 0.4, start = 0): IsoTrack => [
+  [start, 1, EASE.in],
+  [start + 140, 1 - depth, EASE.drop],
+  [start + 360, 1 + depth * 0.22, EASE.easy],
+  [start + 520, 1 - depth * 0.05, EASE.easy],
+  [start + 640, 1],
+];
+
+/** Kicked along a direction with the settle, held, eased home. World units. */
+export const jolt = (travel = 0.6, start = 0, hold = 600): IsoTrack => {
+  const kicked = settle(travel, start, 0.6);
+  const end = kicked.at(-1)?.[0] ?? start;
+  return [
+    ...kicked.slice(0, -1),
+    [end, travel, "hold"],
+    [end + hold, travel, EASE.easy],
+    [end + hold + 420, 0],
+  ];
+};
+
+/** A lift that stays up (a card leaving a surface) then drops back in. */
+export const lift = (height = 1, start = 0, hold = 400): IsoTrack => [
+  [start, 0, EASE.soft],
+  [start + 260, height, "hold"],
+  [start + 260 + hold, height, EASE.in],
+  [start + 260 + hold + 220, 0, EASE.drop],
+  [start + 260 + hold + 320, height * 0.12, EASE.in],
+  [start + 260 + hold + 420, 0],
+];
 
 const points = (list: readonly Vec3[], cam: IsoCamera = HOME_CAMERA) =>
   list.map((p) => projectWith(cam, p).join(",")).join(" ");
@@ -141,7 +537,13 @@ export type IsoTone =
   // Any CSS color also works: "#f97316", "oklch(0.7 0.2 40)", "var(--brand)".
   | (string & Record<never, never>);
 
-export type IsoVariant = "line" | "solid" | "duotone";
+/**
+ * How faces render: `duotone` and `solid` with light (gradients, rims, soft
+ * hairline), `line` as a blueprint outline, `ink` as flat values with one
+ * even ink outline on every visible edge, constant in pixels (the house
+ * style for scenes).
+ */
+export type IsoVariant = "line" | "solid" | "duotone" | "ink";
 
 /** Which color family a face is shaded from. */
 export type IsoPalette = "main" | "accent" | "surface";
@@ -184,6 +586,9 @@ const paletteBase = (
   variant: IsoVariant
 ): { base: string; k: number } => {
   const card = "var(--iso-card)";
+  if (variant === "ink") {
+    return { base: name === "surface" ? card : color, k: 0 };
+  }
   if (variant === "solid") {
     return {
       base: name === "surface" ? mix(color, 12, card) : color,
@@ -203,6 +608,17 @@ const paletteBase = (
     : { base: card, k: 0 };
 };
 
+// Ink faces: three flat values, lightest on top. Neutral surfaces step
+// down from the card (held at L ≥ 0.33 so dark pages still get a lit top,
+// which is the graded dark ramp of the reference drawings: 0.33 / 0.27 /
+// 0.20 on a dark card, 1 / 0.94 / 0.87 on white). Coloured faces step
+// around the tone itself.
+const INK_STEPS: Record<FaceName, (neutral: boolean) => string> = {
+  left: (n) => (n ? "calc(max(l, 0.33) - 0.06)" : "l"),
+  right: (n) => (n ? "calc(max(l, 0.33) - 0.13)" : "calc(l - 0.09)"),
+  top: (n) => (n ? "max(l, 0.33)" : "calc(l + 0.08)"),
+};
+
 const paletteVars = (
   name: IsoPalette,
   color: string,
@@ -214,7 +630,10 @@ const paletteVars = (
     [`--iso-${name}-k`]: String(k),
   };
   for (const face of FACES) {
-    vars[`--iso-${name}-${face}-c`] = lit(name, NORMALS[face]);
+    vars[`--iso-${name}-${face}-c`] =
+      variant === "ink"
+        ? `oklch(from var(--iso-${name}-base) ${INK_STEPS[face](name === "surface")} c h)`
+        : lit(name, NORMALS[face]);
   }
   // Rim: the lit edge where a top meets the walls.
   vars[`--iso-${name}-rim`] =
@@ -224,11 +643,17 @@ const paletteVars = (
 
 // Gradient paints: `--iso-<palette>-<face>` is a url() to this icon's own
 // gradient, so `fill: var(--iso-main-left)` paints a lit face.
-const paintVars = (uid: string): Record<string, string> => {
+const paintVars = (
+  uid: string,
+  variant: IsoVariant = "duotone"
+): Record<string, string> => {
   const vars: Record<string, string> = {};
   for (const p of PALETTES) {
     for (const face of FACES) {
-      vars[`--iso-${p}-${face}`] = `url(#${uid}-${p}-${face})`;
+      vars[`--iso-${p}-${face}`] =
+        variant === "ink"
+          ? `var(--iso-${p}-${face}-c)`
+          : `url(#${uid}-${p}-${face})`;
     }
   }
   return vars;
@@ -238,8 +663,39 @@ const paintVars = (uid: string): Record<string, string> => {
 // hairline for the edgeless variants.
 const STROKE: Record<IsoVariant, (tone: string, ink: string) => string> = {
   duotone: (tone, ink) => mix(mix(tone, 45, ink), 38, "transparent"),
+  ink: (_tone, ink) => ink,
   line: (tone, ink) => mix(tone, 70, ink),
   solid: (tone) => mix(mix(tone, 50, "black"), 55, "transparent"),
+};
+
+const contourWidth = (variant: IsoVariant) => {
+  if (variant === "ink") {
+    return "0";
+  }
+  return variant === "line"
+    ? "var(--iso-stroke-width)"
+    : "calc(var(--iso-stroke-width) * 0.6)";
+};
+
+const detailInk = (variant: IsoVariant, t: string, ink: string) => {
+  if (variant === "ink") {
+    return ink;
+  }
+  return variant === "solid" ? mix(t, 45, "black") : mix(t, 55, ink);
+};
+
+const edgeInk = (variant: IsoVariant, t: string, ink: string) => {
+  if (variant === "ink") {
+    return ink;
+  }
+  return variant === "line" ? mix(t, 70, ink) : "initial";
+};
+
+const edgeWidth = (variant: IsoVariant, inkW: string) => {
+  if (variant === "ink") {
+    return inkW;
+  }
+  return variant === "line" ? "var(--iso-stroke-width)" : "initial";
 };
 
 const themeVars = ({
@@ -261,28 +717,35 @@ const themeVars = ({
   const lx = round((1 / L_NORM) * 10_000) / 10_000;
   const ly = round((2 / L_NORM) * 10_000) / 10_000;
   const line = variant === "line";
+  const inked = variant === "ink";
+  // Ink outlines are a pixel weight (vector-effect keeps them constant):
+  // strokeWidth 0.3 → 1.3 px, the weight of the reference drawings.
+  const inkW = "calc(var(--iso-stroke-width) * 4.33px)";
   return {
     "--iso-accent": a,
     "--iso-card": "var(--card)",
     // Terminals and code: near black in every theme, a whisper of the tone.
     "--iso-console": mix(t, 8, "oklch(0.2 0.01 260)"),
     "--iso-contour": STROKE[variant](t, ink),
-    "--iso-contour-w": line
-      ? "var(--iso-stroke-width)"
-      : "calc(var(--iso-stroke-width) * 0.6)",
+    "--iso-contour-w": contourWidth(variant),
     // Details drawn on faces: slots, marks, glyphs.
-    "--iso-detail": variant === "solid" ? mix(t, 45, "black") : mix(t, 55, ink),
-    // Line variant outlines every face; elsewhere faces seal in their own paint.
-    "--iso-edge": line ? mix(t, 70, ink) : "initial",
-    "--iso-edge-w": line ? "var(--iso-stroke-width)" : "initial",
+    "--iso-detail": detailInk(variant, t, ink),
+    // Line and ink outline every face; elsewhere faces seal in their own paint.
+    "--iso-edge": edgeInk(variant, t, ink),
+    "--iso-edge-w": edgeWidth(variant, inkW),
     "--iso-glow": a,
-    "--iso-ink": "var(--foreground)",
+    // Construction guides: the ink, a step short of full strength.
+    "--iso-guide": mix(ink, 30, "transparent"),
+    "--iso-guide-w": inked ? "calc(var(--iso-stroke-width) * 3px)" : "0.1",
+    "--iso-ink": inked
+      ? mix("var(--foreground)", 88, "var(--card)")
+      : "var(--foreground)",
     // Light x and y components; mirroring swaps them (math §7).
     "--iso-lx": String(mirror ? ly : lx),
     "--iso-ly": String(mirror ? lx : ly),
     // Text and marks printed on main-palette faces (cards, chips).
-    "--iso-on-main": variant === "solid" ? mix(t, 8, "white") : ink,
-    "--iso-rim-w": line ? "0" : "calc(var(--iso-stroke-width) * 0.75)",
+    "--iso-on-main": variant === "solid" || inked ? mix(t, 8, "white") : ink,
+    "--iso-rim-w": line || inked ? "0" : "calc(var(--iso-stroke-width) * 0.75)",
     "--iso-road": mix(ink, 9, "var(--iso-card)"),
     // Displays are lit: near white in every theme, so dark mode glows.
     "--iso-screen": mix(t, 5, "white"),
@@ -293,6 +756,8 @@ const themeVars = ({
     "--iso-stroke-width": String(strokeWidth),
     "--iso-text": ink,
     "--iso-tone": t,
+    // Ink strokes keep their pixel weight at any frame size.
+    "--iso-vector": inked ? "non-scaling-stroke" : "none",
     ...paletteVars("main", t, variant),
     ...paletteVars("accent", a, variant),
     ...paletteVars("surface", ink, variant),
@@ -323,7 +788,7 @@ export const isoThemeStyle = ({
       tone,
       variant,
     }),
-    ...paintVars(uid),
+    ...paintVars(uid, variant),
   }) as CSSProperties;
 
 /** A stable id usable inside url(#…). */
@@ -370,19 +835,42 @@ export const IsoDefs = ({ uid }: { uid: string }) => (
     <filter height="300%" id={`${uid}-ao`} width="300%" x="-100%" y="-100%">
       <feGaussianBlur stdDeviation="0.22" />
     </filter>
+    <filter height="400%" id={`${uid}-bloom`} width="400%" x="-150%" y="-150%">
+      <feGaussianBlur stdDeviation="0.6" />
+    </filter>
+    <filter
+      height="400%"
+      id={`${uid}-bloom-wide`}
+      width="400%"
+      x="-150%"
+      y="-150%"
+    >
+      <feGaussianBlur stdDeviation="1.6" />
+    </filter>
   </defs>
 );
 
 const faceStyle = (palette: IsoPalette, face: FaceName): CSSProperties => ({
   fill: `var(--iso-${palette}-${face})`,
   stroke: `var(--iso-edge, var(--iso-${palette}-${face}))`,
+  strokeLinejoin: "var(--iso-join, round)" as CSSProperties["strokeLinejoin"],
   strokeWidth: `var(--iso-edge-w, ${SEAM})`,
+  vectorEffect: "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
 });
 
 const contourStyle: CSSProperties = {
   fill: "none",
   stroke: "var(--iso-contour)",
   strokeWidth: "var(--iso-contour-w)",
+};
+
+// The far outline of an extrusion: the contour, or the ink edge in ink.
+const backStyle: CSSProperties = {
+  fill: "none",
+  stroke: "var(--iso-edge, var(--iso-contour))",
+  strokeLinejoin: "var(--iso-join, round)" as CSSProperties["strokeLinejoin"],
+  strokeWidth: "var(--iso-edge-w, var(--iso-contour-w))",
+  vectorEffect: "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
 };
 
 const rimStyle = (palette: IsoPalette): CSSProperties => ({
@@ -755,6 +1243,8 @@ export const Poly = ({
         fill: color,
         stroke: `var(--iso-edge, ${color})`,
         strokeWidth: `var(--iso-edge-w, ${SEAM})`,
+        vectorEffect:
+          "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
         ...style,
       }}
       {...rest}
@@ -857,7 +1347,7 @@ export const Extrude = ({
       <path
         d={outline}
         fillRule={fillRule}
-        style={{ ...contourStyle, fill: side }}
+        style={{ ...backStyle, fill: side }}
         transform={`translate(${round(bx * depth)} ${round(by * depth)})`}
       />
       {Array.from({ length: steps - 1 }, (_, i) => {
@@ -1258,6 +1748,180 @@ const Shadows = ({
   </g>
 );
 
+/* ------------------------------- Guides --------------------------------- */
+
+// Guides are hairlines: a pixel weight in ink, their own weight elsewhere.
+// (vector-effect doesn't inherit, so this goes on every path.)
+const GUIDE_STROKE: CSSProperties = {
+  strokeLinecap: "butt",
+  strokeWidth: "var(--iso-guide-w)",
+  vectorEffect: "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
+};
+
+/**
+ * A dashed construction grid on the floor (or any horizontal plane at z),
+ * drawn in the guide ink. `step` world units between lines.
+ */
+export const FloorGrid = ({
+  at,
+  size: [w, d],
+  z = 0,
+  step = 2,
+  dash = "0.45 0.55",
+}: {
+  at: readonly [number, number];
+  size: readonly [number, number];
+  z?: number;
+  step?: number;
+  dash?: string;
+}) => {
+  const cam = useCamera();
+  const lines: string[] = [];
+  for (let x = 0; x <= w + 1e-6; x += step) {
+    lines.push(
+      pathOf(
+        [
+          [at[0] + x, at[1], z],
+          [at[0] + x, at[1] + d, z],
+        ],
+        false,
+        cam
+      )
+    );
+  }
+  for (let y = 0; y <= d + 1e-6; y += step) {
+    lines.push(
+      pathOf(
+        [
+          [at[0], at[1] + y, z],
+          [at[0] + w, at[1] + y, z],
+        ],
+        false,
+        cam
+      )
+    );
+  }
+  return (
+    <g fill="none" stroke="var(--iso-guide)" strokeDasharray={dash}>
+      {lines.map((d2) => (
+        <path d={d2} key={d2} style={GUIDE_STROKE} />
+      ))}
+    </g>
+  );
+};
+
+/** The twelve edges of a box as construction lines, for a frame around a subject. */
+export const WireBox = ({
+  at,
+  size: [w, d, h],
+  dash,
+}: {
+  at: Vec3;
+  size: Vec3;
+  dash?: string;
+}) => {
+  const cam = useCamera();
+  const [x, y, z] = at;
+  const c = (dx: number, dy: number, dz: number): Vec3 => [
+    x + dx * w,
+    y + dy * d,
+    z + dz * h,
+  ];
+  const edges: [Vec3, Vec3][] = [];
+  for (const dz of [0, 1]) {
+    edges.push(
+      [c(0, 0, dz), c(1, 0, dz)],
+      [c(1, 0, dz), c(1, 1, dz)],
+      [c(1, 1, dz), c(0, 1, dz)],
+      [c(0, 1, dz), c(0, 0, dz)]
+    );
+  }
+  for (const [dx, dy] of [
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1],
+  ]) {
+    edges.push([c(dx, dy, 0), c(dx, dy, 1)]);
+  }
+  return (
+    <g fill="none" stroke="var(--iso-guide)" strokeDasharray={dash}>
+      {edges.map(([a, b]) => {
+        const d2 = pathOf([a, b], false, cam);
+        return <path d={d2} key={d2} style={GUIDE_STROKE} />;
+      })}
+    </g>
+  );
+};
+
+/** Small ink dots on world points: the vertices a viewer reads a shape by. */
+export const VertexDots = ({
+  points: list,
+  r = 0.14,
+}: {
+  points: readonly Vec3[];
+  r?: number;
+}) => {
+  const cam = useCamera();
+  return (
+    <g fill="var(--iso-ink)">
+      {list.map((p) => {
+        const [cx, cy] = projectWith(cam, p);
+        return <circle cx={cx} cy={cy} key={`${cx},${cy}`} r={r} />;
+      })}
+    </g>
+  );
+};
+
+const UidContext = createContext("");
+
+/**
+ * A soft glow behind a box, from its six-point silhouette (not its faces,
+ * whose shared edges would print a seam). Two passes: wide and faint, then
+ * tight. Draw it before the box. One lit thing per scene.
+ */
+export const Bloom = ({
+  at,
+  size: [w, d, h],
+  color = "var(--iso-glow)",
+  strength = 1,
+}: {
+  at: Vec3;
+  size: Vec3;
+  color?: string;
+  strength?: number;
+}) => {
+  const cam = useCamera();
+  const uid = useContext(UidContext);
+  const [x, y, z] = at;
+  const hex = (pad: number) =>
+    points(
+      [
+        [x - pad, y - pad, z + h + pad],
+        [x + w + pad, y - pad, z + h + pad],
+        [x + w + pad, y - pad, z - pad],
+        [x + w + pad, y + d + pad, z - pad],
+        [x - pad, y + d + pad, z - pad],
+        [x - pad, y + d + pad, z + h + pad],
+      ],
+      cam
+    );
+  return (
+    <g fill={color}>
+      <polygon
+        filter={`url(#${uid}-bloom-wide)`}
+        opacity={0.5 * strength}
+        points={hex(0.5)}
+      />
+      <polygon
+        filter={`url(#${uid}-bloom)`}
+        opacity={0.7 * strength}
+        points={hex(0)}
+      />
+    </g>
+  );
+};
+
 /* ------------------------------- Badge ---------------------------------- */
 
 export type IsoBadge = "check" | "x" | "alert" | "plus" | number | ReactNode;
@@ -1570,6 +2234,10 @@ export const IsoStage = ({
       style={{
         aspectRatio: `${round(w)} / ${round(h)}`,
         ...isoThemeStyle({ accent, strokeWidth, tone, uid, variant }),
+        // Ink corners are hard miters; lit variants keep round joins.
+        ...({
+          "--iso-join": variant === "ink" ? "miter" : "round",
+        } as CSSProperties),
         ...style,
       }}
     >
@@ -1579,16 +2247,18 @@ export const IsoStage = ({
         viewBox={`${round(minX)} ${round(minY)} ${round(w)} ${round(h)}`}
       >
         <IsoDefs uid={uid} />
-        <CameraContext.Provider value={camera}>
-          {shadow && baseCasts.length > 0 ? (
-            <Shadows cam={camera} casts={baseCasts} uid={uid} />
-          ) : null}
-          <g style={STAGE_GROUP}>{base}</g>
-          {shadow && casts.length > 0 ? (
-            <Shadows cam={camera} casts={casts} ground={ground} uid={uid} />
-          ) : null}
-          <g style={STAGE_GROUP}>{children}</g>
-        </CameraContext.Provider>
+        <UidContext.Provider value={uid}>
+          <CameraContext.Provider value={camera}>
+            {shadow && baseCasts.length > 0 ? (
+              <Shadows cam={camera} casts={baseCasts} uid={uid} />
+            ) : null}
+            <g style={STAGE_GROUP}>{base}</g>
+            {shadow && casts.length > 0 ? (
+              <Shadows cam={camera} casts={casts} ground={ground} uid={uid} />
+            ) : null}
+            <g style={STAGE_GROUP}>{children}</g>
+          </CameraContext.Provider>
+        </UidContext.Provider>
       </svg>
     </div>
   );

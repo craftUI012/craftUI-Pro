@@ -9,36 +9,48 @@ The user describes a scene in words. You turn it into a true-isometric,
 choreographed scene of one real use case, built from 3D primitives, that
 ships in the craftUI registry as a paid, installable React component,
 follows the buyer's shadcn theme, and is customised through props. Every
-drawing is computed from 3D geometry and lit by one light. Nothing is
-hand-drawn in screen space.
+drawing is computed from 3D geometry, drawn in ink (flat faces, one even
+outline) and posed as solids. Nothing is hand-drawn in screen space.
 
 ## The bar
 
 Buyers put these next to their own product, so they're judged against what
-Stripe, Mercury, Ramp, Linear, Vercel and Clerk ship. Four things separate
-that from clip art, and every decision below serves them:
+Stripe, Mercury, Ramp, Linear, Vercel and Clerk ship. The house style was
+reset on 2026-11-03 to the user's own static isometrics (the GPU stack,
+the modular block, the nested core) and the benchmark scene is
+`two-step-sign-in`. Six things separate that from clip art, and every
+decision below serves them:
 
-1. **Rendered with light, not outlined.** Faces read as material:
-   gradients, lit edges, real shadows. Thick uniform outlines read as a
-   2016 icon pack.
-2. **Product over metaphor.** Show what the software does: real UI with
-   real copy and numbers. Temples, safes and coin piles are stock
-   metaphors; use them only in object scenes.
-3. **Art-directed composition.** One subject, real relative scale, open
-   space, tall things at the back, motion that means something.
-4. **A use case, not a diagram.** What sells is one real moment from a
-   real product story (a code arriving on a phone and signing someone in),
-   told in one place and choreographed start to finish. Pieces floating on
-   a grid joined by lines read as a diagram, and as slop. Look at how
-   Vercel and Clerk present a feature today (real UI at readable size, one
-   idea per illustration) before choosing the moment.
+1. **Ink, not light.** The default variant is `ink`: three flat values
+   per face (lightest on top; a dark page gets its own graded ramp,
+   0.33 / 0.27 / 0.20 on the card) and one even ink outline on every
+   visible edge, 1.3 px at any frame size, hard miter corners. No
+   gradients, rims or soft hairlines. Light-rendered `duotone` and `solid`
+   remain as variants for buyers who want them, never the default.
+2. **No base.** No desk, no plate. The frame crops to the subject; the
+   floor is implied by shadows and a dashed construction grid
+   (`FloorGrid`). Screens float a little above the floor.
+3. **One lit thing.** Everything else is neutral surface; one object
+   carries the brand tone and may bloom (`Bloom`). Here it is the code
+   chip. Never spread the tone over every button, pill and wallpaper.
+4. **Objects act.** The things move as solids through `Rig` (hop, toss,
+   press, jolt, lift, settle), with cause and follow-through: the phone
+   hops because the text lands, the screen is kicked because the chip
+   hits it. UI changes on screens are secondary beats, never the only
+   motion. Pop in and out with scale, never opacity.
+5. **Product over metaphor.** Real UI with real copy and numbers on the
+   screens, at a size that reads at card size. The `screen` prop renders
+   the buyer's own React UI inside the screen and follows the story.
+6. **A use case, not a diagram.** One real moment of one real product
+   story, 2 to 3 objects, choreographed start to finish with a calm hold
+   before the loop. Pieces on a grid joined by lines read as a diagram.
 
 ## References
 
 | File | Read it when |
 | --- | --- |
-| [references/isometric-math.md](references/isometric-math.md) | Always. Projection, angles, ellipses, face mapping, light, gradients, shadows, depth order, mirroring, canvas and grid. Every number comes from here. |
-| [references/icon-anatomy.md](references/icon-anatomy.md) | Building or changing any icon or part: the public API (props and `--iso-*` variables), palettes, primitives, keylines, rendering, details, text. |
+| [references/isometric-math.md](references/isometric-math.md) | Always. Projection, angles, ellipses, face mapping, ink values and light, shadows, depth order, mirroring, the rig transform, canvas and grid. Every number comes from here. |
+| [references/icon-anatomy.md](references/icon-anatomy.md) | Building or changing any icon or part: the public API (props, `--iso-*` variables, camera, rig, clock, tracks and presets, guides, bloom), palettes, primitives, keylines, rendering, details, text. |
 | [references/product-pieces.md](references/product-pieces.md) | Building UI for a screen, panel, card or chart, or starting a new category: orientation, copy-length budgets, UI vocabulary, category kits, brand style notes. |
 | [references/scene-recipes.md](references/scene-recipes.md) | Choosing the moment and composing a scene: scene types, layout, links, line weight, art direction, plan template, worked examples. |
 
@@ -53,10 +65,11 @@ that from clip art, and every decision below serves them:
 3. **One grid.** Primitive positions and sizes are multiples of 0.5 world
    units; face details may use 0.25. Single icons fit the 8 × 8 × 8
    reference cube; stage scenes set their own bounds.
-4. **One light, rendered with light.** Shades come from L ∝ (1, 2, 3).
-   In `duotone` and `solid`, faces are gradient paints sealed in their own
-   colour, with a rim highlight on lit edges and a faint silhouette
-   hairline. No lines between faces. Only `line` draws outlines.
+4. **Ink by default.** `variant="ink"` draws flat faces and a constant
+   pixel outline (`--iso-edge-w` with `vector-effect: non-scaling-stroke`;
+   note vector-effect does not inherit, so it is set on every path). In
+   `duotone` and `solid`, shades come from L ∝ (1, 2, 3) as gradient
+   paints with rims and a faint hairline; `line` is the blueprint.
 5. **Everything solid declares its shadow shape** (`casts`), so shadows
    fall along the light from the real shape, onto the floor or onto a
    raised surface (`ground`).
@@ -132,6 +145,13 @@ charts must stand), content slots and props.
   `motion.*` element inside `Face`/`Slab`/`Panel` content. Animate wrapper
   `motion.g` groups (opacity, offsets in face units) and keep shapes as
   plain SVG; colour changes can be CSS transitions.
+- **Rig the objects.** Wrap each thing that acts in `Rig` with a pivot
+  where it would hinge or stand, and a `pose(ms)` built from the verb
+  presets (`hop`, `toss`, `press`, `jolt`, `lift`, `settle`) sampled on
+  the scene's `useClock(running, cycle)`. Followers take the same preset
+  shifted 60 to 120 ms (`shiftTrack`) and scaled 0.6 to 1.4
+  (`scaleTrack`). At least one part lags. Rigs nest. Anything a scene
+  projects itself inside a rig goes through `useRigged()`.
 - **Pick a connector nobody else uses.** How something travels between
   objects (a code to a laptop, a push to a monitor, traffic to a server)
   is part of each scene's identity. Choose one from the connector
@@ -226,10 +246,17 @@ and `content/agent-reference.json` together, following
 - [ ] Positions on the 0.5 grid; depth order right (far to near,
       x + y + z); tall things at the back.
 
-**Rendering**
-- [ ] No lines between faces outside `line`; rims on lit edges; faint
-      silhouette hairline.
-- [ ] Top lightest, right darkest, in light and dark themes.
+**Rendering (ink)**
+- [ ] Every visible edge carries the one ink outline at 1.3 px, the same
+      weight at every frame size and on every object; hard miter corners.
+- [ ] Three flat values per face, top lightest, right darkest, in light
+      and dark themes; no gradients, rims or hairlines outside `duotone`
+      and `solid`.
+- [ ] No base: the floor is shadows plus the dashed grid (`FloorGrid`).
+- [ ] One lit thing: a single object in the brand tone, bloomed if it
+      helps; everything else neutral surface.
+- [ ] Objects act through `Rig` on named presets; every beat is caused by
+      the one before, something lags, nothing pops with opacity.
 - [ ] Shadow shapes declared; shadows fall away from the light, onto the
       right surface.
 - [ ] Detail strokes use `isoStroke(k)`.
@@ -251,13 +278,26 @@ and `content/agent-reference.json` together, following
 
 | Scene | Code | Use case | Connector | Story |
 | --- | --- | --- | --- | --- |
-| `two-step-sign-in` | ISO-R87FKV | auth, SaaS security | arc comet | laptop asks for a code → phone receives it → code arcs across → digits land → "Welcome back"; drag to turn (−20°…35°) |
-| `push-to-deploy` | ISO-RPVRYG | hosting, CI/CD, devtools | arc comet (duplicate, to replace) | `git push` types in the laptop terminal → push arcs to the monitor → new deployment slides in, builds, turns Ready with a preview → terminal prints "✓ Live"; drag to turn (−12°…35°) |
-| `gradual-rollout` | ISO-7PVTRP | feature flags, progressive delivery | rails with trailing-dash packets | console moves a new version 10% → 50% → 100% → packets on the floor rails shift from v1 to v2, v1's lights dim → "Rolled out"; drag to turn (−15°…30°) |
+| `two-step-sign-in` | ISO-R87FKV | auth, SaaS security | continuity (code chip, tossed) | **The benchmark (ink, 2026-11-03):** no desk; a 12.5 × 6.6 screen floats over a dashed floor grid, phone beside it; the phone hops as the text lands; the code pops up (scale) as a lit chip with a bloom and is tossed on a lifted, tilting arc into the input; the screen is kicked back and settles; the boxes press in as digits land; brand-tinted shadows; leans with the pointer (−18°…30°), click replays; `screen` prop renders the buyer's own React UI (foreignObject, 40 px/unit) and follows the story (`SignInScreenState`) |
+| `push-to-deploy` | ISO-RPVRYG | hosting, CI/CD, devtools | cable with a light pulse | **Ink (2026-11-03):** no desk; 12.5 × 6.6 dashboard floats over the grid, a dark terminal tile lies beside it; `git push` types → the tile presses in on enter → a pulse runs down the cable → the dashboard is kicked back and settles as the new deployment slides in, builds, turns Ready with a preview → terminal prints "✓ Live"; leans with the pointer (−12°…30°), click replays; `screen` prop (`DeployScreenState`) |
+| `gradual-rollout` | ISO-7PVTRP | feature flags, progressive delivery | light rails with trailing-dash packets | **Ink (2026-11-03):** no plate; 12 × 6.2 console floats at the back left over the grid, rails are brand light tracks on the floor; console moves a new version 10% → 50% → 100%: v2 hops, turns brand and blooms (the one lit thing), the router presses as it re-splits, v1 sinks as its rail goes quiet, packets shift → "Rolled out" kicks the console back; leans with the pointer (−15°…30°), click replays; `screen` prop (`RolloutScreenState`) |
 
-## Known gaps (backlog, as of 2026-11-02)
+## Known gaps (backlog, as of 2026-11-03)
 
 Close these when the work touches them, and update this list:
+- The docs pages show one preview each; the "your own UI inside the
+  screen" section and its demo were removed at the user's request
+  (2026-11-03). The `screen` prop itself still ships.
+- Pull the shared shell (`useSceneShell`, `useReplayOnClick`,
+  `stageStyle`, `CustomScreen`, `Grain`), copied in each scene, into
+  `iso-core.tsx`. The user rejected floor light pools (2026-11-03).
+- A frame-check script (headless render of six points of each loop into
+  a contact sheet, seam and bounds checks) is planned, not built.
+- `Rig` rotations re-project geometry but face shading (`lit`) still uses
+  the unrotated normals; fine for small turns and for `ink`, wrong for a
+  box tossed 90° in `duotone`.
+- Ink: `Cylinder` and `Sphere` keep their lit rendering and seam strokes;
+  only `Box`, `Extrude` (Slab, Panel) and `Poly` take the ink edge.
 - Nine ecommerce icons (store, house, van, shelf, conveyor, box, bag, tag,
   phone) have no `casts` yet; they fall back to a soft oval. Also not
   re-checked after the rendering upgrade.
@@ -266,8 +306,6 @@ Close these when the work touches them, and update this list:
   not registered. Use or delete them as scenes need them.
 - `two-step-sign-in`, `push-to-deploy` and `gradual-rollout` have no card
   screenshots yet (`pnpm media`).
-- `push-to-deploy` reuses the arc comet from `two-step-sign-in`; swap it
-  for an unused connector (a cable on the desk fits: laptop → monitor).
 - `mirror` flips text on faces; a `mirrorable={false}` guard isn't built.
 - `Poly` faces are flat colours, not gradients.
 - Panels stand upright; there is no tilted-plane primitive yet (a laptop

@@ -1,23 +1,35 @@
 "use client";
 
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
 import {
+  Bloom,
   Box,
   Face,
   FacePath,
+  FloorGrid,
+  GLASS,
+  hop,
   ISO_MONO,
   IsoStage,
-  Panel,
-  Slab,
   isoStroke,
+  jolt,
+  Panel,
+  press,
+  Rig,
+  sample,
+  shiftTrack,
+  useClock,
   useIsoOrbit,
 } from "./iso-core";
 import type {
   IsoCast,
+  IsoPose,
+  IsoTrack,
   IsoOrbit,
   IsoRotate,
   IsoTone,
@@ -29,17 +41,21 @@ import type {
  * ANIMATION STORYBOARD
  *
  * One moment in an edge network: a feature flag rolls a new version out.
- * Traffic runs on rails cut into the floor plate; packets trail dashes.
+ * Traffic runs on light rails across the open floor; packets trail dashes.
  * Read top-to-bottom. Each value is ms after the scene comes into view.
  *
  *    0ms   rollout at the first step (10%): v2's rail carries 1 packet in 4
- * 1300ms   slider glides to 50%; v2's packets multiply, v1's thin out
+ * 1300ms   slider glides to 50%; v2 hops as its share jumps and lights up;
+ *          the router presses as it re-splits; v2's packets multiply
  * 2500ms   metrics confirm v2 is healthy (pill lights)
- * 3900ms   slider glides to 100%; v1's rail goes quiet, its lights dim
- * 5100ms   console reads "Rolled out"
+ * 3900ms   slider glides to 100%; v2 hops again, the router presses, v1
+ *          sinks a little as its rail goes quiet and its lights dim
+ * 5100ms   console reads "Rolled out" and is kicked back, settling
  * 9000ms   hold ends; back to the first step, play again
  *
  * Packets loop continuously (CSS), only their count follows the story.
+ * Drawn in ink over a floor grid; v2 is the one lit thing.
+ * The viewer leans the camera with the pointer and can click to replay.
  * Reduced motion: no timeline, no packets moving; the rolled-out state.
  * ───────────────────────────────────────────────────────── */
 
@@ -73,6 +89,8 @@ const rolloutAt = (stage: number, steps: readonly [number, number, number]) => {
 
 /* Shared motion */
 const FADE = { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const };
+const EASE_IN = [0.8, 0, 1, 1] as const;
+const EASE_OUT = [0.2, 0, 0, 1] as const;
 const GLIDE = { damping: 26, stiffness: 120, type: "spring" as const };
 
 /* Packets on the rails */
@@ -90,51 +108,53 @@ const PACKETS = {
 
 /* ───────────────────────── Geometry (world units) ─────────────────────── */
 
-// The floor plate everything stands on, and the height of its top.
-const TOP = 0.6;
-const PLATE = { at: [-9, -6, 0] as Vec3, size: [20.5, 11.5, TOP] as Vec3 };
-
-// Rollout console standing at the back left. The router's top stays below
-// its bottom edge and v1 starts right of its right edge on screen, so
-// nothing hides its copy at home.
+// The rollout console: a glass panel standing in open space at the back
+// left, floating a little above the floor. `at` is the top-left corner of
+// its front face. The router's top stays below its bottom edge and the
+// servers start right of its right edge on screen, so nothing hides its
+// copy at home.
 const CONSOLE = {
-  at: [-8, -4.5, TOP + 5.6] as Vec3,
-  depth: 0.4,
-  size: [9, 5.6] as const,
+  at: [-8.5, -4.5, 0.4 + 6.2] as Vec3,
+  depth: 0.45,
+  // Height of its bottom edge above the floor.
+  float: 0.4,
+  size: [12, 6.2] as const,
 };
+// The display inset from the panel's edge, in face units.
+const INSET = 0.35;
 
 // Edge router at the front centre; traffic enters its hidden back face
 // and leaves from its right face.
-const ROUTER = { at: [-2.5, 1, TOP] as Vec3, size: [3, 3, 1.2] as Vec3 };
+const ROUTER = { at: [-2.5, 1.5, 0] as Vec3, size: [3, 3, 1.2] as Vec3 };
 
 // Two server stacks at the back right, side by side, fronts to the viewer:
 // v1 (stable) then v2 (new). Rails reach their fronts across open floor,
 // so the split is never hidden behind a box.
 const SERVER = { d: 2.5, h: 3.4, w: 3, y: -4.5 };
-const V1: Vec3 = [3.75, SERVER.y, TOP];
-const V2: Vec3 = [7.75, SERVER.y, TOP];
+const V1: Vec3 = [6.25, SERVER.y, 0];
+const V2: Vec3 = [10.25, SERVER.y, 0];
 const FRONT_Y = SERVER.y + SERVER.d;
 
-// Rails as polylines in world x, y on the plate's top (z = TOP).
+// Rails as polylines in world x, y on the floor (z = 0).
 type Pt = readonly [number, number];
 const RAILS: Record<"in" | "v1" | "v2", readonly Pt[]> = {
   in: [
-    [-8.5, 2.5],
-    [-2.5, 2.5],
+    [-9, 3],
+    [-2.5, 3],
   ],
   v1: [
-    [0.5, 2.5],
-    [V1[0] + 1.5, 2.5],
+    [0.5, 3],
+    [V1[0] + 1.5, 3],
     [V1[0] + 1.5, FRONT_Y],
   ],
   v2: [
-    [0.5, 2.5],
-    [V2[0] + 1.5, 2.5],
+    [0.5, 3],
+    [V2[0] + 1.5, 3],
     [V2[0] + 1.5, FRONT_Y],
   ],
 };
 const RAIL = { half: 0.42 };
-const PLATE_TOP: Vec3 = [0, 0, TOP];
+const FLOOR: Vec3 = [0, 0, 0];
 
 const boxCast = (at: Vec3, size: Vec3): IsoCast => ({
   box: [at[0], at[1], size[0], size[1], size[2]],
@@ -143,42 +163,102 @@ const boxCast = (at: Vec3, size: Vec3): IsoCast => ({
 
 const CASTS: IsoCast[] = [
   {
+    // Kept low so the shadow reads as a pool at its foot, not a smear behind.
     box: [
       CONSOLE.at[0],
       CONSOLE.at[1] - CONSOLE.depth,
       CONSOLE.size[0],
       CONSOLE.depth,
-      CONSOLE.size[1],
+      1.8,
     ],
-    z: CONSOLE.at[2] - CONSOLE.size[1],
+    z: CONSOLE.float,
   },
   boxCast(ROUTER.at, ROUTER.size),
   boxCast(V1, [SERVER.w, SERVER.d, SERVER.h]),
   boxCast(V2, [SERVER.w, SERVER.d, SERVER.h]),
 ];
 
+// The frame fits the console, the servers, the router and the rails: no plate.
 const BOUNDS: Vec3[] = [
-  PLATE.at,
-  [PLATE.at[0] + PLATE.size[0], PLATE.at[1], 0],
-  [PLATE.at[0] + PLATE.size[0], PLATE.at[1] + PLATE.size[1], 0],
-  [PLATE.at[0], PLATE.at[1] + PLATE.size[1], 0],
+  CONSOLE.at,
+  [CONSOLE.at[0] + CONSOLE.size[0], CONSOLE.at[1], CONSOLE.at[2]],
+  [CONSOLE.at[0], CONSOLE.at[1], CONSOLE.float],
   [CONSOLE.at[0], CONSOLE.at[1] - CONSOLE.depth, CONSOLE.at[2]],
   [
     CONSOLE.at[0] + CONSOLE.size[0],
     CONSOLE.at[1] - CONSOLE.depth,
     CONSOLE.at[2],
   ],
+  [V2[0] + SERVER.w, SERVER.y, SERVER.h],
+  [V2[0] + SERVER.w, SERVER.y, 0],
+  [V2[0] + SERVER.w, FRONT_Y, 0],
+  [RAILS.in[0][0] - RAIL.half, RAILS.in[0][1] + RAIL.half, 0],
+  [ROUTER.at[0], ROUTER.at[1] + ROUTER.size[1], 0],
+  [ROUTER.at[0] + ROUTER.size[0], ROUTER.at[1] + ROUTER.size[1], 0],
+  [V2[0] + 1.5 + RAIL.half, 3 + RAIL.half, 0],
 ];
 
-// The camera turns around the middle of the plate.
-const PIVOT: readonly [number, number] = [
-  PLATE.at[0] + PLATE.size[0] / 2,
-  PLATE.at[1] + PLATE.size[1] / 2,
+// The construction grid under everything.
+const GRID = { at: [-10, -6] as const, size: [26, 12] as const };
+
+// Rig pivots: boxes stand on their base centre, the console on its foot.
+const base = (at: Vec3, size: Vec3): Vec3 => [
+  at[0] + size[0] / 2,
+  at[1] + size[1] / 2,
+  0,
 ];
+const SERVER_SIZE: Vec3 = [SERVER.w, SERVER.d, SERVER.h];
+const V1_PIVOT = base(V1, SERVER_SIZE);
+const V2_PIVOT = base(V2, SERVER_SIZE);
+const ROUTER_PIVOT = base(ROUTER.at, ROUTER.size);
+const CONSOLE_PIVOT: Vec3 = [
+  CONSOLE.at[0] + CONSOLE.size[0] / 2,
+  CONSOLE.at[1],
+  0,
+];
+
+/* Tracks, on the storyboard's clock (ms since the scene started). */
+
+// A track that fires twice: at the half step, and again at full.
+const twice = (make: (start: number) => IsoTrack): IsoTrack => [
+  ...make(TIMING.half),
+  ...shiftTrack(make(0), TIMING.full),
+];
+// v2 hops as its share jumps.
+const V2_TRACK = twice((t) => hop(1.1, t));
+// The router presses as it re-splits the traffic.
+const ROUTER_TRACK = twice((t) => press(0.3, t + 80));
+// v1 sinks a little, and stays down, as its rail goes quiet.
+const V1_TRACK: IsoTrack = [
+  [TIMING.full, 1, EASE_IN],
+  [TIMING.full + 260, 0.94, EASE_OUT],
+  [TIMING.full + 460, 0.955],
+];
+// The console takes "Rolled out": kicked back (−y), settles, holds, home.
+const CONSOLE_TRACK = jolt(0.35, TIMING.done, 600);
+
+const v2Pose = (ms: number): IsoPose => ({
+  offset: [0, 0, sample(V2_TRACK, ms)],
+});
+const routerPose = (ms: number): IsoPose => ({
+  scale: [1, 1, sample(ROUTER_TRACK, ms)],
+});
+const v1Pose = (ms: number): IsoPose => ({
+  scale: [1, 1, sample(V1_TRACK, ms)],
+});
+const consolePose = (ms: number): IsoPose => ({
+  offset: [0, -sample(CONSOLE_TRACK, ms), 0],
+});
+
+// The camera turns around the middle of the floor.
+const PIVOT: readonly [number, number] = [1, 0];
 
 // The console faces one way: turning toward it (+) reads well, away (−)
 // soon foreshortens its copy.
 const DEFAULT_ORBIT: IsoOrbit = [-15, 30];
+
+// CSS pixels per world unit for UI rendered into the screen with `screen`.
+const SCREEN_PX = 40;
 
 /* ─────────────────────────── Rails (math) ─────────────────────────────── */
 
@@ -215,8 +295,8 @@ const offsetLine = (pts: readonly Pt[], d: number): Pt[] =>
     return [p[0] + n[0] * d, p[1] + n[1] * d];
   });
 
-// The groove under a rail: one rectangle per segment, padded at both ends
-// so turns close, in plate (face) units.
+// The glow under a rail: one rectangle per segment, padded at both ends
+// so turns close, in floor (face) units.
 const grooveRects = (pts: readonly Pt[]) =>
   pts.slice(1).map((b, i) => {
     const a = pts[i];
@@ -233,15 +313,18 @@ const grooveRects = (pts: readonly Pt[]) =>
 
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
 
+// A rail is a light track on the floor: two hairlines in the brand colour
+// with a faint glow between them.
 const Rail = ({ pts }: { pts: readonly Pt[] }) => (
   <>
-    <Face at={PLATE_TOP} plane="top">
+    <Face at={FLOOR} plane="top">
       {grooveRects(pts).map((r) => (
         <rect
-          fill="var(--iso-text)"
+          fill="var(--iso-glow)"
           height={r.h}
           key={r.key}
           opacity={0.07}
+          rx={RAIL.half}
           width={r.w}
           x={r.x}
           y={r.y}
@@ -250,13 +333,14 @@ const Rail = ({ pts }: { pts: readonly Pt[] }) => (
     </Face>
     {[RAIL.half, -RAIL.half].map((d) => (
       <FacePath
-        at={PLATE_TOP}
+        at={FLOOR}
         d={railD(offsetLine(pts, d))}
         fill="none"
         key={d}
+        opacity={0.35}
         plane="top"
-        stroke="var(--iso-contour)"
-        style={{ strokeWidth: isoStroke(0.7, 0.08) }}
+        stroke="var(--iso-glow)"
+        style={{ strokeWidth: isoStroke(0.6, 0.07) }}
       />
     ))}
   </>
@@ -284,7 +368,7 @@ const Packets = ({
     <g>
       {Array.from({ length: PACKETS.count }, (_, i) => (
         <FacePath
-          at={PLATE_TOP}
+          at={FLOOR}
           className={
             still
               ? undefined
@@ -436,25 +520,27 @@ const Console = ({
   steps,
   copy,
   w,
+  h,
 }: {
   stage: number;
   steps: readonly [number, number, number];
   copy: ConsoleCopy;
   w: number;
+  h: number;
 }) => {
   const pct = rolloutAt(stage, steps);
-  const track = { w: w - 1.1, x: 0.55, y: 2.85 };
+  const track = { w: w - 1.4, x: 0.7, y: 3.05 };
   const healthy = stage >= STAGE.healthy;
   const done = stage >= STAGE.done;
   return (
     <>
       <rect
         fill="var(--iso-screen)"
-        height={5.6 - 0.6}
-        rx={0.35}
-        width={w - 0.6}
-        x={0.3}
-        y={0.3}
+        height={h - 2 * INSET}
+        rx={0.45}
+        width={w - 2 * INSET}
+        x={INSET}
+        y={INSET}
       />
       <rect
         fill="var(--iso-glow)"
@@ -510,11 +596,12 @@ const Console = ({
       </text>
       <text
         fill="var(--iso-screen-ink)"
-        fontSize={0.75}
+        fontSize={0.95}
         fontWeight={600}
+        letterSpacing={-0.02}
         style={{ fontVariantNumeric: "tabular-nums" }}
         x={0.7}
-        y={2.55}
+        y={2.7}
       >
         {`${pct}%`}
       </text>
@@ -562,7 +649,7 @@ const Console = ({
         fontSize={0.24}
         opacity={0.6}
         x={0.7}
-        y={3.6}
+        y={3.85}
       >
         {`v1 ${100 - pct}%`}
       </text>
@@ -572,7 +659,7 @@ const Console = ({
         fontSize={0.24}
         textAnchor="end"
         x={w - 0.7}
-        y={3.6}
+        y={3.85}
       >
         {`v2 ${pct}%`}
       </text>
@@ -582,14 +669,14 @@ const Console = ({
         opacity={0.12}
         width={w - 1.4}
         x={0.7}
-        y={3.95}
+        y={4.2}
       />
       <text
         fill="var(--iso-screen-ink)"
         fontSize={0.26}
         opacity={0.5}
         x={0.7}
-        y={4.55}
+        y={4.85}
       >
         Error rate
       </text>
@@ -598,7 +685,7 @@ const Console = ({
         fontFamily={ISO_MONO}
         fontSize={0.3}
         x={0.7}
-        y={4.95}
+        y={5.25}
       >
         {copy.errorRate}
       </text>
@@ -607,7 +694,7 @@ const Console = ({
         fontSize={0.26}
         opacity={0.5}
         x={3.3}
-        y={4.55}
+        y={4.85}
       >
         p95
       </text>
@@ -616,7 +703,7 @@ const Console = ({
         fontFamily={ISO_MONO}
         fontSize={0.3}
         x={3.3}
-        y={4.95}
+        y={5.25}
       >
         {copy.latency}
       </text>
@@ -632,11 +719,11 @@ const Console = ({
           rx={0.25}
           width={1.7}
           x={w - 2.4}
-          y={4.5}
+          y={4.8}
         />
         <circle
           cx={w - 2.1}
-          cy={4.75}
+          cy={5.05}
           fill={healthy ? "var(--iso-glow)" : "var(--iso-screen-ink)"}
           r={0.08}
         />
@@ -645,13 +732,203 @@ const Console = ({
           fontSize={0.26}
           fontWeight={600}
           x={w - 1.9}
-          y={4.84}
+          y={5.14}
         >
           Healthy
         </text>
       </motion.g>
     </>
   );
+};
+
+/** What the console is showing, for UI passed in through `screen`. */
+export interface RolloutScreenState {
+  /** "start" (first step), "half", "healthy", "full", "done". */
+  step: "start" | "half" | "healthy" | "full" | "done";
+  /** The rollout percentage at this step. */
+  percent: number;
+  /** The feature flag's name. */
+  flag: string;
+  /** Error rate copy, e.g. "0.00%". */
+  errorRate: string;
+  /** p95 latency copy, e.g. "212 ms". */
+  latency: string;
+}
+
+const stepOf = (stage: number): RolloutScreenState["step"] => {
+  if (stage >= STAGE.done) {
+    return "done";
+  }
+  if (stage >= STAGE.full) {
+    return "full";
+  }
+  if (stage >= STAGE.healthy) {
+    return "healthy";
+  }
+  if (stage >= STAGE.half) {
+    return "half";
+  }
+  return "start";
+};
+
+const resolveScreen = (
+  screen: ReactNode | ((state: RolloutScreenState) => ReactNode),
+  state: RolloutScreenState
+) => (typeof screen === "function" ? screen(state) : screen);
+
+/** Any React UI, rendered into the screen's face at SCREEN_PX per unit. */
+const CustomScreen = ({
+  children,
+  w,
+  h,
+}: {
+  children: ReactNode;
+  w: number;
+  h: number;
+}) => {
+  const dw = w - 2 * INSET;
+  const dh = h - 2 * INSET;
+  return (
+    <>
+      <rect
+        fill="var(--iso-screen)"
+        height={dh}
+        rx={0.45}
+        width={dw}
+        x={INSET}
+        y={INSET}
+      />
+      <foreignObject
+        height={dh * SCREEN_PX}
+        style={{ overflow: "hidden" }}
+        transform={`translate(${INSET} ${INSET}) scale(${1 / SCREEN_PX})`}
+        width={dw * SCREEN_PX}
+      >
+        <div
+          className="size-full overflow-hidden"
+          style={{
+            borderRadius: 0.45 * SCREEN_PX,
+            height: dh * SCREEN_PX,
+            width: dw * SCREEN_PX,
+          }}
+        >
+          {children}
+        </div>
+      </foreignObject>
+    </>
+  );
+};
+
+/** The built-in console, or whatever `screen` provides. */
+const ScreenContent = ({
+  custom,
+  copy,
+  stage,
+  steps,
+  w,
+  h,
+}: {
+  custom: ReactNode;
+  copy: ConsoleCopy;
+  stage: number;
+  steps: readonly [number, number, number];
+  w: number;
+  h: number;
+}) =>
+  custom === undefined ? (
+    <Console copy={copy} h={h} stage={stage} steps={steps} w={w} />
+  ) : (
+    <CustomScreen h={h} w={w}>
+      {custom}
+    </CustomScreen>
+  );
+
+/** Film grain over the whole stage, so flat colour reads as rendered. */
+const Grain = ({ uid }: { uid: string }) => (
+  <>
+    <defs>
+      <filter id={`${uid}-grain`}>
+        <feTurbulence
+          baseFrequency="9"
+          numOctaves="2"
+          result="noise"
+          stitchTiles="stitch"
+          type="fractalNoise"
+        />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+    </defs>
+    <rect
+      fill="white"
+      filter={`url(#${uid}-grain)`}
+      height="400%"
+      opacity={0.07}
+      style={{ mixBlendMode: "overlay", pointerEvents: "none" }}
+      width="400%"
+      x="-200%"
+      y="-200%"
+    />
+  </>
+);
+
+/** The floor's construction grid, when wanted. */
+const Ground = ({ show }: { show: boolean }) =>
+  show ? <FloorGrid at={GRID.at} size={GRID.size} step={2} /> : null;
+
+/** Film grain, for the lit variants only. */
+const Film = ({ show, uid }: { show: boolean; uid: string }) =>
+  show ? <Grain uid={uid} /> : null;
+
+/** Glass fronts belong to the lit and ink variants, not the blueprint. */
+const glass = (line: boolean) => (line ? undefined : GLASS);
+
+/** A still scene has no orbit. */
+const orbitFor = (rotate: IsoRotate, orbit: IsoOrbit): IsoOrbit =>
+  rotate === "off" ? 0 : orbit;
+
+interface PointerLike {
+  button: number;
+  clientX: number;
+  clientY: number;
+  currentTarget: Element;
+  pointerId: number;
+}
+interface OrbitHandlers {
+  onPointerDown?: (e: PointerLike) => void;
+  onPointerUp?: () => void;
+}
+
+/** Stage overrides for the benchmark look: no hairline, brand-tinted shadow. */
+const stageStyle = (line: boolean) =>
+  ({
+    // Edgeless variants rely on light and shadow alone: no hairline.
+    "--iso-contour-w": line ? undefined : "0",
+    // Shadows carry the brand: a deep tint of the tone, not grey.
+    "--iso-shadow":
+      "color-mix(in oklab, color-mix(in oklab, var(--iso-tone) 45%, black) 20%, transparent)",
+  }) as CSSProperties;
+
+/** Pointer handlers that keep the orbit working and replay on a plain click. */
+const useReplayOnClick = (orbitProps: object, onClick: (() => void) | null) => {
+  const pressed = useRef({ x: 0, y: 0 });
+  const handlers = orbitProps as OrbitHandlers;
+  return {
+    onPointerDown: (e: PointerLike) => {
+      pressed.current = { x: e.clientX, y: e.clientY };
+      handlers.onPointerDown?.(e);
+    },
+    onPointerUp: (e: PointerLike) => {
+      handlers.onPointerUp?.();
+      const moved =
+        Math.hypot(
+          e.clientX - pressed.current.x,
+          e.clientY - pressed.current.y
+        ) > 6;
+      if (onClick && !moved) {
+        onClick();
+      }
+    },
+  };
 };
 
 /* ───────────────────────────── Story ──────────────────────────────────── */
@@ -665,7 +942,7 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
   rotate === "off"
     ? {}
     : {
-        "aria-label": `${title ?? "Illustration"}. Drag sideways or use the left and right arrow keys to turn it.`,
+        "aria-label": `${title ?? "Illustration"}. Move the pointer or use the left and right arrow keys to turn it.`,
         role: "group",
       };
 
@@ -710,7 +987,55 @@ const useStory = ({
       }
     };
   }, [inView, still, loop, cycle]);
-  return stage;
+  const replay = () => setCycle((c) => c + 1);
+  return { cycle, replay, stage };
+};
+
+/** Everything a scene's shell needs: the clock, the camera, the pointer. */
+const useSceneShell = ({
+  autoPlay,
+  loop,
+  orbit,
+  replayOnClick,
+  rotate,
+  variant,
+}: {
+  autoPlay: boolean;
+  loop: boolean;
+  orbit: IsoOrbit;
+  replayOnClick: boolean;
+  rotate: IsoRotate;
+  variant: IsoVariant;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+  const reduced = useReducedMotion() ?? false;
+  const still = reduced || !autoPlay;
+  const { cycle, stage, replay } = useStory({ inView, loop, still });
+  // The rigs' clock: runs while the story plays, restarts with every cycle.
+  const clock = useClock(inView && !still, cycle);
+  const uid = useId().replaceAll(/[^a-zA-Z0-9_-]/g, "");
+  const { camera, orbitProps } = useIsoOrbit({
+    mode: rotate,
+    orbit,
+    pivot: PIVOT,
+    reduced,
+  });
+  const pointer = useReplayOnClick(
+    orbitProps,
+    replayOnClick && !still ? replay : null
+  );
+  return {
+    camera,
+    clock,
+    line: variant === "line",
+    orbitProps,
+    pointer,
+    ref,
+    stage,
+    still,
+    uid,
+  };
 };
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
@@ -718,11 +1043,11 @@ const useStory = ({
 export interface GradualRolloutProps {
   /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. */
   tone?: IsoTone;
-  /** Colour of lit details (packets of the new version, slider, lights). Defaults to `tone`. */
+  /** Colour of lit details (rails, packets of the new version, slider, lights). Defaults to `tone`. */
   accent?: IsoTone;
-  /** Soft tint, full colour, or outlined. */
+  /** Flat ink drawing (default), soft tint, full colour, or blueprint outline. */
   variant?: IsoVariant;
-  /** Edge weight in canvas units: rims, hairlines and rails, or outlines in `line`. */
+  /** Line weight: in `ink` 0.3 is a 1.3 px outline at any size; rims and rails or outlines elsewhere. */
   strokeWidth?: number;
   /** Feature flag name on the console, up to about 16 characters. */
   flag?: string;
@@ -736,14 +1061,24 @@ export interface GradualRolloutProps {
   stableLabel?: string;
   /** Label on the new server's front, up to about 4 characters. */
   canaryLabel?: string;
+  /**
+   * Your own UI inside the console instead of the built-in one: any React
+   * node, or a function of the story's state (`step`, `percent` and the
+   * copy) so your UI follows the rollout. It renders at 452 × 220 CSS px
+   * (the screen is 11.3 × 5.5 units at 40 px per unit) and is projected
+   * into the scene; the rails and servers still play.
+   */
+  screen?: ReactNode | ((state: RolloutScreenState) => ReactNode);
   /** Play when the scene scrolls into view. Off shows the rolled-out end state. */
   autoPlay?: boolean;
   /** Replay after a pause. Off plays once and holds the end state. */
   loop?: boolean;
+  /** Clicking the scene replays the story. */
+  replayOnClick?: boolean;
   /**
-   * Let the viewer turn the plate: "drag" (drag sideways or use the arrow
-   * keys; it springs back on release), "pointer" (leans toward the
-   * pointer), or "off".
+   * Let the viewer turn the scene: "pointer" (leans toward the pointer
+   * and settles back), "drag" (drag sideways or use the arrow keys), or
+   * "off".
    */
   rotate?: IsoRotate;
   /**
@@ -752,6 +1087,10 @@ export interface GradualRolloutProps {
    * copy stays readable. Each side is capped at 40.
    */
   orbit?: IsoOrbit;
+  /** Dashed construction grid on the floor. */
+  grid?: boolean;
+  /** Film grain over the scene (off in ink). */
+  grain?: boolean;
   /** Accessible description. Without it the scene is decorative. */
   title?: string;
   /** Classes for the wrapper; size the scene with width (it keeps its aspect ratio). */
@@ -761,15 +1100,19 @@ export interface GradualRolloutProps {
 const DEFAULT_STEPS: readonly [number, number, number] = [10, 50, 100];
 
 /**
- * Gradual rollout, in isometric: a feature flag's console moves a new
- * version from 10% to 100% of traffic, and the packets on the floor's rails
- * shift from the stable server to the new one. Follows the shadcn theme;
- * plays in view, loops, and can be turned by the viewer.
+ * Gradual rollout, in isometric ink: a feature flag's console moves a new
+ * version from 10% to 100% of traffic; the new server hops and lights up
+ * as its share jumps, the router presses as it re-splits, the old server
+ * sinks as its rail goes quiet, and the packets on the light rails shift
+ * across. Flat ink drawing with one even outline, objects that move as
+ * solids, the camera leans with the pointer, and `screen` puts your own
+ * React UI inside the console. Follows the shadcn theme; plays in view,
+ * loops.
  */
 export const GradualRollout = ({
   tone = "primary",
   accent,
-  variant = "duotone",
+  variant = "ink",
   strokeWidth = 0.3,
   flag = "new-checkout",
   steps = DEFAULT_STEPS,
@@ -777,28 +1120,29 @@ export const GradualRollout = ({
   latency = "212 ms",
   stableLabel = "v1",
   canaryLabel = "v2",
+  screen,
   autoPlay = true,
   loop = true,
-  rotate = "drag",
+  replayOnClick = true,
+  rotate = "pointer",
   orbit = DEFAULT_ORBIT,
+  grid = true,
+  grain = false,
   title,
   className,
 }: GradualRolloutProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReducedMotion() ?? false;
-  const still = reduced || !autoPlay;
-  const stage = useStory({ inView, loop, still });
-  const { camera, orbitProps } = useIsoOrbit({
-    mode: rotate,
-    orbit,
-    pivot: PIVOT,
-    reduced,
-  });
+  const { camera, clock, line, orbitProps, pointer, ref, stage, still, uid } =
+    useSceneShell({ autoPlay, loop, orbit, replayOnClick, rotate, variant });
   const pct = rolloutAt(stage, steps);
   const newShare = packetsFor(pct);
   const oldShare = packetsFor(100 - pct);
-  const serverSize: Vec3 = [SERVER.w, SERVER.d, SERVER.h];
+  const serverSize = SERVER_SIZE;
+  const copy: ConsoleCopy = { errorRate, flag, latency };
+  const custom = resolveScreen(screen, {
+    ...copy,
+    percent: pct,
+    step: stepOf(stage),
+  });
   return (
     <div
       {...turnableLabel(rotate, title)}
@@ -809,19 +1153,17 @@ export const GradualRollout = ({
       data-slot="gradual-rollout"
       ref={ref}
       {...orbitProps}
+      onPointerDown={pointer.onPointerDown}
+      onPointerUp={pointer.onPointerUp}
     >
       <IsoStage
         accent={accent}
-        base={
-          <Slab at={PLATE.at} palette="surface" radius={1} size={PLATE.size} />
-        }
-        baseCasts={[boxCast(PLATE.at, PLATE.size)]}
         bounds={BOUNDS}
         camera={camera}
         casts={CASTS}
-        ground={TOP}
-        orbit={rotate === "off" ? 0 : orbit}
+        orbit={orbitFor(rotate, orbit)}
         strokeWidth={strokeWidth}
+        style={stageStyle(line)}
         title={title}
         tone={tone}
         variant={variant}
@@ -829,49 +1171,69 @@ export const GradualRollout = ({
         <style>
           {`@keyframes iso-rail{from{stroke-dashoffset:${PACKETS.span}}to{stroke-dashoffset:-100}}@keyframes iso-blink{0%,100%{opacity:1}50%{opacity:.25}}`}
         </style>
+        <Ground show={grid} />
         <Rail pts={RAILS.in} />
         <Rail pts={RAILS.v1} />
         <Rail pts={RAILS.v2} />
         <Packets lit pts={RAILS.in} shown={PACKETS.count} still={still} />
         <Packets lit={false} pts={RAILS.v1} shown={oldShare} still={still} />
         <Packets lit pts={RAILS.v2} shown={newShare} still={still} />
-        <Panel
-          at={CONSOLE.at}
-          content={(w) => (
-            <Console
-              copy={{ errorRate, flag, latency }}
-              stage={stage}
-              steps={steps}
-              w={w}
-            />
-          )}
-          depth={CONSOLE.depth}
-          radius={0.45}
-          size={CONSOLE.size}
-        />
-        <Box
-          at={V1}
-          left={(w, h) => (
-            <RackFace
-              active={oldShare > 0}
-              h={h}
-              label={stableLabel}
-              note="stable"
-              w={w}
-            />
-          )}
-          palette="surface"
-          size={serverSize}
-        />
-        <Box
-          at={V2}
-          left={(w, h) => (
-            <RackFace active h={h} label={canaryLabel} note={flag} w={w} />
-          )}
-          palette="surface"
-          size={serverSize}
-        />
-        <Router />
+        <Rig clock={clock} pivot={CONSOLE_PIVOT} pose={consolePose}>
+          <Panel
+            at={CONSOLE.at}
+            content={(w, h) => (
+              <ScreenContent
+                copy={copy}
+                custom={custom}
+                h={h}
+                stage={stage}
+                steps={steps}
+                w={w}
+              />
+            )}
+            depth={CONSOLE.depth}
+            frontStyle={glass(line)}
+            radius={0.6}
+            size={CONSOLE.size}
+          />
+        </Rig>
+        <Rig clock={clock} pivot={V1_PIVOT} pose={v1Pose}>
+          <Box
+            at={V1}
+            left={(w, h) => (
+              <RackFace
+                active={oldShare > 0}
+                h={h}
+                label={stableLabel}
+                note="stable"
+                w={w}
+              />
+            )}
+            palette="surface"
+            size={serverSize}
+          />
+        </Rig>
+        <Rig clock={clock} pivot={V2_PIVOT} pose={v2Pose}>
+          <motion.g
+            animate={{ opacity: stage >= STAGE.half ? 1 : 0 }}
+            initial={false}
+            transition={FADE}
+          >
+            <Bloom at={V2} size={serverSize} strength={0.7} />
+          </motion.g>
+          <Box
+            at={V2}
+            left={(w, h) => (
+              <RackFace active h={h} label={canaryLabel} note={flag} w={w} />
+            )}
+            palette={stage >= STAGE.half ? "main" : "surface"}
+            size={serverSize}
+          />
+        </Rig>
+        <Rig clock={clock} pivot={ROUTER_PIVOT} pose={routerPose}>
+          <Router />
+        </Rig>
+        <Film show={grain && !line} uid={uid} />
       </IsoStage>
     </div>
   );

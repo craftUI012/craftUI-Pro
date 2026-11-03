@@ -1,21 +1,30 @@
 "use client";
 
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
 import {
-  Box,
+  FloorGrid,
+  GLASS,
   ISO_MONO,
   IsoStage,
+  jolt,
   Panel,
-  Slab,
+  press,
   projectWith,
+  Rig,
+  sample,
+  Slab,
+  useClock,
   useIsoOrbit,
 } from "./iso-core";
 import type {
   IsoCamera,
+  IsoPose,
+  IsoTrack,
   IsoCast,
   IsoOrbit,
   IsoRotate,
@@ -27,20 +36,25 @@ import type {
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
  *
- * One moment at a desk: a developer pushes from the laptop's terminal, and
- * the monitor behind it shows the deployment build and go live.
+ * One moment: a developer pushes from a terminal tile in front, the push
+ * runs down a cable on the floor, and the dashboard floating behind shows
+ * the deployment build and go live.
  * Read top-to-bottom. Each value is ms after the scene comes into view.
  *
  *    0ms   monitor lists the project's deployments; terminal at the prompt
  *  300ms   "git push" types out (60ms a key)
- *  900ms   enter: the terminal answers "→ Deploying …"
- * 1200ms   the push arcs from the laptop to the monitor (700ms)
- * 1900ms   a new deployment slides in on top: Building; older rows move down
+ *  900ms   enter: the terminal tile presses in and pops back; it answers
+ *          "→ Deploying …"
+ * 1200ms   a pulse runs down the cable from the terminal to the dashboard (700ms)
+ * 1900ms   the pulse hits: the dashboard is kicked back and settles; a new
+ *          deployment slides in on top: Building; older rows move down
  * 2100ms   the build bar fills (1.6s); terminal streams the build
  * 3800ms   the card turns Ready, preview thumbnail fades in
  * 4300ms   terminal prints "✓ Live at …"; the domain pill lights
  * 8000ms   hold ends; the scene resets and plays again
  *
+ * The viewer leans the camera with the pointer and can click to replay.
+ * Drawn in ink over a floor grid.
  * Reduced motion: no timeline; the live end state is shown.
  * ───────────────────────────────────────────────────────── */
 
@@ -102,109 +116,132 @@ const BUILD = {
   ease: [0.3, 0, 0.2, 1] as const,
 };
 
-/* The push's flight from laptop to monitor */
-const FLIGHT = {
-  // Dash length, as a % of the arc.
-  comet: 16,
+/* The pulse running down the cable */
+const PULSE = {
   // Seconds.
   duration: 0.7,
   ease: [0.45, 0, 0.55, 1] as const,
+  // Dash length, as a % of the cable.
+  head: 14,
 };
 
 /* ───────────────────────── Geometry (world units) ─────────────────────── */
 
-// The desk everything sits on, and the height of its top.
-const TOP = 0.4;
-const DESK = { at: [-8.5, -6.6, 0] as Vec3, size: [14.5, 12.6, TOP] as Vec3 };
-
-// Monitor at the back: a base slab, a neck, and a wide screen facing the
-// viewer, its bottom edge at z 2.
-const MONITOR = {
-  base: { at: [-4, -6, TOP] as Vec3, size: [4, 2.2, 0.25] as Vec3 },
-  neck: { at: [-2.5, -5, TOP + 0.25] as Vec3, size: [1, 0.6, 1.4] as Vec3 },
-  screen: {
-    at: [-7.5, -4, 2 + 6.6] as Vec3,
-    depth: 0.4,
-    size: [11, 6.6] as const,
-  },
+// The dashboard: a glass panel standing in open space, floating a little
+// above the floor. `at` is the top-left corner of its front face.
+const SCREEN = {
+  at: [-6.25, 0, 7] as Vec3,
+  depth: 0.45,
+  // Height of its bottom edge above the floor.
+  float: 0.4,
+  size: [12.5, 6.6] as const,
 };
+// The display inset from the panel's edge, in face units.
+const INSET = 0.35;
 
-// Laptop at the front left: base and an upright terminal screen. Its
-// screen's top stays below the monitor's bottom edge wherever they overlap
-// on screen, so neither hides the other at home.
-const LAPTOP = {
-  base: { at: [-6.5, 1, TOP] as Vec3, size: [6.5, 4.5, 0.3] as Vec3 },
-  screen: {
-    at: [-6.5, 1.4, TOP + 0.3 + 4.2] as Vec3,
-    depth: 0.25,
-    size: [6.5, 4.2] as const,
-  },
+// The terminal: a dark glass tile lying flat beside the dashboard's right
+// edge, nearer the viewer, like a console deck.
+const TERMINAL = {
+  at: [6.9, -3.2, 0] as Vec3,
+  size: [7.2, 4.4, 0.3] as Vec3,
 };
-
-const boxCast = ({ at, size }: { at: Vec3; size: Vec3 }): IsoCast => ({
-  box: [at[0], at[1], size[0], size[1], size[2]],
-  z: at[2],
-});
 
 const panelCast = (p: {
   at: Vec3;
   depth: number;
   size: readonly [number, number];
+  float: number;
 }): IsoCast => ({
-  box: [p.at[0], p.at[1] - p.depth, p.size[0], p.depth, p.size[1]],
-  z: p.at[2] - p.size[1],
+  // Kept low so the shadow reads as a pool at its foot, not a smear behind.
+  box: [p.at[0], p.at[1] - p.depth, p.size[0], p.depth, 1.8],
+  z: p.float,
 });
 
 const CASTS: IsoCast[] = [
-  boxCast(MONITOR.base),
-  boxCast(MONITOR.neck),
-  panelCast(MONITOR.screen),
-  boxCast(LAPTOP.base),
-  panelCast(LAPTOP.screen),
+  panelCast(SCREEN),
+  {
+    box: [
+      TERMINAL.at[0],
+      TERMINAL.at[1],
+      TERMINAL.size[0],
+      TERMINAL.size[1],
+      TERMINAL.size[2],
+    ],
+  },
 ];
 
+// The frame fits the dashboard and the terminal, nothing else: no desk.
 const BOUNDS: Vec3[] = [
-  DESK.at,
-  [DESK.at[0] + DESK.size[0], DESK.at[1], 0],
-  [DESK.at[0] + DESK.size[0], DESK.at[1] + DESK.size[1], 0],
-  [DESK.at[0], DESK.at[1] + DESK.size[1], 0],
-  [MONITOR.screen.at[0], MONITOR.screen.at[1] - 0.4, MONITOR.screen.at[2]],
-  [
-    MONITOR.screen.at[0] + MONITOR.screen.size[0],
-    MONITOR.screen.at[1] - 0.4,
-    MONITOR.screen.at[2],
-  ],
+  SCREEN.at,
+  [SCREEN.at[0] + SCREEN.size[0], SCREEN.at[1], SCREEN.at[2]],
+  [SCREEN.at[0], SCREEN.at[1], SCREEN.float],
+  [SCREEN.at[0] + SCREEN.size[0], SCREEN.at[1], SCREEN.float],
+  [SCREEN.at[0], SCREEN.at[1] - SCREEN.depth, SCREEN.at[2]],
+  [SCREEN.at[0] + SCREEN.size[0], SCREEN.at[1] - SCREEN.depth, SCREEN.at[2]],
+  TERMINAL.at,
+  [TERMINAL.at[0] + TERMINAL.size[0], TERMINAL.at[1], 0],
+  [TERMINAL.at[0] + TERMINAL.size[0], TERMINAL.at[1] + TERMINAL.size[1], 0],
+  [TERMINAL.at[0], TERMINAL.at[1] + TERMINAL.size[1], 0],
 ];
 
-// The camera turns around the middle of the desk.
-const PIVOT: readonly [number, number] = [
-  DESK.at[0] + DESK.size[0] / 2,
-  DESK.at[1] + DESK.size[1] / 2,
+// The construction grid under everything.
+const GRID = { at: [-9, -5] as const, size: [24, 12] as const };
+
+// Rig pivots: the dashboard slides about its foot, the terminal presses
+// into the floor about its base centre.
+const SCREEN_PIVOT: Vec3 = [SCREEN.at[0] + SCREEN.size[0] / 2, SCREEN.at[1], 0];
+const TERMINAL_PIVOT: Vec3 = [
+  TERMINAL.at[0] + TERMINAL.size[0] / 2,
+  TERMINAL.at[1] + TERMINAL.size[1] / 2,
+  0,
 ];
 
-// Turning toward the screens (+) reads well; away (−) turns both big
-// screens edge-on quickly (−20° already crushes the copy), so keep it short.
-const DEFAULT_ORBIT: IsoOrbit = [-12, 35];
+/* Tracks, on the storyboard's clock (ms since the scene started). */
 
-// The push: a quadratic arc in 3D from the terminal to the new card on the
-// monitor, sampled and projected through the camera (math §3, §7b).
-const ARC = {
-  from: [-3.25, 1.42, 3.2] as Vec3,
-  peak: [-1.5, -1.5, 11] as Vec3,
-  to: [-2.5, -3.98, 6.1] as Vec3,
+// The terminal takes the keystroke: pressed into the floor, pops back.
+const TERMINAL_TRACK: IsoTrack = press(0.45, TIMING.commandSent - 40);
+// The dashboard takes the pulse: kicked back (−y), settles, holds, home.
+const SCREEN_TRACK: IsoTrack = jolt(0.4, TIMING.cardArrives, 500);
+
+const terminalPose = (ms: number): IsoPose => ({
+  scale: [1, 1, sample(TERMINAL_TRACK, ms)],
+});
+const screenPose = (ms: number): IsoPose => ({
+  offset: [0, -sample(SCREEN_TRACK, ms), 0],
+});
+
+// The camera turns around the foot of the dashboard.
+const PIVOT: readonly [number, number] = [0, 0.5];
+
+// Leaning toward the dashboard (+) reads well; away (−) soon turns it
+// edge-on, so keep that side short.
+const DEFAULT_ORBIT: IsoOrbit = [-12, 30];
+
+// CSS pixels per world unit for UI rendered into the screen with `screen`.
+const SCREEN_PX = 40;
+
+// The cable: a cubic bezier lying on the floor from the terminal's left
+// edge to under the dashboard's right end, sampled and projected through
+// the camera (math §3, §7b). The pulse runs along it on push.
+const CABLE = {
+  c1: [4.6, -1.4, 0.16] as Vec3,
+  c2: [4.2, 1.6, 0.16] as Vec3,
+  from: [TERMINAL.at[0], TERMINAL.at[1] + 1.6, 0.16] as Vec3,
+  to: [2.6, 0.9, 0.16] as Vec3,
 };
 
-const arcPath = (cam: IsoCamera) => {
-  const steps = 32;
+const cablePath = (cam: IsoCamera) => {
+  const steps = 40;
   return Array.from({ length: steps + 1 }, (_, i) => {
     const t = i / steps;
-    const a = (1 - t) ** 2;
-    const b = 2 * (1 - t) * t;
-    const c = t ** 2;
+    const a = (1 - t) ** 3;
+    const b = 3 * (1 - t) ** 2 * t;
+    const c = 3 * (1 - t) * t ** 2;
+    const d = t ** 3;
     const p: Vec3 = [
-      a * ARC.from[0] + b * ARC.peak[0] + c * ARC.to[0],
-      a * ARC.from[1] + b * ARC.peak[1] + c * ARC.to[1],
-      a * ARC.from[2] + b * ARC.peak[2] + c * ARC.to[2],
+      a * CABLE.from[0] + b * CABLE.c1[0] + c * CABLE.c2[0] + d * CABLE.to[0],
+      a * CABLE.from[1] + b * CABLE.c1[1] + c * CABLE.c2[1] + d * CABLE.to[1],
+      a * CABLE.from[2] + b * CABLE.c1[2] + c * CABLE.c2[2] + d * CABLE.to[2],
     ];
     return `${i === 0 ? "M" : "L"}${projectWith(cam, p).join(",")}`;
   }).join(" ");
@@ -219,32 +256,6 @@ interface DeployCopy {
   domain: string;
   project: string;
 }
-
-const Keyboard = ({ w }: { w: number }) => (
-  <>
-    {Array.from({ length: 40 }, (_, i) => (
-      <rect
-        fill="var(--iso-text)"
-        height={0.42}
-        key={i}
-        opacity={0.08}
-        rx={0.08}
-        width={0.46}
-        x={(w - 10 * 0.56) / 2 + (i % 10) * 0.56}
-        y={0.55 + Math.floor(i / 10) * 0.55}
-      />
-    ))}
-    <rect
-      fill="var(--iso-text)"
-      height={1.5}
-      opacity={0.06}
-      rx={0.2}
-      width={2.4}
-      x={w / 2 - 1.2}
-      y={2.8}
-    />
-  </>
-);
 
 // Monospace advance: Geist Mono (and most monospaces) are 0.6em wide.
 const MONO_ADVANCE = 0.6;
@@ -700,11 +711,11 @@ const Dashboard = ({
     <>
       <rect
         fill="var(--iso-screen)"
-        height={h - 0.6}
-        rx={0.35}
-        width={w - 0.6}
-        x={0.3}
-        y={0.3}
+        height={h - 2 * INSET}
+        rx={0.45}
+        width={w - 2 * INSET}
+        x={INSET}
+        y={INSET}
       />
       <DashboardHeader copy={copy} live={live} w={w} />
 
@@ -729,6 +740,247 @@ const Dashboard = ({
   );
 };
 
+/** What the dashboard is showing, for UI passed in through `screen`. */
+export interface DeployScreenState {
+  /** "idle", "pushed" (command sent), "building", "ready", "live". */
+  step: "idle" | "pushed" | "building" | "ready" | "live";
+  /** Project name. */
+  project: string;
+  /** Production domain. */
+  domain: string;
+  /** Branch pushed. */
+  branch: string;
+  /** Commit message of the new deployment. */
+  commit: string;
+  /** Build time shown once ready. */
+  buildTime: string;
+}
+
+const stepOf = (stage: number): DeployScreenState["step"] => {
+  if (stage >= STAGE.live) {
+    return "live";
+  }
+  if (stage >= STAGE.ready) {
+    return "ready";
+  }
+  if (stage >= STAGE.card) {
+    return "building";
+  }
+  if (stage >= STAGE.sent) {
+    return "pushed";
+  }
+  return "idle";
+};
+
+const resolveScreen = (
+  screen: ReactNode | ((state: DeployScreenState) => ReactNode),
+  state: DeployScreenState
+) => (typeof screen === "function" ? screen(state) : screen);
+
+/** Any React UI, rendered into the screen's face at SCREEN_PX per unit. */
+const CustomScreen = ({
+  children,
+  w,
+  h,
+}: {
+  children: ReactNode;
+  w: number;
+  h: number;
+}) => {
+  const dw = w - 2 * INSET;
+  const dh = h - 2 * INSET;
+  return (
+    <>
+      <rect
+        fill="var(--iso-screen)"
+        height={dh}
+        rx={0.45}
+        width={dw}
+        x={INSET}
+        y={INSET}
+      />
+      <foreignObject
+        height={dh * SCREEN_PX}
+        style={{ overflow: "hidden" }}
+        transform={`translate(${INSET} ${INSET}) scale(${1 / SCREEN_PX})`}
+        width={dw * SCREEN_PX}
+      >
+        <div
+          className="size-full overflow-hidden"
+          style={{
+            borderRadius: 0.45 * SCREEN_PX,
+            height: dh * SCREEN_PX,
+            width: dw * SCREEN_PX,
+          }}
+        >
+          {children}
+        </div>
+      </foreignObject>
+    </>
+  );
+};
+
+/** The built-in dashboard, or whatever `screen` provides. */
+const ScreenContent = ({
+  custom,
+  copy,
+  stage,
+  w,
+  h,
+}: {
+  custom: ReactNode;
+  copy: DeployCopy;
+  stage: number;
+  w: number;
+  h: number;
+}) =>
+  custom === undefined ? (
+    <Dashboard copy={copy} h={h} stage={stage} w={w} />
+  ) : (
+    <CustomScreen h={h} w={w}>
+      {custom}
+    </CustomScreen>
+  );
+
+/** Film grain over the whole stage, so flat colour reads as rendered. */
+const Grain = ({ uid }: { uid: string }) => (
+  <>
+    <defs>
+      <filter id={`${uid}-grain`}>
+        <feTurbulence
+          baseFrequency="9"
+          numOctaves="2"
+          result="noise"
+          stitchTiles="stitch"
+          type="fractalNoise"
+        />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+    </defs>
+    <rect
+      fill="white"
+      filter={`url(#${uid}-grain)`}
+      height="400%"
+      opacity={0.07}
+      style={{ mixBlendMode: "overlay", pointerEvents: "none" }}
+      width="400%"
+      x="-200%"
+      y="-200%"
+    />
+  </>
+);
+
+/**
+ * The cable on the floor from the terminal to the dashboard, and the
+ * pulse that runs down it when the push is sent.
+ */
+const Cable = ({ camera, flying }: { camera: IsoCamera; flying: boolean }) => {
+  const d = cablePath(camera);
+  return (
+    <>
+      <path
+        d={d}
+        fill="none"
+        stroke="var(--iso-surface-left-c)"
+        strokeLinecap="round"
+        strokeWidth={0.46}
+      />
+      <path
+        d={d}
+        fill="none"
+        opacity={0.35}
+        stroke="var(--iso-surface-rim)"
+        strokeLinecap="round"
+        strokeWidth={0.14}
+        transform="translate(0 -0.14)"
+      />
+      <motion.path
+        animate={
+          flying
+            ? {
+                opacity: [0, 1, 1, 0],
+                strokeDashoffset: [PULSE.head, -100],
+              }
+            : { opacity: 0, strokeDashoffset: PULSE.head }
+        }
+        d={d}
+        fill="none"
+        initial={false}
+        pathLength={100}
+        stroke="var(--iso-glow)"
+        strokeDasharray={`${PULSE.head} 140`}
+        strokeLinecap="round"
+        strokeWidth={0.26}
+        transition={
+          flying
+            ? { duration: PULSE.duration, ease: PULSE.ease }
+            : { duration: 0 }
+        }
+      />
+    </>
+  );
+};
+
+/** The floor's construction grid, when wanted. */
+const Ground = ({ show }: { show: boolean }) =>
+  show ? <FloorGrid at={GRID.at} size={GRID.size} step={2} /> : null;
+
+/** Film grain, for the lit variants only. */
+const Film = ({ show, uid }: { show: boolean; uid: string }) =>
+  show ? <Grain uid={uid} /> : null;
+
+/** Glass fronts belong to the lit and ink variants, not the blueprint. */
+const glass = (line: boolean) => (line ? undefined : GLASS);
+
+/** A still scene has no orbit. */
+const orbitFor = (rotate: IsoRotate, orbit: IsoOrbit): IsoOrbit =>
+  rotate === "off" ? 0 : orbit;
+
+interface PointerLike {
+  button: number;
+  clientX: number;
+  clientY: number;
+  currentTarget: Element;
+  pointerId: number;
+}
+interface OrbitHandlers {
+  onPointerDown?: (e: PointerLike) => void;
+  onPointerUp?: () => void;
+}
+
+/** Stage overrides for the benchmark look: no hairline, brand-tinted shadow. */
+const stageStyle = (line: boolean) =>
+  ({
+    // Edgeless variants rely on light and shadow alone: no hairline.
+    "--iso-contour-w": line ? undefined : "0",
+    // Shadows carry the brand: a deep tint of the tone, not grey.
+    "--iso-shadow":
+      "color-mix(in oklab, color-mix(in oklab, var(--iso-tone) 45%, black) 20%, transparent)",
+  }) as CSSProperties;
+
+/** Pointer handlers that keep the orbit working and replay on a plain click. */
+const useReplayOnClick = (orbitProps: object, onClick: (() => void) | null) => {
+  const pressed = useRef({ x: 0, y: 0 });
+  const handlers = orbitProps as OrbitHandlers;
+  return {
+    onPointerDown: (e: PointerLike) => {
+      pressed.current = { x: e.clientX, y: e.clientY };
+      handlers.onPointerDown?.(e);
+    },
+    onPointerUp: (e: PointerLike) => {
+      handlers.onPointerUp?.();
+      const moved =
+        Math.hypot(
+          e.clientX - pressed.current.x,
+          e.clientY - pressed.current.y
+        ) > 6;
+      if (onClick && !moved) {
+        onClick();
+      }
+    },
+  };
+};
+
 /* ───────────────────────────── Story clock ────────────────────────────── */
 
 // A turnable scene is a focusable group that says how to turn it.
@@ -736,13 +988,14 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
   rotate === "off"
     ? {}
     : {
-        "aria-label": `${title ?? "Illustration"}. Drag sideways or use the left and right arrow keys to turn it.`,
+        "aria-label": `${title ?? "Illustration"}. Move the pointer or use the left and right arrow keys to turn it.`,
         role: "group",
       };
 
 /**
  * The storyboard's clock: walks `stage` through TIMING while the scene is
  * in view, then (with `loop`) starts again. `still` holds the end state.
+ * `replay` restarts it.
  */
 const useStory = ({
   inView,
@@ -784,7 +1037,55 @@ const useStory = ({
       }
     };
   }, [inView, still, loop, cycle]);
-  return stage;
+  const replay = () => setCycle((c) => c + 1);
+  return { cycle, replay, stage };
+};
+
+/** Everything a scene's shell needs: the clock, the camera, the pointer. */
+const useSceneShell = ({
+  autoPlay,
+  loop,
+  orbit,
+  replayOnClick,
+  rotate,
+  variant,
+}: {
+  autoPlay: boolean;
+  loop: boolean;
+  orbit: IsoOrbit;
+  replayOnClick: boolean;
+  rotate: IsoRotate;
+  variant: IsoVariant;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+  const reduced = useReducedMotion() ?? false;
+  const still = reduced || !autoPlay;
+  const { cycle, stage, replay } = useStory({ inView, loop, still });
+  // The rigs' clock: runs while the story plays, restarts with every cycle.
+  const clock = useClock(inView && !still, cycle);
+  const uid = useId().replaceAll(/[^a-zA-Z0-9_-]/g, "");
+  const { camera, orbitProps } = useIsoOrbit({
+    mode: rotate,
+    orbit,
+    pivot: PIVOT,
+    reduced,
+  });
+  const pointer = useReplayOnClick(
+    orbitProps,
+    replayOnClick && !still ? replay : null
+  );
+  return {
+    camera,
+    clock,
+    line: variant === "line",
+    orbitProps,
+    pointer,
+    ref,
+    stage,
+    still,
+    uid,
+  };
 };
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
@@ -792,11 +1093,11 @@ const useStory = ({
 export interface PushToDeployProps {
   /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. */
   tone?: IsoTone;
-  /** Colour of lit details (status, build bar, push flight). Defaults to `tone`. */
+  /** Colour of lit details (status, build bar, the pulse). Defaults to `tone`. */
   accent?: IsoTone;
-  /** Soft tint, full colour, or outlined. */
+  /** Flat ink drawing (default), soft tint, full colour, or blueprint outline. */
   variant?: IsoVariant;
-  /** Edge weight in canvas units: rims and hairlines, or outlines in `line`. */
+  /** Line weight: in `ink` 0.3 is a 1.3 px outline at any size; rims or outlines elsewhere. */
   strokeWidth?: number;
   /** Project name on the dashboard and in the terminal, up to about 14 characters. */
   project?: string;
@@ -810,22 +1111,36 @@ export interface PushToDeployProps {
   buildTime?: string;
   /** Command typed in the terminal, up to about 24 characters. */
   command?: string;
+  /**
+   * Your own UI inside the dashboard instead of the built-in one: any
+   * React node, or a function of the story's state (`step` and the copy)
+   * so your UI follows the push. It renders at 472 × 236 CSS px (the
+   * screen is 11.8 × 5.9 units at 40 px per unit) and is projected into
+   * the scene; the terminal and the cable still play.
+   */
+  screen?: ReactNode | ((state: DeployScreenState) => ReactNode);
   /** Play when the scene scrolls into view. Off shows the live end state. */
   autoPlay?: boolean;
   /** Replay after a pause. Off plays once and holds the end state. */
   loop?: boolean;
+  /** Clicking the scene replays the story. */
+  replayOnClick?: boolean;
   /**
-   * Let the viewer turn the desk: "drag" (drag sideways or use the arrow
-   * keys; it springs back on release), "pointer" (leans toward the
-   * pointer), or "off".
+   * Let the viewer turn the scene: "pointer" (leans toward the pointer
+   * and settles back), "drag" (drag sideways or use the arrow keys), or
+   * "off".
    */
   rotate?: IsoRotate;
   /**
    * How far it turns, in degrees: a number for both ways, or [min, max].
-   * Default [-12, 35]: further toward the screens than away from them, so
+   * Default [-12, 30]: further toward the dashboard than away from it, so
    * the copy stays readable. Each side is capped at 40.
    */
   orbit?: IsoOrbit;
+  /** Dashed construction grid on the floor. */
+  grid?: boolean;
+  /** Film grain over the scene (off in ink). */
+  grain?: boolean;
   /** Accessible description. Without it the scene is decorative. */
   title?: string;
   /** Classes for the wrapper; size the scene with width (it keeps its aspect ratio). */
@@ -833,15 +1148,18 @@ export interface PushToDeployProps {
 }
 
 /**
- * Push to deploy, in isometric: on a desk, `git push` in the laptop's
- * terminal starts a deployment that builds and goes live on the monitor's
- * dashboard behind it. Follows the shadcn theme; plays in view, loops, and
- * can be turned by the viewer.
+ * Push to deploy, in isometric ink: `git push` on a terminal tile (which
+ * presses in on enter) sends a pulse down a cable to the dashboard
+ * floating behind it; the dashboard takes the hit, and the deployment
+ * builds and goes live. Flat ink drawing with one even outline, objects
+ * that move as solids, the camera leans with the pointer, and `screen`
+ * puts your own React UI inside the dashboard. Follows the shadcn theme;
+ * plays in view, loops.
  */
 export const PushToDeploy = ({
   tone = "primary",
   accent,
-  variant = "duotone",
+  variant = "ink",
   strokeWidth = 0.3,
   project = "acme-web",
   domain = "acme.com",
@@ -849,26 +1167,21 @@ export const PushToDeploy = ({
   commit = "Update pricing page",
   buildTime = "24s",
   command = "git push",
+  screen,
   autoPlay = true,
   loop = true,
-  rotate = "drag",
+  replayOnClick = true,
+  rotate = "pointer",
   orbit = DEFAULT_ORBIT,
+  grid = true,
+  grain = false,
   title,
   className,
 }: PushToDeployProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReducedMotion() ?? false;
-  const stage = useStory({ inView, loop, still: reduced || !autoPlay });
-  const { camera, orbitProps } = useIsoOrbit({
-    mode: rotate,
-    orbit,
-    pivot: PIVOT,
-    reduced,
-  });
+  const { camera, clock, line, orbitProps, pointer, ref, stage, uid } =
+    useSceneShell({ autoPlay, loop, orbit, replayOnClick, rotate, variant });
   const copy: DeployCopy = { branch, buildTime, commit, domain, project };
-  const arc = arcPath(camera);
-  const flying = stage === STAGE.travel;
+  const custom = resolveScreen(screen, { ...copy, step: stepOf(stage) });
   return (
     <div
       {...turnableLabel(rotate, title)}
@@ -879,89 +1192,60 @@ export const PushToDeploy = ({
       data-slot="push-to-deploy"
       ref={ref}
       {...orbitProps}
+      onPointerDown={pointer.onPointerDown}
+      onPointerUp={pointer.onPointerUp}
     >
       <IsoStage
         accent={accent}
-        base={
-          <Slab at={DESK.at} palette="surface" radius={1.2} size={DESK.size} />
-        }
-        baseCasts={[boxCast(DESK)]}
         bounds={BOUNDS}
         camera={camera}
         casts={CASTS}
-        ground={TOP}
-        orbit={rotate === "off" ? 0 : orbit}
+        orbit={orbitFor(rotate, orbit)}
         strokeWidth={strokeWidth}
+        style={stageStyle(line)}
         title={title}
         tone={tone}
         variant={variant}
       >
-        <Slab
-          at={MONITOR.base.at}
-          palette="surface"
-          radius={0.5}
-          size={MONITOR.base.size}
-        />
-        <Box at={MONITOR.neck.at} palette="surface" size={MONITOR.neck.size} />
-        <Panel
-          at={MONITOR.screen.at}
-          content={(w, h) => (
-            <Dashboard copy={copy} h={h} stage={stage} w={w} />
-          )}
-          depth={MONITOR.screen.depth}
-          radius={0.45}
-          size={MONITOR.screen.size}
-        />
-        <Slab
-          at={LAPTOP.base.at}
-          content={(w) => <Keyboard w={w} />}
-          palette="surface"
-          radius={0.4}
-          size={LAPTOP.base.size}
-        />
-        <Panel
-          at={LAPTOP.screen.at}
-          content={(w, h) => (
-            <Terminal command={command} copy={copy} h={h} stage={stage} w={w} />
-          )}
-          depth={LAPTOP.screen.depth}
-          radius={0.4}
-          size={LAPTOP.screen.size}
-        />
-        <motion.path
-          animate={{ opacity: flying ? 0.3 : 0 }}
-          d={arc}
-          fill="none"
-          initial={false}
-          stroke="var(--iso-glow)"
-          strokeDasharray="0.4 0.5"
-          strokeLinecap="round"
-          strokeWidth={0.18}
-          transition={FADE}
-        />
-        <motion.path
-          animate={
-            flying
-              ? {
-                  opacity: [0, 1, 1, 0],
-                  strokeDashoffset: [FLIGHT.comet, -100],
-                }
-              : { opacity: 0, strokeDashoffset: FLIGHT.comet }
-          }
-          d={arc}
-          fill="none"
-          initial={false}
-          pathLength={100}
-          stroke="var(--iso-glow)"
-          strokeDasharray={`${FLIGHT.comet} 140`}
-          strokeLinecap="round"
-          strokeWidth={0.42}
-          transition={
-            flying
-              ? { duration: FLIGHT.duration, ease: FLIGHT.ease }
-              : { duration: 0 }
-          }
-        />
+        <Ground show={grid} />
+        <Cable camera={camera} flying={stage === STAGE.travel} />
+        <Rig clock={clock} pivot={SCREEN_PIVOT} pose={screenPose}>
+          <Panel
+            at={SCREEN.at}
+            content={(w, h) => (
+              <ScreenContent
+                copy={copy}
+                custom={custom}
+                h={h}
+                stage={stage}
+                w={w}
+              />
+            )}
+            depth={SCREEN.depth}
+            frontStyle={glass(line)}
+            radius={0.6}
+            size={SCREEN.size}
+          />
+        </Rig>
+        <Rig clock={clock} pivot={TERMINAL_PIVOT} pose={terminalPose}>
+          <Slab
+            at={TERMINAL.at}
+            content={(w, d) => (
+              <Terminal
+                command={command}
+                copy={copy}
+                h={d}
+                stage={stage}
+                w={w}
+              />
+            )}
+            frontStyle={{ fill: "var(--iso-console)" }}
+            palette="surface"
+            radius={0.5}
+            size={TERMINAL.size}
+          />
+        </Rig>
+        <Film show={grain && !line} uid={uid} />
       </IsoStage>
     </div>
   );

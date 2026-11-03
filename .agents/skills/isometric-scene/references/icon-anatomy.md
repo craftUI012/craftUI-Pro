@@ -34,8 +34,8 @@ change: avoid it, or keep the old name working and note the migration.
 | `size` | number \| string | class `size-24` | Width and height. Or size with `className`. |
 | `tone` | token name \| CSS colour | `"primary"` | Main colour: primary, foreground, muted, destructive, chart-1…5, or any colour. |
 | `accent` | same | = tone | Detail colour: lights, chips, screens' highlights, pills, toggles. |
-| `variant` | `"duotone" \| "solid" \| "line"` | duotone | Soft tint, full colour, or outlined. |
-| `strokeWidth` | number | 0.3 | Edge weight in canvas units: rims and hairlines, or outlines in `line`. |
+| `variant` | `"ink" \| "duotone" \| "solid" \| "line"` | ink on scenes, duotone on icons | Flat ink drawing with one even outline (the house style), soft lit tint, full lit colour, or blueprint outline. |
+| `strokeWidth` | number | 0.3 | Line weight. In `ink` it is a pixel weight (0.3 → 1.3 px at any size); in `duotone`/`solid` rims and hairlines in canvas units; in `line` the outline. |
 | `badge` | check \| x \| alert \| plus \| number \| ReactNode | none | Status mark in the badge zone. |
 | `animate` | none \| hover-lift \| float \| assemble | none | Motion; off under reduced motion. |
 | `shadow` | boolean | true | Cast and contact shadows. |
@@ -54,8 +54,10 @@ Icons use only these. Buyers may override any of them on a wrapper.
 | Variable | Is | Use for |
 | --- | --- | --- |
 | `--iso-tone`, `--iso-accent` | resolved tone and accent | badges, links |
-| `--iso-{main,accent,surface}-{top,left,right}` | **paint**: url() to this icon's face gradient | `fill` of faces and face-coloured shapes |
+| `--iso-{main,accent,surface}-{top,left,right}` | **paint**: the flat face value in `ink`, a url() to this icon's face gradient otherwise | `fill` of faces and face-coloured shapes |
 | `--iso-{palette}-{face}-c` | flat face colour | where a colour (not a paint) is needed |
+| `--iso-edge`, `--iso-edge-w`, `--iso-vector`, `--iso-join` | the ink outline: colour, pixel width, `non-scaling-stroke`, miter | frame-managed; set `vector-effect` on every stroked path (it does not inherit) |
+| `--iso-guide`, `--iso-guide-w` | construction ink, a step short of full strength, hairline width | `FloorGrid`, `WireBox`, your own guides |
 | `--iso-{palette}-rim` | lit-edge colour | rims (frame-drawn) |
 | `--iso-glow` | the accent at full strength | lights, chips, pills, toggles, chart lines |
 | `--iso-detail` | tone toward ink | slots, vents, marks on bodies |
@@ -76,9 +78,41 @@ Icons use only these. Buyers may override any of them on a wrapper.
 | `useIsoOrbit({ mode, orbit, pivot, reduced })` | Returns `camera` and `orbitProps` (pointer, keyboard, cursor, `touch-action: pan-y`, `tabIndex`). Spring k 180, c 24; arrow keys step 10°; Home/Escape return. |
 | `projectWith(camera, p)` | World → canvas through a camera, for paths a scene draws itself. |
 | `IsoRotate`, `IsoOrbit` | Prop types for scenes: `"drag" \| "pointer" \| "off"`; `number \| [min, max]`. |
+| `IsoCamera.model` | An `IsoModel` (3 × 3 linear part + translation) applied before the camera. Set by `Rig`, never by hand. |
 
 Primitives read the camera from context, so they turn with the stage and
 need no extra props. Outside a stage they use the home view.
+
+### Rig, clock, tracks (objects that act)
+
+| API | What it is |
+| --- | --- |
+| `Rig({ pivot, rotate, axis, scale, offset, clock, pose })` | Poses its children as one solid: `p' = pivot + R·S·(p − pivot) + offset`, in world units before projection, so it stays exact isometric at every yaw. Rigs nest. With `clock` and `pose(ms)` the pose is sampled every frame and re-rendered only when it changes. |
+| `IsoPose` | `{ rotate?: deg, axis?: "x" \| "y" \| "z", scale?: number \| [sx, sy, sz], offset?: [x, y, z] }`. |
+| `useRigged()` | Where a world point lands after the rigs around a part, for paths a scene projects itself. |
+| `useClock(running, restart)` | Milliseconds since `running` became true or `restart` changed, as a motion value. One per scene, restarted with every story cycle. |
+| `IsoTrack`, `sample(track, ms)` | Keys `[ms, value, ease?]`; `ease` is an `IsoEase` (cubic bezier), `"hold"`, or none (linear). Held before the first and after the last key. |
+| `EASE` | `drop` (lands softly), `easy` (sways, every half swing), `in` (slams), `snap` (slot to slot), `soft` (pops). Name them, never invent numbers in a scene. |
+| `settle(to, start, pace, from)` | The baked spring: overshoot 1.42, swings halving, ≈ 900 ms to rest. |
+| `hop(height, start)` | Rises, slams through rest, rebounds twice. z offset. |
+| `toss(deg, start)` | Winds back, whips past, settles. Degrees about a hinge. |
+| `press(depth, start)` | Pushed into its base, back, pops proud, settles. z scale. |
+| `jolt(travel, start, hold)` | Kicked along a direction with the settle, held, eased home. |
+| `lift(height, start, hold)` | Up and held, then dropped back with one bounce. |
+| `shiftTrack`, `scaleTrack` | Followers: the same preset 60 to 120 ms later, 0.6 to 1.4 of the travel. |
+
+Rules: pivot where the thing would hinge or stand; the beat is caused by
+the beat before; at least one part lags; pop in and out with scale, never
+opacity; action in the first half of the loop, a still hold after it.
+
+### Guides and bloom
+
+| API | What it is |
+| --- | --- |
+| `FloorGrid({ at, size, step, z, dash })` | Dashed hairline grid on a horizontal plane, in the guide ink. The implied floor of every scene. |
+| `WireBox({ at, size, dash })` | The twelve edges of a box, for a construction frame around a subject. |
+| `VertexDots({ points, r })` | Ink dots on the vertices a viewer reads a shape by. |
+| `Bloom({ at, size, color, strength })` | Two blurred passes of a box's six-point silhouette behind it. One lit thing per scene; draw it before the box, inside the same rig. |
 
 ### Palettes
 
@@ -90,12 +124,19 @@ need no extra props. Outside a stage they use the home view.
 
 ## How rendering works (so you don't fight it)
 
-- Each icon's `<svg>` gets its own `IsoDefs`: nine face gradients
-  (3 palettes × 3 faces) and two blur filters, with ids from `useIsoId`.
-- The frame sets the paint variables to those ids, so `fill:
-  var(--iso-main-left)` paints a lit gradient. Never hard-code a gradient id.
-- `Box`, `Cylinder`, `Extrude`, `Slab` and `Panel` draw seams, rims and the
-  silhouette hairline themselves. Don't add your own outlines to bodies.
+- **Ink (scenes):** each face is one flat value (math §5, ink table) and
+  every visible edge is stroked once in `--iso-edge` at `--iso-edge-w`
+  (a pixel width held constant by `vector-effect: non-scaling-stroke`)
+  with miter joins. `Box`, `Extrude` (so `Slab`, `Panel`) and `Poly` do
+  this themselves; the back outline of an extrusion is the ink too.
+  `Cylinder` and `Sphere` still render lit (backlog).
+- **Lit (icons, `duotone`/`solid`):** each `<svg>` gets its own `IsoDefs`:
+  nine face gradients (3 palettes × 3 faces) and the blur filters, with
+  ids from `useIsoId`; the paint variables point at them, so `fill:
+  var(--iso-main-left)` paints a lit gradient. Bodies draw seams, rims and
+  the silhouette hairline themselves.
+- Never add your own outlines to bodies in any variant; never hard-code a
+  gradient or filter id (`Bloom` reads the stage's id from context).
 - The frame draws shadows from `casts` before the body; nothing else draws
   shadows.
 

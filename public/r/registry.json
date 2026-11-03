@@ -733,7 +733,7 @@
       "name": "two-step-sign-in",
       "type": "registry:block",
       "title": "Two-step sign-in",
-      "description": "A laptop on a desk asks for a code, the phone beside it lights up with the text, the code arcs across and fills the boxes, and the user is signed in. Isometric, animated, in your theme.",
+      "description": "In isometric ink: a sign-in screen floating over a construction grid asks for a code, the phone hops as the text lands, the code pops off as a lit chip and is tossed into the input, the screen takes the hit, and the user is in. Objects move as solids; leans with the pointer; in your theme.",
       "categories": [
         "technology"
       ],
@@ -775,7 +775,7 @@
       "name": "push-to-deploy",
       "type": "registry:block",
       "title": "Push to deploy",
-      "description": "On a desk, git push in the laptop's terminal starts a deployment that builds and goes live on the monitor's dashboard behind it. Isometric, animated, turnable, in your theme.",
+      "description": "In isometric ink: git push on a terminal tile that presses in on enter sends a pulse down a cable to the dashboard floating behind it, which takes the hit as the deployment slides in, builds and goes live. Objects move as solids; leans with the pointer; in your theme.",
       "categories": [
         "technology"
       ],
@@ -817,7 +817,7 @@
       "name": "gradual-rollout",
       "type": "registry:block",
       "title": "Gradual rollout",
-      "description": "A feature flag's console moves a new version from 10% to 100% of traffic while packets on the floor's rails shift from the stable server to the new one. Isometric, animated, turnable, in your theme.",
+      "description": "In isometric ink: a feature flag's console moves a new version from 10% to 100% of traffic; the new server hops and lights up as its share jumps, the router presses, the old server sinks, and packets on light rails shift across. Objects move as solids; leans with the pointer; in your theme.",
       "categories": [
         "technology"
       ],
