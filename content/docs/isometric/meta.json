@@ -4,6 +4,7 @@
     "two-step-sign-in",
     "push-to-deploy",
     "gradual-rollout",
-    "wallet-coins"
+    "wallet-coins",
+    "bank-deposit"
   ]
 }

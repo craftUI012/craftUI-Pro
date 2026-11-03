@@ -1709,7 +1709,6 @@ const Shadows = ({
   className,
   ground = 0,
   cam = HOME_CAMERA,
-  hard = false,
 }: {
   casts: readonly IsoCast[];
   uid: string;
@@ -1717,14 +1716,9 @@ const Shadows = ({
   ground?: number;
   /** Shadows lie fixed in the world; the camera only changes how they're seen. */
   cam?: IsoCamera;
-  /** A flat, unblurred shape at full strength: the ink drawing's shadow. */
-  hard?: boolean;
 }) => (
   <g className={className} style={{ fill: "var(--iso-shadow)" }}>
-    <g
-      filter={hard ? undefined : `url(#${uid}-cast)`}
-      opacity={hard ? 1 : 0.75}
-    >
+    <g filter={`url(#${uid}-cast)`} opacity={0.75}>
       {casts.map((cast) => {
         const base = footprint(cast);
         const z0 = (cast.z ?? ground) - ground;
@@ -1743,7 +1737,7 @@ const Shadows = ({
     </g>
     <g filter={`url(#${uid}-ao)`}>
       {casts
-        .filter((cast) => !hard && (cast.z ?? ground) - ground < 0.6)
+        .filter((cast) => (cast.z ?? ground) - ground < 0.6)
         .map((cast) => (
           <polygon
             key={JSON.stringify(cast)}
@@ -2192,7 +2186,6 @@ export const IsoStage = ({
   casts = [],
   ground = 0,
   shadow = true,
-  hardShadow = false,
   camera = HOME_CAMERA,
   orbit = 0,
   title,
@@ -2218,8 +2211,6 @@ export const IsoStage = ({
   casts?: readonly IsoCast[];
   /** Height of the base's top, where `casts` shadows land. */
   ground?: number;
-  /** Flat, unblurred shadows at full strength (set `--iso-shadow` to a solid colour). */
-  hardShadow?: boolean;
   children: ReactNode;
 }) => {
   const uid = useIsoId();
@@ -2259,22 +2250,11 @@ export const IsoStage = ({
         <UidContext.Provider value={uid}>
           <CameraContext.Provider value={camera}>
             {shadow && baseCasts.length > 0 ? (
-              <Shadows
-                cam={camera}
-                casts={baseCasts}
-                hard={hardShadow}
-                uid={uid}
-              />
+              <Shadows cam={camera} casts={baseCasts} uid={uid} />
             ) : null}
             <g style={STAGE_GROUP}>{base}</g>
             {shadow && casts.length > 0 ? (
-              <Shadows
-                cam={camera}
-                casts={casts}
-                ground={ground}
-                hard={hardShadow}
-                uid={uid}
-              />
+              <Shadows cam={camera} casts={casts} ground={ground} uid={uid} />
             ) : null}
             <g style={STAGE_GROUP}>{children}</g>
           </CameraContext.Provider>

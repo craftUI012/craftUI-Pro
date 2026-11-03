@@ -2923,10 +2923,10 @@
         "default": "true"
       },
       {
-        "description": "No shadow (default), a hard flat shadow, or the soft cast shadow.",
+        "description": "No shadow (default), or the soft cast shadow.",
         "name": "shadow",
         "optional": true,
-        "type": "\"hard\" | \"soft\" | \"none\"",
+        "type": "\"soft\" | \"none\"",
         "default": "\"none\""
       },
       {
@@ -2977,6 +2977,157 @@
       "Fintech and neobank hero sections",
       "Wallet, savings and payments feature sections",
       "Pricing and onboarding pages for banking apps",
+      "Empty states for balances and transactions"
+    ]
+  },
+  "bank-deposit": {
+    "component": "BankDeposit",
+    "dependencies": ["motion"],
+    "description": "In isometric ink: a small bank in a pastel of your brand, five coins on the ground beside it that leap into the door one by one on an arc, and a balance card on the left whose dollar figure counts up with every credit. A hero object for banking, savings and fintech sites; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/bank-deposit",
+    "extends": null,
+    "files": [
+      "components/isometric/bank-deposit.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-RJJ8GD",
+    "import": "@/components/isometric/bank-deposit",
+    "library": "isometric",
+    "name": "bank-deposit",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. The bank is a pastel of it.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of the card. Default a lime green, `oklch(0.88 0.2 128)`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"oklch(0.88 0.2 128)\""
+      },
+      {
+        "description": "Wordmark printed top-right on the card, up to about 8 characters.",
+        "name": "cardBrand",
+        "optional": true,
+        "type": "string",
+        "default": "\"wise\""
+      },
+      {
+        "description": "Colour of the coins. Default an amber, `oklch(0.8 0.16 80)`.",
+        "name": "coinTone",
+        "optional": true,
+        "type": "string",
+        "default": "\"oklch(0.8 0.16 80)\""
+      },
+      {
+        "description": "Glyph on the coins, one character.",
+        "name": "glyph",
+        "optional": true,
+        "type": "string",
+        "default": "\"$\""
+      },
+      {
+        "description": "Label above the balance, up to about 12 characters.",
+        "name": "label",
+        "optional": true,
+        "type": "string",
+        "default": "\"Balance\""
+      },
+      {
+        "description": "Balance at the start of each cycle, in whole dollars.",
+        "name": "start",
+        "optional": true,
+        "type": "number",
+        "default": "1240"
+      },
+      {
+        "description": "Credit per coin, in whole dollars.",
+        "name": "credit",
+        "optional": true,
+        "type": "number",
+        "default": "25"
+      },
+      {
+        "description": "Flat ink drawing (default), soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` 0.3 is a 1.3 px outline at any size.",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Coins deposit while in view, five per cycle. Off holds the coins at their spots and the total on the card.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "No shadow (default), or the soft cast shadow.",
+        "name": "shadow",
+        "optional": true,
+        "type": "\"soft\" | \"none\"",
+        "default": "\"none\""
+      },
+      {
+        "description": "Dashed construction grid on the floor. Off by default for a hero.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default 20.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "20"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Bank deposit",
+    "types": [],
+    "tags": {
+      "categories": ["finance"],
+      "styles": ["flat", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Banking and savings product heroes",
+      "Deposits, top-ups and round-ups feature sections",
+      "Fintech onboarding pages about funding an account",
       "Empty states for balances and transactions"
     ]
   }

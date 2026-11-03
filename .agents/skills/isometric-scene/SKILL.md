@@ -289,7 +289,11 @@ brand toward white in both themes, so it stays light on dark pages. The
 entrance is a real beat (pop with the settle, a lean swinging upright, the
 host dipping); the idle is the only place a decorative loop is permitted,
 and it must be out of phase across parts. Hidden parts must never drop
-below the floor (nothing hides them there).
+below the floor (nothing hides them there). A hero loop that repeats one
+action (a coin paying in) runs on a wrapping clock, `ms % period`, so the
+tracks are written once for one cycle. A rotation about x needs the right
+sign to face the viewer: for a +y-facing disc, +θ tilts it up toward the
+camera, −θ turns it edge-on.
 
 | Scene | Code | Use case | Connector | Story |
 | --- | --- | --- | --- | --- |
@@ -297,6 +301,7 @@ below the floor (nothing hides them there).
 | `push-to-deploy` | ISO-RPVRYG | hosting, CI/CD, devtools | cable with a light pulse | **Ink (2026-11-03):** no desk; 12.5 × 6.6 dashboard floats over the grid, a dark terminal tile lies beside it; `git push` types → the tile presses in on enter → a pulse runs down the cable → the dashboard is kicked back and settles as the new deployment slides in, builds, turns Ready with a preview → terminal prints "✓ Live"; leans with the pointer (−12°…30°), click replays; `screen` prop (`DeployScreenState`) |
 | `gradual-rollout` | ISO-7PVTRP | feature flags, progressive delivery | light rails with trailing-dash packets | **Ink (2026-11-03):** no plate; 12 × 6.2 console floats at the back left over the grid, rails are brand light tracks on the floor; console moves a new version 10% → 50% → 100%: v2 hops, turns brand and blooms (the one lit thing), the router presses as it re-splits, v1 sinks as its rail goes quiet, packets shift → "Rolled out" kicks the console back; leans with the pointer (−15°…30°), click replays; `screen` prop (`RolloutScreenState`) |
 | `wallet-coins` | ISO-A0SDZZ | fintech, banking heroes | none (a hero object with a product moment) | **Ink (2026-11-03, third pass after an interface-craft critique):** a thin wallet (one body: thick front leaf + thin back leaf so the slit holds things, depth 1.3 for width 9.5), stitched hairline on the front, a strap across the right third with a snap; the brand card (chip, name, last four) is the one lit thing and slides out of the slit first with the settle, leaning back 9°; three currency coins ($ € £) follow 160 ms apart, fanning from the card's edge into a hand and swinging upright from a 26° lean; the wallet dips (`press`) as each leaves; idle: coins sway ±12° and bob ±0.18 on a 3.4 s sine, the card breathes ±1.5°; pastel body (tone 46% toward white, both themes); no shadow by default (the user removed the hard shadow; `shadow="hard"` and `"soft"` remain); the card rests 4 units up so its whole face reads; props `cardName`, `last4`, `currencies` |
+| `bank-deposit` | ISO-RJJ8GD | banking, savings, fintech heroes | arc (coins leaping through a door) | **Ink (2026-11-03, second pass after "too many bars, card too shallow"):** a small bank in a pastel of the brand: two step `Box`es, a flat-roofed hall whose front face carries an arched door (`archPath`, a rect with a semicircular top) and two windows, **two** columns with square capitals at the portico's ends (four read as bars in front of the door), an entablature and a pediment as a triangular `Extrude` on its front with an oculus; five small coins standing in a loose pile to the right leap through the arch 650 ms apart on sin-lifted arcs, leaning into the flight and shrinking at the threshold, the bank dipping on each landing; the card after Wise's (thick, 0.42 deep, leaning 14° on a `Rig` about x; chip + contactless waves, wordmark, the balance as the big figure, a "+$25" pill under the wordmark, network circles) counts up by `credit` per landed coin, is nudged and settles, and its waves pulse (nested `Rig`); clock-driven text via a component with `useMotionValueEvent`; 5.6 s wrapping cycle; props `cardBrand`, `label`, `start`, `credit`, `glyph`, `coinTone`; no shadow |
 
 ## Known gaps (backlog, as of 2026-11-03)
 

@@ -14,7 +14,6 @@ import {
   FloorGrid,
   IsoStage,
   press,
-  projectWith,
   Rig,
   roundedRect,
   sample,
@@ -24,7 +23,6 @@ import {
   useIsoOrbit,
 } from "./iso-core";
 import type {
-  IsoCamera,
   IsoCast,
   IsoOrbit,
   IsoPose,
@@ -137,21 +135,7 @@ const hideCard = -Math.min(CARD_LIFT, CARD_LIFT + CARD.h - WALLET.h + 0.2);
 // The circle a coin is extruded from, as four cubic quarters (face units).
 const coinPath = () => roundedRect(COIN.r * 2, COIN.r * 2, COIN.r);
 
-// The hard shadow: the wallet's footprint swept to the right (world +x and
-// a little −y is pure screen-right), as one flat shape, like a reference
-// drawing's black shadow. Drawn by the scene, not the frame; inset by the
-// corner radius so nothing peeks past the rounded corners.
-const SHADOW_SHIFT: readonly [number, number] = [3.4, -1.3];
-const SHADOW_POINTS: Vec3[] = [
-  [-W / 2 + WALLET.radius, WALLET_Y_BACK, 0],
-  [W / 2 - WALLET.radius, WALLET_Y_BACK, 0],
-  [W / 2 + SHADOW_SHIFT[0], WALLET_Y_BACK + SHADOW_SHIFT[1], 0],
-  [W / 2 + SHADOW_SHIFT[0], WALLET.yFront + SHADOW_SHIFT[1], 0],
-  [-W / 2 + SHADOW_SHIFT[0], WALLET.yFront + SHADOW_SHIFT[1], 0],
-  [-W / 2 + WALLET.radius, WALLET.yFront - 0.2, 0],
-];
-
-// The frame: wallet, the card and coins at their highest, the shadow.
+// The frame: wallet, the card and coins at their highest.
 const BOUNDS: Vec3[] = [
   [-W / 2, WALLET.yFront, 0],
   [W / 2 + STRAP.depth, WALLET.yFront, 0],
@@ -162,7 +146,6 @@ const BOUNDS: Vec3[] = [
   ...COINS.map(
     (c): Vec3 => [c.x + COIN.r, c.y, c.lift + COIN.r * 2 + IDLE.bob + 0.7]
   ),
-  ...SHADOW_POINTS,
 ];
 
 const CASTS: IsoCast[] = [
@@ -265,16 +248,6 @@ const HAIRLINE: CSSProperties = {
   vectorEffect: "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
 };
 
-const HardShadow = ({ camera }: { camera: IsoCamera }) => (
-  <polygon
-    fill="var(--iso-shadow)"
-    points={SHADOW_POINTS.map((p) => projectWith(camera, p).join(",")).join(
-      " "
-    )}
-  />
-);
-
-/** A coin: a white disc with an ink rim and its currency glyph. */
 const Coin = ({ spot, glyph }: { spot: CoinSpot; glyph: string }) => {
   const at: Vec3 = [spot.x - COIN.r, spot.y, spot.lift + COIN.r * 2];
   const inset = 0.3;
@@ -472,15 +445,13 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
 /**
  * Stage overrides for this hero: the wallet a pastel of the brand (toward
  * white in both themes, so it stays light on dark pages), the card and
- * strap in the brand at full strength (the lit thing), and a hard shadow
- * in the tone's deepest shade.
+ * strap in the brand at full strength (the lit thing).
  */
 const stageStyle = (line: boolean) =>
   ({
     "--iso-accent-base": "var(--iso-accent)",
     "--iso-contour-w": line ? undefined : "0",
     "--iso-main-base": "color-mix(in oklab, var(--iso-tone) 46%, white)",
-    "--iso-shadow": "oklch(from var(--iso-tone) 0.2 calc(c * 0.6) h)",
   }) as CSSProperties;
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
@@ -504,8 +475,8 @@ export interface WalletCoinsProps {
   autoPlay?: boolean;
   /** After coming out, the coins keep swaying and bobbing on a sine, out of phase; the card breathes. */
   idle?: boolean;
-  /** No shadow (default), a hard flat shadow, or the soft cast shadow. */
-  shadow?: "hard" | "soft" | "none";
+  /** No shadow (default), or the soft cast shadow. */
+  shadow?: "soft" | "none";
   /** Dashed construction grid on the floor. Off by default for a hero. */
   grid?: boolean;
   /**
@@ -581,7 +552,6 @@ export const WalletCoins = ({
         variant={variant}
       >
         {grid ? <FloorGrid at={GRID.at} size={GRID.size} step={2} /> : null}
-        {shadow === "hard" ? <HardShadow camera={camera} /> : null}
         <Rig
           clock={rig}
           pivot={[0, WALLET.yFront - WALLET.depth / 2, 0]}

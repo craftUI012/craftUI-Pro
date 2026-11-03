@@ -896,6 +896,48 @@
           "target": "components/isometric/iso-core.tsx"
         }
       ]
+    },
+    {
+      "name": "bank-deposit",
+      "type": "registry:block",
+      "title": "Bank deposit",
+      "description": "In isometric ink: a small bank in a pastel of your brand, five coins on the ground beside it that leap into the door one by one on an arc, and a balance card on the left whose dollar figure counts up with every credit. A hero object for banking, savings and fintech sites; leans with the pointer; in your theme.",
+      "categories": [
+        "finance"
+      ],
+      "meta": {
+        "id": "ISO-RJJ8GD",
+        "library": "isometric",
+        "types": [
+          "scenes"
+        ],
+        "styles": [
+          "flat",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-03",
+        "useCases": [
+          "Banking and savings product heroes",
+          "Deposits, top-ups and round-ups feature sections",
+          "Fintech onboarding pages about funding an account",
+          "Empty states for balances and transactions"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/bank-deposit.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/bank-deposit.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
     }
   ]
 }
