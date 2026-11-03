@@ -2013,6 +2013,108 @@
       "Customer proof and wall-of-love pages"
     ]
   },
+  "testimonials-section-03": {
+    "component": "TestimonialsSection03",
+    "dependencies": ["lucide-react", "motion"],
+    "description": "A split-pane testimonial section with customer portrait, vertical divider, editorial quote typography, and circular previous/next navigation.",
+    "docs": "/docs/templates/testimonials-section-03",
+    "extends": "section",
+    "files": ["components/blocks/testimonials-section-03.tsx"],
+    "id": "SEC-8R0ZYM",
+    "import": "@/components/blocks/testimonials-section-03",
+    "library": "templates",
+    "name": "testimonials-section-03",
+    "paid": true,
+    "props": [
+      {
+        "description": "Customer testimonial items. If omitted, default sample stories are shown. If an empty array [] is passed, an empty state is displayed.",
+        "name": "testimonials",
+        "optional": true,
+        "type": "TestimonialItem[]",
+        "default": null
+      },
+      {
+        "description": "Accessible title for screen readers. Defaults to \"Customer Testimonials\".",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": "\"Customer Testimonials\""
+      },
+      {
+        "description": "Optional auto-play delay in milliseconds. If omitted or false, auto-advance is disabled.",
+        "name": "autoPlayInterval",
+        "optional": true,
+        "type": "number | false",
+        "default": "false"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Editorial testimonial section",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Unique identifier for the story.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Author details including name, role, company and optional avatar.",
+            "name": "author",
+            "optional": false,
+            "type": "TestimonialAuthor"
+          },
+          {
+            "description": "Customer quote text. Displayed enclosed in large quotation marks.",
+            "name": "quote",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "TestimonialItem"
+      },
+      {
+        "fields": [
+          {
+            "description": "The customer's full name, e.g. \"Sam Davies\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their job title or role, e.g. \"VP of Revenue Operations\".",
+            "name": "role",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Their company or organization, e.g. \"Lattice Corp.\".",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Portrait photo URL in 3:4 ratio (3 width, 4 height). Rendered as a monochrome headshot.",
+            "name": "avatar",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "TestimonialAuthor"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["minimal", "dark-mode", "motion"],
+      "types": ["testimonials"]
+    },
+    "useCases": [
+      "High-impact SaaS landing pages",
+      "Executive and enterprise software websites",
+      "Founders and product leadership case studies"
+    ]
+  },
   "gallery-section": {
     "component": "GallerySection",
     "dependencies": [],

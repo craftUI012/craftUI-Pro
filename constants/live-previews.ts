@@ -26,6 +26,7 @@ export const LIVE_PREVIEWS = [
   "team-section",
   "testimonials-section",
   "testimonials-section-02",
+  "testimonials-section-03",
 ] as const;
 
 export type LivePreview = (typeof LIVE_PREVIEWS)[number];
