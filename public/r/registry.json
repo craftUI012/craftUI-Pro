@@ -854,6 +854,48 @@
           "target": "components/isometric/iso-core.tsx"
         }
       ]
+    },
+    {
+      "name": "wallet-coins",
+      "type": "registry:block",
+      "title": "Wallet, card and currencies",
+      "description": "In isometric ink: a thin stitched wallet in a pastel of your brand, the brand card sliding out of its slit, and three currency coins ($ € £) following it out with an overshoot, fanning into an arc and swinging upright while the wallet dips, then idling on a sine wave. A hero object for fintech and banking sites; leans with the pointer; in your theme.",
+      "categories": [
+        "finance"
+      ],
+      "meta": {
+        "id": "ISO-A0SDZZ",
+        "library": "isometric",
+        "types": [
+          "scenes"
+        ],
+        "styles": [
+          "flat",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-03",
+        "useCases": [
+          "Fintech and neobank hero sections",
+          "Wallet, savings and payments feature sections",
+          "Pricing and onboarding pages for banking apps",
+          "Empty states for balances and transactions"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/wallet-coins.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/wallet-coins.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
     }
   ]
 }

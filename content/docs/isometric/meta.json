@@ -1,4 +1,9 @@
 {
   "title": "Isometric",
-  "pages": ["two-step-sign-in", "push-to-deploy", "gradual-rollout"]
+  "pages": [
+    "two-step-sign-in",
+    "push-to-deploy",
+    "gradual-rollout",
+    "wallet-coins"
+  ]
 }

@@ -276,11 +276,27 @@ and `content/agent-reference.json` together, following
 
 ## Shipped scenes
 
+Hero objects (one thing, idling on a sine, no story) are allowed beside
+use-case scenes: `wallet-coins` is the reference. Lessons from its three
+passes: a 2D icon silhouette does not survive extrusion (Wallet01's flap
+became a wall and the body a toaster); keep real proportions (a wallet's
+depth is about a tenth of its width) and add the three or four surface
+details the eye classifies by (stitching, a strap, a snap, a card edge).
+Give a hero a product moment, not a metaphor: the card and the
+currencies are what a fintech sells, the wallet only holds them. One lit
+thing in the brand at full strength (the card); the body a pastel of the
+brand toward white in both themes, so it stays light on dark pages. The
+entrance is a real beat (pop with the settle, a lean swinging upright, the
+host dipping); the idle is the only place a decorative loop is permitted,
+and it must be out of phase across parts. Hidden parts must never drop
+below the floor (nothing hides them there).
+
 | Scene | Code | Use case | Connector | Story |
 | --- | --- | --- | --- | --- |
 | `two-step-sign-in` | ISO-R87FKV | auth, SaaS security | continuity (code chip, tossed) | **The benchmark (ink, 2026-11-03):** no desk; a 12.5 × 6.6 screen floats over a dashed floor grid, phone beside it; the phone hops as the text lands; the code pops up (scale) as a lit chip with a bloom and is tossed on a lifted, tilting arc into the input; the screen is kicked back and settles; the boxes press in as digits land; brand-tinted shadows; leans with the pointer (−18°…30°), click replays; `screen` prop renders the buyer's own React UI (foreignObject, 40 px/unit) and follows the story (`SignInScreenState`) |
 | `push-to-deploy` | ISO-RPVRYG | hosting, CI/CD, devtools | cable with a light pulse | **Ink (2026-11-03):** no desk; 12.5 × 6.6 dashboard floats over the grid, a dark terminal tile lies beside it; `git push` types → the tile presses in on enter → a pulse runs down the cable → the dashboard is kicked back and settles as the new deployment slides in, builds, turns Ready with a preview → terminal prints "✓ Live"; leans with the pointer (−12°…30°), click replays; `screen` prop (`DeployScreenState`) |
 | `gradual-rollout` | ISO-7PVTRP | feature flags, progressive delivery | light rails with trailing-dash packets | **Ink (2026-11-03):** no plate; 12 × 6.2 console floats at the back left over the grid, rails are brand light tracks on the floor; console moves a new version 10% → 50% → 100%: v2 hops, turns brand and blooms (the one lit thing), the router presses as it re-splits, v1 sinks as its rail goes quiet, packets shift → "Rolled out" kicks the console back; leans with the pointer (−15°…30°), click replays; `screen` prop (`RolloutScreenState`) |
+| `wallet-coins` | ISO-A0SDZZ | fintech, banking heroes | none (a hero object with a product moment) | **Ink (2026-11-03, third pass after an interface-craft critique):** a thin wallet (one body: thick front leaf + thin back leaf so the slit holds things, depth 1.3 for width 9.5), stitched hairline on the front, a strap across the right third with a snap; the brand card (chip, name, last four) is the one lit thing and slides out of the slit first with the settle, leaning back 9°; three currency coins ($ € £) follow 160 ms apart, fanning from the card's edge into a hand and swinging upright from a 26° lean; the wallet dips (`press`) as each leaves; idle: coins sway ±12° and bob ±0.18 on a 3.4 s sine, the card breathes ±1.5°; pastel body (tone 46% toward white, both themes); no shadow by default (the user removed the hard shadow; `shadow="hard"` and `"soft"` remain); the card rests 4 units up so its whole face reads; props `cardName`, `last4`, `currencies` |
 
 ## Known gaps (backlog, as of 2026-11-03)
 
