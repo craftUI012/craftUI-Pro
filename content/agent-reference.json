@@ -1301,6 +1301,213 @@
       "Membership launches for creative communities"
     ]
   },
+  "footer-section": {
+    "component": "FooterSection",
+    "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react"],
+    "description": "A dark rounded footer for app sites: a red download panel with App Store and Google Play badges and a diagram of the app as a hub with four feature nodes, light running the wires into it, then four link columns, a pinned post, the copyright and social links. Stays dark in light and dark mode.",
+    "docs": "/docs/templates/footer-section",
+    "extends": null,
+    "files": ["components/blocks/footer-section.tsx"],
+    "id": "SEC-QBM5R1",
+    "import": "@/components/blocks/footer-section",
+    "library": "templates",
+    "name": "footer-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The brand's name, in the post and the copyright line (\"Clova\").",
+        "name": "brand",
+        "optional": true,
+        "type": "string",
+        "default": "\"Clova\""
+      },
+      {
+        "description": "The brand's mark (an SVG using currentColor), shown in the app tile, the post and the bottom bar. Default: five equaliser bars, which pulse in the app tile.",
+        "name": "mark",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "<BeatMark />"
+      },
+      {
+        "description": "The headline's first line, in white (\"Connect.\").",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Connect.\""
+      },
+      {
+        "description": "Its second line, softer (\"Don't Just Listen\").",
+        "name": "subheading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Don't Just Listen\""
+      },
+      {
+        "description": "The line under the headline, up to about 140 characters.",
+        "name": "description",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Join millions of other music lovers! Download the app now and experience limit…"
+      },
+      {
+        "description": "The App Store link, or null to hide the badge.",
+        "name": "appStoreHref",
+        "optional": true,
+        "type": "string | null",
+        "default": "\"#app-store\""
+      },
+      {
+        "description": "The Google Play link, or null to hide the badge.",
+        "name": "googlePlayHref",
+        "optional": true,
+        "type": "string | null",
+        "default": "\"#google-play\""
+      },
+      {
+        "description": "The link columns, up to 4.",
+        "name": "columns",
+        "optional": true,
+        "type": "FooterColumn[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The pinned post on the right, or null to hide it.",
+        "name": "post",
+        "optional": true,
+        "type": "FooterPost | null",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "The social links in the bottom bar.",
+        "name": "socials",
+        "optional": true,
+        "type": "FooterSocial[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The copyright line. Default \"{brand}, {this year}.\"",
+        "name": "copyright",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "The panel's colour (any CSS colour). Default a warm red, #D9262C.",
+        "name": "tone",
+        "optional": true,
+        "type": "string",
+        "default": "\"#D9262C\""
+      },
+      {
+        "description": "Classes for the outer section.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "App download footer",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The column's heading, one or two words (\"Platform\").",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Its links, ideally 3 to 5.",
+            "name": "links",
+            "optional": false,
+            "type": "FooterLink[]"
+          }
+        ],
+        "name": "FooterColumn"
+      },
+      {
+        "fields": [
+          {
+            "description": "The account's display name (\"Clova\").",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The account's handle (\"@clovaapp\").",
+            "name": "handle",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The post, up to about 110 characters.",
+            "name": "text",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Link to the post or the profile.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "FooterPost"
+      },
+      {
+        "fields": [
+          {
+            "description": "Which network's mark to show.",
+            "name": "network",
+            "optional": false,
+            "type": "FooterSocialNetwork"
+          },
+          {
+            "description": "Where it goes.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Its accessible name (\"Clova on Instagram\").",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "FooterSocial"
+      },
+      {
+        "fields": [
+          {
+            "description": "The link's text, up to about 24 characters.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where it goes.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "FooterLink"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "dark-mode"],
+      "types": ["footer"]
+    },
+    "useCases": [
+      "Mobile app and music streaming websites",
+      "SaaS sites that end with an app download call",
+      "Product landing pages with store badges",
+      "Startup sites that need a full footer with socials"
+    ]
+  },
   "statement-section": {
     "component": "StatementSection",
     "dependencies": [],

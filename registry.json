@@ -338,6 +338,34 @@
       ]
     },
     {
+      "name": "footer-section",
+      "type": "registry:block",
+      "title": "App download footer",
+      "description": "A dark rounded footer for app sites: a red download panel with App Store and Google Play badges and a diagram of the app as a hub with four feature nodes, light running the wires into it, then four link columns, a pinned post, the copyright and social links. Stays dark in light and dark mode.",
+      "categories": ["marketing"],
+      "meta": {
+        "id": "SEC-QBM5R1",
+        "library": "templates",
+        "types": ["footer"],
+        "styles": ["motion", "dark-mode"],
+        "publishedAt": "2026-11-04",
+        "useCases": [
+          "Mobile app and music streaming websites",
+          "SaaS sites that end with an app download call",
+          "Product landing pages with store badges",
+          "Startup sites that need a full footer with socials"
+        ]
+      },
+      "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react"],
+      "files": [
+        {
+          "path": "registry/sections/footer-section.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/footer-section.tsx"
+        }
+      ]
+    },
+    {
       "name": "statement-section",
       "type": "registry:block",
       "title": "Parted statement",
