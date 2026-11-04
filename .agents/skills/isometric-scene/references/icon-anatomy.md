@@ -34,7 +34,7 @@ change: avoid it, or keep the old name working and note the migration.
 | `size` | number \| string | class `size-24` | Width and height. Or size with `className`. |
 | `tone` | token name \| CSS colour | `"primary"` | Main colour: primary, foreground, muted, destructive, chart-1…5, or any colour. |
 | `accent` | same | = tone | Detail colour: lights, chips, screens' highlights, pills, toggles. |
-| `variant` | `"ink" \| "duotone" \| "solid" \| "line"` | ink on scenes, duotone on icons | Flat ink drawing with one even outline (the house style), soft lit tint, full lit colour, or blueprint outline. |
+| `variant` | `"ink" \| "soft" \| "duotone" \| "solid" \| "line"` | ink or soft on scenes, duotone on icons | Flat ink drawing with one even outline (the house style), soft product illustration (gradient faces, 1 px tinted outline, no shadow or glow), soft lit tint, full lit colour, or blueprint outline. |
 | `strokeWidth` | number | 0.3 | Line weight. In `ink` it is a pixel weight (0.3 → 1.3 px at any size); in `duotone`/`solid` rims and hairlines in canvas units; in `line` the outline. |
 | `badge` | check \| x \| alert \| plus \| number \| ReactNode | none | Status mark in the badge zone. |
 | `animate` | none \| hover-lift \| float \| assemble | none | Motion; off under reduced motion. |
@@ -66,7 +66,8 @@ Icons use only these. Buyers may override any of them on a wrapper.
 | `--iso-text` | the theme's foreground | text on surface or glass panels |
 | `--iso-console` | near black in every theme, a touch of the tone | terminal and code backgrounds (text on it: `--iso-screen`) |
 | `--iso-on-main` | ink, or near-white in `solid` | text and marks on main-palette faces (card fronts) |
-| `--iso-shadow`, `--iso-road`, `--iso-ink`, `--iso-card` | | shadows, road strips, base colours |
+| `--iso-shadow`, `--iso-road`, `--iso-ink`, `--iso-card` | | shadows (unused in soft), road strips, base colours |
+| `--iso-grad`, `--iso-silhouette` | gradient strength (1, soft 1.5); silhouette stroke of convex extrusions (`none` outside soft) | frame-managed |
 | `--iso-stroke-width`, `--iso-contour`, `--iso-edge` | | line weights and colours (frame-managed) |
 
 ### Camera and orbit (stage scenes)
@@ -112,7 +113,8 @@ opacity; action in the first half of the loop, a still hold after it.
 | `FloorGrid({ at, size, step, z, dash })` | Dashed hairline grid on a horizontal plane, in the guide ink. The implied floor of every scene. |
 | `WireBox({ at, size, dash })` | The twelve edges of a box, for a construction frame around a subject. |
 | `VertexDots({ points, r })` | Ink dots on the vertices a viewer reads a shape by. |
-| `Bloom({ at, size, color, strength })` | Two blurred passes of a box's six-point silhouette behind it. One lit thing per scene; draw it before the box, inside the same rig. |
+| `Tint({ color, palette, strength })` | Re-colours one palette (default `surface`) for the parts inside it: re-declares its face values, paints, its own face gradients and (in soft) the outline, and exposes `--iso-tint`. CSS variables resolve where declared, so overriding `--iso-tone` on a child does nothing; use this. In soft, surface = colour `strength`% into the card. In ink, surfaces stay the card: tint `accent`. |
+| `Bloom({ at, size, color, strength })` | Two blurred passes of a box's six-point silhouette behind it. **Legacy: do not use in new scenes** unless the user explicitly asks for a glow (rule since 2026-11-04); kept for the older ink scenes that call it. |
 
 ### Palettes
 
@@ -124,6 +126,13 @@ opacity; action in the first half of the loop, a still hold after it.
 
 ## How rendering works (so you don't fight it)
 
+- **Soft (scenes):** lit face gradients (paints are url()s, as in
+  duotone) with the gradients × 1.5, plus the outline on every visible
+  edge like ink (`--iso-edge` tinted, 1 px, round joins). `Extrude` with
+  `convex` (Slab, Panel) strokes its silhouette in `--iso-silhouette`
+  (set only by soft). Soft draws no shadow and no glow (`Shadows`
+  returns nothing for it); `IsoStage` and `IsoIcon` pass the variant
+  through.
 - **Ink (scenes):** each face is one flat value (math §5, ink table) and
   every visible edge is stroked once in `--iso-edge` at `--iso-edge-w`
   (a pixel width held constant by `vector-effect: non-scaling-stroke`)

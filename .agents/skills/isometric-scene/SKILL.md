@@ -27,12 +27,23 @@ decision below serves them:
    visible edge, 1.3 px at any frame size, hard miter corners. No
    gradients, rims or soft hairlines. Light-rendered `duotone` and `solid`
    remain as variants for buyers who want them, never the default.
+   **Second house style: `soft`** (added 2026-11-04, after Marcel
+   Kargul's Chatsheet illustrations,
+   https://pl.pinterest.com/pin/614319205475836245/): airy
+   product-illustration tiles for SaaS, automation and AI feature
+   sections. See "The soft style" below; pick it per scene, and say which.
 2. **No base.** No desk, no plate. The frame crops to the subject; the
    floor is implied by shadows and a dashed construction grid
    (`FloorGrid`). Screens float a little above the floor.
 3. **One lit thing.** Everything else is neutral surface; one object
-   carries the brand tone and may bloom (`Bloom`). Here it is the code
-   chip. Never spread the tone over every button, pill and wallpaper.
+   carries the brand tone. Here it is the code chip. Never spread the tone
+   over every button, pill and wallpaper. **No gradient glow, ever, unless
+   the user asks for it by name** (2026-11-04: "remove that completely …
+   dont add any gradient glow till I mention explicitly"): no `Bloom`, no
+   glow pools under objects, no blurred halos around beads, chips or
+   tiles. The lit thing is lit by its colour alone. No shipped scene calls
+   `Bloom` any more (removed from two-step-sign-in and gradual-rollout on
+   2026-11-04); it stays in the core only as legacy API.
 4. **Objects act.** The things move as solids through `Rig` (hop, toss,
    press, jolt, lift, settle), with cause and follow-through: the phone
    hops because the text lands, the screen is kicked because the chip
@@ -65,11 +76,14 @@ decision below serves them:
 3. **One grid.** Primitive positions and sizes are multiples of 0.5 world
    units; face details may use 0.25. Single icons fit the 8 × 8 × 8
    reference cube; stage scenes set their own bounds.
-4. **Ink by default.** `variant="ink"` draws flat faces and a constant
-   pixel outline (`--iso-edge-w` with `vector-effect: non-scaling-stroke`;
-   note vector-effect does not inherit, so it is set on every path). In
-   `duotone` and `solid`, shades come from L ∝ (1, 2, 3) as gradient
-   paints with rims and a faint hairline; `line` is the blueprint.
+4. **Ink or soft, never mixed.** `variant="ink"` draws flat faces and a
+   constant pixel outline (`--iso-edge-w` with `vector-effect:
+   non-scaling-stroke`; note vector-effect does not inherit, so it is set
+   on every path). `variant="soft"` keeps that pixel outline (1 px, tinted
+   toward the tone, round joins) over gradient faces. In `duotone` and
+   `solid`, shades come from L ∝ (1, 2, 3) as gradient paints with rims
+   and a faint hairline; `line` is the blueprint. A scene picks one style
+   as its default and every part follows it.
 5. **Everything solid declares its shadow shape** (`casts`), so shadows
    fall along the light from the real shape, onto the floor or onto a
    raised surface (`ground`).
@@ -88,6 +102,65 @@ decision below serves them:
     classes in the file, no separate CSS), plain `sm/md/lg/xl`
     breakpoints, no container queries, rem not px in Tailwind arbitrary
     values, and never run `ultracite fix` on `.mdx` files.
+
+## The soft style
+
+The look of the Kargul / Chatsheet feature grid: white rounded tiles with
+pale tinted walls, one brand tile, thin grey-blue outlines, dashed arcs
+between things, and nothing under the objects: no shadow, no glow. All of it is in
+`iso-core.tsx` behind `variant="soft"`; a scene only chooses it.
+
+| Part | Soft | Ink, for contrast |
+| --- | --- | --- |
+| Neutral faces (`surface`) | the tone mixed 16% into the card, held at L ≥ 0.34 (dark pages keep graded walls), lit by L ∝ (1, 2, 3) with k 0.36 | the card, three flat values |
+| Brand faces (`main`, `accent`) | the colour itself, k 0.24 so the wall stays brand, not navy | the tone ± flat steps |
+| Gradients | the lit face gradients × 1.5 (`--iso-grad`): tops fade white to tint | none |
+| Outline | every visible edge, `strokeWidth × 3.33` px (1 px at 0.3), the tone pulled 45% toward ink then 52% into the card (grey-blue on light, pale on dark), round joins | 1.3 px ink, miter |
+| Rounded extrusions | `Slab`/`Panel` (`convex`) also stroke their silhouette, the convex hull of front and back outlines, so the two side edges show (`--iso-silhouette`) | not drawn |
+| Shadow | none, and no glow either (the user rejected the glow pools and the bloom, 2026-11-04); `Shadows` draws nothing in soft | directional cast + contact |
+| Guides | the soft outline at 75% | ink at 30% |
+
+Composition rules that make it read like the reference:
+- **Rounded tiles as the vocabulary.** `Slab` 5 × 5 × 0.8, radius 1.15,
+  floating level (z 0.8) over nothing: no grid, no floor, no glow.
+  Glyphs lie flat on tile tops (`FacePath` fills in `--iso-screen` with
+  the outline; brand only in small marks like a flap or dots).
+- **The brand tile is the lit thing**, by colour alone (no `Bloom`).
+- **Labels are lit pills** standing above a tile on a dashed tether
+  (`Panel`, `frontStyle` `--iso-screen`, text `--iso-screen-ink`, a round
+  badge first). They rise out of the tile by scale about the tether's foot.
+  Give them 3.4 units of clearance over the tile top or they cut into it.
+- **Dashed floor lanes with one rounded bend** (the reference's routes,
+  which the user chose over a circular arch, 2026-11-04). Lay tiles out
+  like the reference: two apps sharing x (one behind the other, so on
+  screen the back one sits up and right), the hub 8.5 along x to the
+  right. Each lane lies flat at a fixed height low on the tiles' walls,
+  runs along x from its app, turns a quarter circle (radius 1.5) and runs
+  along y into the hub's near or far side; resample it evenly by length
+  so ink fills at an even pace. No circles through the tiles, no lanes
+  bowing up, no straight diagonals.
+- **No count badges on tiles.** The user removed them as noise
+  (2026-11-04): a tile shows its glyph and its name only.
+- **Glyphs must not echo each other.** A ring-and-dot target next to a
+  ring logo on the hub read as the same mark; status glyphs use their
+  conventional forms (dashed empty circle = not started, spokes = in
+  progress, clock = pending, check = done).
+- **Tiles that only send or receive stay still.** The user removed the
+  mail and chat tiles' hop: the event shows as the label rising, not as
+  the tile jumping. Only the hub (the AI step) acts (press, sparkle turn).
+- **A flat V on a top face projects to an "L".** Draw folds as filled
+  shapes off a long edge (the envelope flap), not as two strokes. A check
+  mark lies flat in the same frame as the tile's label, like the
+  reference (short stroke down, long stroke right on screen); a tick
+  solved to read upright on screen was rejected as the wrong orientation.
+- **Several hues are fine when the hues are the data** (statuses,
+  categories): wrap each part in `Tint` (core), which re-declares one
+  palette, its gradients and the outline in that hue. Pastel tiles at
+  `strength` 22, cards at 10, a near-white hub as `Tint` of the ink at 4.
+  Glyphs and labels read `--iso-tint`; label text is the tint mixed 50%
+  with `--iso-text` so it works in light and dark.
+- **Labels face +y**, so the orbit must favour turning toward them: check
+  both ends with the arrow keys and put the short side away from them.
 
 ## Workflow: from a sentence to a shipped scene
 
@@ -246,6 +319,14 @@ and `content/agent-reference.json` together, following
 - [ ] Positions on the 0.5 grid; depth order right (far to near,
       x + y + z); tall things at the back.
 
+**Rendering (soft scenes)**
+- [ ] Every visible edge, rounded silhouettes included, carries the 1 px
+      tinted outline; tops fade white to tint, walls stay tinted in light
+      and graded (not black) in dark.
+- [ ] No glow anywhere: no bloom, no pools under tiles, no halo on the
+      ink's bead; no shadow either.
+- [ ] Brand tile walls read as the brand, not navy.
+
 **Rendering (ink)**
 - [ ] Every visible edge carries the one ink outline at 1.3 px, the same
       weight at every frame size and on every object; hard miter corners.
@@ -253,8 +334,8 @@ and `content/agent-reference.json` together, following
       and dark themes; no gradients, rims or hairlines outside `duotone`
       and `solid`.
 - [ ] No base: the floor is shadows plus the dashed grid (`FloorGrid`).
-- [ ] One lit thing: a single object in the brand tone, bloomed if it
-      helps; everything else neutral surface.
+- [ ] One lit thing: a single object in the brand tone, never bloomed;
+      everything else neutral surface.
 - [ ] Objects act through `Rig` on named presets; every beat is caused by
       the one before, something lags, nothing pops with opacity.
 - [ ] Shadow shapes declared; shadows fall away from the light, onto the
@@ -302,8 +383,10 @@ camera, −θ turns it edge-on.
 | `gradual-rollout` | ISO-7PVTRP | feature flags, progressive delivery | light rails with trailing-dash packets | **Ink (2026-11-03):** no plate; 12 × 6.2 console floats at the back left over the grid, rails are brand light tracks on the floor; console moves a new version 10% → 50% → 100%: v2 hops, turns brand and blooms (the one lit thing), the router presses as it re-splits, v1 sinks as its rail goes quiet, packets shift → "Rolled out" kicks the console back; leans with the pointer (−15°…30°), click replays; `screen` prop (`RolloutScreenState`) |
 | `wallet-coins` | ISO-A0SDZZ | fintech, banking heroes | none (a hero object with a product moment) | **Ink (2026-11-03, third pass after an interface-craft critique):** a thin wallet (one body: thick front leaf + thin back leaf so the slit holds things, depth 1.3 for width 9.5), stitched hairline on the front, a strap across the right third with a snap; the brand card (chip, name, last four) is the one lit thing and slides out of the slit first with the settle, leaning back 9°; three currency coins ($ € £) follow 160 ms apart, fanning from the card's edge into a hand and swinging upright from a 26° lean; the wallet dips (`press`) as each leaves; idle: coins sway ±12° and bob ±0.18 on a 3.4 s sine, the card breathes ±1.5°; pastel body (tone 46% toward white, both themes); no shadow by default (the user removed the hard shadow; `shadow="hard"` and `"soft"` remain); the card rests 4 units up so its whole face reads; props `cardName`, `last4`, `currencies` |
 | `bank-deposit` | ISO-RJJ8GD | banking, savings, fintech heroes | arc (coins leaping through a door) | **Ink (2026-11-03, second pass after "too many bars, card too shallow"):** a small bank in a pastel of the brand: two step `Box`es, a flat-roofed hall whose front face carries an arched door (`archPath`, a rect with a semicircular top) and two windows, **two** columns with square capitals at the portico's ends (four read as bars in front of the door), an entablature and a pediment as a triangular `Extrude` on its front with an oculus; five small coins standing in a loose pile to the right leap through the arch 650 ms apart on sin-lifted arcs, leaning into the flight and shrinking at the threshold, the bank dipping on each landing; the card after Wise's (thick, 0.42 deep, leaning 14° on a `Rig` about x; chip + contactless waves, wordmark, the balance as the big figure, a "+$25" pill under the wordmark, network circles) counts up by `credit` per landed coin, is nudged and settles, and its waves pulse (nested `Rig`); clock-driven text via a component with `useMotionValueEvent`; 5.6 s wrapping cycle; props `cardBrand`, `label`, `start`, `credit`, `glyph`, `coinTone`; no shadow |
+| `workflow-trigger` | ISO-EP9ZS9 | workflow automation, AI agents, integrations | ink-in lanes (dashed floor routes with one rounded bend that fill solid in the brand, a bead at the head, then drain) | **Soft (2026-11-04, second pass):** laid out like the Kargul reference: mail tile front left (0, 5), chat tile behind it (0, −4), the AI step (brand, sparkle glyph) to the right (8.5, 0.5), all level at z 0.8, no shadow, no glow. Each app's lane runs along x, bends round r 1.5 and enters the AI step from the near (mail) or far (chat) side. Events take turns, one per 6.4 s cycle, and decide the direction: an email runs mail → AI → chat, a /follow-up runs chat → AI → mail. A "1 · New email · Acme Inc." pill rises out of the source on a dashed tether (the app tiles never hop: the user removed it); the lane inks in (700 ms); the AI step presses and its sparkle turns 90° with the settle; the second lane inks in; a "✓ Summary posted · #sales" pill rises over the target; hold; pills sink (and unmount, so no dot is left), ink drains toward the target. First pass (circular arch, raised AI tile, bloom and glow pools, hopping tiles) was rejected. Orbit [-12, 30] (labels face +y). Click replays; prop `events` (`from` "mail" \| "chat", `event`, `detail`, `result`, `resultDetail`) |
+| `task-status` | ISO-4E36Y0 | task and project tools, kanban, issue trackers | light run + border trace (the item collapses into a point of light in its status colour, runs the dashed route with a time-lagged trailing line, then splits and races round the target tile's top border both ways) | **Soft (2026-11-04, third pass)**, after a "Group tasks by status" landing section (https://pl.pinterest.com/pin/788763322284989241/): a near-white hub with a ring logo and four pastel status tiles in a pinwheel, each 8.5 out along one axis and 4.5 across (Done back, Not started right, In progress front, Pending left), joined by dashed floor routes with one r 1.5 bend. Per task (1.4 s apart): the issue badge (title card) pops over the hub, holds, collapses to a point; the light runs the lane (900 ms; trail = the spans the head covered 70/150/240 ms ago at falling opacity and width; under the tiles, so it leaves from under the hub and dives under its tile); on the hit the border trace runs (520 ms), holds, fades; the glyph answers in kind (dashed circle pops, spinner turns 90°, clock hand sweeps 120°, check pops). No counts (a superscript count badge was tried and removed as noise); Not started is a dashed empty circle (target rings echoed the hub's logo). The Done tick lies flat in the label's frame like the reference (a screen-upright tick was rejected). Tiles never move; no shadow, no glow. 9.4 s cycle. Props `statuses`, `tasks`. Orbit 18 |
 
-## Known gaps (backlog, as of 2026-11-03)
+## Known gaps (backlog, as of 2026-11-04)
 
 Close these when the work touches them, and update this list:
 - The docs pages show one preview each; the "your own UI inside the
@@ -317,6 +400,10 @@ Close these when the work touches them, and update this list:
 - `Rig` rotations re-project geometry but face shading (`lit`) still uses
   the unrotated normals; fine for small turns and for `ink`, wrong for a
   box tossed 90° in `duotone`.
+- Soft: only `workflow-trigger` uses it so far; the shipped ink scenes
+  were not re-checked under `variant="soft"`. Soft text pills use the
+  site font; the reference's serif headings are a page concern, not a
+  scene one.
 - Ink: `Cylinder` and `Sphere` keep their lit rendering and seam strokes;
   only `Box`, `Extrude` (Slab, Panel) and `Poly` take the ink edge.
 - Nine ecommerce icons (store, house, van, shelf, conveyor, box, bag, tag,

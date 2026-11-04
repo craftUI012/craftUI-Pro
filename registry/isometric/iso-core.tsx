@@ -541,9 +541,11 @@ export type IsoTone =
  * How faces render: `duotone` and `solid` with light (gradients, rims, soft
  * hairline), `line` as a blueprint outline, `ink` as flat values with one
  * even ink outline on every visible edge, constant in pixels (the house
- * style for scenes).
+ * style for scenes), `soft` as airy gradient faces tinted by the tone with
+ * a thin tinted outline, no shadow and no glow (the product-illustration
+ * style for SaaS feature sections).
  */
-export type IsoVariant = "line" | "solid" | "duotone" | "ink";
+export type IsoVariant = "line" | "solid" | "duotone" | "ink" | "soft";
 
 /** Which color family a face is shaded from. */
 export type IsoPalette = "main" | "accent" | "surface";
@@ -579,15 +581,36 @@ const mix = (a: string, pct: number, b: string) =>
 // ±0.107 (solid) either side of the base; gradients add a little more.
 const K_DUOTONE = 0.33;
 const K_SOLID = 0.4;
+// Soft: the duotone step, with gradients half again as strong (math §5, soft).
+const K_SOFT = 0.36;
+// Coloured soft faces step less, so a brand wall stays brand, not navy.
+const K_SOFT_TONE = 0.24;
+// How much of the tone tints soft neutral surfaces: white tops, pale walls.
+const SOFT_TINT = 16;
 
 const paletteBase = (
   name: IsoPalette,
   color: string,
-  variant: IsoVariant
+  variant: IsoVariant,
+  // Soft only: what tints neutral surfaces, and how much (see `Tint`).
+  tint = "var(--iso-tone)",
+  strength = SOFT_TINT
 ): { base: string; k: number } => {
   const card = "var(--iso-card)";
   if (variant === "ink") {
     return { base: name === "surface" ? card : color, k: 0 };
+  }
+  if (variant === "soft") {
+    // Neutral parts are a whisper of the tone, held at L ≥ 0.34 so a dark
+    // page still gets graded walls (as ink does); main and accent are the
+    // colour itself (the one lit thing).
+    return {
+      base:
+        name === "surface"
+          ? `oklch(from ${mix(tint, strength, card)} max(l, 0.34) c h)`
+          : color,
+      k: name === "surface" ? K_SOFT : K_SOFT_TONE,
+    };
   }
   if (variant === "solid") {
     return {
@@ -622,9 +645,11 @@ const INK_STEPS: Record<FaceName, (neutral: boolean) => string> = {
 const paletteVars = (
   name: IsoPalette,
   color: string,
-  variant: IsoVariant
+  variant: IsoVariant,
+  tint?: string,
+  strength?: number
 ): Record<string, string> => {
-  const { base, k } = paletteBase(name, color, variant);
+  const { base, k } = paletteBase(name, color, variant, tint, strength);
   const vars: Record<string, string> = {
     [`--iso-${name}-base`]: base,
     [`--iso-${name}-k`]: String(k),
@@ -661,15 +686,25 @@ const paintVars = (
 
 // Outline color per variant for the line variant, and the faint silhouette
 // hairline for the edgeless variants.
+// Soft outline: the tone pulled toward the ink, then halfway into the card,
+// so it reads as a tinted grey-blue line on light pages and a pale one on
+// dark pages.
+const softEdge = (tone: string, ink: string) =>
+  mix(mix(tone, 45, ink), 52, "var(--iso-card)");
+
 const STROKE: Record<IsoVariant, (tone: string, ink: string) => string> = {
   duotone: (tone, ink) => mix(mix(tone, 45, ink), 38, "transparent"),
   ink: (_tone, ink) => ink,
   line: (tone, ink) => mix(tone, 70, ink),
+  soft: softEdge,
   solid: (tone) => mix(mix(tone, 50, "black"), 55, "transparent"),
 };
 
+// Variants whose every visible edge carries one outline at a pixel weight.
+const OUTLINED: ReadonlySet<IsoVariant> = new Set(["ink", "soft"]);
+
 const contourWidth = (variant: IsoVariant) => {
-  if (variant === "ink") {
+  if (OUTLINED.has(variant)) {
     return "0";
   }
   return variant === "line"
@@ -688,12 +723,19 @@ const edgeInk = (variant: IsoVariant, t: string, ink: string) => {
   if (variant === "ink") {
     return ink;
   }
+  if (variant === "soft") {
+    return softEdge(t, ink);
+  }
   return variant === "line" ? mix(t, 70, ink) : "initial";
 };
 
 const edgeWidth = (variant: IsoVariant, inkW: string) => {
   if (variant === "ink") {
     return inkW;
+  }
+  if (variant === "soft") {
+    // strokeWidth 0.3 → 1 px: lighter than ink, like a fine pen.
+    return "calc(var(--iso-stroke-width) * 3.33px)";
   }
   return variant === "line" ? "var(--iso-stroke-width)" : "initial";
 };
@@ -718,6 +760,8 @@ const themeVars = ({
   const ly = round((2 / L_NORM) * 10_000) / 10_000;
   const line = variant === "line";
   const inked = variant === "ink";
+  const soft = variant === "soft";
+  const outlined = OUTLINED.has(variant);
   // Ink outlines are a pixel weight (vector-effect keeps them constant):
   // strokeWidth 0.3 → 1.3 px, the weight of the reference drawings.
   const inkW = "calc(var(--iso-stroke-width) * 4.33px)";
@@ -730,13 +774,17 @@ const themeVars = ({
     "--iso-contour-w": contourWidth(variant),
     // Details drawn on faces: slots, marks, glyphs.
     "--iso-detail": detailInk(variant, t, ink),
-    // Line and ink outline every face; elsewhere faces seal in their own paint.
+    // Line, ink and soft outline every face; elsewhere faces seal in their own paint.
     "--iso-edge": edgeInk(variant, t, ink),
     "--iso-edge-w": edgeWidth(variant, inkW),
     "--iso-glow": a,
-    // Construction guides: the ink, a step short of full strength.
-    "--iso-guide": mix(ink, 30, "transparent"),
-    "--iso-guide-w": inked ? "calc(var(--iso-stroke-width) * 3px)" : "0.1",
+    // Soft gradients run 1.5× the lit step, so tops fade white to tint.
+    "--iso-grad": soft ? "1.5" : "1",
+    // Construction guides: the ink (soft: its own outline), a step short of full strength.
+    "--iso-guide": soft
+      ? mix(softEdge(t, ink), 75, "transparent")
+      : mix(ink, 30, "transparent"),
+    "--iso-guide-w": outlined ? "calc(var(--iso-stroke-width) * 3px)" : "0.1",
     "--iso-ink": inked
       ? mix("var(--foreground)", 88, "var(--card)")
       : "var(--foreground)",
@@ -744,20 +792,24 @@ const themeVars = ({
     "--iso-lx": String(mirror ? ly : lx),
     "--iso-ly": String(mirror ? lx : ly),
     // Text and marks printed on main-palette faces (cards, chips).
-    "--iso-on-main": variant === "solid" || inked ? mix(t, 8, "white") : ink,
-    "--iso-rim-w": line || inked ? "0" : "calc(var(--iso-stroke-width) * 0.75)",
+    "--iso-on-main": variant === "solid" || outlined ? mix(t, 8, "white") : ink,
+    "--iso-rim-w":
+      line || outlined ? "0" : "calc(var(--iso-stroke-width) * 0.75)",
     "--iso-road": mix(ink, 9, "var(--iso-card)"),
     // Displays are lit: near white in every theme, so dark mode glows.
     "--iso-screen": mix(t, 5, "white"),
     "--iso-screen-ink": mix(t, 30, "oklch(0.25 0.02 260)"),
-    // Shadows only ever darken: soft on light pages, nearly gone on dark ones.
+    // Shadows only ever darken: soft on light pages, nearly gone on dark
+    // ones (soft draws none).
     "--iso-shadow": mix("black", 12, "transparent"),
+    // Silhouette edges of rounded extrusions (soft only; see Extrude).
+    "--iso-silhouette": soft ? softEdge(t, ink) : "none",
     "--iso-stroke": STROKE[variant](t, ink),
     "--iso-stroke-width": String(strokeWidth),
     "--iso-text": ink,
     "--iso-tone": t,
-    // Ink strokes keep their pixel weight at any frame size.
-    "--iso-vector": inked ? "non-scaling-stroke" : "none",
+    // Outlines keep their pixel weight at any frame size.
+    "--iso-vector": outlined ? "non-scaling-stroke" : "none",
     ...paletteVars("main", t, variant),
     ...paletteVars("accent", a, variant),
     ...paletteVars("surface", ink, variant),
@@ -807,28 +859,32 @@ const GRADIENTS: Record<
 };
 
 /** Gradients and blur filters every icon (and scene) defines for itself. */
+/** The three face gradients of each palette, under `uid` (lit variants' paints). */
+const faceGradients = (uid: string, palettes: readonly IsoPalette[]) =>
+  palettes.flatMap((p) =>
+    FACES.map((face) => {
+      const g = GRADIENTS[face];
+      const stop = (offset: number) =>
+        `oklch(from var(--iso-${p}-${face}-c) clamp(0, calc(l + var(--iso-${p}-k) * var(--iso-grad, 1) * ${offset}), 1) c h)`;
+      return (
+        <linearGradient
+          id={`${uid}-${p}-${face}`}
+          key={`${p}-${face}`}
+          x1={g.from[0]}
+          x2={g.to[0]}
+          y1={g.from[1]}
+          y2={g.to[1]}
+        >
+          <stop offset="0" style={{ stopColor: stop(g.stops[0]) }} />
+          <stop offset="1" style={{ stopColor: stop(g.stops[1]) }} />
+        </linearGradient>
+      );
+    })
+  );
+
 export const IsoDefs = ({ uid }: { uid: string }) => (
   <defs>
-    {PALETTES.flatMap((p) =>
-      FACES.map((face) => {
-        const g = GRADIENTS[face];
-        const stop = (offset: number) =>
-          `oklch(from var(--iso-${p}-${face}-c) clamp(0, calc(l + var(--iso-${p}-k) * ${offset}), 1) c h)`;
-        return (
-          <linearGradient
-            id={`${uid}-${p}-${face}`}
-            key={`${p}-${face}`}
-            x1={g.from[0]}
-            x2={g.to[0]}
-            y1={g.from[1]}
-            y2={g.to[1]}
-          >
-            <stop offset="0" style={{ stopColor: stop(g.stops[0]) }} />
-            <stop offset="1" style={{ stopColor: stop(g.stops[1]) }} />
-          </linearGradient>
-        );
-      })
-    )}
+    {faceGradients(uid, PALETTES)}
     <filter height="300%" id={`${uid}-cast`} width="300%" x="-100%" y="-100%">
       <feGaussianBlur stdDeviation="0.55" />
     </filter>
@@ -984,6 +1040,102 @@ export const mapPath = (
     }
   }
   return out.join(" ");
+};
+
+type P2 = readonly [number, number];
+
+// Andrew's monotone chain convex hull (shadows on the ground, silhouettes
+// on the canvas).
+const cross = (o: P2, a: P2, b: P2) =>
+  (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+
+const hull = (pts: P2[]): P2[] => {
+  const sorted = pts.toSorted((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const half = (list: P2[]) => {
+    const out: P2[] = [];
+    for (const p of list) {
+      while (
+        out.length >= 2 &&
+        cross(out.at(-2) as P2, out.at(-1) as P2, p) <= 0
+      ) {
+        out.pop();
+      }
+      out.push(p);
+    }
+    out.pop();
+    return out;
+  };
+  return [...half(sorted), ...half([...sorted].toReversed())];
+};
+
+/**
+ * Samples a face-coordinate path (absolute M L H V C Q Z) into points, curves
+ * at 6 steps each, for shapes a scene needs as points (silhouettes).
+ */
+const facePoints = (d: string): [number, number][] => {
+  const tokens = d.match(/[MLHVCQZ]|-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
+  const out: [number, number][] = [];
+  let cmd = "";
+  let cu = 0;
+  let cv = 0;
+  let i = 0;
+  const num = () => {
+    const n = Number(tokens[i]);
+    i += 1;
+    return n;
+  };
+  const curve = (ctrl: [number, number][]) => {
+    const pts: [number, number][] = [[cu, cv], ...ctrl];
+    for (let s = 1; s <= 6; s += 1) {
+      const t = s / 6;
+      // De Casteljau: lerp the control polygon down to one point.
+      const work = pts.map(([u, v]): [number, number] => [u, v]);
+      for (let n = work.length - 1; n > 0; n -= 1) {
+        for (let k = 0; k < n; k += 1) {
+          work[k] = [
+            work[k][0] + (work[k + 1][0] - work[k][0]) * t,
+            work[k][1] + (work[k + 1][1] - work[k][1]) * t,
+          ];
+        }
+      }
+      out.push(work[0]);
+    }
+    [cu, cv] = pts.at(-1) as [number, number];
+  };
+  while (i < tokens.length) {
+    if (/^[A-Z]$/i.test(tokens[i])) {
+      cmd = tokens[i].toUpperCase();
+      i += 1;
+    }
+    if (cmd === "Z") {
+      continue;
+    }
+    if (cmd === "M" || cmd === "L") {
+      cu = num();
+      cv = num();
+      out.push([cu, cv]);
+    } else if (cmd === "H") {
+      cu = num();
+      out.push([cu, cv]);
+    } else if (cmd === "V") {
+      cv = num();
+      out.push([cu, cv]);
+    } else if (cmd === "C") {
+      curve([
+        [num(), num()],
+        [num(), num()],
+        [num(), num()],
+      ]);
+    } else if (cmd === "Q") {
+      curve([
+        [num(), num()],
+        [num(), num()],
+      ]);
+    } else {
+      i += 1;
+    }
+  }
+  return out;
 };
 
 /** A rounded rectangle path in face units, corners as cubic quarter circles. */
@@ -1323,6 +1475,7 @@ export const Extrude = ({
   palette = "main",
   fillRule,
   frontStyle,
+  convex = false,
   children,
 }: {
   plane: Plane;
@@ -1333,6 +1486,12 @@ export const Extrude = ({
   palette?: IsoPalette;
   fillRule?: "evenodd" | "nonzero";
   frontStyle?: CSSProperties;
+  /**
+   * The outline is convex (a rounded rect, a disc): its silhouette is the
+   * convex hull of the front and back outlines, so the two side edges
+   * joining them can be drawn (in `--iso-silhouette`, set by `soft`).
+   */
+  convex?: boolean;
   /** Details on the front face: use Face, FacePath or FaceEllipse with the same plane. */
   children?: ReactNode;
 }) => {
@@ -1342,6 +1501,17 @@ export const Extrude = ({
   const steps = Math.max(2, Math.ceil(depth / 0.08));
   const sideFace: FaceName = plane === "right" ? "left" : "right";
   const side = `var(--iso-${palette}-${sideFace})`;
+  let silhouette: string | null = null;
+  if (convex) {
+    const front = facePoints(d).map(
+      ([u, v]) => mapPoint(plane, at, u, v, cam) as unknown as P2
+    );
+    const outer = hull([
+      ...front,
+      ...front.map(([x, y]): P2 => [x + bx * depth, y + by * depth]),
+    ]);
+    silhouette = `M${outer.map(([x, y]) => `${round(x)},${round(y)}`).join(" L")} Z`;
+  }
   return (
     <g>
       <path
@@ -1362,6 +1532,15 @@ export const Extrude = ({
           />
         );
       })}
+      {silhouette ? (
+        <path
+          d={silhouette}
+          style={{
+            ...backStyle,
+            stroke: "var(--iso-silhouette, none)",
+          }}
+        />
+      ) : null}
       <path
         d={outline}
         fillRule={fillRule}
@@ -1406,6 +1585,7 @@ export const Slab = ({
   return (
     <Extrude
       at={top}
+      convex
       d={roundedRect(w, d, radius)}
       depth={h}
       frontStyle={frontStyle}
@@ -1446,6 +1626,7 @@ export const Panel = ({
 }) => (
   <Extrude
     at={at}
+    convex
     d={roundedRect(w, h, radius)}
     depth={depth}
     frontStyle={frontStyle}
@@ -1643,8 +1824,6 @@ export type IsoCast =
   | { box: readonly [number, number, number, number, number]; z?: number }
   | { disc: readonly [number, number, number, number]; z?: number };
 
-type P2 = readonly [number, number];
-
 // Light travels along −L, so a point at height z lands on the ground at
 // (x − z/3, y − 2z/3) (math §5, cast shadow).
 const onGround = ([x, y]: P2, z: number): P2 => [x - z / 3, y - (2 * z) / 3];
@@ -1669,29 +1848,6 @@ const footprint = (cast: IsoCast): P2[] => {
 const castHeight = (cast: IsoCast) =>
   "box" in cast ? cast.box[4] : cast.disc[3];
 
-// Andrew's monotone chain convex hull on ground points.
-const cross = (o: P2, a: P2, b: P2) =>
-  (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-
-const hull = (pts: P2[]): P2[] => {
-  const sorted = pts.toSorted((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const half = (list: P2[]) => {
-    const out: P2[] = [];
-    for (const p of list) {
-      while (
-        out.length >= 2 &&
-        cross(out.at(-2) as P2, out.at(-1) as P2, p) <= 0
-      ) {
-        out.pop();
-      }
-      out.push(p);
-    }
-    out.pop();
-    return out;
-  };
-  return [...half(sorted), ...half([...sorted].toReversed())];
-};
-
 const groundPolygon = (pts: P2[], g = 0, cam: IsoCamera = HOME_CAMERA) =>
   points(
     pts.map(([x, y]) => [x, y, g] as Vec3),
@@ -1701,7 +1857,8 @@ const groundPolygon = (pts: P2[], g = 0, cam: IsoCamera = HOME_CAMERA) =>
 /**
  * Soft cast shadows plus a tighter contact shadow where parts touch the
  * surface. `ground` is that surface's height (a desk top): heights are
- * measured above it, and the shadow is drawn on it.
+ * measured above it, and the shadow is drawn on it. `soft` draws no
+ * shadow and no glow at all: its objects float on nothing.
  */
 const Shadows = ({
   casts,
@@ -1709,6 +1866,7 @@ const Shadows = ({
   className,
   ground = 0,
   cam = HOME_CAMERA,
+  variant,
 }: {
   casts: readonly IsoCast[];
   uid: string;
@@ -1716,37 +1874,39 @@ const Shadows = ({
   ground?: number;
   /** Shadows lie fixed in the world; the camera only changes how they're seen. */
   cam?: IsoCamera;
-}) => (
-  <g className={className} style={{ fill: "var(--iso-shadow)" }}>
-    <g filter={`url(#${uid}-cast)`} opacity={0.75}>
-      {casts.map((cast) => {
-        const base = footprint(cast);
-        const z0 = (cast.z ?? ground) - ground;
-        const z1 = z0 + castHeight(cast);
-        const shadow = hull([
-          ...base.map((p) => onGround(p, z0)),
-          ...base.map((p) => onGround(p, z1)),
-        ]);
-        return (
-          <polygon
-            key={JSON.stringify(cast)}
-            points={groundPolygon(shadow, ground, cam)}
-          />
-        );
-      })}
+  variant?: IsoVariant;
+}) =>
+  variant === "soft" ? null : (
+    <g className={className} style={{ fill: "var(--iso-shadow)" }}>
+      <g filter={`url(#${uid}-cast)`} opacity={0.75}>
+        {casts.map((cast) => {
+          const base = footprint(cast);
+          const z0 = (cast.z ?? ground) - ground;
+          const z1 = z0 + castHeight(cast);
+          const shadow = hull([
+            ...base.map((p) => onGround(p, z0)),
+            ...base.map((p) => onGround(p, z1)),
+          ]);
+          return (
+            <polygon
+              key={JSON.stringify(cast)}
+              points={groundPolygon(shadow, ground, cam)}
+            />
+          );
+        })}
+      </g>
+      <g filter={`url(#${uid}-ao)`}>
+        {casts
+          .filter((cast) => (cast.z ?? ground) - ground < 0.6)
+          .map((cast) => (
+            <polygon
+              key={JSON.stringify(cast)}
+              points={groundPolygon(footprint(cast), ground, cam)}
+            />
+          ))}
+      </g>
     </g>
-    <g filter={`url(#${uid}-ao)`}>
-      {casts
-        .filter((cast) => (cast.z ?? ground) - ground < 0.6)
-        .map((cast) => (
-          <polygon
-            key={JSON.stringify(cast)}
-            points={groundPolygon(footprint(cast), ground, cam)}
-          />
-        ))}
-    </g>
-  </g>
-);
+  );
 
 /* ------------------------------- Guides --------------------------------- */
 
@@ -1874,6 +2034,57 @@ export const VertexDots = ({
 };
 
 const UidContext = createContext("");
+
+// The variant of the frame around a part, for parts that shade themselves.
+const VariantContext = createContext<IsoVariant>("duotone");
+
+/**
+ * Re-colours one palette for the parts inside it: a status tile in its own
+ * hue, a second product in another colour. CSS variables resolve where
+ * they are declared, so the palette's face values, its paints and (for lit
+ * variants) its own face gradients are all re-declared on a group here.
+ * In `soft`, `surface` becomes `color` mixed `strength`% into the card
+ * (white top, pastel walls) and the outline takes the colour too; `main`
+ * and `accent` become the colour itself. In `ink`, surfaces stay the card:
+ * tint `accent` instead. Exposes the colour as `--iso-tint` for glyphs.
+ */
+export const Tint = ({
+  color,
+  palette = "surface",
+  strength = SOFT_TINT,
+  children,
+}: {
+  /** A theme token name or any CSS colour. */
+  color: IsoTone;
+  palette?: IsoPalette;
+  /** Soft surfaces only: percent of the colour in the face (default 16). */
+  strength?: number;
+  children: ReactNode;
+}) => {
+  const variant = useContext(VariantContext);
+  const uid = useIsoId();
+  const c = toneColor(color);
+  const vars: Record<string, string> = {
+    ...paletteVars(palette, c, variant, c, strength),
+    "--iso-tint": c,
+  };
+  for (const face of FACES) {
+    vars[`--iso-${palette}-${face}`] =
+      variant === "ink"
+        ? `var(--iso-${palette}-${face}-c)`
+        : `url(#${uid}-${palette}-${face})`;
+  }
+  if (variant === "soft") {
+    vars["--iso-edge"] = softEdge(c, "var(--iso-ink)");
+    vars["--iso-silhouette"] = vars["--iso-edge"];
+  }
+  return (
+    <g style={vars as CSSProperties}>
+      {variant === "ink" ? null : <defs>{faceGradients(uid, [palette])}</defs>}
+      {children}
+    </g>
+  );
+};
 
 /**
  * A soft glow behind a box, from its six-point silhouette (not its faces,
@@ -2119,6 +2330,7 @@ export const IsoIcon = ({
                 mirror ? mirrorCast(c) : c
               )}
               uid={uid}
+              variant={variant}
             />
           </g>
         ) : null}
@@ -2133,7 +2345,9 @@ export const IsoIcon = ({
             strokeLinejoin: "round",
           }}
         >
-          <g transform={mirror ? "scale(-1 1)" : undefined}>{children}</g>
+          <VariantContext.Provider value={variant}>
+            <g transform={mirror ? "scale(-1 1)" : undefined}>{children}</g>
+          </VariantContext.Provider>
         </g>
       </svg>
       {hasBadge(badge) ? <Badge badge={badge} /> : null}
@@ -2234,7 +2448,7 @@ export const IsoStage = ({
       style={{
         aspectRatio: `${round(w)} / ${round(h)}`,
         ...isoThemeStyle({ accent, strokeWidth, tone, uid, variant }),
-        // Ink corners are hard miters; lit variants keep round joins.
+        // Ink corners are hard miters; soft and lit variants keep round joins.
         ...({
           "--iso-join": variant === "ink" ? "miter" : "round",
         } as CSSProperties),
@@ -2247,18 +2461,31 @@ export const IsoStage = ({
         viewBox={`${round(minX)} ${round(minY)} ${round(w)} ${round(h)}`}
       >
         <IsoDefs uid={uid} />
-        <UidContext.Provider value={uid}>
-          <CameraContext.Provider value={camera}>
-            {shadow && baseCasts.length > 0 ? (
-              <Shadows cam={camera} casts={baseCasts} uid={uid} />
-            ) : null}
-            <g style={STAGE_GROUP}>{base}</g>
-            {shadow && casts.length > 0 ? (
-              <Shadows cam={camera} casts={casts} ground={ground} uid={uid} />
-            ) : null}
-            <g style={STAGE_GROUP}>{children}</g>
-          </CameraContext.Provider>
-        </UidContext.Provider>
+        <VariantContext.Provider value={variant}>
+          <UidContext.Provider value={uid}>
+            <CameraContext.Provider value={camera}>
+              {shadow && baseCasts.length > 0 ? (
+                <Shadows
+                  cam={camera}
+                  casts={baseCasts}
+                  uid={uid}
+                  variant={variant}
+                />
+              ) : null}
+              <g style={STAGE_GROUP}>{base}</g>
+              {shadow && casts.length > 0 ? (
+                <Shadows
+                  cam={camera}
+                  casts={casts}
+                  ground={ground}
+                  uid={uid}
+                  variant={variant}
+                />
+              ) : null}
+              <g style={STAGE_GROUP}>{children}</g>
+            </CameraContext.Provider>
+          </UidContext.Provider>
+        </VariantContext.Provider>
       </svg>
     </div>
   );

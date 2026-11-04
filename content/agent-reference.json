@@ -3232,5 +3232,294 @@
       "Fintech onboarding pages about funding an account",
       "Empty states for balances and transactions"
     ]
+  },
+  "workflow-trigger": {
+    "component": "WorkflowTrigger",
+    "dependencies": ["motion"],
+    "description": "In soft isometric: a mail app, a chat app and an AI step float as rounded tiles, joined by dashed floor lanes with a rounded bend. An event lands in one app, brand ink fills the lane to the AI step and on to the other app, which shows what the workflow did; events take turns, so the flow runs both ways. Leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/workflow-trigger",
+    "extends": null,
+    "files": [
+      "components/isometric/workflow-trigger.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-EP9ZS9",
+    "import": "@/components/isometric/workflow-trigger",
+    "library": "isometric",
+    "name": "workflow-trigger",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. The AI step, the ink and the checks.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Colour of lit details. Defaults to `tone`.",
+        "name": "accent",
+        "optional": true,
+        "type": "IsoTone",
+        "default": null
+      },
+      {
+        "description": "The events, in the order they fire, one per cycle. Each lands in one app and the workflow acts in the other. Default: a new email from Acme Inc. posts a summary to #sales, then a /follow-up in #sales sends Acme Inc. an email.",
+        "name": "events",
+        "optional": true,
+        "type": "WorkflowEvent[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Soft gradient drawing with a tinted outline (default), flat ink, soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"soft\""
+      },
+      {
+        "description": "Line weight: in `soft` 0.3 is a 1 px outline at any size (1.3 px in `ink`).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Plays while in view, one event per cycle, looping. Off shows the first event finished.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-12, 30].",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Workflow trigger",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The app the event lands in (\"mail\" or \"chat\"); the workflow acts in the other one.",
+            "name": "from",
+            "optional": false,
+            "type": "\"mail\" | \"chat\""
+          },
+          {
+            "description": "What happened, up to about 14 characters (\"New email\").",
+            "name": "event",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where or from whom, up to about 10 characters (\"Acme Inc.\").",
+            "name": "detail",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What the workflow did, up to about 14 characters (\"Summary posted\").",
+            "name": "result",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where it did it, up to about 10 characters (\"#sales\").",
+            "name": "resultDetail",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "WorkflowEvent"
+      }
+    ],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Workflow automation and integration platform sites",
+      "AI agent and assistant feature sections",
+      "Explaining triggers, actions and app integrations",
+      "No-code and ops tooling landing pages"
+    ]
+  },
+  "task-status": {
+    "component": "TaskStatus",
+    "dependencies": ["motion"],
+    "description": "In soft isometric: a white hub tile and four pastel status tiles (Not started, In progress, Pending, Done) joined by dashed floor routes with a rounded bend. Each task pops up as an issue badge, turns into a light that runs its route with a trailing line and races round its tile's border, and the status glyph answers. No shadow, no glow; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/task-status",
+    "extends": null,
+    "files": [
+      "components/isometric/task-status.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-4E36Y0",
+    "import": "@/components/isometric/task-status",
+    "library": "isometric",
+    "name": "task-status",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. The routes and the hub's tint.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Name and pastel hue per status, keyed \"notStarted\", \"inProgress\", \"pending\" and \"done\" (any you leave out keep the built-in demo content: Not started, In progress, Pending and Done in purple, blue, orange and green).",
+        "name": "statuses",
+        "optional": true,
+        "type": "Partial<Record<TaskStatusKey, Partial<TaskStatusStyle>>>",
+        "default": null
+      },
+      {
+        "description": "The tasks sorted in one cycle, in order, one issue badge and light each. Default: \"Update docs\" → Not started, \"Fix login bug\" → In progress, \"Legal sign-off\" → Pending, \"Ship v2.4\" → Done.",
+        "name": "tasks",
+        "optional": true,
+        "type": "StatusTask[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Soft gradient drawing with a tinted outline (default), flat ink, soft tint, full colour, or blueprint outline.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"soft\""
+      },
+      {
+        "description": "Line weight: in `soft` 0.3 is a 1 px outline at any size (1.3 px in `ink`).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.3"
+      },
+      {
+        "description": "Plays while in view, looping. Off shows the calm board.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the scene: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default 18.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "18"
+      },
+      {
+        "description": "Accessible description. Without it the scene is decorative.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper; size the scene with width (it keeps its aspect ratio).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Task status",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Name printed under the glyph, up to about 11 characters (\"In progress\").",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Pastel hue of the tile, its glyph and its cards: a theme token name or any CSS colour.",
+            "name": "tone",
+            "optional": false,
+            "type": "IsoTone"
+          }
+        ],
+        "name": "TaskStatusStyle"
+      },
+      {
+        "fields": [
+          {
+            "description": "Card title, up to about 14 characters (\"Fix login bug\").",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The status it is sorted into.",
+            "name": "status",
+            "optional": false,
+            "type": "\"notStarted\" | \"inProgress\" | \"pending\" | \"done\""
+          }
+        ],
+        "name": "StatusTask"
+      }
+    ],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["gradient", "dark-mode"],
+      "types": ["scenes"]
+    },
+    "useCases": [
+      "Project and task management product sites",
+      "Kanban, status and workflow-stage feature sections",
+      "Issue tracker and team productivity landing pages",
+      "Explaining how work is organized by status"
+    ]
   }
 }

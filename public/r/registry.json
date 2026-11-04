@@ -976,6 +976,90 @@
           "target": "components/isometric/iso-core.tsx"
         }
       ]
+    },
+    {
+      "name": "workflow-trigger",
+      "type": "registry:block",
+      "title": "Workflow trigger",
+      "description": "In soft isometric: a mail app, a chat app and an AI step float as rounded tiles, joined by dashed floor lanes with a rounded bend. An event lands in one app, brand ink fills the lane to the AI step and on to the other app, which shows what the workflow did; events take turns, so the flow runs both ways. Leans with the pointer; in your theme.",
+      "categories": [
+        "technology"
+      ],
+      "meta": {
+        "id": "ISO-EP9ZS9",
+        "library": "isometric",
+        "types": [
+          "scenes"
+        ],
+        "styles": [
+          "gradient",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-04",
+        "useCases": [
+          "Workflow automation and integration platform sites",
+          "AI agent and assistant feature sections",
+          "Explaining triggers, actions and app integrations",
+          "No-code and ops tooling landing pages"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/workflow-trigger.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/workflow-trigger.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
+      "name": "task-status",
+      "type": "registry:block",
+      "title": "Task status",
+      "description": "In soft isometric: a white hub tile and four pastel status tiles (Not started, In progress, Pending, Done) joined by dashed floor routes with a rounded bend. Each task pops up as an issue badge, turns into a light that runs its route with a trailing line and races round its tile's border, and the status glyph answers. No shadow, no glow; leans with the pointer; in your theme.",
+      "categories": [
+        "technology"
+      ],
+      "meta": {
+        "id": "ISO-4E36Y0",
+        "library": "isometric",
+        "types": [
+          "scenes"
+        ],
+        "styles": [
+          "gradient",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-04",
+        "useCases": [
+          "Project and task management product sites",
+          "Kanban, status and workflow-stage feature sections",
+          "Issue tracker and team productivity landing pages",
+          "Explaining how work is organized by status"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/task-status.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/task-status.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
     }
   ]
 }
