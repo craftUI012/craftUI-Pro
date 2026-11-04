@@ -1,0 +1,23 @@
+# Every text file is stored and checked out with \n line endings, on every
+# machine, whatever core.autocrlf says. The registry build embeds whole
+# source files as one JSON string each (registry-paid/, public/r/), so a
+# checkout with \r\n would rewrite every item's JSON and make those one-line
+# strings conflict on every merge.
+* text=auto eol=lf
+
+# Binary assets: never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.mp4 binary
+*.webm binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.bundle binary
