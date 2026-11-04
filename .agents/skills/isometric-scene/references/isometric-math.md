@@ -131,6 +131,29 @@ outline is `--iso-ink` (foreground mixed 88% into the card) at
 non-scaling-stroke`, miter joins. Guides are the same ink at 30% and
 `strokeWidth × 3` px. Shadows (below) are unchanged.
 
+### Soft (the product-illustration style)
+
+Gradient faces from the lit model below, a pixel outline like ink, and
+nothing under the objects: no cast shadow, no glow.
+
+| Palette | Base | k |
+| --- | --- | --- |
+| `surface` | tone mixed 16% into `--card`, lightness held ≥ 0.34 | 0.36 |
+| `main`, `accent` | the colour itself | 0.24 |
+
+Face values follow the Lambert steps (ΔL = k · (n·L − 0.5345)) and the
+face gradients below are multiplied by 1.5 (`--iso-grad`). On white that
+gives tops ≈ 1.0 fading to tint, walls ≈ 0.95 → 0.84 tinted; on a dark card
+≈ 0.43 / 0.34 / 0.25 before gradients. Outline: every visible edge at
+`strokeWidth × 3.33` px (non-scaling), colour = mix(mix(tone 45%, ink)
+52%, card), round joins. Convex extrusions (`Slab`, `Panel`) also stroke
+their silhouette: the convex hull (monotone chain) of the projected front
+outline and the same outline moved by depth · BACK, sampled 6 steps per
+curve.
+
+**No glow.** Soft draws no shadow and no glow pool; never add one (nor a
+bloom or halo) unless the user asks for it by name.
+
 ### Lit (`duotone`, `solid`)
 
 One light for everything: **L = (1, 2, 3) / √14**, coming from the upper
@@ -155,6 +178,7 @@ Top and right sit exactly ±0.2673 either side of the left wall. So the
 | solid | 0.40 | +0.107 | −0.107 | the tone itself (surface: ink 12% into card) |
 | line | 0 | flat | flat | `--card`; accents keep a duotone tint |
 | ink | 0 | see the ink table | | `--card` (surface) or the tone |
+| soft | 0.36 / 0.24 | see the soft table | | tone 16% into `--card` (surface) or the tone |
 
 In CSS: `oklch(from <base> clamp(0, calc(l + ΔL), 1) c h)`. Steps are added
 to lightness rather than mixed toward white or black, so contrast between

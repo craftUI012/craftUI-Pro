@@ -7,7 +7,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 import {
-  Bloom,
   EASE,
   Face,
   FaceEllipse,
@@ -798,7 +797,6 @@ const CodeChip = ({
       />
     </Rig>
     <Rig clock={clock} pivot={CHIP_PIVOT} pose={chipPose}>
-      <Bloom at={CHIP_FROM} size={CHIP.size} strength={0.9} />
       <Slab
         at={CHIP_FROM}
         content={(w, d) => (

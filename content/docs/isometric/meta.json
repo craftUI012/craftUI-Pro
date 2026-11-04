@@ -5,6 +5,8 @@
     "push-to-deploy",
     "gradual-rollout",
     "wallet-coins",
-    "bank-deposit"
+    "bank-deposit",
+    "workflow-trigger",
+    "task-status"
   ]
 }

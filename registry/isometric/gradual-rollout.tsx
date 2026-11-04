@@ -7,7 +7,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 import {
-  Bloom,
   Box,
   Face,
   FacePath,
@@ -295,7 +294,7 @@ const offsetLine = (pts: readonly Pt[], d: number): Pt[] =>
     return [p[0] + n[0] * d, p[1] + n[1] * d];
   });
 
-// The glow under a rail: one rectangle per segment, padded at both ends
+// The tint under a rail: one rectangle per segment, padded at both ends
 // so turns close, in floor (face) units.
 const grooveRects = (pts: readonly Pt[]) =>
   pts.slice(1).map((b, i) => {
@@ -314,7 +313,7 @@ const grooveRects = (pts: readonly Pt[]) =>
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
 
 // A rail is a light track on the floor: two hairlines in the brand colour
-// with a faint glow between them.
+// with a faint flat tint between them (no blur).
 const Rail = ({ pts }: { pts: readonly Pt[] }) => (
   <>
     <Face at={FLOOR} plane="top">
@@ -1214,13 +1213,6 @@ export const GradualRollout = ({
           />
         </Rig>
         <Rig clock={clock} pivot={V2_PIVOT} pose={v2Pose}>
-          <motion.g
-            animate={{ opacity: stage >= STAGE.half ? 1 : 0 }}
-            initial={false}
-            transition={FADE}
-          >
-            <Bloom at={V2} size={serverSize} strength={0.7} />
-          </motion.g>
           <Box
             at={V2}
             left={(w, h) => (
