@@ -1,55 +1,31 @@
 #!/usr/bin/env node
-// Renders a storyboard (reels/specs/<name>.json) to a 1080 x 1920 MP4.
+// Renders a storyboard (reels/specs/<name>.json) to a 1080 × 1920 MP4.
 //
-//   pnpm video <name> [--base http://localhost:3000] [--reuse] [--stills 1:2.5,3:4]
+//   pnpm video <name> [--base http://localhost:3000] [--stills 2.5,8]
 //
-// 1. Films each live shot from /reels/shot?spec=<name>&shot=<i> with the
-//    frame-stepped recorder (scripts/lib/film.mjs).
-// 2. Highlights code shots with shiki.
-// 3. Composes everything in Remotion (reels/remotion) and renders it.
+// The whole video is one page, /reels/video?spec=<name>: every shot played
+// in order on one stageshow Stage (reels/video/reel.tsx). The frame-stepped
+// recorder (scripts/lib/film.mjs) films that page at 2x, one frame per
+// virtual-clock step, straight to reels/out/<name>.mp4.
 //
-// --reuse   skip filming when a shot's clip already exists (compose only)
-// --stills  save PNGs of live shots at <shot>:<seconds>, for checking frames
+// --stills  also save PNGs at these seconds, for checking frames
 //
-// Needs the dev server (pnpm dev) for the live shots, and ffmpeg.
+// Needs the dev server (pnpm dev) and ffmpeg.
 
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { execFile } from "node:child_process";
+import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { parseArgs } from "node:util";
-
-import { bundle } from "@remotion/bundler";
-import {
-  ensureBrowser,
-  renderMedia,
-  selectComposition,
-} from "@remotion/renderer";
-import { codeToTokens } from "shiki";
+import { parseArgs, promisify } from "node:util";
 
 import { filmClip } from "./lib/film.mjs";
+import { pruneReels } from "./lib/reels-files.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-
-// The scenes (the shot page and the composition) were deleted on 2026-11-04
-// to be rebuilt from the polished video-director skill. Until they exist
-// again there is nothing to film or compose.
-if (!existsSync(path.join(ROOT, "reels/remotion/index.ts"))) {
-  console.error(
-    "video: no video scenes yet. They were removed to be rebuilt from the video-director skill (.agents/skills/video-director)."
-  );
-  process.exit(1);
-}
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: {
     base: { default: "http://localhost:3000", type: "string" },
-    reuse: { default: false, type: "boolean" },
     stills: { default: "", type: "string" },
   },
 });
@@ -62,131 +38,96 @@ if (!name || !/^[a-z0-9-]+$/.test(name)) {
   process.exit(2);
 }
 
-const { CLIP, parseSpec } = await import(path.join(ROOT, "reels/spec.ts"));
+const { PAGE, parseSpec } = await import(path.join(ROOT, "reels/spec.ts"));
 const spec = parseSpec(
   JSON.parse(readFileSync(path.join(ROOT, `reels/specs/${name}.json`), "utf-8"))
 );
 
-const work = path.join(ROOT, "reels/out", name);
-mkdirSync(work, { recursive: true });
-const out = path.join(ROOT, "reels/out", `${name}.mp4`);
-
-const stills = {};
-for (const pair of values.stills.split(",").filter(Boolean)) {
-  const [shot, secs] = pair.split(":");
-  (stills[shot] ??= []).push(Number(secs));
-}
+const outDir = path.join(ROOT, "reels/out");
+mkdirSync(outDir, { recursive: true });
+const out = path.join(outDir, `${name}.mp4`);
 
 const log = (msg) => console.log(`video: ${msg}`);
+
+// Storyboards and renders never pile up: anything older than a week goes.
+const pruned = await pruneReels(7);
+if (pruned > 0) {
+  log(
+    `removed ${pruned} storyboard/render file${pruned === 1 ? "" : "s"} older than 7 days`
+  );
+}
 log(`${spec.title} (${spec.type}, ${spec.shots.length} shots, ${spec.fps}fps)`);
 
-// 1. Live shots ---------------------------------------------------------------
-const clips = {};
-const metaFile = path.join(work, "clips.json");
-const known = existsSync(metaFile)
-  ? JSON.parse(readFileSync(metaFile, "utf-8"))
-  : {};
-for (const [i, shot] of spec.shots.entries()) {
-  if (shot.kind !== "live") {
-    continue;
-  }
-  const src = `shot-${i}.mp4`;
-  const file = path.join(work, src);
-  if (values.reuse && existsSync(file) && known[i]) {
-    clips[i] = known[i];
-    log(`shot ${i}: reusing ${src}`);
-    continue;
-  }
-  const size = CLIP[shot.frame];
-  const started = Date.now();
-  process.stdout.write(`video: shot ${i} (live, ${shot.frame}) filming`);
-  const { frames, marks } = await filmClip({
-    fps: spec.fps,
-    height: size.height,
-    log: (m) => process.stdout.write(` ${m}`),
-    out: file,
-    stills: stills[i] ?? [],
-    theme: shot.theme ?? spec.theme,
-    url: `${values.base}/reels/shot?spec=${name}&shot=${i}`,
-    width: size.width,
-  });
-  process.stdout.write(`\n`);
-  clips[i] = { frames, marks, src };
-  log(
-    `shot ${i}: ${frames} frames in ${((Date.now() - started) / 1000).toFixed(0)}s`
-  );
-}
-writeFileSync(metaFile, JSON.stringify(clips, null, 2));
-
-// 2. Code ---------------------------------------------------------------------
-const code = {};
-for (const [i, shot] of spec.shots.entries()) {
-  if (shot.kind !== "code") {
-    continue;
-  }
-  const { tokens } = await codeToTokens(shot.code, {
-    lang: shot.lang,
-    theme:
-      spec.theme === "dark" ? "github-dark-default" : "github-light-default",
-  });
-  code[i] = tokens.map((line) =>
-    line.map((t) => ({ color: t.color, content: t.content }))
-  );
-}
-
-// 3. Compose ------------------------------------------------------------------
-copyFileSync(
-  path.join(ROOT, "public/logo/logo-mark-256.png"),
-  path.join(work, "logo-mark.png")
-);
-
-log("bundling the composition");
-const serveUrl = await bundle({
-  entryPoint: path.join(ROOT, "reels/remotion/index.ts"),
-  publicDir: work,
-  webpackOverride: (config) => ({
-    ...config,
-    resolve: {
-      ...config.resolve,
-      alias: { ...config.resolve?.alias, "@": ROOT },
-    },
-  }),
-});
-
-const inputProps = { clips, code, spec };
-// Its own port: Remotion's default (3000) is where Next's dev server runs.
-const port = 3456;
-// Remotion's own chrome-headless-shell (downloaded once into
-// node_modules/.remotion): desktop Chrome crashes under parallel rendering.
-await ensureBrowser();
-const composition = await selectComposition({
-  id: "Reel",
-  inputProps,
-  port,
-  serveUrl,
-});
-
-log(
-  `rendering ${composition.durationInFrames} frames (${(composition.durationInFrames / composition.fps).toFixed(1)}s)`
-);
-let lastShown = -1;
-await renderMedia({
-  codec: "h264",
-  colorSpace: "bt709",
-  composition,
-  crf: 16,
-  inputProps,
-  onProgress: ({ progress }) => {
-    const pct = Math.floor(progress * 10) * 10;
-    if (pct !== lastShown) {
-      lastShown = pct;
-      process.stdout.write(`\rvideo: rendering ${pct}%`);
-    }
-  },
-  outputLocation: out,
-  pixelFormat: "yuv420p",
-  port,
-  serveUrl,
+const started = Date.now();
+process.stdout.write("video: filming");
+const { frames, marks } = await filmClip({
+  fps: spec.fps,
+  height: PAGE.height,
+  log: (m) => process.stdout.write(` ${m}`),
+  maxSeconds: 120,
+  out,
+  stills: values.stills.split(",").filter(Boolean).map(Number),
+  theme: spec.theme,
+  url: `${values.base}/reels/video?spec=${name}`,
+  width: PAGE.width,
 });
 process.stdout.write("\n");
-log(`done → ${path.relative(ROOT, out)}`);
+
+const shots = Object.entries(marks)
+  .filter(([mark]) => mark.startsWith("shot-"))
+  .map(([mark, frame]) => `${mark.slice(5)}@${(frame / spec.fps).toFixed(1)}s`)
+  .join(" ");
+log(`shots ${shots}`);
+log(
+  `${frames} frames (${(frames / spec.fps).toFixed(1)}s) in ${((Date.now() - started) / 1000).toFixed(0)}s`
+);
+// The feed cut and the covers come from the same render (growth.md): the
+// reel keeps everything that matters inside its central 4:5 area.
+const ffmpeg = (args) =>
+  promisify(execFile)("ffmpeg", ["-y", "-loglevel", "error", ...args]);
+const FEED = "crop=1080:1350:0:285";
+const base = out.replace(/\.mp4$/, "");
+const coverAt = String(Math.min(1.6, frames / spec.fps - 0.1));
+await ffmpeg([
+  "-i",
+  out,
+  "-vf",
+  FEED,
+  "-c:v",
+  "libx264",
+  "-preset",
+  "slow",
+  "-crf",
+  "16",
+  "-pix_fmt",
+  "yuv420p",
+  "-movflags",
+  "+faststart",
+  `${base}-4x5.mp4`,
+]);
+await ffmpeg([
+  "-ss",
+  coverAt,
+  "-i",
+  out,
+  "-frames:v",
+  "1",
+  "-q:v",
+  "2",
+  `${base}-cover.jpg`,
+]);
+await ffmpeg([
+  "-ss",
+  coverAt,
+  "-i",
+  out,
+  "-vf",
+  FEED,
+  "-frames:v",
+  "1",
+  "-q:v",
+  "2",
+  `${base}-cover-4x5.jpg`,
+]);
+
+log(`done → ${path.relative(ROOT, out)} (+ 4:5 cut, covers)`);

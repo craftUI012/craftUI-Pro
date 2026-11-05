@@ -1,6 +1,8 @@
 import { readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 
+import { repoPath } from "@/lib/studio/paths";
+
 // Video files the Studio leaves on a dev machine: downloaded benchmark
 // videos and our renders. Both folders are ignored by git; nothing here is
 // kept anywhere else, so emptying a folder deletes its files for good.
@@ -9,8 +11,12 @@ import path from "node:path";
 
 export const MEDIA_FOLDERS = {
   benchmarks: { dir: "reels/benchmarks", label: "Benchmark videos" },
-  renders: { dir: "reels/out", label: "Renders and filmed clips" },
+  renders: { dir: "reels/out", label: "Renders and stills" },
+  storyboards: { dir: "reels/specs", label: "Storyboards" },
 } as const;
+
+/** Files that keep a folder in git; never counted or deleted. */
+const KEEP = new Set([".gitkeep"]);
 
 export type MediaFolderId = keyof typeof MEDIA_FOLDERS;
 
@@ -24,8 +30,7 @@ export interface MediaFolderInfo {
   videos: { name: string; bytes: number }[];
 }
 
-const absolute = (id: MediaFolderId) =>
-  path.join(process.cwd(), MEDIA_FOLDERS[id].dir);
+const absolute = (id: MediaFolderId) => repoPath(MEDIA_FOLDERS[id].dir);
 
 const walk = async (dir: string): Promise<{ bytes: number; files: number }> => {
   let entries;
@@ -37,6 +42,9 @@ const walk = async (dir: string): Promise<{ bytes: number; files: number }> => {
   let bytes = 0;
   let files = 0;
   for (const entry of entries) {
+    if (KEEP.has(entry.name)) {
+      continue;
+    }
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       const sub = await walk(full);
@@ -96,7 +104,8 @@ export const emptyMediaFolder = async (id: MediaFolderId) => {
   const dir = absolute(id);
   let entries: string[];
   try {
-    entries = await readdir(dir);
+    const names = await readdir(dir);
+    entries = names.filter((name) => !KEEP.has(name));
   } catch {
     return;
   }

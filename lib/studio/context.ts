@@ -1,16 +1,14 @@
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 
 import { isLivePreview, LIVE_PREVIEWS } from "@/constants/live-previews";
 import type { StudioComponentOption } from "@/lib/studio/options";
+import { repoPath } from "@/lib/studio/paths";
 
 // What the director knows about a component, all read from the repo:
 // registry.json (title, description, use cases, styles), the agent
 // reference (import path, props, files), the source itself, and the
 // interactive elements found in it. Only items with a live preview can be
 // filmed, so only those are offered.
-
-const ROOT = process.cwd();
 
 interface RegistryItem {
   name: string;
@@ -45,7 +43,7 @@ interface AgentItem {
 }
 
 const readJson = async <T>(file: string): Promise<T> =>
-  JSON.parse(await readFile(path.join(ROOT, file), "utf-8")) as T;
+  JSON.parse(await readFile(repoPath(file), "utf-8")) as T;
 
 const registryItems = async () => {
   const registry = await readJson<{ items: RegistryItem[] }>("registry.json");
@@ -137,7 +135,7 @@ export const readComponentContext = async (
   if (!entry) {
     throw new Error(`"${name}" lists no source file.`);
   }
-  const source = await readFile(path.join(ROOT, entry), "utf-8");
+  const source = await readFile(repoPath(entry), "utf-8");
   return {
     componentName: ref.component,
     description: item.description ?? "",

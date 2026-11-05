@@ -1,11 +1,12 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import path from "node:path";
+
+import { repoPath } from "@/lib/studio/paths";
 
 // Renders started from Studio, dev machine only. A render is
 // `node scripts/video.mjs <spec>` run as a child of the dev server: it films
-// the live shots from this same server, composes them in Remotion and
-// writes reels/out/<spec>.mp4. Jobs live in memory (on globalThis, so they
+// the video page (/reels/video?spec=<spec>) from this same server, frame by
+// frame, into reels/out/<spec>.mp4. Jobs live in memory (on globalThis, so they
 // survive hot reloads); there is no database: once the video is downloaded
 // and the folder emptied, nothing is left.
 
@@ -30,8 +31,7 @@ const store = globalThis as typeof globalThis & {
 };
 const jobs = (store.__studioRenders ??= new Map<string, RenderJob>());
 
-export const videoFile = (name: string) =>
-  path.join(process.cwd(), "reels/out", `${name}.mp4`);
+export const videoFile = (name: string) => repoPath("reels/out", `${name}.mp4`);
 
 export const getRenderJob = (name: string) => jobs.get(name) ?? null;
 
@@ -74,7 +74,11 @@ export const startRender = (name: string): RenderJob => {
   const child = spawn(
     process.execPath,
     ["scripts/video.mjs", name, "--base", base],
-    { cwd: process.cwd(), env: process.env, stdio: ["ignore", "pipe", "pipe"] }
+    {
+      cwd: repoPath(),
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    }
   );
   child.stdout.setEncoding("utf-8");
   child.stderr.setEncoding("utf-8");

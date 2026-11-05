@@ -1,7 +1,6 @@
 "use server";
 
 import { writeFile } from "node:fs/promises";
-import path from "node:path";
 
 import { z } from "zod";
 
@@ -17,10 +16,12 @@ import {
 import type { MediaFolderId, MediaFolderInfo } from "@/lib/studio/local-media";
 import {
   AUDIENCES,
+  GROUNDS,
   HOOK_STYLES,
   LENGTHS,
   VIDEO_TYPES,
 } from "@/lib/studio/options";
+import { repoPath } from "@/lib/studio/paths";
 import {
   anyRenderRunning,
   getRenderJob,
@@ -38,7 +39,12 @@ const ids = <T extends { id: string | number }>(list: readonly T[]) =>
 
 const DirectInputSchema = z.object({
   audience: z.enum(ids(AUDIENCES) as [string, ...string[]]),
+  ground: z.enum(ids(GROUNDS) as [string, ...string[]]).default("auto"),
   hook: z.enum(ids(HOOK_STYLES) as [string, ...string[]]),
+  instructions: z
+    .string()
+    .max(2000, "Keep the instructions under 2,000 characters.")
+    .default(""),
   item: z.string().regex(/^[a-z0-9-]+$/),
   length: z.union(
     LENGTHS.map((l) => z.literal(l.id)) as [
@@ -47,6 +53,15 @@ const DirectInputSchema = z.object({
       z.ZodLiteral<45>,
     ]
   ),
+  references: z
+    .array(
+      z.url({
+        message: "Each reference must be a full link (https://…).",
+        protocol: /^https?$/,
+      })
+    )
+    .max(3, "Use at most 3 reference videos.")
+    .default([]),
   type: z.enum(ids(VIDEO_TYPES) as [string, ...string[]]),
 });
 
@@ -60,6 +75,13 @@ export const directVideo = async (input: unknown): Promise<DirectAnswer> => {
     const parsed = DirectInputSchema.parse(input) as Parameters<
       typeof direct
     >[0];
+    // Reading a reference runs ffmpeg and yt-dlp, which only a dev machine has.
+    if ((parsed.references?.length ?? 0) > 0 && !showReels) {
+      return {
+        error:
+          "Reference videos are read with ffmpeg on a dev machine. Remove them, or plan from localhost.",
+      };
+    }
     return { ok: true, result: await direct(parsed) };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -85,7 +107,7 @@ export const saveStoryboard = async (spec: unknown): Promise<SaveAnswer> => {
     const parsed = parseSpec(spec);
     const name = `${parsed.item}-${parsed.type}`;
     await writeFile(
-      path.join(process.cwd(), "reels/specs", `${name}.json`),
+      repoPath("reels/specs", `${name}.json`),
       `${JSON.stringify(parsed, null, 2)}\n`
     );
     return { name, ok: true };
@@ -114,7 +136,7 @@ export const renderVideo = async (spec: unknown): Promise<RenderAnswer> => {
     const parsed = parseSpec(spec);
     const name = `${parsed.item}-${parsed.type}`;
     await writeFile(
-      path.join(process.cwd(), "reels/specs", `${name}.json`),
+      repoPath("reels/specs", `${name}.json`),
       `${JSON.stringify(parsed, null, 2)}\n`
     );
     return { job: startRender(name), ok: true };

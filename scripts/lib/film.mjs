@@ -72,7 +72,7 @@ const waitUntilReady = async (frames) => {
   );
 };
 
-/** ffmpeg reading PNG frames on stdin into an H.264 clip at `out`. */
+/** ffmpeg reading JPEG frames on stdin into an H.264 clip at `out`. */
 const encoder = (fps, out) => {
   const ffmpeg = spawn(
     "ffmpeg",
@@ -85,7 +85,7 @@ const encoder = (fps, out) => {
       "-framerate",
       String(fps),
       "-c:v",
-      "png",
+      "mjpeg",
       "-i",
       "-",
       "-c:v",
@@ -161,6 +161,9 @@ export const filmClip = async ({
     await context.addInitScript(
       `(${installVirtualClock.toString()})({ fps: ${fps}, epoch: ${EPOCH} });`
     );
+    // The video page holds its first shot until the recorder lets it go,
+    // so it can fit the component before frame 0 (pre-roll, below).
+    await context.addInitScript("window.__reelHold = true;");
     const page = await context.newPage();
 
     // The stage cursor's moves and presses, as real mouse input. Queued so
@@ -206,6 +209,18 @@ export const filmClip = async ({
     for (let i = 0; i < Math.round(fps * 1.2); i += 1) {
       await step(frames().slice(1));
     }
+    // Pre-roll: step the whole page (unfilmed) until the video page says it
+    // has measured and framed the component, then release it.
+    for (let i = 0; i < fps * 4; i += 1) {
+      const fitted = await page.evaluate(() => window.__reel?.fitted === true);
+      if (fitted) {
+        break;
+      }
+      await step(frames());
+    }
+    await page.evaluate(() => {
+      window.__reelHold = false;
+    });
     await page.evaluate(() => window.__stageshow?.clock?.flushLayout());
 
     const ffmpeg = encoder(fps, out);
@@ -214,15 +229,18 @@ export const filmClip = async ({
     let count = 0;
     const capture = async () => {
       // Playwright's screenshot honors the emulated 2x device (a raw CDP
-      // capture sees the headless window at 1x, minus its chrome).
+      // capture sees the headless window at 1x, minus its chrome). JPEG at
+      // 95: PNG-encoding gradient grounds took 400ms a frame, JPEG 66ms,
+      // and x264 re-encodes every frame anyway.
       const buffer = await page.screenshot({
         animations: "allow",
         caret: "initial",
-        type: "png",
+        quality: 95,
+        type: "jpeg",
       });
       if (stillFrames.has(count)) {
         writeFileSync(
-          out.replace(/\.mp4$/, `-${(count / fps).toFixed(1)}s.png`),
+          out.replace(/\.mp4$/, `-${(count / fps).toFixed(1)}s.jpg`),
           buffer
         );
       }

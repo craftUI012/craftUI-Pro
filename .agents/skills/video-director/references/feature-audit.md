@@ -1,60 +1,82 @@
 # Feature audit
 
-The audit finds the decisions in a component worth a scene. It reads the source through three lenses, writes a card for every candidate, and keeps only points that are true, visible at phone size and rarer than a typical template.
+The audit lists the design-engineering decisions in a component that are worth a scene. **Interface Craft does the listing.** The director never invents features; it only picks from this list and gives each one a scene.
+
+In Studio this runs automatically for every showcase (`lib/studio/features.ts`): Claude gets Interface Craft's `design-critique.md` and `storyboard-animation.md` from `~/.claude/skills/interface-craft` (or `INTERFACE_CRAFT_DIR`), the component's metadata and its whole source, and returns the list below. Run by hand in Claude Code, follow the same steps with the `interface-craft` skill loaded.
 
 ## 0. Start from the metadata
 
-Read the item's metadata first (`SKILL.md`, Component metadata). Write down its use cases, styles, types and free or paid. Every style is a claim the audit must find proof for in the source; a style with no proof goes on the do-not-claim list.
+Read the item's metadata first (`SKILL.md`, Component metadata): use cases, styles, types, free or paid. Every style is a claim the list must find proof for in the source; a style with no proof goes on the do-not-claim list.
 
 ## 1. Inventory the source
 
-Read the whole component file. List every:
+Read the whole component file and note every:
 
 - motion value: durations, delays, staggers, easings, springs (`bounce`, `stiffness`, `damping`), `variants`, `AnimatePresence` modes, `custom` direction props, `layout` / `layoutId`;
 - CSS motion: `transition-*` properties and durations, `active:` / `hover:` / `focus-visible:` states, `@keyframes`, `will-change`;
 - measuring: refs that measure text or layout, `ResizeObserver`, `useLayoutEffect`;
 - input: keyboard handlers, drag, swipe, focus handling, `aria-*`, `prefers-reduced-motion` / `useReducedMotion`;
 - polish details: radii on nested surfaces, shadows, `tabular-nums`, `text-wrap`, image outlines, hit areas;
-- responsive and theme behavior: breakpoint classes, what changes per breakpoint, theme tokens versus hard-coded colors.
+- responsive and theme behaviour: breakpoint classes, what changes per breakpoint, theme tokens versus hard-coded colours.
 
 Record the file and line for each.
 
-## 2. Read it through three lenses
+## 1b. Probe the interactions for real
 
-| Lens | Skill | Asks |
-|---|---|---|
-| Motion | `web-animation-design` (Emil Kowalski) | Is each easing right for its job (ease-out for enter, ease-in-out for movement)? Durations in range for the element? Exits faster than enters? Paired elements share timing? Direction and origin aware? Interruptible? Reduced motion handled? |
-| Polish | `make-interfaces-feel-better` | Which of its 16 principles does the component get right: concentric radius, optical alignment, shadows over borders, split and stagger, subtle exits, icon cross-fade with blur, tabular numbers, balanced wrapping, scale on press, no animation on load, specific transition properties, hit areas? |
-| Critic | `interface-craft` (Josh Puckett), `design-critique.md` | Seen at phone size, is it visible? Would the most exacting designer agree it is a strength? Does anything in the same component contradict it? |
+Before Interface Craft looks, the probe (`scripts/lib/probe.mjs`, run by Studio) tries the component's interactions in headless Chrome and reports, per group of look-alike elements (G1, G2…): its handlers, its cursor, and what each of hover, click, sweep (the cursor gliding across the row), drag and the source's keys did. For example, on the Dock gallery: sweep across the section makes three tiles scale 1.32×; a click opens a tile to 2.79×; Escape does nothing while no tile is open. Idle motion is measured first, so drift isn't mistaken for a response.
 
-The motion and polish lenses find candidates. The critic decides. A point the critic rejects is never filmed, however good it sounds.
+Every interaction the probe reports as RESPONDS gets a hard look as a feature. A feature's trigger must be one the probe saw work: its target is the probe group (`G2`), which Studio turns into the storyboard's selector. With no probe (it failed or there's no dev server), triggers fall back to the source's literal aria-labels and keys.
 
-The lenses also find faults. Faults go on the do-not-claim list: never feature a point the component itself contradicts (a "precise motion" scene on a button with `transition-all`), and never show a fault in close-up.
+## 2. Ask Interface Craft: Design Critique in reverse
 
-## 3. Write a card for every candidate
+Design Critique finds what is wrong. Here the same method finds what the component gets **right** that most components don't:
+
+1. **Step 0, Context:** what this is, who it's for, the emotional context. **Step 1, First impressions:** one paragraph.
+2. **Walk the lenses:** visual design, interface design, consistency and conventions, user context, plus the component's motion.
+3. **Use its frameworks:** *Noticing* (count, measure, name the values), *Industry Standards* (name the typical template behaviour the feature beats) and *Uncommon Care* (the micro-interactions, transitions and edge cases where the designer went further).
+4. **Use its voice:** specific, decisive, quantitative. No hedging, no praise padding.
+5. **Write each motion with Storyboard Animation:** one line per stage, ms after the trigger, values with →, staggers in parentheses:
+
+   ```
+      0ms   Next pressed; old lines exit to +20px, blur 0 → 4px (140ms, easeIn)
+    140ms   new lines enter from −20px, blur 4px → 0, opacity 0 → 1 (220ms, easeOut)
+            each line 40ms after the one above
+   ```
+
+6. **List what is weak** as do-not-claim, with the evidence, so the video never features it (a "precise press" scene on a button with `transition-all`).
+
+`web-animation-design` and `make-interfaces-feel-better` are the vocabulary for naming motion and polish values correctly (easing per job, exits faster than enters, stagger, concentric radius, tabular numbers). They check the wording; they don't add features Interface Craft didn't list.
+
+## 3. A card for every feature
+
+Interface Craft returns 3 to 8 features, strongest first. Each one:
 
 ```
-point:       Measured line stagger
-family:      stagger
-evidence:    registry/sections/testimonials-section-03.tsx:102 LINE_STAGGER 0.04; :404-417 measures real wrapped lines
-proof:       click Next; the four quote lines enter 40ms apart, each one a real wrapped line
-mark:        stagger ticks beside the lines, labeled "40ms"
-eyebrow:     01 · Measured line stagger
-caption:     The quote reads itself
-why:         visitors finish the testimonial instead of skimming it
-visibility:  5   (seen at 1× on a phone without a mark? 1 no, 5 obviously)
-rarity:      4   (would a typical template have it? 1 always, 5 almost never)
-truth:       pass
-critic:      pass
+name:         Measured line stagger              (the eyebrow; developer words, ≤ 40 characters)
+lens:         motion                             (which critique lens found it)
+observation:  Four quote lines, each a real wrapped line, enter 40ms apart
+storyboard:     0ms  Next pressed … / 140ms  line 1 enters … (+40ms each)
+evidence:     registry/sections/testimonials-section-03.tsx:102 LINE_STAGGER 0.04; :404-417 measures real wrapped lines
+impact:       the quote reads itself, top to bottom, instead of popping in as a block
+trigger:      click G3                           (click | hover | sweep | drag on a probe group; key; resize | theme | idle)
+caption:      The quote reads itself             (founder words, ≤ 6 words, no numbers)
+visibility:   5   (clear at phone size? 1 no, 5 obviously)
+rarity:       4   (would a typical template have it? 1 always, 5 almost never)
 ```
 
-## 4. Choose
+A feature must be:
 
-1. Drop every card that fails truth or the critic.
-2. Rank by visibility × rarity.
-3. Keep at most one point per family, top down, until the count for the length is met (`types/showcase.md`, Count by length).
-4. If a strong point needs 0.25× to be seen, its visibility is scored at 0.25× with a mark, and it goes after a point that reads at 1×.
-5. Write the do-not-claim list beside the plan.
+- **true:** proved by the source, with the lines and values in its evidence;
+- **visible:** it shows on screen when its trigger runs, at phone size, in the real component;
+- **one thing:** one decision, so one scene can show it;
+- **filmable:** its trigger is one the recorder can perform. A click or hover needs an aria-label the source really has, a key needs a handler for it, a theme needs the `dark-mode` style. Motion that only plays once on page load can't be filmed yet and is left out. Studio drops any feature that fails this and says why.
+
+## 4. The director picks and writes scenes
+
+1. Take the features in order (visibility × rarity), as many as the length allows (`types/showcase.md`, Count by length), each once.
+2. Avoid two from the same lens in a row.
+3. Give each its scene: the trigger, the motion centred, the eyebrow (its name), the caption (its caption, sharpened, ≤ 6 words over 1 or 2 lines) and the hold.
+4. Never feature anything on the do-not-claim list.
 
 ## Families
 

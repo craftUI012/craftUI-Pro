@@ -3,8 +3,9 @@
 import { z } from "zod";
 
 // The storyboard: one JSON document describes a whole video. The director
-// (Claude + per-type rules) writes it, the admin dashboard edits it, the
-// clip shooter films its live shots and Remotion composes everything.
+// (Claude + per-type rules) writes it, Studio shows it, and one HTML page
+// (/reels/video?spec=<name>) plays every shot in order while the recorder
+// films it frame by frame.
 // Nothing here is component-specific code: a new component needs a new
 // spec, never a new scene file.
 
@@ -60,6 +61,25 @@ export const BeatSchema = z.discriminatedUnion("do", [
     ms: z.number().int().min(200).max(5000).default(1000),
     to: z.union([z.number().int().min(0), TargetSchema]),
   }),
+  /** The cursor glides across the row the target sits in, left to right
+   *  (from/to are shares of the viewport's width), moving the real mouse
+   *  every frame: a dock that magnifies under the pointer, a hover trail. */
+  z.object({
+    ...beat,
+    do: z.literal("sweep"),
+    from: z.number().min(0).max(1).default(0.12),
+    ms: z.number().int().min(600).max(6000).default(2600),
+    target: TargetSchema,
+    to: z.number().min(0).max(1).default(0.88),
+  }),
+  /** Press on the target, drag it dx component px, release. */
+  z.object({
+    ...beat,
+    do: z.literal("drag"),
+    dx: z.number().int().min(-800).max(800).default(-240),
+    ms: z.number().int().min(300).max(4000).default(1000),
+    target: TargetSchema,
+  }),
   /** Type into a field the cursor clicks first. */
   z.object({
     ...beat,
@@ -88,6 +108,15 @@ export const LiveShotSchema = z.object({
   /** The device the component is shown in. */
   frame: z.enum(["browser", "phone"]),
   kind: z.literal("live"),
+  /** The focus mark: a ring on the element that moves, with its value. */
+  mark: z
+    .object({
+      /** The value beside the ring ("40ms stagger", "blur 4px → 0"). */
+      label: z.string().min(1).max(32),
+      /** What the ring sits on, inside the component (usually css:). */
+      target: TargetSchema,
+    })
+    .optional(),
   /** Theme of the component (and of the frame). Defaults to the spec's. */
   theme: ThemeSchema.optional(),
   /** Address shown in the browser bar. */
@@ -121,6 +150,8 @@ export const CodeShotSchema = z.object({
 });
 
 export const EndShotSchema = z.object({
+  /** The one ask ("Comment CRAFT for the code", "Link in bio"). */
+  ask: z.string().max(48).optional(),
   cta: z.string().max(40),
   headline: z.string().max(24).default("craftUI"),
   kind: z.literal("end"),
@@ -138,13 +169,43 @@ export const ShotSchema = z.discriminatedUnion("kind", [
 
 export const VideoTypeSchema = z.enum(["tutorial", "ugc", "showcase"]);
 
+/** What's behind the component (video-director, references/look.md). */
+export const GroundSchema = z.enum([
+  "auto",
+  "aurora",
+  "glow",
+  "ink",
+  "paper",
+  "flat",
+]);
+
+/** How the component is framed: a chromeless card, a browser window, or
+ *  edge to edge. */
+export const FrameSchema = z.enum(["card", "browser", "bleed"]);
+
+export const LookSchema = z.object({
+  /** Whether the component reads as dark (sampled with the palette). */
+  dark: z.boolean().optional(),
+  frame: FrameSchema.default("card"),
+  ground: GroundSchema.default("auto"),
+  /** Colours sampled from the component (#rrggbb), strongest first; the
+   *  Auto ground is built from them. */
+  palette: z
+    .array(z.string().regex(/^#[0-9a-f]{6}$/i))
+    .max(4)
+    .default([]),
+});
+
 export const VideoSpecSchema = z.object({
   /** Who it's for; the director writes the copy for them. */
   aspect: z.enum(["9:16"]).default("9:16"),
   audience: z.enum(["developers", "founders", "both"]).default("both"),
   fps: z.union([z.literal(30), z.literal(60)]).default(60),
+  /** The series handle, small in the top-right corner the whole video. */
+  handle: z.string().max(30).optional(),
   /** The registry item (registry.json `name`) the video is about. */
   item: z.string().min(1),
+  look: LookSchema.prefault({}),
   shots: z.array(ShotSchema).min(1).max(12),
   theme: ThemeSchema.default("dark"),
   title: z.string().max(80),
@@ -162,6 +223,9 @@ export type EndShot = z.infer<typeof EndShotSchema>;
 export type Shot = z.infer<typeof ShotSchema>;
 export type VideoSpec = z.infer<typeof VideoSpecSchema>;
 export type VideoSpecInput = z.input<typeof VideoSpecSchema>;
+export type Look = z.infer<typeof LookSchema>;
+export type Ground = z.infer<typeof GroundSchema>;
+export type Frame = z.infer<typeof FrameSchema>;
 
 /** Parses and fills defaults; throws a readable error for a bad storyboard. */
 export const parseSpec = (input: unknown): VideoSpec => {
@@ -175,16 +239,21 @@ export const parseSpec = (input: unknown): VideoSpec => {
 /** The video canvas, in output pixels. */
 export const CANVAS = { height: 1920, width: 1080 } as const;
 
-/** Where captions and media sit on the 9:16 canvas. Instagram, TikTok and
- *  Shorts draw their own UI over the top ~11% and the bottom ~17%. */
-export const LAYOUT = {
-  captionTop: 240,
-  mediaTop: 600,
-  safeBottom: 1600,
-} as const;
-
-/** Live clips are filmed at half size and 2x, so 540 CSS px = 1080 output px. */
-export const CLIP = {
-  browser: { height: 540, width: 540 },
-  phone: { height: 660, width: 540 },
+/** The video page, in CSS px. It is filmed at 2x, so 540 × 960 here is
+ *  the 1080 × 1920 canvas. Instagram, TikTok and Shorts draw their own UI
+ *  over the top ~11% and the bottom ~17%, so captions sit in a band below
+ *  the top margin and the component is centred under them. Both sit inside
+ *  the central 4:5 area (y 142 to 817 here), so one render crops for the
+ *  feed. */
+export const PAGE = {
+  /** The caption band: eyebrow and up to two lines, on top. */
+  caption: { height: 132, top: 168 },
+  /** The series handle, top right. */
+  handle: 150,
+  height: 960,
+  /** The row under the media box: the mark's value, keycaps. */
+  label: 772,
+  /** The component's frame, centred under the caption, above the foot. */
+  media: { height: 450, top: 312 },
+  width: 540,
 } as const;

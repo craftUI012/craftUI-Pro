@@ -4,15 +4,15 @@ A focus mark shows exactly where the motion happens and what its value is. Each 
 
 ## How marks stay attached
 
-- **Measure the real element** inside the component's iframe, every frame. The shot runs on the virtual clock, so a `requestAnimationFrame` loop in the shot page samples each filmed frame exactly. Map iframe coordinates to the stage with the same scale factor `measure()` in `live-shot.tsx` uses.
+- **Measure the real element** inside the component's iframe, every frame. The shot runs on the virtual clock, so a `requestAnimationFrame` loop in the shot page samples each filmed frame exactly. Map iframe coordinates to the stage with the viewport's scale (`stageRect()` in `reels/video/reel.tsx`), and look the element up again every frame: components often replace it when their motion starts.
 - **Never aim at a destination.** A mark follows the element as it is drawn, not where it will end up (stageshow, Attach to what is drawn).
-- **Targets** use the spec's target syntax (`aria:`, `text:`, `css:`). A mark whose target is missing fails the shot; it never draws in the wrong place.
+- **Targets** use the spec's target syntax (`aria:`, `text:`, `css:`). A `css:` target picks the first visible match. A mark whose target matches nothing is left out of the scene (a console warning), never drawn in the wrong place.
 
 ## The marks
 
 | Mark | Proves | Built from | Looks like | Built |
 |---|---|---|---|---|
-| **Ring** | "This is the thing": feedback, surface, a control | `Follow` | A 1.5px accent ring a few pixels outside the element's own radius, springing between targets | Planned |
+| **Ring** | "This is the thing", and the default mark for every feature | Measured SVG rect (`reels/video/reel.tsx`) | An accent ring 8px outside the element, drawn on with the cause and re-measured every frame (the element is looked up again each frame, since components replace it), with its value in an accent pill under the window | Built |
 | **Leader** | A value on one element: a duration, a blur, a radius | `Connector` with a label | A fine line from a small label outside the window to 4 to 6px short of the element, ending in a dot | Planned |
 | **Stagger ticks** | A stagger and its interval | `Connector` dots on a rail | A short vertical rail beside the elements, one tick lighting as each one lands, labeled with the interval | Planned |
 | **Timing bars** | Exit against enter, paired timing | `Meter` | Two thin bars at the durations' proportions with a playhead on the clock, labeled in ms | Planned |

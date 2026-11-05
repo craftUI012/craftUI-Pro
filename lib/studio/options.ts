@@ -16,7 +16,7 @@ export const VIDEO_TYPES = [
   },
   {
     description:
-      "One polished story: real interactions, the resize, install, CTA.",
+      "Interface Craft lists the component's design-engineering features; each gets one scene, motion centred, a short caption on top.",
     id: "showcase",
     label: "Showcase",
   },
@@ -62,7 +62,27 @@ export const LENGTHS = [
   { id: 45, label: "About 45 s" },
 ] as const;
 
+/** The video's ground (video-director, references/look.md). Auto builds it
+ *  from the component's own colours. */
+export const GROUNDS = [
+  { id: "auto", label: "Auto (from the component)" },
+  { id: "aurora", label: "Aurora" },
+  { id: "glow", label: "Glow" },
+  { id: "ink", label: "Ink" },
+  { id: "paper", label: "Paper" },
+  { id: "flat", label: "Flat" },
+] as const;
+
+/** The series handle, top right of every video (growth.md). Change it
+ *  here when the account's name is settled. */
+export const SOCIAL_HANDLE = "@craftui";
+
+/** The one ask on every end card. "Link in bio" until a comment-to-DM
+ *  automation exists; then "Comment CRAFT for the code". */
+export const VIDEO_ASK = "Link in bio";
+
 export type VideoTypeId = (typeof VIDEO_TYPES)[number]["id"];
+export type GroundId = (typeof GROUNDS)[number]["id"];
 export type HookStyleId = (typeof HOOK_STYLES)[number]["id"];
 export type AudienceId = (typeof AUDIENCES)[number]["id"];
 /** Not a brief choice: the director picks the opening theme and shows the
