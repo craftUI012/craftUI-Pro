@@ -48,3 +48,7 @@ next-env.d.ts
 .source
 # Card screenshots before upload to R2 (pnpm media); never committed or deployed
 /public/content/
+
+# Filmed reels (pnpm reel); large videos, never committed
+/reels/out/
+/reels/benchmarks/
