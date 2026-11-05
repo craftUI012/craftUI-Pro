@@ -10,7 +10,9 @@ pre-commit:
       stage_fixed: true
     # Data and styles: format only. They have nothing to lint, and the lint
     # step fails when given no files, which blocked content-only commits.
-    - run: pnpm exec oxfmt {staged_files}
+    # Staged files can all sit in ignored paths (.agents, reels/kit), so an
+    # empty match is not an error either.
+    - run: pnpm exec oxfmt --no-error-on-unmatched-pattern {staged_files}
       glob:
         - "**/*.json"
         - "**/*.jsonc"
