@@ -37,11 +37,6 @@ const nextConfig = {
   },
   outputFileTracingIncludes: {
     "/*": ["./registry/**/*"],
-    // The Studio reads these with ignored (dynamic) paths, so list them.
-    "/admin-panel-craft/studio": [
-      "./registry.json",
-      "./content/agent-reference.json",
-    ],
     // Paid items' built JSON, served to buyers by app/r/[file]/route.ts.
     "/r/*": ["./registry-paid/**/*", "./public/r/**/*"],
   },

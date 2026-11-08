@@ -12,7 +12,6 @@ const LINKS = [
   { href: `${ROUTES.ADMIN_PANEL}/users`, label: "Users" },
   { href: `${ROUTES.ADMIN_PANEL}/purchases`, label: "Purchases" },
   { href: `${ROUTES.ADMIN_PANEL}/resources`, label: "Resources" },
-  { href: `${ROUTES.ADMIN_PANEL}/studio`, label: "Studio" },
   { href: `${ROUTES.ADMIN_PANEL}/collections`, label: "Collections" },
 ];
 

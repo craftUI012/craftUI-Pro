@@ -29,12 +29,20 @@ export interface TaxonomyValue {
 }
 
 export const CATEGORIES = {
+  // Components group by what the control does (Inputs, Overlays, …); the
+  // other libraries by the kind of product it's for (Finance, AI, …).
+  actions: { label: "Actions" },
   ai: { label: "AI" },
   company: { label: "Company" },
   data: { label: "Data" },
+  "data-display": { label: "Data display" },
   ecommerce: { label: "E-commerce" },
+  feedback: { label: "Feedback" },
   finance: { label: "Finance" },
+  inputs: { label: "Inputs" },
   marketing: { label: "Marketing" },
+  navigation: { label: "Navigation" },
+  overlays: { label: "Overlays" },
   people: { label: "People" },
   portfolio: { label: "Portfolio" },
   technology: { label: "Technology" },
@@ -43,27 +51,41 @@ export const CATEGORIES = {
 export const TYPES = {
   // One pool for every library; which ones a library lists (and in what
   // order) is set in LIBRARIES below.
+  badges: { label: "Badges" },
+  buttons: { label: "Buttons" },
   cards: { label: "Cards" },
   charts: { label: "Charts" },
   cta: { label: "CTA" },
+  "date-pickers": { label: "Date pickers" },
   devices: { label: "Devices" },
+  dialogs: { label: "Dialogs" },
   editorial: { label: "Editorial" },
   "empty-states": { label: "Empty states" },
   faq: { label: "FAQ" },
   features: { label: "Features" },
+  "file-uploads": { label: "File uploads" },
   footer: { label: "Footer" },
   forms: { label: "Forms" },
   gallery: { label: "Gallery" },
   hero: { label: "Hero" },
+  menus: { label: "Menus" },
   objects: { label: "Objects" },
   pricing: { label: "Pricing" },
+  progress: { label: "Progress" },
   scenes: { label: "Scenes" },
+  selects: { label: "Selects" },
   settings: { label: "Settings" },
+  sliders: { label: "Sliders" },
   spot: { label: "Spot" },
   stats: { label: "Stats" },
   tables: { label: "Tables" },
+  tabs: { label: "Tabs" },
   team: { label: "Team" },
   testimonials: { label: "Testimonials" },
+  "text-inputs": { label: "Text inputs" },
+  toasts: { label: "Toasts" },
+  toggles: { label: "Toggles" },
+  tooltips: { label: "Tooltips" },
 } as const satisfies Record<string, TaxonomyValue>;
 
 export const STYLES = {
@@ -134,18 +156,40 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
     styles: ["motion", "dark-mode", "minimal"],
     types: ["cards", "charts", "gallery", "forms", "tables", "settings"],
   },
-  // Not a navbar tab for now (see NAV_LIBRARIES). Kept so its items still
-  // validate and it's one line away from coming back.
+  // Single controls you build other things from: a subscribe button, a file
+  // picker, a date picker. Composed pieces (a newsletter card) are Blocks;
+  // full-width page bands are Sections.
   components: {
-    categories: [],
+    categories: [
+      "inputs",
+      "actions",
+      "navigation",
+      "overlays",
+      "feedback",
+      "data-display",
+    ],
     idPrefix: "CMP",
     itemLabel: { one: "component", other: "components" },
     label: "Components",
     searchPlaceholder: "Search components…",
     slug: "components",
     styles: ["motion", "dark-mode", "minimal"],
-    typeLabel: "Primitives",
-    types: [],
+    types: [
+      "buttons",
+      "text-inputs",
+      "selects",
+      "date-pickers",
+      "file-uploads",
+      "toggles",
+      "sliders",
+      "tabs",
+      "menus",
+      "dialogs",
+      "tooltips",
+      "toasts",
+      "progress",
+      "badges",
+    ],
   },
   illustrations: {
     categories: ["marketing", "technology", "people", "ecommerce"],
@@ -204,6 +248,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
 export const NAV_LIBRARIES: LibraryId[] = [
   "templates",
   "blocks",
+  "components",
   "illustrations",
   "isometric",
 ];

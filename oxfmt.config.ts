@@ -21,8 +21,6 @@ export default defineConfig({
     ".claude/**",
     ".web-kits/**",
     "audio/**",
-    // Vendored stageshow kit (benjitaylor/skills); kept as shipped.
-    "reels/kit/**",
   ],
   jsxSingleQuote: false,
   printWidth: 80,

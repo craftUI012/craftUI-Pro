@@ -3,7 +3,17 @@ title: Browse page and filters
 description: How a registry item gets onto the home page, the taxonomy file that defines every library and filter value, and the metadata every new item needs.
 ---
 
-The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Illustrations**, **Isometric**), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
+The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Components**, **Illustrations**, **Isometric**), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
+
+Which library an item belongs in:
+
+| Library        | What it is                                                  | Examples                                                    |
+| -------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
+| **Sections**   | A full-width band of a page                                 | hero, pricing, testimonials, footer                         |
+| **Blocks**     | A finished piece of product UI made of several controls     | payment scheduler, savings chart card, team invites         |
+| **Components** | A single control you build other things from, with states  | subscribe button, file picker, date picker, input, switch   |
+
+Components' **Categories** are what the control does (Inputs, Actions, Navigation, Overlays, Feedback, Data display), not the kind of product it's for like the other libraries.
 
 Two files drive everything on it. No list of cards or filter values lives in the components:
 
@@ -60,7 +70,7 @@ A value a library lists but no item uses yet shows **dimmed and not clickable**.
 | Rename a slug                  | Change it in the pool, in `LIBRARIES`, **and** in every `registry.json` item that uses it                                           |
 | Remove a value                 | Remove it from `LIBRARIES` (and the pool). The build fails if an item still uses it, so fix those items first                       |
 | Add a library                  | Add its id to `LibraryId`, an entry to `LIBRARIES`, and the id to `NAV_LIBRARIES`; then a `content/docs/<id>/` folder for its pages |
-| Hide a library from the navbar | Remove it from `NAV_LIBRARIES` (Components is defined but hidden this way)                                                          |
+| Hide a library from the navbar | Remove it from `NAV_LIBRARIES`                                                                                                      |
 
 Edits to the taxonomy or the registry show up on their own: the home data's cache key includes a hash of both.
 
@@ -99,7 +109,7 @@ Edits to the taxonomy or the registry show up on their own: the home data's cach
 | ------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `categories`       | yes, one or more  | The **Categories** filter group                                                                                                          |
 | `meta.library`     | yes               | Which library tab the card is in: a key of `LIBRARIES` (`"templates"` is shown as **Sections**)                                          |
-| `meta.types`       | yes, one or more  | The **Type** filter group. It's labelled **Primitives** in Components                                                                    |
+| `meta.types`       | yes, one or more  | The **Type** filter group. A library can rename it with `typeLabel`                                                                      |
 | `meta.styles`      | no (can be empty) | The **Styles** filter group                                                                                                              |
 | `meta.publishedAt` | yes               | ISO date (`YYYY-MM-DD`). Sorts **Latest**                                                                                                |
 | `meta.useCases`    | yes, 2 to 5       | Who it's for, as short phrases. Not a filter: AI agents read it as **Good for**, with the tags. See [Writing for AI agents](/docs-admin/guides/seo-and-ai-agents#writing-for-ai-agents) |
