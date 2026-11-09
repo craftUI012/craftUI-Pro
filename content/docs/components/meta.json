@@ -2,6 +2,7 @@
   "title": "Components",
   "pages": [
     "index",
+    "bloom-menu",
     "button",
     "input",
     "select",

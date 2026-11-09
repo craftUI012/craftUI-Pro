@@ -10,7 +10,3 @@ export const showDesignAdmin = process.env.environment === "development";
 // Same gate for the /seo-admin audit (metadata, structured data, sitemap,
 // robots, icons).
 export const showSeoAdmin = process.env.environment === "development";
-
-// Same gate for the Studio's local video tools (saving storyboards,
-// rendering, local video files) and the scene pages `pnpm video` films.
-export const showReels = process.env.environment === "development";

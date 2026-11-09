@@ -11,6 +11,7 @@
 export const LIVE_PREVIEWS = [
   "arc-carousel",
   "benchmarks-section",
+  "bloom-menu",
   "editorial-section",
   "feature-section-02",
   "feature-section-03",
@@ -22,13 +23,16 @@ export const LIVE_PREVIEWS = [
   "hero-section-02",
   "hero-section-03",
   "image-sphere",
+  "mosaic-card",
   "statement-section",
+  "swap-grid",
   "tables-section",
   "tables-section-02",
   "team-section",
   "testimonials-section",
   "testimonials-section-02",
   "testimonials-section-03",
+  "word-wheel",
 ] as const;
 
 export type LivePreview = (typeof LIVE_PREVIEWS)[number];

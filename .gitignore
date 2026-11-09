@@ -48,9 +48,3 @@ next-env.d.ts
 .source
 # Card screenshots before upload to R2 (pnpm media); never committed or deployed
 /public/content/
-
-# Filmed reels (pnpm video); large videos, never committed
-/reels/out/
-/reels/benchmarks/
-# Storyboards are written by Studio for each render and pruned; never committed
-/reels/specs/*.json

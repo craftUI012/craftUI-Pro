@@ -30,5 +30,21 @@
     "item": "editorial-section",
     "retired": [],
     "updatedAt": "2026-10-30"
+  },
+  "gallery-swap-grid": {
+    "bytes": 4965724,
+    "ext": ".mp4",
+    "fingerprint": "74a310b6",
+    "item": "swap-grid",
+    "retired": [],
+    "updatedAt": "2026-11-09"
+  },
+  "menus-bloom-menu": {
+    "bytes": 601561,
+    "ext": ".mp4",
+    "fingerprint": "81d33ee3",
+    "item": "bloom-menu",
+    "retired": [],
+    "updatedAt": "2026-11-09"
   }
 }

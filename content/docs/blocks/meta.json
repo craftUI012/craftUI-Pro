@@ -3,6 +3,9 @@
   "pages": [
     "image-sphere",
     "arc-carousel",
+    "word-wheel",
+    "mosaic-card",
+    "swap-grid",
     "savings-over-time",
     "payment-scheduler",
     "traffic-by-device",
