@@ -2287,6 +2287,449 @@
       "Collection and campaign showcases"
     ]
   },
+  "word-wheel": {
+    "component": "WordWheel",
+    "dependencies": [],
+    "description": "A centred headline on a picker wheel: words roll through the line to complete “Built for founders”, faded neighbours above and below, in your text size and colour.",
+    "docs": "/docs/blocks/word-wheel",
+    "extends": "div",
+    "files": ["components/blocks/word-wheel.tsx"],
+    "id": "BLK-6M6Y39",
+    "import": "@/components/blocks/word-wheel",
+    "library": "blocks",
+    "name": "word-wheel",
+    "paid": true,
+    "props": [
+      {
+        "description": "Your audiences, in order; they loop. Four to eight read best. Defaults to `wordWheelItems`.",
+        "name": "items",
+        "optional": true,
+        "type": "WordWheelItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The words each audience completes, e.g. \"Built for\" or \"The CRM for\". Pass `null` for the audiences alone. Defaults to \"Built for\".",
+        "name": "lead",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Built for\""
+      },
+      {
+        "description": "Rows in view: 3 (one audience above and below) or 5 (two each side). Defaults to 3.",
+        "name": "rows",
+        "optional": true,
+        "type": "3 | 5",
+        "default": "3"
+      },
+      {
+        "description": "\"center\" splits the headline on the centre line (it stacks, centred, on phones); \"start\" sets it flush left. Defaults to \"center\".",
+        "name": "align",
+        "optional": true,
+        "type": "\"start\" | \"center\"",
+        "default": "\"center\""
+      },
+      {
+        "description": "Seconds each audience holds before the list rolls on. Defaults to 2.",
+        "name": "dwell",
+        "optional": true,
+        "type": "number",
+        "default": "2"
+      },
+      {
+        "description": "How many times it goes round before settling on the first audience; leave it out to keep rolling. Defaults to no limit.",
+        "name": "loops",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Whether it rolls on its own when it comes into view. It never does with reduced motion. Defaults to `true`.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "The component used for linked audiences, for client-side routing: pass Next.js `Link`. Defaults to a plain `a`.",
+        "name": "linkAs",
+        "optional": true,
+        "type": "ElementType",
+        "default": "\"a\""
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Word wheel",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The audience that completes the lead, e.g. \"founders\" for \"Built for founders\". Up to about 12 characters reads best.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Makes the audience a link, e.g. to its solutions page. Optional.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "WordWheelItem"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["hero"]
+    },
+    "useCases": [
+      "SaaS and startup landing page heroes",
+      "Products sold to several kinds of customers",
+      "Enterprise sites with a page per industry",
+      "Agency and studio home pages"
+    ]
+  },
+  "mosaic-card": {
+    "component": "MosaicCard",
+    "dependencies": [],
+    "description": "A photo with a short line over it: tap and the photo breaks into a mosaic of tiles that dissolves into the next one, while the words rise in one by one.",
+    "docs": "/docs/blocks/mosaic-card",
+    "extends": "figure",
+    "files": ["components/blocks/mosaic-card.tsx"],
+    "id": "BLK-WTFKTA",
+    "import": "@/components/blocks/mosaic-card",
+    "library": "blocks",
+    "name": "mosaic-card",
+    "paid": true,
+    "props": [
+      {
+        "description": "The photo-and-line pairs it moves through, in order; they loop. Three to six read best. Defaults to `mosaicCardItems`, a studio's principles.",
+        "name": "items",
+        "optional": true,
+        "type": "MosaicCardItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The card's shape: \"landscape\" (4:3), \"square\" or \"portrait\" (4:5). Defaults to \"landscape\".",
+        "name": "aspect",
+        "optional": true,
+        "type": "keyof typeof ASPECTS",
+        "default": "\"landscape\""
+      },
+      {
+        "description": "Tiles along each side of the dissolve: more is finer. Defaults to 12.",
+        "name": "grid",
+        "optional": true,
+        "type": "number",
+        "default": "12"
+      },
+      {
+        "description": "Seconds before it moves on by itself; 0 to change only on click or tap. It holds while the pointer rests on it, while it has focus and off screen, and never moves by itself with reduced motion. Defaults to 0.",
+        "name": "interval",
+        "optional": true,
+        "type": "number",
+        "default": "0"
+      },
+      {
+        "description": "Whether to show the small \"01 / 04\" counter at the bottom. Defaults to true.",
+        "name": "counter",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "What the card's button says to screen readers, e.g. \"Next principle\". Defaults to \"Show next\".",
+        "name": "nextLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Show next\""
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Mosaic card",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The photo's URL. It's cropped to fill the card (`aspect`). Darker photos, or ones with a quiet top-left corner, carry the line best.",
+            "name": "image",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What the photo shows, for screen readers, e.g. \"An open hand against black\".",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The line over the photo: a value, a principle or a line of your manifesto. A few words read best.",
+            "name": "text",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "MosaicCardItem"
+      }
+    ],
+    "tags": {
+      "categories": ["marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["cards"]
+    },
+    "useCases": [
+      "About and brand story pages",
+      "Company values and culture pages",
+      "Careers pages that show what a team believes",
+      "Agency and studio manifestos"
+    ]
+  },
+  "swap-grid": {
+    "component": "SwapGrid",
+    "dependencies": ["motion"],
+    "description": "A row of tall photo cards: tap one and it grows into a pane with its story and a link while the others shrink into a rail, and picking another swaps the two mid-flight.",
+    "docs": "/docs/blocks/swap-grid",
+    "extends": "div",
+    "files": ["components/blocks/swap-grid.tsx"],
+    "id": "BLK-JNF3JR",
+    "import": "@/components/blocks/swap-grid",
+    "library": "blocks",
+    "name": "swap-grid",
+    "paid": true,
+    "props": [
+      {
+        "description": "The cards, in order. Four to six fit best. Defaults to `swapGridItems`, a ceramics shop's collection.",
+        "name": "items",
+        "optional": true,
+        "type": "SwapGridItem[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The card that's open at first, by its place in `items` (from 0). Defaults to none: all the cards side by side.",
+        "name": "defaultOpen",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Called with the open card's place in `items`, or null when all are side by side again.",
+        "name": "onOpenChange",
+        "optional": true,
+        "type": "(index: number | null) => void",
+        "default": null
+      },
+      {
+        "description": "What the back button says to screen readers. Defaults to \"Back to all\".",
+        "name": "backLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Back to all\""
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Swap grid",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The photo's URL. Portrait photos (about 3:4) fit best; it's cropped to fill each card.",
+            "name": "image",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What the photo shows, for screen readers.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Which part of the photo to keep in view when it's cropped, like CSS `object-position`, e.g. \"50% 25%\" for a face near the top. Defaults to \"50% 50%\", the centre.",
+            "name": "focus",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The name: a product, a project or a person. Must be unique in the list.",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A short line under the name, e.g. a price, a role or \"Residential · Lisbon\".",
+            "name": "subtitle",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "A sentence or two shown in the pane.",
+            "name": "description",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "A link at the bottom of the pane, e.g. a product or case study page.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The link's text. Defaults to \"Learn more\".",
+            "name": "linkLabel",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "SwapGridItem"
+      }
+    ],
+    "tags": {
+      "categories": ["ecommerce", "portfolio"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["gallery"]
+    },
+    "useCases": [
+      "Product collections and lookbooks for small shops",
+      "Studio and agency project indexes",
+      "Team, speaker and cast pages with a bio for each person",
+      "Menus, rooms or destinations with a story behind each one"
+    ]
+  },
+  "bloom-menu": {
+    "component": "BloomMenu",
+    "dependencies": ["motion"],
+    "description": "An account menu that grows out of your avatar: tap it and the avatar blooms into a card with your name, email and grouped links, then folds back into the avatar.",
+    "docs": "/docs/components/bloom-menu",
+    "extends": "div",
+    "files": ["components/ui/bloom-menu.tsx"],
+    "id": "CMP-KTF8E9",
+    "import": "@/components/ui/bloom-menu",
+    "library": "components",
+    "name": "bloom-menu",
+    "paid": true,
+    "props": [
+      {
+        "description": "The person's name, at the top of the card. Its initials stand in when there's no avatar. Defaults to \"Sophie Bennett\".",
+        "name": "name",
+        "optional": true,
+        "type": "string",
+        "default": "\"Sophie Bennett\""
+      },
+      {
+        "description": "A line under the name, usually the email. Defaults to \"sophie@acme.co\".",
+        "name": "email",
+        "optional": true,
+        "type": "string",
+        "default": "\"sophie@acme.co\""
+      },
+      {
+        "description": "The avatar photo's URL; leave empty for initials. Defaults to a demo portrait.",
+        "name": "avatar",
+        "optional": true,
+        "type": "string",
+        "default": "\"https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&q=80&…"
+      },
+      {
+        "description": "The items, in groups split by a thin line. Defaults to `bloomMenuGroups`, a SaaS workspace's menu.",
+        "name": "groups",
+        "optional": true,
+        "type": "BloomMenuItem[][]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Which corner the card grows from: \"end\" for an avatar on the right of a header, \"start\" for one on the left. Defaults to \"end\".",
+        "name": "align",
+        "optional": true,
+        "type": "\"end\" | \"start\"",
+        "default": "\"end\""
+      },
+      {
+        "description": "Whether it's open, if you control it.",
+        "name": "open",
+        "optional": true,
+        "type": "boolean",
+        "default": null
+      },
+      {
+        "description": "Whether it starts open, if you don't. Defaults to false.",
+        "name": "defaultOpen",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Called when it opens or closes.",
+        "name": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void",
+        "default": null
+      },
+      {
+        "description": "What the avatar button says to screen readers. Defaults to \"Account menu\".",
+        "name": "label",
+        "optional": true,
+        "type": "string",
+        "default": "\"Account menu\""
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Bloom menu",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The item's name. Must be unique in its group.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "An 18px icon before the label, e.g. an inline SVG.",
+            "name": "icon",
+            "optional": true,
+            "type": "ReactNode"
+          },
+          {
+            "description": "Something small at the end of the row, e.g. a \"Pro\" pill or a count.",
+            "name": "badge",
+            "optional": true,
+            "type": "ReactNode"
+          },
+          {
+            "description": "Makes the item a link.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Called when the item is picked (after a link's own navigation starts). The menu closes either way.",
+            "name": "onSelect",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "description": "Marks the page you're on, with a soft fill.",
+            "name": "active",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "BloomMenuItem"
+      }
+    ],
+    "tags": {
+      "categories": ["navigation"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["menus"]
+    },
+    "useCases": [
+      "Account menus in SaaS and dashboard headers",
+      "Profile menus in community and creator apps",
+      "Workspace switchers and settings shortcuts",
+      "Admin panels and internal tools"
+    ]
+  },
   "testimonials-section-02": {
     "component": "TestimonialsSection02",
     "dependencies": ["lucide-react", "motion"],

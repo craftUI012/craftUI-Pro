@@ -147,14 +147,29 @@ export interface LibraryConfig {
 
 export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   blocks: {
-    categories: ["marketing", "data", "finance", "people", "portfolio"],
+    categories: [
+      "marketing",
+      "ecommerce",
+      "data",
+      "finance",
+      "people",
+      "portfolio",
+    ],
     idPrefix: "BLK",
     itemLabel: { one: "block", other: "blocks" },
     label: "Blocks",
     searchPlaceholder: "Search blocks…",
     slug: "blocks",
     styles: ["motion", "dark-mode", "minimal"],
-    types: ["cards", "charts", "gallery", "forms", "tables", "settings"],
+    types: [
+      "hero",
+      "cards",
+      "charts",
+      "gallery",
+      "forms",
+      "tables",
+      "settings",
+    ],
   },
   // Single controls you build other things from: a subscribe button, a file
   // picker, a date picker. Composed pieces (a newsletter card) are Blocks;

@@ -1,5 +1,9 @@
+import BloomMenuPreview from "@/components/previews/bloom-menu-preview";
 import EditorialSectionPreview from "@/components/previews/editorial-section-preview";
+import MosaicCardPreview from "@/components/previews/mosaic-card-preview";
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
+import SwapGridPreview from "@/components/previews/swap-grid-preview";
+import WordWheelPreview from "@/components/previews/word-wheel-preview";
 import type { LivePreview } from "@/constants/live-previews";
 import ArcCarousel from "@/registry/blocks/arc-carousel";
 import { ImageSphere } from "@/registry/blocks/image-sphere";
@@ -27,6 +31,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
   {
     "arc-carousel": ArcCarousel,
     "benchmarks-section": BenchmarksSection,
+    "bloom-menu": BloomMenuPreview,
     "editorial-section": EditorialSectionPreview,
     "feature-section-02": FeatureSection02,
     "feature-section-03": FeatureSection03,
@@ -38,11 +43,14 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "hero-section-02": HeroSection02,
     "hero-section-03": HeroSection03,
     "image-sphere": ImageSphere,
+    "mosaic-card": MosaicCardPreview,
     "statement-section": StatementSectionPreview,
+    "swap-grid": SwapGridPreview,
     "tables-section": TablesSection,
     "tables-section-02": TablesSection02,
     "team-section": TeamSection,
     "testimonials-section": TestimonialSection,
     "testimonials-section-02": TestimonialsSection02,
     "testimonials-section-03": TestimonialsSection03,
+    "word-wheel": WordWheelPreview,
   };
