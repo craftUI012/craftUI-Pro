@@ -1340,14 +1340,14 @@
         "name": "title",
         "optional": true,
         "type": "ReactNode",
-        "default": "( <> The Architecture <br /> of Obscurity. </> )"
+        "default": "( <> Spaces Shaped <br /> by Light. </> )"
       },
       {
         "description": "Subtitle or descriptive paragraph text.",
         "name": "description",
         "optional": true,
         "type": "string",
-        "default": "\"A quiet study of light, form, and the spaces between — where every shadow earn…"
+        "default": "\"AVEN Studio designs interiors, landscapes and objects where light, material an…"
       },
       {
         "description": "High-resolution image URL for the interleaved curtain slice hero.",

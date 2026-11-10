@@ -803,13 +803,13 @@ const DEFAULT_CTA: HeroSection04Action = { href: "#inquire", label: "Inquire" };
 
 const DEFAULT_TITLE = (
   <>
-    The Architecture <br />
-    of Obscurity.
+    Spaces Shaped <br />
+    by Light.
   </>
 );
 
 const DEFAULT_DESCRIPTION =
-  "A quiet study of light, form, and the spaces between — where every shadow earns its place and obscurity reveals itself slowly.";
+  "AVEN Studio designs interiors, landscapes and objects where light, material and silence meet - quiet architecture for the way you actually live.";
 
 export const HeroSection04 = ({
   brand = "AVEN Studio",
