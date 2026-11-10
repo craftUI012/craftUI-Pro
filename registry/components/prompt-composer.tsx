@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  * Enter to send and a voice button, a quick-prompts tray that unfolds above
  * it, and a footer row for attachments, permission mode, model, reasoning
  * depth and usage limits. A conversation grows above the capsule once you
- * send something, and a side panel lists running agents and past chats.
+ * send something.
  * ───────────────────────────────────────────────────────────────────────── */
 
 interface IconProps extends SVGProps<SVGSVGElement> {
@@ -447,12 +447,6 @@ const PERMISSION_MODES: PermissionMode[] = [
   },
 ];
 
-const PAST_CHATS = [
-  { id: 0, time: "Today, 2:15 PM", title: "Q4 renewal forecast" },
-  { id: 1, time: "Yesterday", title: "Acme Corp contract audit" },
-  { id: 2, time: "Oct 29", title: "SDR outbound cadence" },
-];
-
 const CircularProgress = ({
   value = 56,
   size = 10,
@@ -779,9 +773,6 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
     []
   );
 
-  const [activeChat, setActiveChat] = useState<number | null>(0);
-  const [hoveredChat, setHoveredChat] = useState<number | null>(null);
-
   const [modelDepth, setModelDepth] = useState<number>(2);
   const [chatInput, setChatInput] = useState<string>("");
   const [messages, setMessages] = useState<
@@ -857,20 +848,11 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
         className
       )}
     >
-      {/* Center Main Content Area: Relative container with NO scrollable surface */}
-      <div className="relative flex h-full w-full flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-col items-center justify-center overflow-hidden px-6">
-        {/* Centered Content: Greeting OR Active Conversation */}
-        {messages.length === 0 ? (
-          <div className="flex -translate-y-6 flex-col items-center justify-center text-center select-none">
-            {/*<h1 className="text-xl sm:text-2xl font-medium tracking-tight text-zinc-900">
-              Hi, Karan
-            </h1>
-            <p className="mt-1 text-xs font-normal text-zinc-400">
-              Overview of your priority deals, pipeline risks, and team cadence.
-            </p>*/}
-          </div>
-        ) : (
-          <div className="flex w-full max-w-[480px] flex-1 flex-col justify-end space-y-2 overflow-hidden pt-6 pb-24">
+      {/* Main column: on a fresh chat the composer sits in the middle; once
+          a conversation starts it drops to the bottom with the thread above. */}
+      <div className="relative flex h-full w-full flex-col overflow-hidden px-6">
+        {messages.length > 0 && (
+          <div className="mx-auto flex w-full max-w-[480px] min-h-0 flex-1 flex-col justify-end space-y-2 overflow-hidden pt-6 pb-4">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-1 select-none">
               <span className="text-[10px] text-zinc-400">Conversation</span>
               <button
@@ -881,7 +863,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                 Reset
               </button>
             </div>
-            <div className="max-h-[calc(100vh-220px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden space-y-2 overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden space-y-2 overflow-y-auto pr-1">
               {messages.map((m, i) => (
                 <div
                   key={i}
@@ -906,8 +888,14 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
           </div>
         )}
 
-        {/* Prompt Box: Placed Absolutely at Bottom in Center */}
-        <div className="pointer-events-auto absolute bottom-3 left-1/2 z-30 w-full max-w-[480px] -translate-x-1/2 px-6 sm:px-0">
+        {/* Prompt box: centred on a fresh chat, anchored under the thread once
+            the conversation starts. */}
+        <div
+          className={cn(
+            "relative z-30 mx-auto w-full max-w-[480px]",
+            messages.length === 0 ? "my-auto" : "pb-6"
+          )}
+        >
           {/* Chat Window Outer Container */}
           <div className="relative w-full">
             {/* Quick Prompts Extension */}
@@ -1337,131 +1325,6 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
           </div>
         </div>
       </div>
-
-      {/* Right Side Panel: Scaled Down & Calm with Animated Hover Indicators */}
-      <aside className="hidden w-56 shrink-0 flex-col justify-between border-l border-zinc-100 bg-zinc-50/40 p-4 sm:flex">
-        {/* Top: Running Agents */}
-        <div>
-          <div className="flex items-center justify-between border-b border-zinc-200/60 pb-2 select-none">
-            <span className="text-xs font-medium text-zinc-800">
-              Running Agents
-            </span>
-            <span className="text-[10px] font-normal text-zinc-400">
-              3 active
-            </span>
-          </div>
-
-          <div className="mt-3 space-y-2">
-            {[
-              {
-                active: true,
-                desc: "Triaging Ramp Enterprise demo",
-                title: "Lead Qualifier",
-              },
-              {
-                active: true,
-                desc: "Scanning 42 accounts",
-                title: "Renewal Radar",
-              },
-              { active: false, desc: "Synced 4m ago", title: "Pipeline Sync" },
-            ].map((agent, idx) => (
-              <div
-                key={idx}
-                className="relative rounded-lg border border-zinc-200/70 bg-white p-2 transition-colors select-none"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-medium text-zinc-800">
-                    {agent.title}
-                  </span>
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      agent.active ? "bg-emerald-500" : "bg-zinc-400"
-                    )}
-                  />
-                </div>
-                <p className="text-[10px] mt-0.5 font-normal text-zinc-600">
-                  {agent.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom: Past Chats with Exact Sidebar Highlight Indicator */}
-        <div className="border-t border-zinc-200/60 pt-4">
-          <div className="flex items-center justify-between pb-2 select-none">
-            <span className="text-xs font-medium text-zinc-800">
-              Past Chats
-            </span>
-            <span className="text-[10px] font-normal text-zinc-400">
-              History
-            </span>
-          </div>
-
-          <div
-            className="space-y-0.5"
-            onMouseLeave={() => setHoveredChat(null)}
-          >
-            {PAST_CHATS.map((chat) => {
-              const isActive = activeChat === chat.id;
-              const isHovered = hoveredChat === chat.id;
-              return (
-                <button
-                  key={chat.id}
-                  type="button"
-                  onClick={() => {
-                    setActiveChat(chat.id);
-                    setChatInput(`Review details for ${chat.title}`);
-                  }}
-                  onMouseEnter={() => setHoveredChat(chat.id)}
-                  onMouseLeave={() => {
-                    if (hoveredChat === chat.id) {
-                      setHoveredChat(null);
-                    }
-                  }}
-                  className={cn(
-                    "relative flex w-full cursor-pointer flex-col rounded-lg px-2 py-1.5 text-left transition-colors select-none",
-                    isActive
-                      ? "bg-zinc-200/60 text-zinc-800"
-                      : "text-zinc-600 hover:text-zinc-800"
-                  )}
-                >
-                  <AnimatePresence>
-                    {isHovered && (
-                      <HoverIndicator
-                        layoutId="v2-past-chats-hover-indicator"
-                        rounded="rounded-lg"
-                        isActive={isActive}
-                      />
-                    )}
-                  </AnimatePresence>
-                  <span
-                    className={cn(
-                      "text-[10px] relative z-10 w-full truncate",
-                      isActive
-                        ? "font-medium text-zinc-800"
-                        : "font-normal text-zinc-800"
-                    )}
-                  >
-                    {chat.title}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-[10px] relative z-10",
-                      isActive
-                        ? "font-medium text-zinc-600"
-                        : "font-normal text-zinc-400"
-                    )}
-                  >
-                    {chat.time}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </aside>
     </div>
   );
 };

@@ -4520,7 +4520,7 @@
   "prompt-composer": {
     "component": "PromptComposer",
     "dependencies": ["motion"],
-    "description": "An AI prompt composer: a capsule with Enter to send and voice input, a quick-prompts tray that unfolds above it, and a footer row for attachments, permission mode, model, reasoning depth and usage limits, with a running-agents and past-chats panel alongside.",
+    "description": "An AI prompt composer: a capsule with Enter to send and voice input, a quick-prompts tray that unfolds above it, and a footer row for attachments, permission mode, model, reasoning depth and usage limits.",
     "docs": "/docs/components/prompt-composer",
     "extends": null,
     "files": ["components/ui/prompt-composer.tsx"],
