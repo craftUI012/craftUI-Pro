@@ -1340,14 +1340,14 @@
         "name": "title",
         "optional": true,
         "type": "ReactNode",
-        "default": "( <> Spaces Shaped <br /> by Light. </> )"
+        "default": "( <> Cultivating <br /> Quiet Spaces. </> )"
       },
       {
         "description": "Subtitle or descriptive paragraph text.",
         "name": "description",
         "optional": true,
         "type": "string",
-        "default": "\"AVEN Studio designs interiors, landscapes and objects where light, material an…"
+        "default": "\"AVEN Studio grows interiors, landscapes and objects where greenery, light and …"
       },
       {
         "description": "High-resolution image URL for the interleaved curtain slice hero.",

@@ -803,13 +803,13 @@ const DEFAULT_CTA: HeroSection04Action = { href: "#inquire", label: "Inquire" };
 
 const DEFAULT_TITLE = (
   <>
-    Spaces Shaped <br />
-    by Light.
+    Cultivating <br />
+    Quiet Spaces.
   </>
 );
 
 const DEFAULT_DESCRIPTION =
-  "AVEN Studio designs interiors, landscapes and objects where light, material and silence meet - quiet architecture for the way you actually live.";
+  "AVEN Studio grows interiors, landscapes and objects where greenery, light and silence take root - living architecture for the way you actually dwell.";
 
 export const HeroSection04 = ({
   brand = "AVEN Studio",
@@ -869,7 +869,7 @@ export const HeroSection04 = ({
           <HeadingTag
             className={cn(
               syne.className,
-              "text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight leading-[0.95] text-balance text-foreground transition-colors duration-200"
+              "text-center text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold tracking-tight leading-[0.9] text-balance text-foreground transition-colors duration-200"
             )}
           >
             {title}
