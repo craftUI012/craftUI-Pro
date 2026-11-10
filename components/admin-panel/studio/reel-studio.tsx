@@ -1,0 +1,872 @@
+"use client";
+
+import {
+  Add01Icon,
+  Cancel01Icon,
+  Delete02Icon,
+  Download04Icon,
+  Upload04Icon,
+} from "@hugeicons/core-free-icons";
+import type { PlayerRef } from "@remotion/player";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { Icon } from "@/components/icon";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
+
+import type { ReelClip } from "./reel-clip";
+import {
+  codecLabel,
+  exportReel,
+  fitBox,
+  formatBytes,
+  formatTime,
+  framesFor,
+  readClip,
+  reelFileName,
+  saveBlob,
+} from "./reel-clip";
+import type { ReelBox, ReelSceneProps, ReelText } from "./reel-scene";
+import { REEL } from "./reel-scene";
+import { SoundPanel, useSoundtrack } from "./reel-soundtrack";
+import { ReelStage, ReelTransport } from "./reel-stage";
+import { ReelTimeline } from "./reel-timeline";
+
+// The admin Studio: put a screen recording on a 9:16 frame, pick the
+// background, move and size the clip, export an MP4 for Reels, TikTok and
+// Shorts. All in the browser; nothing is uploaded.
+
+type Fps = 30 | 60;
+interface Look {
+  background: string;
+  fps: Fps;
+  guides: boolean;
+  radius: number;
+  shadow: boolean;
+}
+
+const DEFAULT_LOOK: Look = {
+  background: "#F3F3F1",
+  fps: 60,
+  guides: true,
+  radius: 40,
+  shadow: false,
+};
+
+const BACKGROUNDS = [
+  { label: "Off-white", value: "#F3F3F1" },
+  { label: "White", value: "#FFFFFF" },
+  { label: "Stone", value: "#E7E5E0" },
+  { label: "Black", value: "#0A0A0A" },
+];
+
+const TEXT_COLOURS = [
+  { label: "Ink", value: "#0A0A0A" },
+  { label: "Grey", value: "#8A8A8A" },
+  { label: "White", value: "#FFFFFF" },
+];
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+const isDark = (hex: string) => {
+  const [r, g, b] = [1, 3, 5].map((i) =>
+    Number.parseInt(hex.slice(i, i + 2), 16)
+  );
+  return 0.299 * r + 0.587 * g + 0.114 * b < 140;
+};
+const LOOK_KEY = "craftui:reel-studio";
+
+// The look is remembered in this browser (a convenience; the clip isn't).
+const useLook = () => {
+  const [look, setLook] = useState(DEFAULT_LOOK);
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LOOK_KEY) ?? "{}");
+      setLook((current) => ({
+        ...current,
+        ...(HEX.test(saved.background) && { background: saved.background }),
+        ...((saved.fps === 30 || saved.fps === 60) && { fps: saved.fps }),
+        ...(typeof saved.guides === "boolean" && { guides: saved.guides }),
+        ...(Number.isFinite(saved.radius) && { radius: saved.radius }),
+        ...(typeof saved.shadow === "boolean" && { shadow: saved.shadow }),
+      }));
+    } catch {
+      // Private window or blocked storage: keep the defaults.
+    }
+    loaded.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!loaded.current) {
+      return;
+    }
+    try {
+      localStorage.setItem(LOOK_KEY, JSON.stringify(look));
+    } catch {
+      // Not saved; the Studio still works.
+    }
+  }, [look]);
+
+  const update = useCallback(
+    (patch: Partial<Look>) => setLook((current) => ({ ...current, ...patch })),
+    []
+  );
+  return [look, update] as const;
+};
+
+// ⌘V anywhere on the page with a video file on the clipboard.
+const usePasteVideo = (onFile: (file: File) => void) => {
+  useEffect(() => {
+    const paste = (event: ClipboardEvent) => {
+      const file = [...(event.clipboardData?.files ?? [])].find((item) =>
+        item.type.startsWith("video/")
+      );
+      if (file) {
+        event.preventDefault();
+        onFile(file);
+      }
+    };
+    window.addEventListener("paste", paste);
+    return () => window.removeEventListener("paste", paste);
+  }, [onFile]);
+};
+
+// On a desktop the Studio fills the window below the admin bar, so nothing
+// needs the page to scroll; on a phone it stacks and scrolls as usual.
+const useFillHeight = (ref: React.RefObject<HTMLDivElement | null>) => {
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const update = () => {
+      const node = ref.current;
+      if (!(node && desktop.matches)) {
+        setHeight(null);
+        return;
+      }
+      const top = node.getBoundingClientRect().top + window.scrollY;
+      // 32px: the page's bottom padding.
+      setHeight(Math.max(560, Math.floor(window.innerHeight - top - 32)));
+    };
+    update();
+    window.addEventListener("resize", update);
+    desktop.addEventListener("change", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      desktop.removeEventListener("change", update);
+    };
+  }, [ref]);
+  return height;
+};
+
+const Group = ({
+  action,
+  children,
+  title,
+}: {
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  title: string;
+}) => (
+  <section className="flex flex-col gap-3">
+    <div className="flex h-7 items-center justify-between gap-2">
+      <h2 className="text-muted-foreground text-xs font-medium">{title}</h2>
+      {action}
+    </div>
+    {children}
+  </section>
+);
+
+// The selected text's controls: words, size, weight, colour.
+const TextEditor = ({
+  item,
+  onChange,
+}: {
+  item: ReelText;
+  onChange: (patch: Partial<ReelText>) => void;
+}) => (
+  <div className="flex flex-col gap-3 rounded-lg border p-3">
+    <Textarea
+      aria-label="Text"
+      className="min-h-0 resize-none text-sm"
+      onChange={(event) => onChange({ text: event.target.value })}
+      rows={2}
+      value={item.text}
+    />
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between gap-4">
+        <Label className="text-xs" htmlFor="text-size">
+          Size
+        </Label>
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {item.size}px
+        </span>
+      </div>
+      <Slider
+        id="text-size"
+        max={160}
+        min={20}
+        onValueChange={([size]) => onChange({ size })}
+        step={1}
+        value={[item.size]}
+      />
+    </div>
+    <ToggleGroup
+      aria-label="Weight"
+      className="w-full"
+      onValueChange={(value) =>
+        value && onChange({ weight: Number(value) as ReelText["weight"] })
+      }
+      size="sm"
+      type="single"
+      value={String(item.weight)}
+      variant="outline"
+    >
+      <ToggleGroupItem className="flex-1" value="400">
+        Regular
+      </ToggleGroupItem>
+      <ToggleGroupItem className="flex-1" value="500">
+        Medium
+      </ToggleGroupItem>
+    </ToggleGroup>
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-xs">Colour</span>
+      <div className="flex items-center gap-1.5">
+        {TEXT_COLOURS.map((colour) => (
+          <button
+            aria-label={`${colour.label} text`}
+            aria-pressed={
+              item.color.toLowerCase() === colour.value.toLowerCase()
+            }
+            className={cn(
+              "size-6 rounded-full border outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+              item.color.toLowerCase() === colour.value.toLowerCase() &&
+                "ring-primary ring-2 ring-offset-2 ring-offset-background"
+            )}
+            key={colour.value}
+            onClick={() => onChange({ color: colour.value })}
+            style={{ backgroundColor: colour.value }}
+            type="button"
+          />
+        ))}
+        <label className="relative size-6 cursor-pointer overflow-hidden rounded-full border">
+          <span className="sr-only">Custom text colour</span>
+          <input
+            className="absolute -inset-2 size-10 cursor-pointer"
+            onChange={(event) =>
+              onChange({ color: event.target.value.toUpperCase() })
+            }
+            type="color"
+            value={item.color}
+          />
+        </label>
+      </div>
+    </div>
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-muted-foreground text-xs tabular-nums">
+        at {item.x}, {item.y}
+      </span>
+      <Button
+        className="h-7 px-2 text-xs"
+        onClick={() => onChange({ x: REEL.width / 2 })}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        Centre across
+      </Button>
+    </div>
+  </div>
+);
+
+const BackgroundPicker = ({
+  onChange,
+  value,
+}: {
+  onChange: (value: string) => void;
+  value: string;
+}) => {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => setDraft(value), [value]);
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2">
+        {BACKGROUNDS.map((swatch) => (
+          <button
+            aria-label={swatch.label}
+            aria-pressed={value.toLowerCase() === swatch.value.toLowerCase()}
+            className={cn(
+              "size-7 rounded-full border outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+              value.toLowerCase() === swatch.value.toLowerCase() &&
+                "ring-primary ring-2 ring-offset-2 ring-offset-background"
+            )}
+            key={swatch.value}
+            onClick={() => onChange(swatch.value)}
+            style={{ backgroundColor: swatch.value }}
+            type="button"
+          />
+        ))}
+        <label className="relative size-7 cursor-pointer overflow-hidden rounded-full border">
+          <span className="sr-only">Custom colour</span>
+          <input
+            className="absolute -inset-2 size-11 cursor-pointer"
+            onChange={(event) => onChange(event.target.value.toUpperCase())}
+            type="color"
+            value={value}
+          />
+        </label>
+      </div>
+      <Input
+        aria-label="Background colour (hex)"
+        className="h-8 font-mono text-xs uppercase"
+        maxLength={7}
+        onChange={(event) => {
+          const next = event.target.value.trim();
+          setDraft(next);
+          if (HEX.test(next)) {
+            onChange(next.toUpperCase());
+          }
+        }}
+        spellCheck={false}
+        value={draft}
+      />
+    </div>
+  );
+};
+
+const SwitchRow = ({
+  checked,
+  disabled,
+  id,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  id: string;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) => (
+  <div className="flex items-center justify-between gap-4">
+    <Label className="text-xs" htmlFor={id}>
+      {label}
+    </Label>
+    <Switch
+      checked={checked}
+      disabled={disabled}
+      id={id}
+      onCheckedChange={onChange}
+    />
+  </div>
+);
+
+// The Text section: add, pick and edit the lines of text on the frame.
+const TextGroup = ({
+  onAdd,
+  onChange,
+  onRemove,
+  onSelect,
+  selected,
+  texts,
+}: {
+  onAdd: () => void;
+  onChange: (id: string, patch: Partial<ReelText>) => void;
+  onRemove: (id: string) => void;
+  onSelect: (id: string) => void;
+  selected: string | null;
+  texts: ReelText[];
+}) => {
+  const selectedItem = texts.find((item) => item.id === selected) ?? null;
+  return (
+    <Group
+      action={
+        <Button
+          aria-label="Add text"
+          className="size-7"
+          onClick={onAdd}
+          size="icon"
+          title="Add text"
+          type="button"
+          variant="outline"
+        >
+          <Icon icon={Add01Icon} />
+        </Button>
+      }
+      title="Text"
+    >
+      {texts.length === 0 ? (
+        <p className="text-muted-foreground text-xs">
+          Add a title or a line, then drag it on the frame.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-0.5">
+          {texts.map((item) => (
+            <li className="flex items-center gap-1" key={item.id}>
+              <button
+                aria-pressed={selected === item.id}
+                className={cn(
+                  "min-w-0 flex-1 truncate rounded-md px-2 py-1.5 text-left text-xs",
+                  selected === item.id
+                    ? "bg-accent font-medium"
+                    : "hover:bg-accent/60"
+                )}
+                onClick={() => onSelect(item.id)}
+                type="button"
+              >
+                {item.text.trim() || "Empty text"}
+              </button>
+              <Button
+                aria-label={`Delete “${item.text}”`}
+                className="size-7"
+                onClick={() => onRemove(item.id)}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <Icon icon={Delete02Icon} />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {selectedItem ? (
+        <TextEditor
+          item={selectedItem}
+          onChange={(patch) => onChange(selectedItem.id, patch)}
+        />
+      ) : null}
+    </Group>
+  );
+};
+
+// The top bar's right side: frame rate and Export, or the export's progress.
+const ExportBar = ({
+  clip,
+  exporting,
+  fps,
+  onCancel,
+  onExport,
+  onFps,
+}: {
+  clip: ReelClip | null;
+  exporting: number | null;
+  fps: Fps;
+  onCancel: () => void;
+  onExport: () => void;
+  onFps: (fps: Fps) => void;
+}) => (
+  <div className="flex items-center gap-2">
+    <ToggleGroup
+      aria-label="Frame rate"
+      disabled={exporting !== null}
+      onValueChange={(value) => value && onFps(Number(value) as Fps)}
+      size="sm"
+      type="single"
+      value={String(fps)}
+      variant="outline"
+    >
+      <ToggleGroupItem value="30">30 fps</ToggleGroupItem>
+      <ToggleGroupItem value="60">60 fps</ToggleGroupItem>
+    </ToggleGroup>
+    {exporting === null ? (
+      <Button disabled={!clip} onClick={onExport} size="sm" type="button">
+        <Icon icon={Download04Icon} />
+        Export MP4
+      </Button>
+    ) : (
+      <div className="flex items-center gap-2">
+        <Progress
+          aria-label="Export progress"
+          className="w-28"
+          value={exporting * 100}
+        />
+        <span className="text-muted-foreground w-9 text-xs tabular-nums">
+          {Math.round(exporting * 100)}%
+        </span>
+        <Button onClick={onCancel} size="sm" type="button" variant="ghost">
+          <Icon icon={Cancel01Icon} />
+          Cancel
+        </Button>
+      </div>
+    )}
+  </div>
+);
+
+export const ReelStudio = () => {
+  const [look, setLook] = useLook();
+  const [clip, setClip] = useState<ReelClip | null>(null);
+  const [box, setBox] = useState<ReelBox>({ h: 0, w: 0, x: 0, y: 0 });
+  const [reading, setReading] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<number | null>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const abort = useRef<AbortController | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const playerRef = useRef<PlayerRef>(null);
+  const shell = useRef<HTMLDivElement>(null);
+  const [texts, setTexts] = useState<ReelText[]>([]);
+  const [selectedText, setSelectedText] = useState<string | null>(null);
+  const height = useFillHeight(shell);
+  const soundtrack = useSoundtrack(clip);
+  const { reset: resetSound } = soundtrack;
+
+  const loadFile = useCallback(
+    async (file: File) => {
+      setProblem(null);
+      setResult(null);
+      setReading(true);
+      try {
+        const next = await readClip(file);
+        setClip((previous) => {
+          if (previous) {
+            setTimeout(() => URL.revokeObjectURL(previous.src), 1000);
+          }
+          return next;
+        });
+        setBox(fitBox(next));
+        resetSound();
+      } catch (error) {
+        setProblem(error instanceof Error ? error.message : String(error));
+      } finally {
+        setReading(false);
+      }
+    },
+    [resetSound]
+  );
+
+  usePasteVideo(loadFile);
+
+  // A first text is a title; later ones are smaller grey lines under it.
+  const addText = () => {
+    const last = texts.at(-1);
+    const first = !last;
+    const titleColour = isDark(look.background) ? "#FFFFFF" : "#0A0A0A";
+    const item: ReelText = {
+      color: first ? titleColour : "#8A8A8A",
+      id: crypto.randomUUID(),
+      size: first ? 72 : 40,
+      text: first ? "Your title" : "craftui.space",
+      weight: first ? 500 : 400,
+      x: REEL.width / 2,
+      y: last
+        ? Math.min(
+            REEL.height - 200,
+            last.y + Math.round(last.size * 1.15 + 36)
+          )
+        : 380,
+    };
+    setTexts((current) => [...current, item]);
+    setSelectedText(item.id);
+  };
+
+  const changeText = (id: string, patch: Partial<ReelText>) =>
+    setTexts((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...patch } : item))
+    );
+
+  const removeText = (id: string) => {
+    setTexts((current) => current.filter((item) => item.id !== id));
+    setSelectedText((current) => (current === id ? null : current));
+  };
+
+  const scene: ReelSceneProps = {
+    background: look.background,
+    box,
+    ...soundtrack.sceneAudio,
+    muted: !(clip?.hasAudio && soundtrack.mix.clip > 0),
+    radius: look.radius,
+    shadow: look.shadow,
+    src: clip?.src ?? "",
+    texts,
+  };
+  const durationInFrames = clip ? framesFor(clip.duration, look.fps) : 1;
+
+  const runExport = async () => {
+    if (!clip) {
+      return;
+    }
+    const controller = new AbortController();
+    abort.current = controller;
+    playerRef.current?.pause();
+    setProblem(null);
+    setResult(null);
+    setExporting(0);
+    const started = performance.now();
+    try {
+      const blob = await exportReel({
+        fps: look.fps,
+        onProgress: setExporting,
+        props: { ...scene, duration: clip.duration },
+        signal: controller.signal,
+      });
+      const name = reelFileName();
+      saveBlob(blob, name);
+      const seconds = Math.max(
+        1,
+        Math.round((performance.now() - started) / 1000)
+      );
+      setResult(`Saved ${name} · ${formatBytes(blob.size)} · took ${seconds}s`);
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setProblem(
+          `The export failed: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    } finally {
+      abort.current = null;
+      setExporting(null);
+    }
+  };
+
+  const remove = () => {
+    if (clip) {
+      URL.revokeObjectURL(clip.src);
+    }
+    setClip(null);
+    setResult(null);
+    resetSound();
+  };
+
+  return (
+    <div
+      className="bg-background mx-auto flex w-full max-w-[90rem] flex-col overflow-hidden rounded-xl border"
+      ref={shell}
+      style={height ? { height } : undefined}
+    >
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2.5">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-sm font-semibold">Studio</h1>
+          <span className="text-muted-foreground text-xs">
+            9:16 · 1080×1920
+          </span>
+        </div>
+        <p
+          className="text-muted-foreground ml-auto min-w-0 truncate text-xs"
+          role="status"
+        >
+          {result ?? ""}
+        </p>
+        <ExportBar
+          clip={clip}
+          exporting={exporting}
+          fps={look.fps}
+          onCancel={() => abort.current?.abort()}
+          onExport={runExport}
+          onFps={(fps) => setLook({ fps })}
+        />
+      </header>
+
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] lg:grid-cols-[15.5rem_minmax(0,1fr)_21.5rem]">
+        {/* Centre on a phone too: the frame comes first. */}
+        <div className="bg-muted/40 flex min-h-0 flex-col items-center gap-3 p-4 lg:order-2 lg:px-6 lg:py-5">
+          <ReelStage
+            box={box}
+            clip={clip}
+            durationInFrames={durationInFrames}
+            fps={look.fps}
+            guides={look.guides}
+            onBoxChange={setBox}
+            onChoose={() => fileInput.current?.click()}
+            onFile={loadFile}
+            onRemoveText={removeText}
+            onSelectText={setSelectedText}
+            onTextChange={changeText}
+            playerRef={playerRef}
+            scene={scene}
+            selectedText={selectedText}
+          />
+          <div className="flex w-full max-w-xl flex-col gap-2">
+            <ReelTransport
+              disabled={!clip}
+              durationInFrames={durationInFrames}
+              fps={look.fps}
+              playerRef={playerRef}
+            />
+            {clip ? (
+              <ReelTimeline
+                cues={soundtrack.cues}
+                dropAt={soundtrack.music?.dropAt ?? null}
+                duration={clip.duration}
+                fps={look.fps}
+                hasMusic={soundtrack.music !== null}
+                onDropAt={soundtrack.moveDrop}
+                onMove={(id, at) => soundtrack.updateCue(id, { at })}
+                onRemove={soundtrack.removeCue}
+                onSelect={soundtrack.setSelected}
+                playerRef={playerRef}
+                selected={soundtrack.selected}
+              />
+            ) : null}
+          </div>
+        </div>
+
+        <aside className="flex min-h-0 flex-col gap-6 overflow-y-auto border-t p-4 lg:order-1 lg:border-t-0 lg:border-r">
+          <Group title="Clip">
+            {clip ? (
+              <div className="flex flex-col gap-0.5">
+                <p className="truncate text-sm" title={clip.name}>
+                  {clip.name}
+                </p>
+                <p className="text-muted-foreground text-xs tabular-nums">
+                  {clip.width}×{clip.height} · {formatTime(clip.duration)} ·{" "}
+                  {codecLabel(clip.codec)} · {formatBytes(clip.size)}
+                </p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-xs">
+                {reading
+                  ? "Reading the video…"
+                  : "No video yet. Paste with ⌘V or drop it on the frame."}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                disabled={reading || exporting !== null}
+                onClick={() => fileInput.current?.click()}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <Icon icon={Upload04Icon} />
+                {clip ? "Replace" : "Choose a video"}
+              </Button>
+              {clip ? (
+                <Button
+                  aria-label="Remove the video"
+                  disabled={exporting !== null}
+                  onClick={remove}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <Icon icon={Delete02Icon} />
+                </Button>
+              ) : null}
+            </div>
+            <input
+              accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) {
+                  loadFile(file);
+                }
+              }}
+              ref={fileInput}
+              type="file"
+            />
+            {problem ? (
+              <p className="text-destructive text-xs" role="alert">
+                {problem}
+              </p>
+            ) : null}
+          </Group>
+
+          <Group title="Background">
+            <BackgroundPicker
+              onChange={(background) => setLook({ background })}
+              value={look.background}
+            />
+          </Group>
+
+          <Group title="Clip style">
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-xs" htmlFor="reel-radius">
+                  Corner radius
+                </Label>
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  {look.radius}px
+                </span>
+              </div>
+              <Slider
+                id="reel-radius"
+                max={120}
+                min={0}
+                onValueChange={([radius]) => setLook({ radius })}
+                step={1}
+                value={[look.radius]}
+              />
+            </div>
+            <SwitchRow
+              checked={look.shadow}
+              id="reel-shadow"
+              label="Shadow"
+              onChange={(shadow) => setLook({ shadow })}
+            />
+          </Group>
+
+          <Group title="Position">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                disabled={!clip}
+                onClick={() =>
+                  setBox((current) => ({
+                    ...current,
+                    x: Math.round((REEL.width - current.w) / 2),
+                    y: Math.round((REEL.height - current.h) / 2),
+                  }))
+                }
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                Centre
+              </Button>
+              <Button
+                disabled={!clip}
+                onClick={() => clip && setBox(fitBox(clip))}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                Fit width
+              </Button>
+            </div>
+            {clip ? (
+              <p className="text-muted-foreground text-xs tabular-nums">
+                {box.w}×{box.h} at {box.x}, {box.y}
+              </p>
+            ) : null}
+            <SwitchRow
+              checked={look.guides}
+              id="reel-guides"
+              label="Safe-zone guides"
+              onChange={(guides) => setLook({ guides })}
+            />
+          </Group>
+
+          <TextGroup
+            onAdd={addText}
+            onChange={changeText}
+            onRemove={removeText}
+            onSelect={setSelectedText}
+            selected={selectedText}
+            texts={texts}
+          />
+        </aside>
+
+        {/* On a short screen this column scrolls on its own; the page never does. */}
+        <aside className="flex min-h-0 flex-col border-t lg:order-3 lg:overflow-y-auto lg:border-t-0 lg:border-l">
+          <SoundPanel
+            clip={clip}
+            fps={look.fps}
+            playerRef={playerRef}
+            soundtrack={soundtrack}
+          />
+        </aside>
+      </div>
+    </div>
+  );
+};

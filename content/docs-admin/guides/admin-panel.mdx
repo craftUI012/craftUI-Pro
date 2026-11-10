@@ -1,6 +1,6 @@
 ---
 title: Admin panel
-description: Manage users and purchases, and read the raw MongoDB collections, at /admin-panel-craft.
+description: Manage users and purchases, read the raw MongoDB collections and export 9:16 reels, at /admin-panel-craft.
 ---
 
 The admin panel is at **`/admin-panel-craft`**. It's built from the shadcn components in `components/ui/` and reads and writes the same MongoDB database as the site.
@@ -31,6 +31,7 @@ Admin emails may sign in **without a purchase** (`lib/auth.ts` skips the pay-fir
 | **Purchases** | Every purchase, guests included. Filter by email or ID, kind, status. Add, edit, delete |
 | **Resources** | Saved links: websites, designers on X, X posts and tools, each with a name, a link and tags. Add, edit, delete. Filter by category (tabs), by tags (chips; a resource must have every chosen tag) and by name or link. The filters are in the URL, so a view can be bookmarked |
 | **Collections** | The raw documents of `user`, `session`, `account`, `verification`, `purchase` and `resource`, read-only, 20 per page. Session and sign-in tokens are shortened |
+| **Studio** | Put a screen recording on a 9:16 frame and export an MP4 for Reels, TikTok and Shorts. Runs in the browser; nothing is saved or uploaded (see [Studio](#studio)) |
 
 ## What the actions change
 
@@ -61,14 +62,73 @@ Stored in the `resource` collection (`ResourceDoc` in `lib/db/schema.ts`), index
 
 Admin-only: nothing on the public site reads it.
 
+## Studio
+
+A small reel maker built on [Remotion](https://www.remotion.dev) that runs in the browser. It fills the window like an editor: frame controls on the left, the 9:16 frame with playback and the sound lane in the middle, sound on the right, and frame rate and **Export MP4** in its top bar. On a short screen the sound column scrolls on its own; the page doesn't. The recording never leaves your machine, and nothing is written to the database. The only things sent anywhere are the small stills for **Auto-sync with Claude** and the music searches (below).
+
+1. **Add a recording.** Paste it with ⌘V, drop it on the frame, or click **Choose a video**. It reads `.mov`, `.mp4`, `.m4v`, `.webm` and `.mkv`, coded as H.264, HEVC, VP8, VP9, AV1 or ProRes. Normal macOS screen recordings (including variable frame rate) work. A new clip lands at the frame's width less 60px each side, centred.
+2. **Arrange it.**
+   - Drag the clip to move it. Its centre snaps to the frame's centre lines.
+   - Pull a corner to resize it. The clip keeps its shape, and the opposite corner stays put.
+   - Arrow keys nudge it 1px, or 10px with Shift.
+   - **Centre** and **Fit width** reset it.
+   - The dashed **safe-zone guide** shows where Instagram's buttons and caption sit. It follows Meta's Reels guidance: keep the top 14%, the bottom 35% and 6% on each side clear. The guide is never exported.
+3. **Style it.** Background colour (presets, a colour picker or a hex value), corner radius 0–120px, and an optional shadow.
+4. **Add text** (the **Text** section, at the bottom of the left column).
+   - **+** adds a line. The first is a 72px Medium title, in ink on a light background or white on a dark one. Later ones are 40px Regular grey lines placed under it, starting as "craftui.space".
+   - Pick a line to edit its words (Enter starts a new line), size (20–160px), weight (Regular or Medium, Inter) and colour (ink, grey, white or any colour).
+   - Drag a line on the frame to place it. It snaps to the centre lines; arrow keys nudge it 1px (Shift for 10px), Delete removes it, and **Centre across** puts it back on the middle.
+   - Lines are centred on their point and wrap at 960px. The export draws exactly what the frame shows: before an export with text, the Studio makes sure Inter's weights are loaded, because the in-browser renderer draws text with the page's fonts.
+5. **Add sound** (the **Sound** section, and the lane under the player).
+   - **Auto-sync with Claude.**
+     - The browser finds the moments where the picture changes: clicks, things appearing, panels moving, cuts.
+     - It sends Claude about a dozen small before/after stills of them, plus their timings and an optional "feel" line.
+     - Claude labels each moment and picks a sound for the ones that deserve one. It also writes the music brief: search words, mood, volume, and the moment the music should lift.
+     - The Studio searches Openverse, fits the best track, and lines up the track's biggest rise with that moment.
+     - A run takes 15–25 seconds.
+   - **Effects.**
+     - 14 sounds cut from earshot's launch kit (`public/studio/sfx/`, MIT): click, key tap, Enter key, tick, pop, land, wood knock, confirm, chime, camera snap, swish, big whoosh, riser into hit, and pluck.
+     - Each has an anchor: its onset for a click, its peak for a whoosh. A cue's time is when that anchor lands, accurate to the sample.
+     - Change, hear or remove any cue in the list, or add one at the playhead.
+     - On the lane, drag a mark to move it. Arrow keys nudge it one frame (Shift for 0.1 s), and Delete removes it.
+   - **Music.**
+     - Only CC0 and public-domain tracks from Openverse (mostly Freesound), with noises, speech and ambiences filtered out.
+     - Preview and swap tracks, or search your own words.
+     - Drag the diamond on the lane to change where the music lifts.
+     - A track shorter than the reel loops. It fades in over 0.6 s and out over 1.2 s.
+   - **Mix.** Separate levels for the clip's own sound, the effects and the music. The ⏮ button under the frame plays the whole reel from the start, exactly as it exports.
+6. **Export.**
+   - Pick 30 or 60 fps.
+   - The output is a 1080×1920 H.264 MP4 with AAC sound (everything you hear in the player), saved as `reel-YYYY-MM-DD-HHMM.mp4`.
+   - Before an export with sound, the Studio removes the AAC encoder's 44 ms delay, so sound and picture stay in sync (see the table below).
+   - It runs faster than real time: a 4-second 60 fps clip takes about 2 seconds.
+   - Keep the tab in front while it exports, because browsers slow background tabs down.
+   - **Cancel** stops it.
+
+The look (background, radius, shadow, frame rate, guides) is remembered in this browser. The clip isn't.
+
+| Detail | Notes |
+| --- | --- |
+| Browsers | Tested in Chrome. Remotion lists Chrome 94+, Firefox 130+ and Safari 26+ (needs WebCodecs) |
+| ProRes | Browsers can't decode it natively; `@mediabunny/prores` (WebAssembly) is registered the first time a ProRes file comes in |
+| What the export can draw | Remotion's in-browser renderer supports only some CSS. The scene sticks to a background colour, a positioned box, border radius with overflow hidden, and a plain box shadow. Check the [limitations](https://www.remotion.dev/docs/client-side-rendering/limitations) before adding anything (web fonts in HTML text, for example, aren't embedded) |
+| Licence | Remotion is free for a team of up to 3 people; the export passes `licenseKey: "free-license"`. Above 3 people it needs a company licence, and an in-house tool that calls `renderMediaOnWeb` counts as an automation ([remotion.dev/license](https://www.remotion.dev/license)) |
+| Telemetry | Every export sends Remotion a ping (IP, domain, success or failure; never the video). It can't be turned off |
+| Versions | `remotion`, `@remotion/player`, `@remotion/media`, `@remotion/web-renderer` are pinned to the same exact version. `mediabunny` and `@mediabunny/prores` are pinned to the version Remotion uses, so there's one copy |
+| Claude | `POST /api/admin/studio/direct` (admins only; anyone else gets a 404) calls `claude-opus-5-5` through `@anthropic-ai/sdk` with strict structured output (`lib/admin/reel-director.ts`). It needs `ANTHROPIC_API_KEY` on the server, so add it to Vercel's environment variables too. A request the safety classifiers decline is re-run on Anthropic's fallback model (`fallbacks: "default"`). Each run costs a few cents |
+| Openverse | Searched from the browser without a key: 20 searches a minute, 200 a day. Only `cc0,pdm` licences, so no credit is needed. The track's page is linked in the Music section anyway |
+| Sound sync | The browser's AAC encoder adds 2112 samples (44 ms) of priming, and Remotion's MP4 has no edit list to skip it, so sound plays late in ffmpeg-based players and on Instagram. Once per session the Studio renders a tiny reel with one click and measures the delay. After each export it copies the packets (no re-encoding) with the audio moved earlier, and Mediabunny writes the edit list (`reel-audio-sync.ts`). Measured after the fix: clicks within ±3 ms of their cues, and whoosh peaks within 1 ms |
 
 ## Files
 
 | File | Role |
 | --- | --- |
-| `app/admin-panel-craft/` | Layout (the admin check and the bar), Overview, `users/`, `users/[id]/`, `purchases/`, `resources/`, `collections/`, `actions.ts` |
+| `app/admin-panel-craft/` | Layout (the admin check and the bar), Overview, `users/`, `users/[id]/`, `purchases/`, `resources/`, `collections/`, `studio/`, `actions.ts` |
 | `lib/admin/emails.ts` | `isAdminEmail` (reads `ADMIN_EMAILS`) |
 | `lib/admin/session.ts` | `requireAdminPage` (pages), `requireAdmin` (actions) |
 | `lib/admin/data.ts` | Every read: overview, users, a user's details, purchases, resources, raw collections |
 | `lib/admin/constants.ts` | Purchase statuses and kinds, resource categories, `normalizeTags` (shared by the forms and the actions) |
 | `components/admin-panel/` | Nav, the add/edit dialogs, delete confirmations, access badges |
+| `components/admin-panel/studio/` | `reel-scene.tsx` (the Remotion scene the preview and export both draw, sound included), `reel-stage.tsx` (player, drag and resize layer, play and scrub), `reel-studio.tsx` (controls and state), `reel-clip.ts` (reading a clip, exporting, saving), `reel-soundtrack.tsx` (sound state and the Sound section), `reel-timeline.tsx` (the sound lane), `reel-moments.ts` (finding moments, making stills), `reel-music.ts` (Openverse search, drop finding), `reel-sounds.ts` (the effects bank), `reel-audio-sync.ts` (the priming fix) |
+| `lib/admin/reel-director.ts`, `app/api/admin/studio/direct/` | Claude's sound plan: prompt, schema, the call, and the admin-only route |
+| `public/studio/sfx/` | The 14 effects (WAV) and earshot's MIT licence |

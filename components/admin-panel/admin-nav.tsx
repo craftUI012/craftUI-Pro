@@ -13,6 +13,7 @@ const LINKS = [
   { href: `${ROUTES.ADMIN_PANEL}/purchases`, label: "Purchases" },
   { href: `${ROUTES.ADMIN_PANEL}/resources`, label: "Resources" },
   { href: `${ROUTES.ADMIN_PANEL}/collections`, label: "Collections" },
+  { href: `${ROUTES.ADMIN_PANEL}/studio`, label: "Studio" },
 ];
 
 // The panel's sections. A section stays active on its sub-pages (a user's
