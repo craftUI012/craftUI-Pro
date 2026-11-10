@@ -844,7 +844,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
   return (
     <div
       className={cn(
-        "flex h-full w-full overflow-hidden bg-zinc-50 text-zinc-800",
+        "flex h-full w-full overflow-hidden text-zinc-800",
         className
       )}
     >
