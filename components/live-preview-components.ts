@@ -1,6 +1,7 @@
 import BloomMenuPreview from "@/components/previews/bloom-menu-preview";
 import EditorialSectionPreview from "@/components/previews/editorial-section-preview";
 import MosaicCardPreview from "@/components/previews/mosaic-card-preview";
+import PromptComposerPreview from "@/components/previews/prompt-composer-preview";
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
 import SwapGridPreview from "@/components/previews/swap-grid-preview";
 import WordWheelPreview from "@/components/previews/word-wheel-preview";
@@ -46,6 +47,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "hero-section-04": HeroSection04,
     "image-sphere": ImageSphere,
     "mosaic-card": MosaicCardPreview,
+    "prompt-composer": PromptComposerPreview,
     "statement-section": StatementSectionPreview,
     "swap-grid": SwapGridPreview,
     "tables-section": TablesSection,

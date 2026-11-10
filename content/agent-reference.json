@@ -4516,5 +4516,41 @@
       "Issue tracker and team productivity landing pages",
       "Explaining how work is organized by status"
     ]
+  },
+  "prompt-composer": {
+    "component": "PromptComposer",
+    "dependencies": ["motion"],
+    "description": "An AI prompt composer: a capsule with Enter to send and voice input, a quick-prompts tray that unfolds above it, and a footer row for attachments, permission mode, model, reasoning depth and usage limits, with a running-agents and past-chats panel alongside.",
+    "docs": "/docs/components/prompt-composer",
+    "extends": null,
+    "files": ["components/ui/prompt-composer.tsx"],
+    "id": "CMP-HCWPB1",
+    "import": "@/components/ui/prompt-composer",
+    "library": "components",
+    "name": "prompt-composer",
+    "paid": true,
+    "props": [
+      {
+        "description": "Extra classes for the root canvas, e.g. a height or border.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Prompt composer",
+    "types": [],
+    "tags": {
+      "categories": ["inputs"],
+      "styles": ["motion", "minimal"],
+      "types": ["text-inputs"]
+    },
+    "useCases": [
+      "AI assistant and copilot chat inputs",
+      "CRM and sales dashboard prompts",
+      "Agent consoles and internal tools",
+      "Any app where people write prompts to a model"
+    ]
   }
 }

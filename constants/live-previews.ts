@@ -25,6 +25,7 @@ export const LIVE_PREVIEWS = [
   "hero-section-04",
   "image-sphere",
   "mosaic-card",
+  "prompt-composer",
   "statement-section",
   "swap-grid",
   "tables-section",
