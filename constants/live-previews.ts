@@ -22,6 +22,7 @@ export const LIVE_PREVIEWS = [
   "hero-section",
   "hero-section-02",
   "hero-section-03",
+  "hero-section-04",
   "image-sphere",
   "mosaic-card",
   "statement-section",
