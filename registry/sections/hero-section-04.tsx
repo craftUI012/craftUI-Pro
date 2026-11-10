@@ -869,7 +869,7 @@ export const HeroSection04 = ({
           <HeadingTag
             className={cn(
               syne.className,
-              "text-center text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold tracking-tight leading-[0.9] text-balance text-foreground transition-colors duration-200"
+              "text-center text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold tracking-tight leading-[0.9] text-balance text-foreground transition-colors duration-200"
             )}
           >
             {title}
