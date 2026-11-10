@@ -865,7 +865,7 @@ export const HeroSection04 = ({
         </div>
 
         {/* Headline and editorial description directly below component container */}
-        <div className="flex w-full flex-col items-center px-4 mt-[clamp(2rem,5vw,4rem)] pb-[clamp(3rem,6vw,5rem)]">
+        <div className="flex w-full flex-col items-center px-4 mt-[clamp(4rem,8vw,7rem)] pb-[clamp(3rem,6vw,5rem)]">
           <HeadingTag
             className={cn(
               syne.className,
