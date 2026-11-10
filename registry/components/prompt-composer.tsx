@@ -10,7 +10,13 @@ import {
   useRef,
   useState,
 } from "react";
-import type { KeyboardEvent, PointerEvent, SVGProps } from "react";
+import type {
+  ComponentProps,
+  KeyboardEvent,
+  PointerEvent,
+  ReactNode,
+  SVGProps,
+} from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -149,6 +155,137 @@ const PlusIcon = ({
   >
     <path d="M12.001 5.00003V19.002" />
     <path d="M19.002 12.002L4.99998 12.002" />
+  </svg>
+);
+
+const FileIcon = ({
+  width = 14,
+  height = 14,
+  className,
+  color = "currentColor",
+  strokeWidth = 1.5,
+  ...props
+}: IconProps & { strokeWidth?: number | string }) => (
+  <svg
+    className={className}
+    fill="none"
+    height={height}
+    stroke={color}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={strokeWidth}
+    viewBox="0 0 24 24"
+    width={width}
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+  </svg>
+);
+
+const ImageIcon = ({
+  width = 14,
+  height = 14,
+  className,
+  color = "currentColor",
+  strokeWidth = 1.5,
+  ...props
+}: IconProps & { strokeWidth?: number | string }) => (
+  <svg
+    className={className}
+    fill="none"
+    height={height}
+    stroke={color}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={strokeWidth}
+    viewBox="0 0 24 24"
+    width={width}
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
+    <circle cx="8.5" cy="8.5" r="1.5" />
+    <polyline points="21 15 16 10 5 21" />
+  </svg>
+);
+
+const FolderIcon = ({
+  width = 14,
+  height = 14,
+  className,
+  color = "currentColor",
+  strokeWidth = 1.5,
+  ...props
+}: IconProps & { strokeWidth?: number | string }) => (
+  <svg
+    className={className}
+    fill="none"
+    height={height}
+    stroke={color}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={strokeWidth}
+    viewBox="0 0 24 24"
+    width={width}
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+const BrowserIcon = ({
+  width = 14,
+  height = 14,
+  className,
+  color = "currentColor",
+  strokeWidth = 1.5,
+  ...props
+}: IconProps & { strokeWidth?: number | string }) => (
+  <svg
+    className={className}
+    fill="none"
+    height={height}
+    stroke={color}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={strokeWidth}
+    viewBox="0 0 24 24"
+    width={width}
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" x2="22" y1="12" y2="12" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </svg>
+);
+
+const TerminalIcon = ({
+  width = 14,
+  height = 14,
+  className,
+  color = "currentColor",
+  strokeWidth = 1.5,
+  ...props
+}: IconProps & { strokeWidth?: number | string }) => (
+  <svg
+    className={className}
+    fill="none"
+    height={height}
+    stroke={color}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={strokeWidth}
+    viewBox="0 0 24 24"
+    width={width}
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <polyline points="4 17 10 11 4 5" />
+    <line x1="12" x2="20" y1="19" y2="19" />
   </svg>
 );
 
@@ -297,10 +434,10 @@ const Slider = ({
         tabIndex={disabled ? -1 : 0}
       >
         {/* Track Background */}
-        <div className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-zinc-200">
+        <div className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-border">
           <div
             className={cn(
-              "h-full bg-zinc-800",
+              "h-full bg-primary",
               isDragging
                 ? "transition-none"
                 : "transition-all duration-200 ease-out"
@@ -312,9 +449,9 @@ const Slider = ({
         {/* Thumb */}
         <div
           className={cn(
-            "absolute h-3.5 w-3.5 -translate-x-1/2 rounded-full border border-zinc-300 bg-white shadow-xs ring-offset-background",
+            "absolute h-3.5 w-3.5 -translate-x-1/2 rounded-full border border-primary bg-background shadow-xs ring-offset-background",
             isDragging
-              ? "scale-110 ring-2 ring-zinc-400/50 transition-none"
+              ? "scale-110 ring-2 ring-ring/50 transition-none"
               : "transition-all duration-200 ease-out group-hover:scale-105"
           )}
           style={{ left: `${percentage}%` }}
@@ -323,14 +460,14 @@ const Slider = ({
 
       {/* Optional Marks (only rendered if explicitly provided) */}
       {marks && marks.length > 0 && (
-        <div className="flex w-full justify-between text-[9px] text-zinc-500 px-0.5 select-none font-normal">
+        <div className="flex w-full justify-between text-[9px] text-muted-foreground px-0.5 select-none font-normal">
           {marks.map((mark) => (
             <button
               className={cn(
-                "cursor-pointer transition-colors hover:text-zinc-800",
+                "cursor-pointer transition-colors hover:text-foreground",
                 mark.value === value
-                  ? "text-zinc-800 font-medium"
-                  : "text-zinc-400 font-normal"
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground font-normal"
               )}
               key={mark.value}
               onClick={(e) => {
@@ -473,7 +610,7 @@ const CircularProgress = ({
         cx={size / 2}
         cy={size / 2}
         r={radius}
-        className="stroke-zinc-200"
+        className="stroke-border"
         strokeWidth={strokeWidth}
         fill="none"
       />
@@ -496,7 +633,7 @@ const HoverIndicator = ({
   layoutId = "model-hover-indicator",
   rounded = "rounded-lg",
   isActive = false,
-  bg = "bg-zinc-200/60",
+  bg = "bg-accent",
 }: {
   layoutId?: string;
   rounded?: string;
@@ -598,7 +735,7 @@ export const QuickPromptsDropdown = ({
         type="button"
         onClick={() => onSelectPrompt(prompt)}
         onMouseEnter={() => setHoveredPrompt(index)}
-        className="group text-[10px] relative flex w-full cursor-pointer items-center justify-between rounded-xl py-1.5 pr-2 pl-2 text-left font-normal text-zinc-600 transition-colors duration-150 ease-out select-none hover:text-zinc-800"
+        className="group text-[10px] relative flex w-full cursor-pointer items-center justify-between rounded-xl py-1.5 pr-2 pl-2 text-left font-normal text-muted-foreground transition-colors duration-150 ease-out select-none hover:text-foreground"
       >
         {/* Unified Hover Container: moving indicator pill and enter icon together */}
         <AnimatePresence>
@@ -606,7 +743,7 @@ export const QuickPromptsDropdown = ({
             <motion.div
               layoutId="v2-quick-prompts-indicator"
               layout="position"
-              className="pointer-events-none absolute inset-0 flex items-center justify-end rounded-xl bg-zinc-200/60 pr-2"
+              className="pointer-events-none absolute inset-0 flex items-center justify-end rounded-xl bg-foreground/5 dark:bg-foreground/10 pr-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -620,7 +757,7 @@ export const QuickPromptsDropdown = ({
                 height={12}
                 strokeWidth={1.5}
                 color="currentColor"
-                className="text-zinc-600"
+                className="text-muted-foreground"
               />
             </motion.div>
           )}
@@ -679,7 +816,7 @@ export const QuickPromptsDropdown = ({
             }}
             className={cn(
               "pointer-events-auto w-max rounded-2xl p-1 transition-colors duration-250 ease-out",
-              promptsExpanded ? "bg-zinc-100" : "bg-transparent"
+              promptsExpanded ? "bg-muted" : "bg-transparent"
             )}
           >
             {/* Prompts list: Placed ABOVE the title Quick Prompts. Stays in DOM so clipPath physically slices through on exit */}
@@ -700,10 +837,10 @@ export const QuickPromptsDropdown = ({
               ref={headerRef}
               type="button"
             >
-              <span className="text-[10px] font-normal whitespace-nowrap text-zinc-400 transition-colors duration-150 ease-out group-hover:text-zinc-800">
+              <span className="text-[10px] font-normal whitespace-nowrap text-muted-foreground transition-colors duration-150 ease-out group-hover:text-foreground">
                 Quick prompts
               </span>
-              <span className="pointer-events-none flex shrink-0 items-center justify-center p-0.5 text-zinc-400 transition-colors duration-150 ease-out group-hover:text-zinc-800">
+              <span className="pointer-events-none flex shrink-0 items-center justify-center p-0.5 text-muted-foreground transition-colors duration-150 ease-out group-hover:text-foreground">
                 <motion.span
                   animate={{ rotate: promptsExpanded ? 180 : 0 }}
                   className="flex"
@@ -725,12 +862,190 @@ export const QuickPromptsDropdown = ({
   );
 };
 
-export interface PromptComposerProps {
-  /** Extra classes for the root canvas, e.g. a height or border. */
+export type AddAttachmentType =
+  | "file"
+  | "image"
+  | "folders"
+  | "browser"
+  | "commands";
+
+interface AddAttachmentOption {
+  id: AddAttachmentType;
+  label: string;
+  icon: (props: IconProps & { strokeWidth?: number | string }) => ReactNode;
+  shortcut: string;
+}
+
+const ADD_ATTACHMENT_OPTIONS: AddAttachmentOption[] = [
+  { icon: FileIcon, id: "file", label: "File", shortcut: "⌘O" },
+  { icon: ImageIcon, id: "image", label: "Image", shortcut: "⌘I" },
+  { icon: FolderIcon, id: "folders", label: "Folders", shortcut: "⌘D" },
+  { icon: BrowserIcon, id: "browser", label: "Browser", shortcut: "⌘B" },
+  { icon: TerminalIcon, id: "commands", label: "Commands", shortcut: "⌘K" },
+];
+
+export interface AddAttachmentDropdownProps {
+  /** Called when an attachment option is chosen. */
+  onSelect: (type: AddAttachmentType) => void;
+  /** Extra class names for the trigger container. */
   className?: string;
 }
 
-export const PromptComposer = ({ className }: PromptComposerProps) => {
+export const AddAttachmentDropdown = ({
+  onSelect,
+  className,
+}: AddAttachmentDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleClickOutside = (e: globalThis.MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setHoveredIndex(null);
+      }
+    };
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        setHoveredIndex(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className={cn("relative flex items-center", className)} ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className={cn(
+          "flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors select-none hover:bg-accent hover:text-foreground",
+          open && "bg-accent text-foreground"
+        )}
+        title="Add attachment"
+        aria-label="Add attachment"
+        aria-expanded={open}
+      >
+        <motion.span
+          animate={{ rotate: open ? 45 : 0 }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          className="flex items-center justify-center"
+        >
+          <PlusIcon
+            width={12}
+            height={12}
+            strokeWidth={2}
+            className="shrink-0"
+          />
+        </motion.span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="add-attachment-menu"
+            initial={{
+              clipPath: "inset(100% 100% 0px 0px round 16px)",
+              opacity: 0,
+              scale: 0.96,
+            }}
+            animate={{
+              clipPath: "inset(0px 0px 0px 0px round 16px)",
+              opacity: 1,
+              scale: 1,
+            }}
+            exit={{
+              clipPath: "inset(100% 100% 0px 0px round 16px)",
+              opacity: 0,
+              scale: 0.96,
+            }}
+            transition={{
+              duration: 0.22,
+              ease: [0.23, 1, 0.32, 1],
+            }}
+            style={{
+              transform: "translateZ(0)",
+              willChange: "transform, opacity, clip-path",
+            }}
+            className="absolute bottom-full left-0 z-50 mb-1.5 w-44 origin-bottom-left rounded-2xl border border-border bg-popover p-1.5 shadow-xl will-change-transform select-none"
+          >
+            <div
+              className="space-y-0.5"
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              {ADD_ATTACHMENT_OPTIONS.map((option, index) => {
+                const IconComponent = option.icon;
+                const isHovered = hoveredIndex === index;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => {
+                      onSelect(option.id);
+                      setOpen(false);
+                      setHoveredIndex(null);
+                    }}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    className="group text-[10px] relative flex w-full cursor-pointer items-center justify-between rounded-xl px-2 py-1.5 text-left font-normal text-muted-foreground transition-colors duration-150 ease-out select-none hover:text-foreground"
+                  >
+                    <AnimatePresence>
+                      {isHovered && (
+                        <HoverIndicator
+                          layoutId="v2-add-menu-hover-indicator"
+                          rounded="rounded-xl"
+                          isActive={false}
+                          bg="bg-accent"
+                        />
+                      )}
+                    </AnimatePresence>
+                    <span className="relative z-10 flex items-center gap-2">
+                      <IconComponent
+                        width={13}
+                        height={13}
+                        strokeWidth={1.5}
+                        className="shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+                      />
+                      <span className="leading-snug">{option.label}</span>
+                    </span>
+                    <span className="relative z-10 text-[9px] font-mono text-muted-foreground/60 transition-colors group-hover:text-muted-foreground">
+                      {option.shortcut}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export interface PromptComposerProps extends Omit<
+  ComponentProps<"div">,
+  "children"
+> {
+  /** Extra classes for the root canvas, e.g. a height or border. */
+  className?: string;
+  /** Called when an attachment option is chosen (file, image, folders, browser, commands). */
+  onSelectAttachment?: (type: AddAttachmentType) => void;
+}
+
+export const PromptComposer = ({
+  className,
+  onSelectAttachment,
+  ...props
+}: PromptComposerProps) => {
   const [selectedModelId, setSelectedModelId] = useState<string>("auto");
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [hoveredModel, setHoveredModel] = useState<string | null>(null);
@@ -841,24 +1156,48 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
     ]);
   };
 
+  const handleSelectAttachment = (type: AddAttachmentType) => {
+    onSelectAttachment?.(type);
+    const attachmentLabels: Record<AddAttachmentType, string> = {
+      browser: "Webpage attached: https://crm.internal/metrics",
+      commands: "Command attached: /sync-pipeline --all",
+      file: "Document attached: q4-deals-report.pdf",
+      folders: "Folder attached: /workspace/deals",
+      image: "Image attached: pipeline-screenshot.png",
+    };
+    const userText = attachmentLabels[type];
+    setMessages((prev) => [
+      ...prev,
+      { sender: "user", text: userText },
+      {
+        sender: "lattice",
+        text: `Attached ${type} successfully. Analyzing with ${currentModel.name} at ${DEPTH_STEPS.find((d) => d.value === modelDepth)?.label} depth.`,
+      },
+    ]);
+  };
+
   return (
     <div
       className={cn(
-        "flex h-full w-full overflow-hidden bg-transparent text-zinc-800",
+        "flex h-full w-full overflow-hidden bg-transparent text-foreground",
         className
       )}
+      data-slot="prompt-composer"
+      {...props}
     >
       {/* Main column: on a fresh chat the composer sits in the middle; once
           a conversation starts it drops to the bottom with the thread above. */}
       <div className="relative flex h-full w-full flex-col overflow-hidden px-6">
         {messages.length > 0 && (
           <div className="mx-auto flex w-full max-w-[480px] min-h-0 flex-1 flex-col justify-end space-y-2 overflow-hidden pt-6 pb-4">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-1 select-none">
-              <span className="text-[10px] text-zinc-400">Conversation</span>
+            <div className="flex items-center justify-between border-b border-border/60 pb-1 select-none">
+              <span className="text-[10px] text-muted-foreground">
+                Conversation
+              </span>
               <button
                 type="button"
                 onClick={() => setMessages([])}
-                className="text-[10px] cursor-pointer text-zinc-400 transition-[color,transform] duration-150 ease-out hover:text-zinc-800 active:scale-[0.97]"
+                className="text-[10px] cursor-pointer text-muted-foreground transition-[color,transform] duration-150 ease-out hover:text-foreground active:scale-[0.97]"
               >
                 Reset
               </button>
@@ -876,8 +1215,8 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                     className={cn(
                       "max-w-[88%] rounded-2xl px-3.5 py-1.5 text-xs leading-relaxed",
                       m.sender === "user"
-                        ? "bg-zinc-900 font-normal text-zinc-50"
-                        : "bg-zinc-100 font-normal text-zinc-800"
+                        ? "bg-primary font-normal text-primary-foreground"
+                        : "bg-muted font-normal text-foreground"
                     )}
                   >
                     {m.text}
@@ -905,7 +1244,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
             />
 
             {/* Stable Prompt Capsule: input and enter button stay rock-solid */}
-            <div className="w-full rounded-2xl bg-zinc-100 p-1">
+            <div className="w-full rounded-2xl bg-muted p-1">
               {/* Prompt Input Row */}
               <div className="flex items-center justify-between gap-2">
                 <input
@@ -919,12 +1258,12 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                     }
                   }}
                   placeholder="Ask Lattice about deals, pipeline risks, or schedule..."
-                  className="w-full bg-transparent pl-2 text-xs font-normal text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
+                  className="w-full bg-transparent pl-2 text-xs font-normal text-foreground placeholder:text-muted-foreground focus:outline-none"
                 />
                 <div className="flex shrink-0 items-center gap-0.5">
                   <button
                     type="button"
-                    className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors duration-150 ease-out hover:bg-zinc-200/60 hover:text-zinc-800"
+                    className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/5 dark:hover:bg-foreground/10 hover:text-foreground"
                     title="Voice input"
                     aria-label="Voice input"
                   >
@@ -938,7 +1277,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                   <button
                     type="button"
                     onClick={handleSendMessage}
-                    className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 p-1 px-2 text-zinc-100 shadow-xs duration-150 ease-out hover:bg-zinc-700"
+                    className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-primary bg-primary p-1 px-2 text-primary-foreground shadow-xs duration-150 ease-out hover:bg-primary/90"
                     title="Send"
                   >
                     <EnterIcon
@@ -946,7 +1285,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                       height={12}
                       strokeWidth={1.75}
                       color="currentColor"
-                      className="text-zinc-100"
+                      className="text-primary-foreground"
                     />
                   </button>
                 </div>
@@ -956,34 +1295,22 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
             {/* Prompt Footer Row: Add Button & Permission Mode on Left, Limit & Model Selector on Right */}
             <div className="relative mt-1.5 flex items-center justify-between px-2">
               {/* Left End: Add Icon Button & Permission Mode Selector */}
-              <div
-                className="flex items-center gap-1"
-                ref={permissionDropdownRef}
-              >
-                <button
-                  type="button"
-                  className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-zinc-400 transition-colors select-none hover:bg-zinc-200/60 hover:text-zinc-800"
-                  title="Add attachment"
-                  aria-label="Add attachment"
-                >
-                  <PlusIcon
-                    width={12}
-                    height={12}
-                    strokeWidth={2}
-                    className="shrink-0"
-                  />
-                </button>
+              <div className="flex items-center gap-1">
+                <AddAttachmentDropdown onSelect={handleSelectAttachment} />
 
                 {/* Permission Mode Selector Toggle */}
-                <div className="relative flex items-center">
+                <div
+                  className="relative flex items-center"
+                  ref={permissionDropdownRef}
+                >
                   <button
                     type="button"
                     onClick={() => setPermissionDropdownOpen((prev) => !prev)}
                     className={cn(
-                      "text-[10px] flex h-5 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 font-normal transition-colors select-none hover:bg-zinc-200/60",
+                      "text-[10px] flex h-5 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 font-normal transition-colors select-none hover:bg-accent",
                       selectedPermissionId === "full-access"
-                        ? "text-red-500 hover:text-red-600"
-                        : "text-zinc-600 hover:text-zinc-800"
+                        ? "text-destructive hover:text-destructive/90"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <span className="leading-none">
@@ -996,8 +1323,8 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                       className={cn(
                         "shrink-0 transition-transform",
                         selectedPermissionId === "full-access"
-                          ? "text-red-400"
-                          : "text-zinc-400",
+                          ? "text-destructive"
+                          : "text-muted-foreground",
                         permissionDropdownOpen && "rotate-180"
                       )}
                     />
@@ -1030,7 +1357,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                           transform: "translateZ(0)",
                           willChange: "transform, opacity",
                         }}
-                        className="absolute bottom-full left-0 z-50 mb-1.5 w-60 origin-bottom-left rounded-2xl border border-zinc-200 bg-zinc-100 p-1.5 shadow-xl will-change-transform select-none"
+                        className="absolute bottom-full left-0 z-50 mb-1.5 w-60 origin-bottom-left rounded-2xl border border-border bg-popover p-1.5 shadow-xl will-change-transform select-none"
                       >
                         <div className="space-y-1">
                           {PERMISSION_MODES.map((mode) => {
@@ -1055,8 +1382,8 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                                 className={cn(
                                   "group text-[10px] relative flex w-full cursor-pointer flex-col rounded-xl p-2 text-left transition-colors select-none",
                                   isActive
-                                    ? "bg-zinc-200/60"
-                                    : "hover:text-zinc-800"
+                                    ? "bg-accent"
+                                    : "hover:text-foreground"
                                 )}
                               >
                                 <AnimatePresence>
@@ -1065,7 +1392,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                                       layoutId="v2-permission-hover-indicator"
                                       rounded="rounded-xl"
                                       isActive={isActive}
-                                      bg="bg-zinc-200/60"
+                                      bg="bg-accent"
                                     />
                                   )}
                                 </AnimatePresence>
@@ -1074,14 +1401,14 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                                     className={cn(
                                       "text-[10px] font-medium",
                                       mode.id === "full-access"
-                                        ? "text-red-500"
-                                        : "text-zinc-800"
+                                        ? "text-destructive"
+                                        : "text-foreground"
                                     )}
                                   >
                                     {mode.label}
                                   </div>
                                 </div>
-                                <div className="text-[10px] relative z-10 mt-0.5 leading-snug font-normal text-zinc-600">
+                                <div className="text-[10px] relative z-10 mt-0.5 leading-snug font-normal text-muted-foreground">
                                   {mode.subtitle}
                                 </div>
                               </button>
@@ -1101,7 +1428,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                   <button
                     type="button"
                     onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-                    className="text-[10px] flex h-5 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 font-normal text-zinc-600 transition-colors select-none hover:bg-zinc-200/60 hover:text-zinc-800"
+                    className="text-[10px] flex h-5 cursor-pointer items-center gap-1 rounded-md border-none bg-transparent px-1.5 font-normal text-muted-foreground transition-colors select-none hover:bg-accent hover:text-foreground"
                   >
                     <span className="leading-none">{currentModel.name}</span>
                     <ChevronDownIcon
@@ -1109,7 +1436,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                       height={10}
                       strokeWidth={1.5}
                       className={cn(
-                        "shrink-0 text-zinc-400 transition-transform",
+                        "shrink-0 text-muted-foreground transition-transform",
                         modelDropdownOpen && "rotate-180"
                       )}
                     />
@@ -1142,7 +1469,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                           transform: "translateZ(0)",
                           willChange: "transform, opacity",
                         }}
-                        className="absolute right-0 bottom-full z-50 mb-1.5 w-48 origin-bottom-right rounded-2xl border border-zinc-200 bg-zinc-100 p-2 shadow-xl will-change-transform"
+                        className="absolute right-0 bottom-full z-50 mb-1.5 w-48 origin-bottom-right rounded-2xl border border-border bg-popover p-2 shadow-xl will-change-transform"
                       >
                         <div className="space-y-0.5">
                           {LATTICE_MODELS.map((model) => {
@@ -1165,8 +1492,8 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                                 className={cn(
                                   "group text-[10px] relative flex w-full cursor-pointer items-center rounded-lg px-2.5 py-1 text-left transition-colors select-none",
                                   isActive
-                                    ? "bg-zinc-200/60"
-                                    : "hover:text-zinc-800"
+                                    ? "bg-accent"
+                                    : "hover:text-foreground"
                                 )}
                               >
                                 <AnimatePresence>
@@ -1175,28 +1502,30 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                                       layoutId="v2-model-hover-indicator"
                                       rounded="rounded-lg"
                                       isActive={isActive}
-                                      bg="bg-zinc-200/60"
+                                      bg="bg-accent"
                                     />
                                   )}
                                 </AnimatePresence>
                                 <span
                                   className={cn(
                                     "relative z-10 flex items-center gap-1.5 font-normal whitespace-nowrap transition-colors duration-150",
-                                    isActive ? "text-zinc-800" : "text-zinc-600"
+                                    isActive
+                                      ? "text-foreground"
+                                      : "text-muted-foreground"
                                   )}
                                 >
                                   <span>{model.name}</span>
                                   {model.version && (
                                     <>
-                                      <span className="text-zinc-400 select-none">
+                                      <span className="text-muted-foreground select-none">
                                         —
                                       </span>
-                                      <span className="inline-flex items-center gap-0.5 font-normal text-zinc-600">
+                                      <span className="inline-flex items-center gap-0.5 font-normal text-muted-foreground">
                                         <OmegaIcon
                                           width={10}
                                           height={10}
                                           strokeWidth={1.5}
-                                          className="shrink-0 text-zinc-600"
+                                          className="shrink-0 text-muted-foreground"
                                         />
                                         <span>{model.version}</span>
                                       </span>
@@ -1209,12 +1538,12 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                         </div>
 
                         {/* Full-width Divider */}
-                        <div className="-mx-2 my-1.5 border-t border-zinc-200" />
+                        <div className="-mx-2 my-1.5 border-t border-border" />
 
                         {/* Slider inside dropdown with selected depth value on left */}
                         <div className="flex flex-col gap-1.5 px-2.5 pb-0.5">
                           <div className="text-[10px] flex items-center select-none">
-                            <span className="font-normal text-zinc-800">
+                            <span className="font-normal text-foreground">
                               {
                                 DEPTH_STEPS.find((d) => d.value === modelDepth)
                                   ?.label
@@ -1241,7 +1570,7 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                     onMouseEnter={handleUsageMouseEnter}
                     onMouseLeave={handleUsageMouseLeave}
                     onClick={() => setUsagePopupOpen((prev) => !prev)}
-                    className="text-[10px] flex h-5 cursor-pointer items-center gap-1.5 rounded-md px-1.5 font-normal text-zinc-600 transition-colors select-none hover:bg-zinc-200/60 hover:text-zinc-800"
+                    className="text-[10px] flex h-5 cursor-pointer items-center gap-1.5 rounded-md px-1.5 font-normal text-muted-foreground transition-colors select-none hover:bg-accent hover:text-foreground"
                     aria-label="Usage limits"
                   >
                     <span className="leading-none">56%</span>
@@ -1266,52 +1595,52 @@ export const PromptComposer = ({ className }: PromptComposerProps) => {
                         }}
                         onMouseEnter={handleUsageMouseEnter}
                         onMouseLeave={handleUsageMouseLeave}
-                        className="absolute right-0 bottom-full z-50 mb-1.5 w-56 origin-bottom-right rounded-2xl border border-zinc-200 bg-zinc-100 p-3 shadow-xl will-change-transform select-none"
+                        className="absolute right-0 bottom-full z-50 mb-1.5 w-56 origin-bottom-right rounded-2xl border border-border bg-popover p-3 shadow-xl will-change-transform select-none"
                       >
                         <div className="flex flex-col gap-2.5">
                           {/* 5hr Limit Item */}
                           <div className="flex flex-col gap-1">
                             <div className="text-[10px] flex items-center justify-between">
-                              <span className="font-normal text-zinc-800">
+                              <span className="font-normal text-foreground">
                                 5hr limit
                               </span>
-                              <span className="font-normal text-zinc-600">
+                              <span className="font-normal text-muted-foreground">
                                 56% left
                               </span>
                             </div>
                             {/* Micro linear progress bar */}
-                            <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-200">
+                            <div className="h-1 w-full overflow-hidden rounded-full bg-border">
                               <div
                                 className="h-full rounded-full bg-emerald-500 transition-[width] duration-300 ease-out"
                                 style={{ width: "56%" }}
                               />
                             </div>
-                            <div className="text-[10px] font-normal text-zinc-600">
+                            <div className="text-[10px] font-normal text-muted-foreground">
                               Resets in 2h 14m
                             </div>
                           </div>
 
                           {/* Full-width Divider */}
-                          <div className="-mx-3 border-t border-zinc-200" />
+                          <div className="-mx-3 border-t border-border" />
 
                           {/* Weekly Limit Item */}
                           <div className="flex flex-col gap-1">
                             <div className="text-[10px] flex items-center justify-between">
-                              <span className="font-normal text-zinc-800">
+                              <span className="font-normal text-foreground">
                                 Weekly limit
                               </span>
-                              <span className="font-normal text-zinc-600">
+                              <span className="font-normal text-muted-foreground">
                                 82% left
                               </span>
                             </div>
                             {/* Micro linear progress bar */}
-                            <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-200">
+                            <div className="h-1 w-full overflow-hidden rounded-full bg-border">
                               <div
                                 className="h-full rounded-full bg-emerald-500 transition-[width] duration-300 ease-out"
                                 style={{ width: "82%" }}
                               />
                             </div>
-                            <div className="text-[10px] font-normal text-zinc-600">
+                            <div className="text-[10px] font-normal text-muted-foreground">
                               Resets Monday at 9:00 AM
                             </div>
                           </div>

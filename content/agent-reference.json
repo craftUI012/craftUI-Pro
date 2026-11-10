@@ -4522,7 +4522,7 @@
     "dependencies": ["motion"],
     "description": "An AI prompt composer: a capsule with Enter to send and voice input, a quick-prompts tray that unfolds above it, and a footer row for attachments, permission mode, model, reasoning depth and usage limits.",
     "docs": "/docs/components/prompt-composer",
-    "extends": null,
+    "extends": "div",
     "files": ["components/ui/prompt-composer.tsx"],
     "id": "CMP-HCWPB1",
     "import": "@/components/ui/prompt-composer",
@@ -4543,7 +4543,7 @@
     "types": [],
     "tags": {
       "categories": ["inputs"],
-      "styles": ["motion", "minimal"],
+      "styles": ["motion", "minimal", "dark-mode"],
       "types": ["text-inputs"]
     },
     "useCases": [
