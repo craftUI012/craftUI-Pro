@@ -13,6 +13,7 @@ import GallerySection from "@/registry/sections/gallery-section";
 import HeroSection from "@/registry/sections/hero-section";
 import HeroSection02 from "@/registry/sections/hero-section-02";
 import { HeroSection03 } from "@/registry/sections/hero-section-03";
+import { HeroSection04 } from "@/registry/sections/hero-section-04";
 import TablesSection from "@/registry/sections/tables-section";
 import TablesSection02 from "@/registry/sections/tables-section-02";
 import TeamSection from "@/registry/sections/team-section";
@@ -37,6 +38,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "hero-section": HeroSection,
     "hero-section-02": HeroSection02,
     "hero-section-03": HeroSection03,
+    "hero-section-04": HeroSection04,
     "image-sphere": ImageSphere,
     "statement-section": StatementSectionPreview,
     "tables-section": TablesSection,

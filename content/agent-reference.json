@@ -1301,6 +1301,182 @@
       "Membership launches for creative communities"
     ]
   },
+  "hero-section-04": {
+    "component": "HeroSection04",
+    "dependencies": ["lucide-react", "motion"],
+    "description": "A full-bleed architectural photograph cut into vertical curtain slices that open around the pointer with physics easing, over a geometric Syne headline, brand navbar, and detached floating CTA.",
+    "docs": "/docs/templates/hero-section-04",
+    "extends": null,
+    "files": ["components/blocks/hero-section-04.tsx"],
+    "id": "SEC-GHZNJT",
+    "import": "@/components/blocks/hero-section-04",
+    "library": "templates",
+    "name": "hero-section-04",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand name displayed on the left side of the navbar.",
+        "name": "brand",
+        "optional": true,
+        "type": "string",
+        "default": "\"AVEN Studio\""
+      },
+      {
+        "description": "Primary navigation links displayed in the navbar.",
+        "name": "navLinks",
+        "optional": true,
+        "type": "HeroSection04NavLink[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Call-to-action button displayed in the floating header tab.",
+        "name": "cta",
+        "optional": true,
+        "type": "HeroSection04Action",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Main headline text or JSX.",
+        "name": "title",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "( <> The Architecture <br /> of Obscurity. </> )"
+      },
+      {
+        "description": "Subtitle or descriptive paragraph text.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"A quiet study of light, form, and the spaces between — where every shadow earn…"
+      },
+      {
+        "description": "High-resolution image URL for the interleaved curtain slice hero.",
+        "name": "imageSrc",
+        "optional": true,
+        "type": "string",
+        "default": "\"/images/hero-curtains.jpg\""
+      },
+      {
+        "description": "Image alternative text for accessibility and screen readers.",
+        "name": "imageAlt",
+        "optional": true,
+        "type": "string",
+        "default": "\"Luminescent green tendrils flowing through darkness\""
+      },
+      {
+        "description": "Optional index to select an image from IMAGE_MAP (e.g. 1 or 2).",
+        "name": "imageNumber",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Vertical focal point alignment of the photograph.",
+        "name": "imagePosition",
+        "optional": true,
+        "type": "\"top\" | \"center\" | \"bottom\"",
+        "default": "\"center\""
+      },
+      {
+        "description": "Number of vertical curtain slices on desktop. Defaults to 32 (adapts to 12 on mobile, 20 on tablet).",
+        "name": "columns",
+        "optional": true,
+        "type": "number",
+        "default": "32"
+      },
+      {
+        "description": "Duration in ms for each curtain column to open during initial animation (default: 1200).",
+        "name": "introDuration",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Hold pause in ms before the initial curtain opening begins (default: 350).",
+        "name": "introPause",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Maximum stagger delay in ms across columns from center outward (default: 350).",
+        "name": "introStagger",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Optional callback fired when the image curtain is clicked.",
+        "name": "onImageClick",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "1 when this is the page's primary h1, 2 when inside documentation or secondary preview.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2",
+        "default": "1"
+      },
+      {
+        "description": "Optional container class name.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Curtains hero section",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Text label displayed for the link.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Destination URL or anchor.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "HeroSection04NavLink"
+      },
+      {
+        "fields": [
+          {
+            "description": "Button text label.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Destination URL or anchor.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "HeroSection04Action"
+      }
+    ],
+    "tags": {
+      "categories": ["portfolio", "marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["hero"]
+    },
+    "useCases": [
+      "Architecture and design studio home pages",
+      "Creative agency and portfolio landing pages",
+      "Editorial launch pages leading with photos",
+      "Luxury architecture and spatial design sites"
+    ]
+  },
   "footer-section": {
     "component": "FooterSection",
     "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react"],
