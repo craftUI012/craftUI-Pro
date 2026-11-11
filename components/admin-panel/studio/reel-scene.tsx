@@ -8,6 +8,10 @@ import {
   useVideoConfig,
 } from "remotion";
 
+import type { DeviceId } from "./reel-devices";
+import { deviceLayout } from "./reel-devices";
+import type { ReelBox, ReelFormat } from "./reel-frame";
+import { FORMATS } from "./reel-frame";
 import type { SoundId } from "./reel-sounds";
 import { REEL_SOUNDS, soundSrc } from "./reel-sounds";
 
@@ -25,27 +29,8 @@ import { REEL_SOUNDS, soundSrc } from "./reel-sounds";
 // the background image is an <Img> layer. Audio from every mounted <Audio>
 // and <Video> is mixed into the export.
 
-// The frames the Studio makes. Positions and sizes are stored in the
-// chosen frame's pixels.
-export type ReelFormat = "9:16" | "16:9";
-
-export const FORMATS: Record<
-  ReelFormat,
-  { height: number; use: string; width: number }
-> = {
-  "16:9": { height: 1080, use: "YouTube, X, LinkedIn", width: 1920 },
-  "9:16": { height: 1920, use: "Reels, TikTok, Shorts", width: 1080 },
-};
-
-export const isReelFormat = (value: unknown): value is ReelFormat =>
-  value === "9:16" || value === "16:9";
-
-export interface ReelBox {
-  h: number;
-  w: number;
-  x: number;
-  y: number;
-}
+export type { ReelBox, ReelFormat } from "./reel-frame";
+export { FORMATS, isReelFormat } from "./reel-frame";
 
 // One sound effect: `at` is when its anchor (onset or peak) lands, in
 // seconds from the start of the reel.
@@ -101,6 +86,13 @@ export interface ReelBackdrop {
   src: string;
 }
 
+// A device mockup holding the clip: `box` is the device's body in frame
+// pixels (the image's shadow margin spreads around it).
+export interface ReelDevice {
+  box: ReelBox;
+  id: DeviceId;
+}
+
 // The music bed: `start` is where in the track the reel begins.
 export interface ReelMusic {
   fadeIn: number;
@@ -120,6 +112,7 @@ export type ReelSceneProps = {
   box: ReelBox;
   clipVolume: number;
   cues: ReelCue[];
+  device: ReelDevice | null;
   format: ReelFormat;
   muted: boolean;
   music: ReelMusic | null;
@@ -131,6 +124,77 @@ export type ReelSceneProps = {
 };
 
 const SHADOW = "0 24px 64px rgba(0, 0, 0, 0.22)";
+
+interface ClipMedia {
+  clipVolume: number;
+  muted: boolean;
+  src: string;
+}
+
+// A fallback to <OffthreadVideo> can't render in the browser, so fail
+// loudly instead of exporting a blank box.
+const ClipVideo = ({ clipVolume, muted, src }: ClipMedia) => (
+  <Video
+    disallowFallbackToOffthreadVideo
+    muted={muted}
+    objectFit="cover"
+    src={src}
+    style={{ height: "100%", width: "100%" }}
+    volume={clipVolume}
+  />
+);
+
+// The clip inside a device: a phone-viewport-sized box, rounded like the
+// screen, laid onto the screen's corners with a 3D matrix (so a tilted
+// device gets true perspective), with the device image on top. With no
+// clip yet the screen is dark, like a phone that's off.
+const DeviceClip = ({
+  device,
+  media,
+}: {
+  device: ReelDevice;
+  media: ClipMedia;
+}) => {
+  const layout = deviceLayout(device.id, device.box);
+  return (
+    <div
+      style={{
+        height: layout.image.h,
+        left: layout.image.x,
+        position: "absolute",
+        top: layout.image.y,
+        width: layout.image.w,
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "#050505",
+          borderRadius: layout.screen.radius,
+          height: layout.screen.height,
+          left: 0,
+          overflow: "hidden",
+          position: "absolute",
+          top: 0,
+          transform: layout.screen.transform,
+          transformOrigin: "0 0",
+          width: layout.screen.width,
+        }}
+      >
+        {media.src ? <ClipVideo {...media} /> : null}
+      </div>
+      <Img
+        src={layout.src}
+        style={{
+          height: "100%",
+          left: 0,
+          position: "absolute",
+          top: 0,
+          width: "100%",
+        }}
+      />
+    </div>
+  );
+};
 
 const MusicBed = ({ music }: { music: ReelMusic }) => {
   const { durationInFrames, fps } = useVideoConfig();
@@ -207,6 +271,7 @@ export const ReelScene = ({
   box,
   clipVolume,
   cues,
+  device,
   format,
   muted,
   music,
@@ -238,7 +303,10 @@ export const ReelScene = ({
         ) : null}
       </>
     ) : null}
-    {src ? (
+    {device ? (
+      <DeviceClip device={device} media={{ clipVolume, muted, src }} />
+    ) : null}
+    {src && !device ? (
       <div
         style={{
           borderRadius: radius,
@@ -251,16 +319,7 @@ export const ReelScene = ({
           width: box.w,
         }}
       >
-        {/* A fallback to <OffthreadVideo> can't render in the browser, so
-            fail loudly instead of exporting a blank box. */}
-        <Video
-          disallowFallbackToOffthreadVideo
-          muted={muted}
-          objectFit="cover"
-          src={src}
-          style={{ height: "100%", width: "100%" }}
-          volume={clipVolume}
-        />
+        <ClipVideo clipVolume={clipVolume} muted={muted} src={src} />
       </div>
     ) : null}
     {texts.map((item) => (

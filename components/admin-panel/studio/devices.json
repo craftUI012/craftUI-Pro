@@ -1,0 +1,50 @@
+{
+  "phone-front": {
+    "body": {
+      "h": 2406,
+      "w": 1184,
+      "x": 484,
+      "y": 484
+    },
+    "finish": "titanium",
+    "height": 3374,
+    "screen": [
+      [537.5, 521.64],
+      [1614.5, 521.64],
+      [1614.5, 2852.36],
+      [537.5, 2852.36]
+    ],
+    "screenRadius": 0.1331,
+    "src": "/studio/devices/phone-front.webp",
+    "view": "front",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "width": 2152
+  },
+  "phone-three-quarter": {
+    "body": {
+      "h": 2406,
+      "w": 1257,
+      "x": 484,
+      "y": 484
+    },
+    "finish": "titanium",
+    "height": 3374,
+    "screen": [
+      [493.54, 589.43],
+      [1429.22, 525.23],
+      [1668.51, 2858.3],
+      [739.4, 2860.07]
+    ],
+    "screenRadius": 0.1331,
+    "src": "/studio/devices/phone-three-quarter.webp",
+    "view": "three-quarter",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "width": 2225
+  }
+}

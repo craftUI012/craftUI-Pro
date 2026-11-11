@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "registry:build": "node scripts/build-registry.mjs",
+    "studio:devices": "node scripts/studio-devices/build.mjs",
     "postinstall": "fumadocs-mdx",
     "check": "ultracite check",
     "fix": "ultracite fix",

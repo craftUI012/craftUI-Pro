@@ -35,6 +35,8 @@ import {
   reelFileName,
   saveBlob,
 } from "./reel-clip";
+import type { DeviceId } from "./reel-devices";
+import { DEVICE_OPTIONS, fitDevice, isDeviceId } from "./reel-devices";
 import type {
   ReelBackdrop,
   ReelBox,
@@ -59,6 +61,8 @@ interface Look {
   backdropFit: ReelBackdrop["fit"];
   /** Black laid over the background image, 0–0.8. */
   backdropDim: number;
+  /** The device mockup the clip plays in, or none. */
+  device: DeviceId | null;
   format: ReelFormat;
   fps: Fps;
   guides: boolean;
@@ -70,6 +74,7 @@ const DEFAULT_LOOK: Look = {
   backdropDim: 0,
   backdropFit: "cover",
   background: "#F3F3F1",
+  device: null,
   format: "9:16",
   fps: 60,
   guides: true,
@@ -119,6 +124,9 @@ const useLook = () => {
           backdropDim: Math.min(Math.max(saved.backdropDim, 0), 0.8),
         }),
         ...(isReelFormat(saved.format) && { format: saved.format }),
+        ...((saved.device === null || isDeviceId(saved.device)) && {
+          device: saved.device,
+        }),
         ...((saved.fps === 30 || saved.fps === 60) && { fps: saved.fps }),
         ...(typeof saved.guides === "boolean" && { guides: saved.guides }),
         ...(Number.isFinite(saved.radius) && { radius: saved.radius }),
@@ -488,6 +496,46 @@ const BackdropPicker = ({
   );
 };
 
+// The device the clip plays in: none, or the phone front-on or tilted.
+const DevicePicker = ({
+  disabled,
+  onChange,
+  value,
+}: {
+  disabled: boolean;
+  onChange: (device: DeviceId | null) => void;
+  value: DeviceId | null;
+}) => (
+  <div className="flex flex-col gap-2">
+    <span className="text-xs">Phone</span>
+    <ToggleGroup
+      aria-label="Device"
+      className="w-full"
+      disabled={disabled}
+      onValueChange={(next) => {
+        if (next === "none") {
+          onChange(null);
+        } else if (isDeviceId(next)) {
+          onChange(next);
+        }
+      }}
+      size="sm"
+      type="single"
+      value={value ?? "none"}
+      variant="outline"
+    >
+      <ToggleGroupItem className="flex-1" value="none">
+        None
+      </ToggleGroupItem>
+      {DEVICE_OPTIONS.map((option) => (
+        <ToggleGroupItem className="flex-1" key={option.id} value={option.id}>
+          {option.label}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
+  </div>
+);
+
 const SwitchRow = ({
   checked,
   disabled,
@@ -512,6 +560,59 @@ const SwitchRow = ({
       onCheckedChange={onChange}
     />
   </div>
+);
+
+// Centre, Fit to frame and the safe-zone guides; `box` is what they move
+// (the device, or the clip), `label` names it when it isn't the clip.
+const PositionGroup = ({
+  box,
+  guides,
+  label,
+  onCentre,
+  onFit,
+  onGuides,
+}: {
+  box: ReelBox | null;
+  guides: boolean;
+  label: string | null;
+  onCentre: () => void;
+  onFit: () => void;
+  onGuides: (guides: boolean) => void;
+}) => (
+  <Group title="Position">
+    <div className="grid grid-cols-2 gap-2">
+      <Button
+        disabled={!box}
+        onClick={onCentre}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        Centre
+      </Button>
+      <Button
+        disabled={!box}
+        onClick={onFit}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        Fit to frame
+      </Button>
+    </div>
+    {box ? (
+      <p className="text-muted-foreground text-xs tabular-nums">
+        {label ? `${label} ` : ""}
+        {box.w}×{box.h} at {box.x}, {box.y}
+      </p>
+    ) : null}
+    <SwitchRow
+      checked={guides}
+      id="reel-guides"
+      label="Safe-zone guides"
+      onChange={onGuides}
+    />
+  </Group>
 );
 
 // The Text section: add, pick and edit the lines of text on the frame.
@@ -685,6 +786,66 @@ const ExportBar = ({
   </div>
 );
 
+// Where the device sits, and what Centre and Fit move: the device when
+// there is one, else the clip. A device (re)fits whenever it's picked, its
+// view changes or the frame changes (including when the saved look loads).
+const useDevicePlacement = ({
+  box,
+  clip,
+  device,
+  format,
+  setBox,
+}: {
+  box: ReelBox;
+  clip: ReelClip | null;
+  device: DeviceId | null;
+  format: ReelFormat;
+  setBox: React.Dispatch<React.SetStateAction<ReelBox>>;
+}) => {
+  const [deviceBox, setDeviceBox] = useState<ReelBox>({
+    h: 0,
+    w: 0,
+    x: 0,
+    y: 0,
+  });
+  const frame = FORMATS[format];
+
+  useEffect(() => {
+    if (device) {
+      setDeviceBox(fitDevice(device, format));
+    }
+  }, [device, format]);
+
+  const centre = () =>
+    (device ? setDeviceBox : setBox)((current) => ({
+      ...current,
+      x: Math.round((frame.width - current.w) / 2),
+      y: Math.round((frame.height - current.h) / 2),
+    }));
+  const fit = () => {
+    if (device) {
+      setDeviceBox(fitDevice(device, format));
+    } else if (clip) {
+      setBox(fitBox(clip, format));
+    }
+  };
+  let positioned: ReelBox | null = null;
+  if (device) {
+    positioned = deviceBox;
+  } else if (clip) {
+    positioned = box;
+  }
+  return {
+    centre,
+    fit,
+    /** What Position shows and moves, and its name (the clip has none). */
+    label: device ? "Phone" : null,
+    positioned,
+    scene: device ? { box: deviceBox, id: device } : null,
+    setDeviceBox,
+  };
+};
+
 export const ReelStudio = () => {
   const [look, setLook] = useLook();
   const [clip, setClip] = useState<ReelClip | null>(null);
@@ -703,6 +864,14 @@ export const ReelStudio = () => {
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const height = useFillHeight(shell);
   const frame = FORMATS[look.format];
+  const placement = useDevicePlacement({
+    box,
+    clip,
+    device: look.device,
+    format: look.format,
+    setBox,
+  });
+
   const soundtrack = useSoundtrack(clip);
   const { reset: resetSound } = soundtrack;
 
@@ -824,6 +993,7 @@ export const ReelStudio = () => {
     background: look.background,
     box,
     ...soundtrack.sceneAudio,
+    device: placement.scene,
     format: look.format,
     muted: !(clip?.hasAudio && soundtrack.mix.clip > 0),
     radius: look.radius,
@@ -921,6 +1091,7 @@ export const ReelStudio = () => {
             guides={look.guides}
             onBoxChange={setBox}
             onChoose={() => fileInput.current?.click()}
+            onDeviceChange={placement.setDeviceBox}
             onFile={takeFile}
             onRemoveText={removeText}
             onSelectText={setSelectedText}
@@ -1048,72 +1219,51 @@ export const ReelStudio = () => {
             />
           </Group>
 
-          <Group title="Clip style">
-            <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between gap-4">
-                <Label className="text-xs" htmlFor="reel-radius">
-                  Corner radius
-                </Label>
-                <span className="text-muted-foreground text-xs tabular-nums">
-                  {look.radius}px
-                </span>
-              </div>
-              <Slider
-                id="reel-radius"
-                max={120}
-                min={0}
-                onValueChange={([radius]) => setLook({ radius })}
-                step={1}
-                value={[look.radius]}
-              />
-            </div>
-            <SwitchRow
-              checked={look.shadow}
-              id="reel-shadow"
-              label="Shadow"
-              onChange={(shadow) => setLook({ shadow })}
+          <Group title="Device">
+            <DevicePicker
+              disabled={exporting !== null}
+              onChange={(device) => setLook({ device })}
+              value={look.device}
             />
           </Group>
 
-          <Group title="Position">
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                disabled={!clip}
-                onClick={() =>
-                  setBox((current) => ({
-                    ...current,
-                    x: Math.round((frame.width - current.w) / 2),
-                    y: Math.round((frame.height - current.h) / 2),
-                  }))
-                }
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                Centre
-              </Button>
-              <Button
-                disabled={!clip}
-                onClick={() => clip && setBox(fitBox(clip, look.format))}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                Fit to frame
-              </Button>
-            </div>
-            {clip ? (
-              <p className="text-muted-foreground text-xs tabular-nums">
-                {box.w}×{box.h} at {box.x}, {box.y}
-              </p>
-            ) : null}
-            <SwitchRow
-              checked={look.guides}
-              id="reel-guides"
-              label="Safe-zone guides"
-              onChange={(guides) => setLook({ guides })}
-            />
-          </Group>
+          {look.device ? null : (
+            <Group title="Clip style">
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between gap-4">
+                  <Label className="text-xs" htmlFor="reel-radius">
+                    Corner radius
+                  </Label>
+                  <span className="text-muted-foreground text-xs tabular-nums">
+                    {look.radius}px
+                  </span>
+                </div>
+                <Slider
+                  id="reel-radius"
+                  max={120}
+                  min={0}
+                  onValueChange={([radius]) => setLook({ radius })}
+                  step={1}
+                  value={[look.radius]}
+                />
+              </div>
+              <SwitchRow
+                checked={look.shadow}
+                id="reel-shadow"
+                label="Shadow"
+                onChange={(shadow) => setLook({ shadow })}
+              />
+            </Group>
+          )}
+
+          <PositionGroup
+            box={placement.positioned}
+            guides={look.guides}
+            label={placement.label}
+            onCentre={placement.centre}
+            onFit={placement.fit}
+            onGuides={(guides) => setLook({ guides })}
+          />
 
           <TextGroup
             frameWidth={frame.width}

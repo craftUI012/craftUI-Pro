@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 import type { ReelClip } from "./reel-clip";
 import { formatTime } from "./reel-clip";
+import { DEVICES } from "./reel-devices";
 import type {
   ReelBox,
   ReelFormat,
@@ -421,6 +422,7 @@ export const ReelStage = ({
   guides,
   onBoxChange,
   onChoose,
+  onDeviceChange,
   onFile,
   onRemoveText,
   onSelectText,
@@ -436,6 +438,7 @@ export const ReelStage = ({
   guides: boolean;
   onBoxChange: (box: ReelBox) => void;
   onChoose: () => void;
+  onDeviceChange: (box: ReelBox) => void;
   onFile: (file: File) => void;
   onRemoveText: (id: string) => void;
   onSelectText: (id: string | null) => void;
@@ -521,7 +524,22 @@ export const ReelStage = ({
           <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-white mix-blend-difference" />
         ) : null}
 
-        {clip ? (
+        {/* With a device, the device is what you move (the clip plays in
+            its screen); otherwise the clip itself. */}
+        {scene.device ? (
+          <ClipLayer
+            aspect={
+              DEVICES[scene.device.id].body.w / DEVICES[scene.device.id].body.h
+            }
+            box={scene.device.box}
+            onBoxChange={onDeviceChange}
+            onGrab={() => onSelectText(null)}
+            onSnap={setSnap}
+            scale={scale}
+            size={size}
+          />
+        ) : null}
+        {clip && !scene.device ? (
           <ClipLayer
             aspect={clip.width / clip.height}
             box={box}
@@ -531,12 +549,26 @@ export const ReelStage = ({
             scale={scale}
             size={size}
           />
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
-            <p className="text-muted-foreground text-sm text-balance">
+        ) : null}
+        {clip ? null : (
+          <div
+            className={cn(
+              "pointer-events-none absolute inset-x-0 flex flex-col items-center gap-3 p-6 text-center",
+              scene.device ? "bottom-0" : "inset-y-0 justify-center"
+            )}
+          >
+            <p
+              className={cn(
+                "text-sm text-balance",
+                scene.device
+                  ? "bg-background/85 rounded-md px-2 py-1"
+                  : "text-muted-foreground"
+              )}
+            >
               Paste a recording with ⌘V, drop it here, or
             </p>
             <Button
+              className="pointer-events-auto"
               onClick={onChoose}
               size="sm"
               type="button"
