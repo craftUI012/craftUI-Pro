@@ -1,6 +1,6 @@
 "use client";
 
-/* oxlint-disable react/no-array-index-key -- the demo lists are static and positional */
+/* oxlint-disable react/no-array-index-key, eslint/complexity -- the demo lists are static and complex compound selector components */
 
 import type { LucideIcon } from "lucide-react";
 import {
@@ -15,6 +15,7 @@ import {
   Plus,
   ShieldCheck,
   Terminal,
+  X,
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -27,26 +28,17 @@ import { cn } from "@/lib/utils";
  * Prompt composer. The input surface of an AI assistant: a capsule with
  * Enter to send and a voice button, a quick-prompts tray that unfolds above
  * it, and a footer row for attachments, permission mode, model, reasoning
- * depth and usage limits.
+ * depth and usage limits. Fully customizable via props.
  * ───────────────────────────────────────────────────────────────────────── */
 
-/* ── Shared data ────────────────────────────────────────────────────────── */
+/* ── Exported Types & Defaults ─────────────────────────────────────────── */
 
-const PRE_PROMPTS = [
-  "Which deals need my attention?",
-  "Prepare me for my next meeting.",
-  "Which customers need a follow-up?",
-  "Give me an overview of my sales pipeline.",
-  "Show me failed workflow executions.",
-  "What has changed in our CRM recently?",
-];
-
-interface ModelDepth {
+export interface ModelDepth {
   id: string;
   label: string;
 }
 
-interface Model {
+export interface Model {
   id: string;
   name: string;
   description: string;
@@ -54,7 +46,44 @@ interface Model {
   depths: ModelDepth[];
 }
 
-const MODELS: Model[] = [
+export interface PermissionMode {
+  id: string;
+  label: string;
+  subtitle: string;
+}
+
+export interface UsageLimit {
+  id: string;
+  label: string;
+  percentLeft: number;
+  resetLabel: string;
+}
+
+export interface ComposerAttachment {
+  id: string;
+  name: string;
+  type: AddAttachmentType;
+  size?: string;
+  file?: globalThis.File;
+}
+
+export type AddAttachmentType =
+  | "file"
+  | "image"
+  | "folders"
+  | "browser"
+  | "commands";
+
+export const DEFAULT_PRE_PROMPTS = [
+  "Summarize key updates from this week.",
+  "Help me draft a concise announcement.",
+  "Review my draft and suggest improvements.",
+  "Brainstorm ideas for our next launch.",
+  "Explain this concept in simple terms.",
+  "What tasks should I prioritize today?",
+];
+
+export const DEFAULT_MODELS: Model[] = [
   {
     depths: [
       { id: "quick", label: "Quick" },
@@ -105,15 +134,7 @@ const MODELS: Model[] = [
   },
 ];
 
-type PermissionId = "auto-approve" | "full-access";
-
-interface PermissionMode {
-  id: PermissionId;
-  label: string;
-  subtitle: string;
-}
-
-const PERMISSION_MODES: PermissionMode[] = [
+export const DEFAULT_PERMISSION_MODES: PermissionMode[] = [
   {
     id: "auto-approve",
     label: "Auto-approve",
@@ -125,6 +146,21 @@ const PERMISSION_MODES: PermissionMode[] = [
     label: "Full access",
     subtitle:
       "Runs all actions, data updates, and workflows without prompting.",
+  },
+];
+
+export const DEFAULT_USAGE_LIMITS: UsageLimit[] = [
+  {
+    id: "5hr",
+    label: "5hr limit",
+    percentLeft: 56,
+    resetLabel: "Resets in 2h 14m",
+  },
+  {
+    id: "weekly",
+    label: "Weekly limit",
+    percentLeft: 82,
+    resetLabel: "Resets Monday at 9:00 AM",
   },
 ];
 
@@ -298,10 +334,21 @@ const ListeningWave = () => {
   );
 };
 
-const SendButton = () => (
+const SendButton = ({
+  onClick,
+  disabled = false,
+}: {
+  onClick?: () => void;
+  disabled?: boolean;
+}) => (
   <button
     type="button"
-    className="flex p-2 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary px-4 text-primary-foreground shadow-xs ring-1 ring-inset ring-black/40 duration-150 ease-out hover:bg-primary/90"
+    onClick={onClick}
+    disabled={disabled}
+    className={cn(
+      "flex p-2 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary px-4 text-primary-foreground shadow-xs ring-1 ring-inset ring-black/40 duration-150 ease-out hover:bg-primary/90",
+      disabled && "opacity-50 cursor-not-allowed hover:bg-primary"
+    )}
     title="Send"
   >
     <CornerDownLeft
@@ -315,13 +362,6 @@ const SendButton = () => (
 );
 
 /* ── Attachments ────────────────────────────────────────────────────────── */
-
-export type AddAttachmentType =
-  | "file"
-  | "image"
-  | "folders"
-  | "browser"
-  | "commands";
 
 interface AddAttachmentOption {
   id: AddAttachmentType;
@@ -491,6 +531,68 @@ export const AddAttachmentDropdown = ({
   );
 };
 
+/* ── Attachment Pills Preview ───────────────────────────────────────────── */
+
+const AttachmentPill = ({
+  attachment,
+  onRemove,
+}: {
+  attachment: ComposerAttachment;
+  onRemove: (id: string) => void;
+}) => {
+  const getIcon = () => {
+    switch (attachment.type) {
+      case "image": {
+        return Image;
+      }
+      case "folders": {
+        return Folder;
+      }
+      case "browser": {
+        return Globe;
+      }
+      case "commands": {
+        return Terminal;
+      }
+      default: {
+        return File;
+      }
+    }
+  };
+
+  const IconComp = getIcon();
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.15 }}
+      className="inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 dark:bg-foreground/10 px-2 py-1 text-xs text-foreground select-none"
+    >
+      <IconComp className="h-3 w-3 shrink-0 text-muted-foreground" />
+      <span className="max-w-[120px] sm:max-w-[160px] truncate">
+        {attachment.name}
+      </span>
+      {attachment.size && (
+        <span className="text-[10px] text-muted-foreground">
+          {attachment.size}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={() => onRemove(attachment.id)}
+        className="ml-0.5 -mr-0.5 p-0.5 rounded-sm hover:bg-foreground/10 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+        title="Remove attachment"
+        aria-label={`Remove ${attachment.name}`}
+      >
+        <X className="h-2.5 w-2.5" />
+      </button>
+    </motion.div>
+  );
+};
+
 /* ── Quick prompts ──────────────────────────────────────────────────────── */
 
 const QuickPromptItem = ({
@@ -526,9 +628,11 @@ const QuickPromptItem = ({
 
 export const QuickPromptsDropdown = ({
   isVisible = true,
+  prompts = DEFAULT_PRE_PROMPTS,
   onSelectPrompt,
 }: {
   isVisible?: boolean;
+  prompts?: string[];
   onSelectPrompt?: (prompt: string) => void;
 }) => {
   const [promptsExpanded, setPromptsExpanded] = useState<boolean>(false);
@@ -651,7 +755,7 @@ export const QuickPromptsDropdown = ({
                 !promptsExpanded && "pointer-events-none"
               )}
             >
-              {PRE_PROMPTS.map((prompt, idx) => (
+              {prompts.map((prompt, idx) => (
                 <QuickPromptItem
                   key={prompt}
                   prompt={prompt}
@@ -757,9 +861,20 @@ const PermissionMenuItem = ({
   </button>
 );
 
-const PermissionSelector = () => {
-  const [selectedPermissionId, setSelectedPermissionId] =
-    useState<PermissionId>("auto-approve");
+interface PermissionSelectorProps {
+  modes?: PermissionMode[];
+  selectedModeId?: string;
+  onSelectMode?: (id: string) => void;
+}
+
+const PermissionSelector = ({
+  modes = DEFAULT_PERMISSION_MODES,
+  selectedModeId,
+  onSelectMode,
+}: PermissionSelectorProps) => {
+  const [internalModeId, setInternalModeId] = useState<string>(
+    selectedModeId ?? modes[0]?.id ?? "auto-approve"
+  );
   const [permissionDropdownOpen, setPermissionDropdownOpen] = useState(false);
   const [hoveredPermission, setHoveredPermission] = useState<string | null>(
     null
@@ -770,6 +885,8 @@ const PermissionSelector = () => {
     typeof setTimeout
   > | null>(null);
   const permissionDropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeModeId = selectedModeId ?? internalModeId;
 
   useDismissOnOutside(permissionDropdownRef, () => {
     setPermissionDropdownOpen(false);
@@ -786,8 +903,7 @@ const PermissionSelector = () => {
   );
 
   const currentPermission =
-    PERMISSION_MODES.find((p) => p.id === selectedPermissionId) ||
-    PERMISSION_MODES[0];
+    modes.find((p) => p.id === activeModeId) || modes[0];
 
   const handleModeHover = (modeId: string) => {
     setHoveredPermission(modeId);
@@ -809,31 +925,37 @@ const PermissionSelector = () => {
     setPermissionSubtitleVisible(false);
   };
 
+  const handleSelect = (modeId: string) => {
+    setInternalModeId(modeId);
+    onSelectMode?.(modeId);
+    setPermissionDropdownOpen(false);
+  };
+
   return (
     <div className="relative flex items-center" ref={permissionDropdownRef}>
       <button
         type="button"
         onClick={() => setPermissionDropdownOpen((prev) => !prev)}
         className={cn(
-          "text-sm flex  cursor-pointer items-center gap-2 rounded-full border-none bg-transparent px-2 py-2 font-normal transition-colors select-none hover:bg-foreground/5 dark:hover:bg-foreground/10",
-          selectedPermissionId === "full-access"
+          "text-sm flex cursor-pointer items-center gap-2 rounded-full border-none bg-transparent px-2 py-2 font-normal transition-colors select-none hover:bg-foreground/5 dark:hover:bg-foreground/10",
+          activeModeId === "full-access"
             ? "text-destructive hover:text-destructive/90"
             : "text-muted-foreground hover:text-foreground"
         )}
       >
-        {selectedPermissionId === "full-access" ? (
+        {activeModeId === "full-access" ? (
           <Zap size={14} className="shrink-0" />
         ) : (
           <ShieldCheck size={14} className="shrink-0" />
         )}
-        <span className="leading-none">{currentPermission.label}</span>
+        <span className="leading-none">{currentPermission?.label}</span>
         <ChevronDown
           width={14}
           height={14}
           strokeWidth={2}
           className={cn(
             "shrink-0 transition-transform",
-            selectedPermissionId === "full-access"
+            activeModeId === "full-access"
               ? "text-destructive"
               : "text-muted-foreground",
             permissionDropdownOpen && "rotate-180"
@@ -871,21 +993,18 @@ const PermissionSelector = () => {
             className="absolute bottom-full left-0 z-50 mb-1.5 w-44 origin-bottom-left rounded-2xl bg-popover p-1.5 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] will-change-transform select-none"
           >
             <div className="space-y-1">
-              {PERMISSION_MODES.map((mode) => (
+              {modes.map((mode) => (
                 <PermissionMenuItem
                   key={mode.id}
                   mode={mode}
-                  isActive={selectedPermissionId === mode.id}
+                  isActive={activeModeId === mode.id}
                   isHovered={hoveredPermission === mode.id}
                   subtitleVisible={
                     permissionSubtitleVisible && hoveredPermission === mode.id
                   }
                   onHover={() => handleModeHover(mode.id)}
                   onLeave={() => handleModeLeave(mode.id)}
-                  onSelect={() => {
-                    setSelectedPermissionId(mode.id);
-                    setPermissionDropdownOpen(false);
-                  }}
+                  onSelect={() => handleSelect(mode.id)}
                 />
               ))}
             </div>
@@ -898,35 +1017,43 @@ const PermissionSelector = () => {
 
 /* ── Usage ──────────────────────────────────────────────────────────────── */
 
-const UsageLimitRow = ({
-  label,
-  percentLeft,
-  resetLabel,
-}: {
-  label: string;
-  percentLeft: number;
-  resetLabel: string;
-}) => (
+const UsageLimitRow = ({ limit }: { limit: UsageLimit }) => (
   <div className="flex items-center justify-between gap-3">
     <div className="flex min-w-0 flex-col gap-0.5">
-      <span className="text-xs font-normal text-foreground">{label}</span>
+      <span className="text-xs font-normal text-foreground">{limit.label}</span>
       <span className="text-xs leading-snug font-normal text-muted-foreground">
-        {resetLabel}
+        {limit.resetLabel}
       </span>
     </div>
     <div className="flex shrink-0 items-center gap-1.5">
       <span className="text-xs font-normal text-muted-foreground">
-        {percentLeft}%
+        {limit.percentLeft}%
       </span>
-      <CircularProgress value={percentLeft} size={12} strokeWidth={1.5} />
+      <CircularProgress value={limit.percentLeft} size={12} strokeWidth={1.5} />
     </div>
   </div>
 );
 
 /* ── Model selector ─────────────────────────────────────────────────────── */
 
-const ModelSelector = () => {
-  const [selectedModelId, setSelectedModelId] = useState<string>("chatgpt");
+interface ModelSelectorProps {
+  models?: Model[];
+  selectedModelId?: string;
+  selectedDepthId?: string;
+  onSelectModel?: (modelId: string, depthId: string) => void;
+  usageLimits?: UsageLimit[];
+}
+
+const ModelSelector = ({
+  models = DEFAULT_MODELS,
+  selectedModelId,
+  selectedDepthId,
+  onSelectModel,
+  usageLimits = DEFAULT_USAGE_LIMITS,
+}: ModelSelectorProps) => {
+  const [internalModelId, setInternalModelId] = useState<string>(
+    selectedModelId ?? models[0]?.id ?? "chatgpt"
+  );
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [hoveredModel, setHoveredModel] = useState<string | null>(null);
   const [openSubmenuModelId, setOpenSubmenuModelId] = useState<string | null>(
@@ -934,10 +1061,20 @@ const ModelSelector = () => {
   );
   const [hoveredDepth, setHoveredDepth] = useState<string | null>(null);
   const [selectedDepths, setSelectedDepths] = useState<Record<string, string>>(
-    () => Object.fromEntries(MODELS.map((m) => [m.id, m.depths[0]?.id ?? ""]))
+    () =>
+      Object.fromEntries(
+        models.map((m) => [
+          m.id,
+          m.id === selectedModelId && selectedDepthId
+            ? selectedDepthId
+            : (m.depths[0]?.id ?? ""),
+        ])
+      )
   );
   const modelDropdownRef = useRef<HTMLDivElement>(null);
   const submenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const activeModelId = selectedModelId ?? internalModelId;
 
   useDismissOnOutside(modelDropdownRef, () => {
     if (submenuTimeoutRef.current) {
@@ -981,11 +1118,25 @@ const ModelSelector = () => {
     }, 400);
   };
 
-  const currentModel =
-    MODELS.find((m) => m.id === selectedModelId) || MODELS[0];
+  const currentModel = models.find((m) => m.id === activeModelId) || models[0];
+  const activeDepthId =
+    (currentModel && selectedDepths[currentModel.id]) ||
+    currentModel?.depths[0]?.id;
   const currentDepthLabel =
-    currentModel.depths.find((d) => d.id === selectedDepths[currentModel.id])
-      ?.label ?? currentModel.depths[0]?.label;
+    currentModel?.depths.find((d) => d.id === activeDepthId)?.label ??
+    currentModel?.depths[0]?.label;
+
+  const handleSelectModel = (modelId: string, depthId?: string) => {
+    setInternalModelId(modelId);
+    const targetModel = models.find((m) => m.id === modelId);
+    const nextDepth =
+      depthId ?? selectedDepths[modelId] ?? targetModel?.depths[0]?.id ?? "";
+    setSelectedDepths((prev) => ({
+      ...prev,
+      [modelId]: nextDepth,
+    }));
+    onSelectModel?.(modelId, nextDepth);
+  };
 
   return (
     <div className="relative flex items-center" ref={modelDropdownRef}>
@@ -998,7 +1149,7 @@ const ModelSelector = () => {
           <span className="text-xs font-light tracking-wide ">
             {currentDepthLabel}
           </span>
-          {currentModel.name}
+          {currentModel?.name}
         </span>
         <ChevronDown
           width={14}
@@ -1045,12 +1196,12 @@ const ModelSelector = () => {
               transform: "translateZ(0)",
               willChange: "transform, opacity",
             }}
-            className="absolute left-0 sm:left-auto  bottom-full z-50 mb-1.5 w-56 origin-bottom-left sm:origin-bottom-right rounded-2xl bg-popover p-2 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] will-change-transform select-none"
+            className="absolute left-0 sm:left-auto sm:right-0 bottom-full z-50 mb-1.5 w-56 origin-bottom-left sm:origin-bottom-right rounded-2xl bg-popover p-2 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] will-change-transform select-none"
           >
             <div className="space-y-0.5">
-              {MODELS.map((model) => {
-                const isActive = selectedModelId === model.id;
-                const selectedDepthId = selectedDepths[model.id];
+              {models.map((model) => {
+                const isActive = activeModelId === model.id;
+                const modelSelectedDepthId = selectedDepths[model.id];
                 const isSubmenuOpen = openSubmenuModelId === model.id;
                 return (
                   <div
@@ -1061,7 +1212,7 @@ const ModelSelector = () => {
                   >
                     <button
                       type="button"
-                      onClick={() => setSelectedModelId(model.id)}
+                      onClick={() => handleSelectModel(model.id)}
                       className={cn(
                         "group text-xs relative flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left transition-colors select-none",
                         isActive
@@ -1105,19 +1256,15 @@ const ModelSelector = () => {
                           <div className="space-y-0.5">
                             {model.depths.map((depth) => {
                               const isDepthActive =
-                                selectedDepthId === depth.id;
+                                modelSelectedDepthId === depth.id;
                               const depthHoverKey = `${model.id}:${depth.id}`;
                               return (
                                 <button
                                   key={depth.id}
                                   type="button"
-                                  onClick={() => {
-                                    setSelectedModelId(model.id);
-                                    setSelectedDepths((prev) => ({
-                                      ...prev,
-                                      [model.id]: depth.id,
-                                    }));
-                                  }}
+                                  onClick={() =>
+                                    handleSelectModel(model.id, depth.id)
+                                  }
                                   onMouseEnter={() =>
                                     setHoveredDepth(depthHoverKey)
                                   }
@@ -1161,21 +1308,18 @@ const ModelSelector = () => {
             </div>
 
             {/* Full-width Divider */}
-            <div className="-mx-2 my-1.5 border-t border-border" />
+            {usageLimits && usageLimits.length > 0 && (
+              <>
+                <div className="-mx-2 my-1.5 border-t border-border" />
 
-            {/* Usage limits */}
-            <div className="flex flex-col gap-2.5 px-2.5 pb-0.5">
-              <UsageLimitRow
-                label="5hr limit"
-                percentLeft={56}
-                resetLabel="Resets in 2h 14m"
-              />
-              <UsageLimitRow
-                label="Weekly limit"
-                percentLeft={82}
-                resetLabel="Resets Monday at 9:00 AM"
-              />
-            </div>
+                {/* Usage limits */}
+                <div className="flex flex-col gap-2.5 px-2.5 pb-0.5">
+                  {usageLimits.map((limit) => (
+                    <UsageLimitRow key={limit.id} limit={limit} />
+                  ))}
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1185,15 +1329,103 @@ const ModelSelector = () => {
 
 /* ── Prompt capsule ─────────────────────────────────────────────────────── */
 
+interface PromptCapsuleProps {
+  value?: string;
+  onChange?: (value: string) => void;
+  onSubmit?: (prompt: string) => void;
+  placeholder?: string;
+  isListening?: boolean;
+  onListeningChange?: (listening: boolean) => void;
+  models?: Model[];
+  selectedModelId?: string;
+  selectedDepthId?: string;
+  onSelectModel?: (modelId: string, depthId: string) => void;
+  permissionModes?: PermissionMode[];
+  selectedPermissionId?: string;
+  onSelectPermission?: (id: string) => void;
+  usageLimits?: UsageLimit[];
+  attachments?: ComposerAttachment[];
+  onRemoveAttachment?: (id: string) => void;
+  onSelectAttachment?: (type: AddAttachmentType) => void;
+  disabled?: boolean;
+}
+
 const PromptCapsule = ({
+  value,
+  onChange,
+  onSubmit,
+  placeholder = "Ask anything...",
+  isListening: controlledListening,
+  onListeningChange,
+  models,
+  selectedModelId,
+  selectedDepthId,
+  onSelectModel,
+  permissionModes,
+  selectedPermissionId,
+  onSelectPermission,
+  usageLimits,
+  attachments = [],
+  onRemoveAttachment,
   onSelectAttachment,
-}: {
-  onSelectAttachment: (type: AddAttachmentType) => void;
-}) => {
-  const [isListening, setIsListening] = useState(false);
+  disabled = false,
+}: PromptCapsuleProps) => {
+  const [internalValue, setInternalValue] = useState("");
+  const [internalListening, setInternalListening] = useState(false);
+
+  const inputValue = value === undefined ? internalValue : value;
+  const isListening =
+    controlledListening === undefined ? internalListening : controlledListening;
+
+  const handleSend = () => {
+    if (!inputValue.trim() && attachments.length === 0) {
+      return;
+    }
+    onSubmit?.(inputValue);
+    if (value === undefined) {
+      setInternalValue("");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (value === undefined) {
+      setInternalValue(e.target.value);
+    }
+    onChange?.(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleToggleListening = () => {
+    const next = !isListening;
+    if (controlledListening === undefined) {
+      setInternalListening(next);
+    }
+    onListeningChange?.(next);
+  };
 
   return (
     <div className="w-full rounded-3xl bg-muted p-2">
+      {/* Optional Attachments Pill Row */}
+      {attachments.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 px-2 pt-1 pb-1.5">
+          <AnimatePresence>
+            {attachments.map((att) => (
+              <AttachmentPill
+                key={att.id}
+                attachment={att}
+                onRemove={(id) => onRemoveAttachment?.(id)}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
       {/* Prompt Input Row */}
       <div className="flex items-center gap-2 py-1 pl-1 min-h-[36px]">
         {isListening ? (
@@ -1201,8 +1433,12 @@ const PromptCapsule = ({
         ) : (
           <input
             type="text"
-            placeholder="Ask anything..."
-            className="w-full bg-transparent px-2 text-base font-normal text-foreground placeholder:text-muted-foreground focus:outline-none"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            disabled={disabled}
+            placeholder={placeholder}
+            className="w-full bg-transparent px-2 text-base font-normal text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
           />
         )}
       </div>
@@ -1210,22 +1446,39 @@ const PromptCapsule = ({
       {/* Controls Row: access on the left, model, voice and send on the right */}
       <div className="mt-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1">
-          <AddAttachmentDropdown onSelect={onSelectAttachment} />
+          <AddAttachmentDropdown
+            onSelect={(type) => onSelectAttachment?.(type)}
+          />
           <div className="hidden min-[512px]:flex items-center">
-            <ModelSelector />
+            <ModelSelector
+              models={models}
+              selectedModelId={selectedModelId}
+              selectedDepthId={selectedDepthId}
+              onSelectModel={onSelectModel}
+              usageLimits={usageLimits}
+            />
           </div>
         </div>
 
         <div className="flex items-center gap-1">
           <div className="hidden min-[512px]:flex items-center">
-            <PermissionSelector />
+            <PermissionSelector
+              modes={permissionModes}
+              selectedModeId={selectedPermissionId}
+              onSelectMode={onSelectPermission}
+            />
           </div>
           <div className="ml-1 flex shrink-0 items-center gap-1">
             <MicButton
               isListening={isListening}
-              onToggle={() => setIsListening((prev) => !prev)}
+              onToggle={handleToggleListening}
             />
-            <SendButton />
+            <SendButton
+              onClick={handleSend}
+              disabled={
+                disabled || (!inputValue.trim() && attachments.length === 0)
+              }
+            />
           </div>
         </div>
       </div>
@@ -1237,21 +1490,171 @@ const PromptCapsule = ({
 
 export interface PromptComposerProps extends Omit<
   ComponentProps<"div">,
-  "children"
+  "onSubmit" | "onChange"
 > {
-  /** Extra classes for the root canvas, e.g. a height or border. */
-  className?: string;
-  /** Called when an attachment option is chosen (file, image, folders, browser, commands). */
-  onSelectAttachment?: (type: AddAttachmentType) => void;
+  /** The controlled text value for the prompt input. */
+  value?: string;
+  /** Called whenever the text input value changes. */
+  onChange?: (value: string) => void;
+  /** Called when the user presses Enter or clicks the Send button. */
+  onSubmit?: (prompt: string, attachments: ComposerAttachment[]) => void;
+  /** Input placeholder string. Defaults to "Ask anything...". */
+  placeholder?: string;
+  /** Whether quick prompts drawer above the composer is visible. Defaults to true. */
+  showQuickPrompts?: boolean;
+  /** List of quick prompt strings to show in the dropdown. */
+  quickPrompts?: string[];
+  /**
+   * Called when a quick prompt is clicked.
+   * If omitted or returns true/undefined, the composer automatically fills the prompt input.
+   */
+  onSelectQuickPrompt?: (prompt: string) => void;
+  /** Controlled voice listening state. */
+  isListening?: boolean;
+  /** Called when the microphone voice listening state toggles. */
+  onListeningChange?: (listening: boolean) => void;
+  /**
+   * Available AI models with depths and descriptions.
+   * Defaults to ChatGPT, Claude, Gemini, DeepSeek.
+   */
+  models?: Model[];
+  /** Controlled selected model ID. */
+  selectedModelId?: string;
+  /** Controlled selected depth ID. */
+  selectedDepthId?: string;
+  /** Called when a model or reasoning depth is selected. */
+  onSelectModel?: (modelId: string, depthId: string) => void;
+  /** Available permission modes (e.g. Auto-approve, Full access). */
+  permissionModes?: PermissionMode[];
+  /** Controlled selected permission mode ID. */
+  selectedPermissionId?: string;
+  /** Called when a permission mode is chosen. */
+  onSelectPermission?: (id: string) => void;
+  /** Usage limit indicators shown at the bottom of the model dropdown. */
+  usageLimits?: UsageLimit[];
+  /**
+   * Controlled attachments list. When provided, attachments pills are shown above the input.
+   * If omitted, a sample mock attachment is created on clicking file/image/folders to demonstrate the UI.
+   */
+  attachments?: ComposerAttachment[];
+  /** Called when an attachment is added. */
+  onAddAttachment?: (attachment: ComposerAttachment) => void;
+  /** Called when an attachment pill is dismissed. */
+  onRemoveAttachment?: (id: string) => void;
+  /** Raw attachment type click handler if custom handling (e.g. opening a system file picker) is needed. */
+  onSelectAttachmentType?: (type: AddAttachmentType) => void;
+  /** Disable the composer inputs and buttons. */
+  disabled?: boolean;
 }
 
 export const PromptComposer = ({
   className,
-  onSelectAttachment,
+  value,
+  onChange,
+  onSubmit,
+  placeholder,
+  showQuickPrompts = true,
+  quickPrompts = DEFAULT_PRE_PROMPTS,
+  onSelectQuickPrompt,
+  isListening,
+  onListeningChange,
+  models = DEFAULT_MODELS,
+  selectedModelId,
+  selectedDepthId,
+  onSelectModel,
+  permissionModes = DEFAULT_PERMISSION_MODES,
+  selectedPermissionId,
+  onSelectPermission,
+  usageLimits = DEFAULT_USAGE_LIMITS,
+  attachments: controlledAttachments,
+  onAddAttachment,
+  onRemoveAttachment,
+  onSelectAttachmentType,
+  disabled = false,
   ...props
 }: PromptComposerProps) => {
-  const handleSelectAttachment = (type: AddAttachmentType) => {
-    onSelectAttachment?.(type);
+  const [internalValue, setInternalValue] = useState("");
+  const [internalAttachments, setInternalAttachments] = useState<
+    ComposerAttachment[]
+  >([]);
+
+  const inputValue = value === undefined ? internalValue : value;
+  const currentAttachments =
+    controlledAttachments === undefined
+      ? internalAttachments
+      : controlledAttachments;
+
+  const handleInputChange = (val: string) => {
+    if (value === undefined) {
+      setInternalValue(val);
+    }
+    onChange?.(val);
+  };
+
+  const handleQuickPrompt = (prompt: string) => {
+    if (onSelectQuickPrompt) {
+      onSelectQuickPrompt(prompt);
+    } else {
+      handleInputChange(prompt);
+    }
+  };
+
+  /*
+   * Handle attachment selection.
+   * NOTE FOR CONSUMERS / DEVELOPERS:
+   * To connect real file inputs, use onSelectAttachmentType to open an `<input type="file" />`
+   * or a system file dialog, then pass files through `attachments` or `onAddAttachment`.
+   * For quick previewing, clicking File/Image/Folder automatically adds a relevant sample attachment.
+   */
+  const handleAttachmentSelect = (type: AddAttachmentType) => {
+    onSelectAttachmentType?.(type);
+
+    if (type === "commands") {
+      // Intentionally no-op for commands as requested; consumers can hook via onSelectAttachmentType.
+      return;
+    }
+
+    // Default mock file sample if no custom file-picker callback overrides it
+    const sampleNames: Record<
+      AddAttachmentType,
+      { name: string; size: string }
+    > = {
+      browser: { name: "https://craftui.com", size: "web" },
+      commands: { name: "run.sh", size: "script" },
+      file: { name: "dataset.csv", size: "240 KB" },
+      folders: { name: "project-docs/", size: "4 items" },
+      image: { name: "mockup-v2.png", size: "1.2 MB" },
+    };
+
+    const sample = sampleNames[type] ?? {
+      name: "document.pdf",
+      size: "500 KB",
+    };
+    const newAttachment: ComposerAttachment = {
+      id: `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: sample.name,
+      size: sample.size,
+      type,
+    };
+
+    if (controlledAttachments === undefined) {
+      setInternalAttachments((prev) => [...prev, newAttachment]);
+    }
+    onAddAttachment?.(newAttachment);
+  };
+
+  const handleRemoveAttachment = (id: string) => {
+    if (controlledAttachments === undefined) {
+      setInternalAttachments((prev) => prev.filter((a) => a.id !== id));
+    }
+    onRemoveAttachment?.(id);
+  };
+
+  const handleSubmit = (promptText: string) => {
+    onSubmit?.(promptText, currentAttachments);
+    if (controlledAttachments === undefined) {
+      setInternalAttachments([]);
+    }
   };
 
   return (
@@ -1268,10 +1671,33 @@ export const PromptComposer = ({
         {/* Chat Window Outer Container */}
         <div className="relative w-full">
           {/* Quick Prompts Extension */}
-          <QuickPromptsDropdown isVisible={true} onSelectPrompt={undefined} />
+          <QuickPromptsDropdown
+            isVisible={showQuickPrompts}
+            prompts={quickPrompts}
+            onSelectPrompt={handleQuickPrompt}
+          />
 
-          {/* Stable Prompt Capsule: input row with a controls row beneath it */}
-          <PromptCapsule onSelectAttachment={handleSelectAttachment} />
+          {/* Stable Prompt Capsule: input row with controls and attachment pills */}
+          <PromptCapsule
+            value={inputValue}
+            onChange={handleInputChange}
+            onSubmit={handleSubmit}
+            placeholder={placeholder}
+            isListening={isListening}
+            onListeningChange={onListeningChange}
+            models={models}
+            selectedModelId={selectedModelId}
+            selectedDepthId={selectedDepthId}
+            onSelectModel={onSelectModel}
+            permissionModes={permissionModes}
+            selectedPermissionId={selectedPermissionId}
+            onSelectPermission={onSelectPermission}
+            usageLimits={usageLimits}
+            attachments={currentAttachments}
+            onRemoveAttachment={handleRemoveAttachment}
+            onSelectAttachment={handleAttachmentSelect}
+            disabled={disabled}
+          />
         </div>
       </div>
     </div>
