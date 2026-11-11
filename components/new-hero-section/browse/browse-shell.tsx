@@ -302,6 +302,7 @@ export const BrowseShell = ({
                 footer at the bottom of a short page. */}
             <div className="flex min-w-0 flex-1 flex-col">
               <BrowseTopBar
+                activeTab={tab}
                 devLinks={devLinks}
                 inputRef={topBarInput}
                 libraries={libraries}
@@ -312,6 +313,7 @@ export const BrowseShell = ({
                 onQueryChange={setQuery}
                 onSearchOpenChange={setSearchOpen}
                 onSubmitSearch={onSubmitSearch}
+                onTabChange={onTabChange}
               />
               {children}
             </div>

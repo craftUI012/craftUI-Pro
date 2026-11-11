@@ -270,6 +270,12 @@
      glint that sweeps across animated brand text (hero eyebrow). */
   --brand-text: var(--brand);
   --brand-shimmer: color-mix(in oklab, var(--brand) 60%, white);
+  /* "Coming soon" colour wave (navbar dropdown): four hues the letters cycle
+     through, brand indigo first. Mid lightness, so small text holds on white. */
+  --wave-1: var(--brand);
+  --wave-2: oklch(0.55 0.22 330);
+  --wave-3: oklch(0.6 0.17 45);
+  --wave-4: oklch(0.55 0.13 185);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -613,6 +619,10 @@
      A 60% brand / 40% white mix measures 6.2:1; the glint goes brighter. */
   --brand-text: color-mix(in oklab, var(--brand) 60%, white);
   --brand-shimmer: color-mix(in oklab, var(--brand) 20%, white);
+  --wave-1: var(--brand-text);
+  --wave-2: oklch(0.78 0.15 330);
+  --wave-3: oklch(0.82 0.13 60);
+  --wave-4: oklch(0.8 0.11 185);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -1017,6 +1027,22 @@
     }
   }
 
+  /* "Coming soon" — a colour wave rolls through the letters: each one bobs
+     on a sine and cycles --wave-1…4, a step behind its left neighbour. The
+     negative delay starts it mid-wave, so it's never flat on first paint. */
+  .coming-soon-letter {
+    display: inline-block;
+    color: var(--wave-1);
+    animation: coming-soon-wave 2.4s ease-in-out infinite;
+    animation-delay: calc(var(--i) * -120ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .coming-soon-letter {
+      animation: none;
+    }
+  }
+
   .steps {
     &:first-child {
       @apply mt-0!;
@@ -1187,6 +1213,27 @@
   6% {
     color: var(--brand-shimmer);
     transform: translateY(-0.12rem);
+  }
+}
+
+/* "Coming soon" colour wave (.coming-soon-letter). */
+@keyframes coming-soon-wave {
+  0%,
+  100% {
+    color: var(--wave-1);
+    transform: translateY(0);
+  }
+  25% {
+    color: var(--wave-2);
+    transform: translateY(-0.125rem);
+  }
+  50% {
+    color: var(--wave-3);
+    transform: translateY(0);
+  }
+  75% {
+    color: var(--wave-4);
+    transform: translateY(0.125rem);
   }
 }
 

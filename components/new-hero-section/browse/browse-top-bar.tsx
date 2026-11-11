@@ -1,8 +1,9 @@
 "use client";
 
-import { SearchIcon, X } from "lucide-react";
+import { ChevronDown, SearchIcon, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef } from "react";
 
 import { BrandContextMenu } from "@/components/brand-context-menu";
 import { LogoMark } from "@/components/logo";
@@ -12,6 +13,12 @@ import type {
   LibraryId,
 } from "@/components/new-hero-section/data/home-types";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ROUTES } from "@/constants/routes";
@@ -28,6 +35,8 @@ export interface LibraryTab {
   searchPlaceholder: string;
   // The library's key in the URL (/?library=blocks).
   slug: string;
+  // Items with a card. A library with none shows as "Coming soon".
+  itemCount: number;
   // The values each filter group can pick (listed and with items), for
   // reading filters from the URL (browse-url.ts).
   filters: Partial<Record<FilterGroupId, string[]>>;
@@ -52,6 +61,131 @@ export const SITE_NAV = [
 // (14px · 500), the same role as the brand and the search field, so the
 // whole bar reads at one size.
 const NAV_TYPE = TYPE.cardLabel;
+
+// The look of a library tab, shared by the tabs and the art dropdown's
+// trigger, so the dropdown reads as one more tab.
+const TAB_CLASS = cn(
+  NAV_TYPE,
+  "text-muted-foreground hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground dark:data-[state=active]:bg-accent dark:data-[state=active]:text-accent-foreground dark:text-muted-foreground h-8 flex-none px-3 transition-[color,background-color,box-shadow] duration-150 ease-out data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+);
+
+// Libraries that share one navbar dropdown instead of a tab each, in menu
+// order. A library in it with no items yet is listed as "Coming soon".
+const ART_MENU = {
+  ids: ["isometric", "illustrations"] as LibraryId[],
+  label: "UI kits",
+};
+
+// "Coming soon" with a colour wave rolling through it (.coming-soon-letter +
+// coming-soon-wave in globals.css). Reduced motion keeps it still, in brand
+// colour. The letters are split for the animation, so assistive tech reads
+// the sr-only copy instead.
+const COMING_SOON = "Coming soon";
+const ComingSoon = ({ className }: { className?: string }) => (
+  <span className={cn(TYPE.cardCaption, "font-medium", className)}>
+    <span className="sr-only">{COMING_SOON}</span>
+    <span aria-hidden className="inline-flex">
+      {[...COMING_SOON].map((letter, index) => (
+        <span
+          // The text is static; position is the letter's identity.
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed string
+          key={`${index}-${letter}`}
+          className="coming-soon-letter"
+          style={{ "--i": index } as React.CSSProperties}
+        >
+          {/* A plain space collapses in an inline-block span. */}
+          {letter === " " ? " " : letter}
+        </span>
+      ))}
+    </span>
+  </span>
+);
+
+// The art libraries' dropdown, styled as a tab: active (filled) while one of
+// its libraries is the open tab. Picking a library switches the shell's tab
+// like a trigger would; one with no items is disabled and says Coming soon.
+// It sits beside the TabsList, not in it, since a tablist may hold only tabs.
+const ArtMenu = ({
+  activeTab,
+  libraries,
+  onTabChange,
+}: {
+  activeTab: string;
+  libraries: LibraryTab[];
+  onTabChange: (value: string) => void;
+}) => {
+  const openedByPointer = useRef(false);
+  const items = ART_MENU.ids.flatMap(
+    (id) => libraries.find((library) => library.id === id) ?? []
+  );
+  if (items.length === 0) {
+    return null;
+  }
+  const active = items.some((library) => library.id === activeTab);
+
+  return (
+    <DropdownMenu sounds>
+      {/* Radix owns this trigger's data-state (open/closed), so the active
+          fill is a class here rather than TAB_CLASS's data-[state=active]. */}
+      <DropdownMenuTrigger
+        onPointerDown={() => {
+          openedByPointer.current = true;
+        }}
+        onKeyDown={() => {
+          openedByPointer.current = false;
+        }}
+        className={cn(
+          TAB_CLASS,
+          // The tab's base look (TabsTrigger), minus the tab-only parts.
+          "focus-visible:ring-ring/50 data-[state=open]:text-foreground inline-flex items-center gap-1 rounded-md border border-transparent py-1 font-medium whitespace-nowrap outline-none focus-visible:ring-[3px]",
+          active &&
+            "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground hover:text-accent-foreground"
+        )}
+      >
+        {ART_MENU.label}
+        <ChevronDown
+          aria-hidden
+          className="size-3.5 opacity-60 transition-transform duration-150 ease-out in-data-[state=open]:rotate-180"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-56"
+        // Focus goes back to the trigger on close. After a mouse pick that
+        // leaves a focus ring on the tab, so only keyboard users get it back.
+        onCloseAutoFocus={(event) => {
+          if (openedByPointer.current) {
+            event.preventDefault();
+          }
+        }}
+      >
+        {items.map((library) => {
+          const comingSoon = library.itemCount === 0;
+          return (
+            <DropdownMenuItem
+              key={library.id}
+              sound="click"
+              disabled={comingSoon}
+              aria-current={library.id === activeTab ? "page" : undefined}
+              onSelect={() => onTabChange(library.id)}
+              className={cn(
+                NAV_TYPE,
+                "aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground justify-between gap-4",
+                // Disabled dims the label only, so the wave keeps its colour.
+                comingSoon && "data-[disabled]:opacity-100"
+              )}
+            >
+              <span className={cn(comingSoon && "text-muted-foreground")}>
+                {library.label}
+              </span>
+              {comingSoon && <ComingSoon />}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 // "Sign in" for visitors, "Dashboard" once signed in. The session loads on
 // the client, so the page itself stays static. Until it's known, it shows
@@ -136,8 +270,11 @@ const BrowseSearch = ({
 // Client component, the full-width navbar at the top of the shell (the left
 // rail is commented out for now; see browse-shell.tsx).
 //
-//   [logo] craftUI   Sections  Blocks  Illustrations  Isometric
+//   [logo] craftUI   Sections  Blocks  Components  UI kits ▾
 //                          [Search ⌘K]  (Admin panel)  Pricing  [Sign in]
+//
+// Isometric and Illustrations share one dropdown, UI kits (ArtMenu); a
+// library in it with no items yet is disabled and marked Coming soon.
 //
 // The library switch is a shadcn TabsList: its triggers drive the shell's
 // <Tabs>, whose TabsContent panels are the browse grids (browse-panels.tsx).
@@ -149,17 +286,24 @@ const BrowseSearch = ({
 // Below lg the tabs drop to a second row. On phones the search also becomes
 // an icon button that opens a search row under the bar.
 export const BrowseTopBar = ({
+  activeTab,
   devLinks,
   inputRef,
   libraries,
   onQueryChange,
   onSearchOpenChange,
   onSubmitSearch,
+  onTabChange,
   phoneInputRef,
   placeholder,
   query,
   searchOpen,
 }: {
+  // The shell's open tab ("" when none), and how to switch it. The tabs read
+  // them through <Tabs>; the art dropdown, outside the TabsList, needs them
+  // passed in.
+  activeTab: string;
+  onTabChange: (value: string) => void;
   // Development-only internal pages (empty in production).
   devLinks: NavLink[];
   inputRef: React.RefObject<HTMLInputElement | null>;
@@ -200,24 +344,30 @@ export const BrowseTopBar = ({
             scrolls sideways on narrow phones), inline after the brand from
             lg up, where the four tabs and the search fit on one line. */}
         <div className="no-scrollbar order-last -mx-4 w-[calc(100%+2rem)] overflow-x-auto px-4 pb-2 lg:order-none lg:mx-0 lg:w-auto lg:overflow-visible lg:p-0">
-          <TabsList
-            aria-label="Library"
-            className="h-auto gap-1 bg-transparent p-0"
-          >
-            {libraries.map((library) => (
-              <TabsTrigger
-                key={library.id}
-                value={library.id}
-                sound="click"
-                className={cn(
-                  NAV_TYPE,
-                  "text-muted-foreground hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground dark:data-[state=active]:bg-accent dark:data-[state=active]:text-accent-foreground dark:text-muted-foreground h-8 flex-none px-3 transition-[color,background-color,box-shadow] duration-150 ease-out data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
-                )}
-              >
-                {library.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="flex items-center gap-1">
+            <TabsList
+              aria-label="Library"
+              className="h-auto gap-1 bg-transparent p-0"
+            >
+              {libraries
+                .filter((library) => !ART_MENU.ids.includes(library.id))
+                .map((library) => (
+                  <TabsTrigger
+                    key={library.id}
+                    value={library.id}
+                    sound="click"
+                    className={TAB_CLASS}
+                  >
+                    {library.label}
+                  </TabsTrigger>
+                ))}
+            </TabsList>
+            <ArtMenu
+              activeTab={activeTab}
+              libraries={libraries}
+              onTabChange={onTabChange}
+            />
+          </div>
         </div>
 
         <div className="ml-auto flex items-center gap-1">
