@@ -200,14 +200,12 @@ const CircularProgress = ({
 };
 
 const HoverIndicator = ({
-  layoutId = "model-hover-indicator",
+  layoutId,
   rounded = "rounded-lg",
-  isActive = false,
   bg = "bg-accent",
 }: {
-  layoutId?: string;
+  layoutId: string;
   rounded?: string;
-  isActive?: boolean;
   bg?: string;
 }) => (
   <motion.div
@@ -215,27 +213,90 @@ const HoverIndicator = ({
     layout="position"
     className={cn("pointer-events-none absolute inset-0", bg, rounded)}
     initial={{ opacity: 0 }}
-    animate={{ opacity: isActive ? 0 : 1 }}
+    animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    transition={{
-      duration: 0.16,
-      ease: "easeOut",
-    }}
+    transition={{ duration: 0.16, ease: "easeOut" }}
+  />
+);
+
+const QuickPromptsIndicator = ({
+  layoutId,
+  rounded = "rounded-2xl",
+}: {
+  layoutId: string;
+  rounded?: string;
+}) => (
+  <motion.div
+    layoutId={layoutId}
+    layout="position"
+    className={cn(
+      "pointer-events-none absolute inset-0 flex items-center justify-end bg-foreground/5 dark:bg-foreground/10",
+      rounded
+    )}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.16, ease: "easeOut" }}
   />
 );
 
 /* ── Input capsule buttons ──────────────────────────────────────────────── */
 
-const MicButton = () => (
+const MicButton = ({
+  isListening,
+  onToggle,
+}: {
+  isListening?: boolean;
+  onToggle?: () => void;
+}) => (
   <button
     type="button"
-    className="flex p-2 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/5 dark:hover:bg-foreground/10 hover:text-foreground"
-    title="Voice input"
-    aria-label="Voice input"
+    onClick={onToggle}
+    className={cn(
+      "flex p-2 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-150 ease-out select-none",
+      isListening
+        ? "bg-foreground/10 text-foreground ring-1 ring-inset ring-foreground/20 dark:ring-foreground/30"
+        : "text-muted-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 hover:text-foreground"
+    )}
+    title={isListening ? "Stop listening" : "Voice input"}
+    aria-label={isListening ? "Stop listening" : "Voice input"}
+    aria-pressed={isListening}
   >
     <Mic width={14} height={14} strokeWidth={2} color="currentColor" />
   </button>
 );
+
+const ListeningWave = () => {
+  const bars = [
+    { delay: 0, duration: 0.6, maxScale: 1, minScale: 0.25 },
+    { delay: 0.15, duration: 0.5, maxScale: 1.15, minScale: 0.35 },
+    { delay: 0.3, duration: 0.7, maxScale: 0.85, minScale: 0.2 },
+    { delay: 0.1, duration: 0.55, maxScale: 1.25, minScale: 0.4 },
+    { delay: 0.25, duration: 0.65, maxScale: 0.95, minScale: 0.3 },
+  ];
+
+  return (
+    <div className="flex h-6 items-center gap-1 px-2 select-none">
+      {bars.map((bar, i) => (
+        <motion.span
+          key={i}
+          className="h-4 w-0.5 origin-center rounded-full bg-foreground/70"
+          initial={{ scaleY: bar.minScale }}
+          animate={{ scaleY: [bar.minScale, bar.maxScale, bar.minScale] }}
+          transition={{
+            delay: bar.delay,
+            duration: bar.duration,
+            ease: "easeInOut",
+            repeat: Infinity,
+          }}
+        />
+      ))}
+      <span className="ml-2 text-base text-muted-foreground animate-pulse">
+        Listening...
+      </span>
+    </div>
+  );
+};
 
 const SendButton = () => (
   <button
@@ -301,7 +362,6 @@ const AttachmentMenuItem = ({
           <HoverIndicator
             layoutId="v2-add-menu-hover-indicator"
             rounded="rounded-xl"
-            isActive={false}
             bg="bg-accent"
           />
         )}
@@ -450,33 +510,14 @@ const QuickPromptItem = ({
     onMouseEnter={onHover}
     className="group text-sm relative flex w-full cursor-pointer items-center justify-between rounded-2xl p-2 text-left font-normal text-muted-foreground transition-colors duration-150 ease-out select-none hover:text-foreground"
   >
-    {/* Unified Hover Container: moving indicator pill and enter icon together */}
+    {/* Unified Hover Container: moving indicator pill (no enter icon) */}
     <AnimatePresence>
       {isHovered && (
-        <motion.div
-          layoutId="v2-quick-prompts-indicator"
-          layout="position"
-          className="pointer-events-none absolute inset-0 flex items-center justify-end rounded-2xl bg-foreground/5 dark:bg-foreground/10 pr-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            duration: 0.16,
-            ease: "easeOut",
-          }}
-        >
-          <CornerDownLeft
-            width={14}
-            height={14}
-            strokeWidth={2}
-            color="currentColor"
-            className="text-muted-foreground"
-          />
-        </motion.div>
+        <QuickPromptsIndicator layoutId="v2-quick-prompts-indicator" />
       )}
     </AnimatePresence>
 
-    <span className="relative z-10 truncate whitespace-nowrap">{prompt}</span>
+    <span className="relative z-10 truncate text-xs sm:text-sm">{prompt}</span>
 
     {/* Space reservation so text never overlaps the icon */}
     <div className="pointer-events-none ml-2 h-3.5 w-3.5 shrink-0 opacity-0" />
@@ -526,8 +567,8 @@ export const QuickPromptsDropdown = ({
     const rightInset = Math.max(0, containerRect.width - collapsedWidth);
 
     setCropInsets({
-      right: Math.round(rightInset) + 2,
-      top: Math.round(topInset) + 2,
+      right: Math.round(rightInset),
+      top: Math.round(topInset),
     });
   };
 
@@ -598,7 +639,7 @@ export const QuickPromptsDropdown = ({
               opacity: cropInsets ? 1 : 0,
             }}
             className={cn(
-              "pointer-events-auto w-max rounded-3xl p-2 transition-colors duration-250 ease-out",
+              "pointer-events-auto w-max max-w-[calc(100vw-3rem)] sm:max-w-[600px] rounded-3xl p-2 transition-colors duration-250 ease-out",
               promptsExpanded ? "bg-muted" : "bg-transparent"
             )}
           >
@@ -606,7 +647,7 @@ export const QuickPromptsDropdown = ({
             <div
               onMouseLeave={() => setHoveredPrompt(null)}
               className={cn(
-                "flex w-max flex-col space-y-0.5 pb-0.5",
+                "flex w-full flex-col space-y-0.5 pb-0.5",
                 !promptsExpanded && "pointer-events-none"
               )}
             >
@@ -679,7 +720,9 @@ const PermissionMenuItem = ({
     onMouseLeave={onLeave}
     className={cn(
       "group text-xs relative flex w-full cursor-pointer flex-col rounded-xl p-2 text-left transition-colors select-none",
-      isActive ? "bg-accent" : "hover:text-foreground"
+      isActive
+        ? "text-foreground"
+        : "text-muted-foreground hover:text-foreground"
     )}
   >
     <AnimatePresence>
@@ -687,7 +730,6 @@ const PermissionMenuItem = ({
         <HoverIndicator
           layoutId="v2-permission-hover-indicator"
           rounded="rounded-xl"
-          isActive={isActive}
           bg="bg-accent"
         />
       )}
@@ -927,16 +969,16 @@ const ModelSelector = () => {
   };
 
   const handleModelMouseLeave = (modelId: string) => {
-    if (submenuTimeoutRef.current) {
-      clearTimeout(submenuTimeoutRef.current);
-    }
     if (hoveredModel === modelId) {
       setHoveredModel(null);
     }
-    if (openSubmenuModelId === modelId) {
+    if (submenuTimeoutRef.current) {
+      clearTimeout(submenuTimeoutRef.current);
+    }
+    submenuTimeoutRef.current = setTimeout(() => {
       setOpenSubmenuModelId(null);
       setHoveredDepth(null);
-    }
+    }, 400);
   };
 
   const currentModel =
@@ -944,7 +986,6 @@ const ModelSelector = () => {
   const currentDepthLabel =
     currentModel.depths.find((d) => d.id === selectedDepths[currentModel.id])
       ?.label ?? currentModel.depths[0]?.label;
-  const indicatorTargetModelId = hoveredModel ?? selectedModelId;
 
   return (
     <div className="relative flex items-center" ref={modelDropdownRef}>
@@ -953,8 +994,11 @@ const ModelSelector = () => {
         onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
         className="text-sm flex cursor-pointer items-center gap-1 rounded-full border-none bg-transparent px-3 py-2 font-normal text-muted-foreground transition-colors select-none hover:bg-foreground/5 dark:hover:bg-foreground/10 hover:text-foreground"
       >
-        <span className="leading-none">
-          {currentDepthLabel} {currentModel.name}
+        <span className="leading-none flex gap-1">
+          <span className="text-xs font-light tracking-wide ">
+            {currentDepthLabel}
+          </span>
+          {currentModel.name}
         </span>
         <ChevronDown
           width={14}
@@ -1001,18 +1045,13 @@ const ModelSelector = () => {
               transform: "translateZ(0)",
               willChange: "transform, opacity",
             }}
-            className="absolute right-0 bottom-full z-50 mb-1.5 w-56 origin-bottom-right rounded-2xl bg-popover p-2 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] will-change-transform select-none"
+            className="absolute left-0 sm:left-auto  bottom-full z-50 mb-1.5 w-56 origin-bottom-left sm:origin-bottom-right rounded-2xl bg-popover p-2 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] will-change-transform select-none"
           >
             <div className="space-y-0.5">
               {MODELS.map((model) => {
                 const isActive = selectedModelId === model.id;
                 const selectedDepthId = selectedDepths[model.id];
                 const isSubmenuOpen = openSubmenuModelId === model.id;
-                const depthIndicatorTargetId = hoveredDepth?.startsWith(
-                  `${model.id}:`
-                )
-                  ? hoveredDepth.slice(model.id.length + 1)
-                  : selectedDepthId;
                 return (
                   <div
                     key={model.id}
@@ -1031,11 +1070,10 @@ const ModelSelector = () => {
                       )}
                     >
                       <AnimatePresence>
-                        {indicatorTargetModelId === model.id && (
+                        {hoveredModel === model.id && (
                           <HoverIndicator
                             layoutId="v2-model-hover-indicator"
                             rounded="rounded-lg"
-                            isActive={false}
                             bg="bg-accent"
                           />
                         )}
@@ -1062,7 +1100,7 @@ const ModelSelector = () => {
                             duration: 0.14,
                             ease: [0.23, 1, 0.32, 1],
                           }}
-                          className="absolute left-full top-0 z-50 ml-1.5 w-40 origin-top-left rounded-xl bg-popover p-1.5 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)]"
+                          className="absolute left-full top-0 z-50 ml-1.5 w-40 origin-top-left rounded-xl bg-popover p-1.5 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] sm:max-w-none"
                         >
                           <div className="space-y-0.5">
                             {model.depths.map((depth) => {
@@ -1096,11 +1134,10 @@ const ModelSelector = () => {
                                   )}
                                 >
                                   <AnimatePresence>
-                                    {depthIndicatorTargetId === depth.id && (
+                                    {hoveredDepth === depthHoverKey && (
                                       <HoverIndicator
                                         layoutId="v2-model-depth-hover-indicator"
                                         rounded="rounded-md"
-                                        isActive={false}
                                         bg="bg-accent"
                                       />
                                     )}
@@ -1152,34 +1189,49 @@ const PromptCapsule = ({
   onSelectAttachment,
 }: {
   onSelectAttachment: (type: AddAttachmentType) => void;
-}) => (
-  <div className="w-full rounded-3xl bg-muted p-2">
-    {/* Prompt Input Row */}
-    <div className="flex items-center gap-2 py-1 pl-1 ">
-      <input
-        type="text"
-        placeholder="Ask anything..."
-        className="w-full bg-transparent px-2 text-base font-normal text-foreground placeholder:text-muted-foreground focus:outline-none"
-      />
-    </div>
+}) => {
+  const [isListening, setIsListening] = useState(false);
 
-    {/* Controls Row: access on the left, model, voice and send on the right */}
-    <div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
-      <div className="flex items-center gap-1">
-        <AddAttachmentDropdown onSelect={onSelectAttachment} />
-        <ModelSelector />
+  return (
+    <div className="w-full rounded-3xl bg-muted p-2">
+      {/* Prompt Input Row */}
+      <div className="flex items-center gap-2 py-1 pl-1 min-h-[36px]">
+        {isListening ? (
+          <ListeningWave />
+        ) : (
+          <input
+            type="text"
+            placeholder="Ask anything..."
+            className="w-full bg-transparent px-2 text-base font-normal text-foreground placeholder:text-muted-foreground focus:outline-none"
+          />
+        )}
       </div>
 
-      <div className="flex items-center gap-1">
-        <PermissionSelector />
-        <div className="ml-1 flex shrink-0 items-center gap-1">
-          <MicButton />
-          <SendButton />
+      {/* Controls Row: access on the left, model, voice and send on the right */}
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1">
+          <AddAttachmentDropdown onSelect={onSelectAttachment} />
+          <div className="hidden min-[512px]:flex items-center">
+            <ModelSelector />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <div className="hidden min-[512px]:flex items-center">
+            <PermissionSelector />
+          </div>
+          <div className="ml-1 flex shrink-0 items-center gap-1">
+            <MicButton
+              isListening={isListening}
+              onToggle={() => setIsListening((prev) => !prev)}
+            />
+            <SendButton />
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* ── Prompt composer ────────────────────────────────────────────────────── */
 
