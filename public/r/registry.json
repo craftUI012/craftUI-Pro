@@ -1337,7 +1337,8 @@
         ],
         "styles": [
           "motion",
-          "minimal"
+          "minimal",
+          "dark-mode"
         ],
         "publishedAt": "2026-11-11",
         "useCases": [
@@ -1348,7 +1349,8 @@
         ]
       },
       "dependencies": [
-        "motion"
+        "motion",
+        "lucide-react"
       ],
       "files": [
         {

@@ -4519,7 +4519,7 @@
   },
   "prompt-composer": {
     "component": "PromptComposer",
-    "dependencies": ["motion"],
+    "dependencies": ["motion", "lucide-react"],
     "description": "An AI prompt composer: a capsule with Enter to send and voice input, a quick-prompts tray that unfolds above it, and a footer row for attachments, permission mode, model, reasoning depth and usage limits.",
     "docs": "/docs/components/prompt-composer",
     "extends": "div",
@@ -4535,6 +4535,13 @@
         "name": "className",
         "optional": true,
         "type": "string",
+        "default": null
+      },
+      {
+        "description": "Called when an attachment option is chosen (file, image, folders, browser, commands).",
+        "name": "onSelectAttachment",
+        "optional": true,
+        "type": "(type: AddAttachmentType) => void",
         "default": null
       }
     ],
