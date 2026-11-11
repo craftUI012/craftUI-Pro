@@ -2596,6 +2596,459 @@
       "Menus, rooms or destinations with a story behind each one"
     ]
   },
+  "agent-run": {
+    "component": "AgentRun",
+    "dependencies": ["motion"],
+    "description": "An AI agent's run in one line: a dot-matrix orb, a verb that rolls to each tool it calls, the live call streaming underneath, then a summary that opens to every step.",
+    "docs": "/docs/blocks/agent-run",
+    "extends": "div",
+    "files": [
+      "components/blocks/agent-run.tsx",
+      "components/blocks/generative-ui.tsx"
+    ],
+    "id": "BLK-M6V1KF",
+    "import": "@/components/blocks/agent-run",
+    "library": "blocks",
+    "name": "agent-run",
+    "paid": true,
+    "props": [
+      {
+        "description": "What the agent is doing, e.g. \"Research Acme Inc.\".",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "The same, done: \"Researched Acme Inc.\". Defaults to `title`.",
+        "name": "doneTitle",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "The run's steps. Leave out to show the built-in demo.",
+        "name": "steps",
+        "optional": true,
+        "type": "AgentStep[]",
+        "default": null
+      },
+      {
+        "description": "Whether the agent is working. Read from the steps when left out.",
+        "name": "running",
+        "optional": true,
+        "type": "boolean",
+        "default": null
+      },
+      {
+        "description": "Starts the run. The Run button only shows when this is set.",
+        "name": "onRun",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Opens the steps list at first.",
+        "name": "defaultExpanded",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      }
+    ],
+    "registryDependencies": ["button", "card"],
+    "title": "Agent run",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "A stable id for the call; the AI SDK's `toolCallId` fits.",
+            "name": "toolCallId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The tool's name, e.g. \"search_web\".",
+            "name": "tool",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where the call is.",
+            "name": "state",
+            "optional": false,
+            "type": "AgentStepState"
+          },
+          {
+            "description": "What it's doing, shown while it runs: \"Searching the web\".",
+            "name": "label",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "What it did, shown once it's done: \"Searched the web\".",
+            "name": "doneLabel",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Its result in a few words, for the steps list: \"8 results\".",
+            "name": "result",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The arguments, whole or still streaming in.",
+            "name": "input",
+            "optional": true,
+            "type": "unknown"
+          },
+          {
+            "description": "What the tool returned.",
+            "name": "output",
+            "optional": true,
+            "type": "unknown"
+          },
+          {
+            "description": "Why the call failed, for `output-error`.",
+            "name": "errorText",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "How long the call took, in ms. Measured for you when left out.",
+            "name": "durationMs",
+            "optional": true,
+            "type": "number"
+          }
+        ],
+        "name": "AgentStep"
+      }
+    ],
+    "tags": {
+      "categories": ["ai"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["cards"]
+    },
+    "useCases": [
+      "AI chat apps showing an agent's work inline",
+      "Research, sales and support agents running tools",
+      "Copilots built on function calling or MCP",
+      "Landing pages for AI agent products"
+    ]
+  },
+  "mrr-movements": {
+    "component": "MrrMovements",
+    "dependencies": ["@number-flow/react", "motion", "torph"],
+    "description": "Recurring revenue month by month as two running totals, gained climbing and lost falling with a dotted net between, a lane per plan, and every customer's upgrade or cancellation shown as a diff.",
+    "docs": "/docs/blocks/mrr-movements",
+    "extends": "div",
+    "files": ["components/blocks/mrr-movements.tsx"],
+    "id": "BLK-56QZAT",
+    "import": "@/components/blocks/mrr-movements",
+    "library": "blocks",
+    "name": "mrr-movements",
+    "paid": true,
+    "props": [
+      {
+        "description": "Every change, across as many months as you have. Leave out for the demo.",
+        "name": "movements",
+        "optional": true,
+        "type": "MrrMovement[]",
+        "default": null
+      },
+      {
+        "description": "The month shown (any moment in it), when you control it.",
+        "name": "month",
+        "optional": true,
+        "type": "Date | string | number",
+        "default": null
+      },
+      {
+        "description": "The month to open on, when it's left uncontrolled. Defaults to the latest.",
+        "name": "defaultMonth",
+        "optional": true,
+        "type": "Date | string | number",
+        "default": null
+      },
+      {
+        "description": "Called with the first day of the month picked.",
+        "name": "onMonthChange",
+        "optional": true,
+        "type": "(month: Date) => void",
+        "default": null
+      },
+      {
+        "description": "Where the data stops (\"today\", for a month still running).",
+        "name": "now",
+        "optional": true,
+        "type": "Date | string | number",
+        "default": null
+      },
+      {
+        "description": "The plans, top lane first. Defaults to the order they first appear.",
+        "name": "plans",
+        "optional": true,
+        "type": "string[]",
+        "default": null
+      },
+      {
+        "description": "The card's title.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": "\"MRR movements\""
+      },
+      {
+        "description": "An ISO currency code, e.g. \"USD\".",
+        "name": "currency",
+        "optional": true,
+        "type": "string",
+        "default": "\"USD\""
+      },
+      {
+        "description": "A BCP 47 locale for numbers and dates. Set one so the server and the browser format alike.",
+        "name": "locale",
+        "optional": true,
+        "type": "string",
+        "default": "\"en-US\""
+      }
+    ],
+    "registryDependencies": ["button", "card", "dropdown-menu"],
+    "title": "MRR movements",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "A stable id for the change, e.g. the billing event's id.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "When it happened.",
+            "name": "at",
+            "optional": false,
+            "type": "Date | string | number"
+          },
+          {
+            "description": "Who it was.",
+            "name": "customer",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What they paid before. Leave out for a new customer.",
+            "name": "from",
+            "optional": true,
+            "type": "MrrPlan"
+          },
+          {
+            "description": "What they pay now. Leave out for a cancellation.",
+            "name": "to",
+            "optional": true,
+            "type": "MrrPlan"
+          },
+          {
+            "description": "A customer coming back after cancelling, rather than a new one.",
+            "name": "reactivation",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "MrrMovement"
+      },
+      {
+        "fields": [
+          {
+            "description": "The plan's name, e.g. \"Pro\".",
+            "name": "plan",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What it bills a month, in the currency's main unit.",
+            "name": "mrr",
+            "optional": false,
+            "type": "number"
+          }
+        ],
+        "name": "MrrPlan"
+      }
+    ],
+    "tags": {
+      "categories": ["finance", "data"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["charts"]
+    },
+    "useCases": [
+      "SaaS billing and revenue dashboards",
+      "Founder and investor updates on monthly recurring revenue",
+      "Subscription analytics on Stripe or Paddle events",
+      "Admin panels that explain why revenue moved this month"
+    ]
+  },
+  "voice-orb": {
+    "component": "VoiceOrb",
+    "dependencies": ["motion", "torph"],
+    "description": "A voice assistant's presence as a ball of points: rim lit, it stirs as you talk, dims to think, pulses with speech and wobbles to music, with a talk button and a live mic option.",
+    "docs": "/docs/blocks/voice-orb",
+    "extends": "div",
+    "files": [
+      "components/blocks/voice-orb/voice-orb.tsx",
+      "components/blocks/voice-orb/voice-orb-gl.ts"
+    ],
+    "id": "BLK-K6XZ1A",
+    "import": "@/components/blocks/voice-orb/voice-orb",
+    "library": "blocks",
+    "name": "voice-orb",
+    "paid": true,
+    "props": [
+      {
+        "description": "What the assistant is doing. Leave it out for the built-in demo, which runs one conversation when the button is pressed.",
+        "name": "state",
+        "optional": true,
+        "type": "VoiceState",
+        "default": null
+      },
+      {
+        "description": "Voice level 0–1, or a function read every frame (see `useMicLevel`).",
+        "name": "level",
+        "optional": true,
+        "type": "VoiceLevel",
+        "default": null
+      },
+      {
+        "description": "The text in the middle. Defaults to the state's own word.",
+        "name": "label",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "A small line above the label, e.g. \"Now playing\".",
+        "name": "eyebrow",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Called when the talk button is pressed (controlled use).",
+        "name": "onToggle",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "The talk button's accessible name. Defaults by state.",
+        "name": "buttonLabel",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Show the talk button (and, in the demo, the mic toggle). Turn it off when your own UI drives `state`. Defaults to true.",
+        "name": "showControls",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Voice orb",
+    "types": [],
+    "tags": {
+      "categories": ["ai"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["cards"]
+    },
+    "useCases": [
+      "Voice assistants and AI voice chat screens",
+      "Voice mode in AI chat apps",
+      "Call, dictation and voice note recorders",
+      "Landing pages for voice AI products"
+    ]
+  },
+  "voice-membrane": {
+    "component": "VoiceMembrane",
+    "dependencies": ["motion", "torph"],
+    "description": "A voice assistant as a skin of points on springs, coloured like a soap film: each syllable sends a ripple across it, thinking rolls even rings down from the top, music sets up standing waves.",
+    "docs": "/docs/blocks/voice-membrane",
+    "extends": "div",
+    "files": [
+      "components/blocks/voice-membrane/voice-membrane.tsx",
+      "components/blocks/voice-membrane/voice-membrane-gl.ts"
+    ],
+    "id": "BLK-0PX07A",
+    "import": "@/components/blocks/voice-membrane/voice-membrane",
+    "library": "blocks",
+    "name": "voice-membrane",
+    "paid": true,
+    "props": [
+      {
+        "description": "What the assistant is doing. Leave it out for the built-in demo, which runs one conversation when the button is pressed.",
+        "name": "state",
+        "optional": true,
+        "type": "VoiceState",
+        "default": null
+      },
+      {
+        "description": "Voice level 0–1, or a function read every frame (see `useMicLevel`).",
+        "name": "level",
+        "optional": true,
+        "type": "VoiceLevel",
+        "default": null
+      },
+      {
+        "description": "The text in the middle. Defaults to the state's own word.",
+        "name": "label",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "A small line above the label, e.g. \"Now playing\".",
+        "name": "eyebrow",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Called when the talk button is pressed (controlled use).",
+        "name": "onToggle",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "The talk button's accessible name. Defaults by state.",
+        "name": "buttonLabel",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Show the talk button (and, in the demo, the mic toggle). Turn it off when your own UI drives `state`. Defaults to true.",
+        "name": "showControls",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Voice membrane",
+    "types": [],
+    "tags": {
+      "categories": ["ai"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["cards"]
+    },
+    "useCases": [
+      "Voice assistants and AI voice chat screens",
+      "Voice mode in AI chat apps",
+      "Music and audio companions that react to sound",
+      "Landing pages for voice AI products"
+    ]
+  },
   "bloom-menu": {
     "component": "BloomMenu",
     "dependencies": ["motion"],

@@ -1,8 +1,12 @@
+import AgentRunPreview from "@/components/previews/agent-run-preview";
 import BloomMenuPreview from "@/components/previews/bloom-menu-preview";
 import EditorialSectionPreview from "@/components/previews/editorial-section-preview";
 import MosaicCardPreview from "@/components/previews/mosaic-card-preview";
+import MrrMovementsPreview from "@/components/previews/mrr-movements-preview";
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
 import SwapGridPreview from "@/components/previews/swap-grid-preview";
+import VoiceMembranePreview from "@/components/previews/voice-membrane-preview";
+import VoiceOrbPreview from "@/components/previews/voice-orb-preview";
 import WordWheelPreview from "@/components/previews/word-wheel-preview";
 import type { LivePreview } from "@/constants/live-previews";
 import ArcCarousel from "@/registry/blocks/arc-carousel";
@@ -29,6 +33,7 @@ import TestimonialsSection03 from "@/registry/sections/testimonials-section-03";
 // file, so docs pages keep loading just the section they show.
 export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
   {
+    "agent-run": AgentRunPreview,
     "arc-carousel": ArcCarousel,
     "benchmarks-section": BenchmarksSection,
     "bloom-menu": BloomMenuPreview,
@@ -44,6 +49,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "hero-section-03": HeroSection03,
     "image-sphere": ImageSphere,
     "mosaic-card": MosaicCardPreview,
+    "mrr-movements": MrrMovementsPreview,
     "statement-section": StatementSectionPreview,
     "swap-grid": SwapGridPreview,
     "tables-section": TablesSection,
@@ -52,5 +58,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "testimonials-section": TestimonialSection,
     "testimonials-section-02": TestimonialsSection02,
     "testimonials-section-03": TestimonialsSection03,
+    "voice-membrane": VoiceMembranePreview,
+    "voice-orb": VoiceOrbPreview,
     "word-wheel": WordWheelPreview,
   };
