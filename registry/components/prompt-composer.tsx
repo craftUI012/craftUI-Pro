@@ -1196,7 +1196,7 @@ const ModelSelector = ({
               transform: "translateZ(0)",
               willChange: "transform, opacity",
             }}
-            className="absolute left-0 sm:left-auto sm:right-0 bottom-full z-50 mb-1.5 w-56 origin-bottom-left sm:origin-bottom-right rounded-2xl bg-popover p-2 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] will-change-transform select-none"
+            className="absolute left-0 sm:left-auto  bottom-full z-50 mb-1.5 w-56 origin-bottom-left sm:origin-bottom-right rounded-2xl bg-popover p-2 shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)] max-w-[calc(100vw-2rem)] will-change-transform select-none"
           >
             <div className="space-y-0.5">
               {models.map((model) => {
@@ -1410,11 +1410,21 @@ const PromptCapsule = ({
   };
 
   return (
-    <div className="w-full rounded-3xl bg-muted p-2">
+    <motion.div
+      layout
+      transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+      className="w-full rounded-3xl bg-muted p-2"
+    >
       {/* Optional Attachments Pill Row */}
-      {attachments.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-2 pt-1 pb-1.5">
-          <AnimatePresence>
+      <AnimatePresence initial={false}>
+        {attachments.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="flex flex-wrap items-center gap-1.5 px-2 pt-1 pb-1.5 overflow-hidden"
+          >
             {attachments.map((att) => (
               <AttachmentPill
                 key={att.id}
@@ -1422,9 +1432,9 @@ const PromptCapsule = ({
                 onRemove={(id) => onRemoveAttachment?.(id)}
               />
             ))}
-          </AnimatePresence>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Prompt Input Row */}
       <div className="flex items-center gap-2 py-1 pl-1 min-h-[36px]">
@@ -1482,7 +1492,7 @@ const PromptCapsule = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
