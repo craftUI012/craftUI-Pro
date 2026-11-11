@@ -90,7 +90,7 @@ const FILL_CSS =
  * (FILL_CSS) and forces its theme (next-themes keeps the theme as a class
  * on <html>), keeping it there if the page's own theme script changes it.
  */
-const useFrameTheme = (
+export const useFrameSetup = (
   frame: React.RefObject<HTMLIFrameElement | null>,
   theme: ComponentTheme
 ) => {
@@ -148,7 +148,7 @@ export const LiveScreen = ({
   theme: ComponentTheme;
 }) => {
   const iframe = useRef<HTMLIFrameElement>(null);
-  const applyTheme = useFrameTheme(iframe, theme);
+  const applyTheme = useFrameSetup(iframe, theme);
   const layout = deviceLayout(device.id, device.box);
   return (
     <div

@@ -6,6 +6,7 @@ import {
   Delete02Icon,
   Download04Icon,
   ImageAdd02Icon,
+  RecordIcon,
   RefreshIcon,
   Upload04Icon,
 } from "@hugeicons/core-free-icons";
@@ -40,6 +41,7 @@ import type { ComponentTheme, StudioComponent } from "./reel-components";
 import { ComponentPicker, isComponentTheme } from "./reel-components";
 import type { DeviceId } from "./reel-devices";
 import { DEVICE_OPTIONS, fitDevice, isDeviceId } from "./reel-devices";
+import { canRecordElements, RecordView } from "./reel-recorder";
 import type {
   ReelBackdrop,
   ReelBox,
@@ -561,18 +563,23 @@ const DevicePicker = ({
 // What the phone's screen shows: the clip, or a live craftUI component
 // (picked from a searchable list), with its theme and a reload.
 const ScreenSource = ({
+  canRecord,
   component,
   disabled,
   onChoose,
+  onRecord,
   onReload,
   onScreen,
   onTheme,
   screen,
   theme,
 }: {
+  /** Whether this browser can record one element (Chrome). */
+  canRecord: boolean;
   component: StudioComponent | null;
   disabled: boolean;
   onChoose: () => void;
+  onRecord: () => void;
   onReload: () => void;
   onScreen: (screen: Look["screen"]) => void;
   onTheme: (theme: ComponentTheme) => void;
@@ -645,9 +652,20 @@ const ScreenSource = ({
             Dark
           </ToggleGroupItem>
         </ToggleGroup>
+        <Button
+          disabled={disabled || !component || !canRecord}
+          onClick={onRecord}
+          size="sm"
+          title={canRecord ? undefined : "Recording needs Chrome"}
+          type="button"
+        >
+          <Icon icon={RecordIcon} />
+          Record
+        </Button>
         <p className="text-muted-foreground text-xs">
-          Live in the phone at its real width, so you get the mobile layout. Use
-          it right on the frame. To export it, record it (coming next).
+          {canRecord
+            ? "Live in the phone at its real width, so you get the mobile layout. Record it to make the clip you export."
+            : "Live in the phone at its real width. Recording needs Chrome."}
         </p>
       </div>
     ) : null}
@@ -918,6 +936,7 @@ const DeviceGroup = ({
   components,
   disabled,
   look,
+  onRecorded,
   onReload,
   picked,
   setLook,
@@ -925,11 +944,17 @@ const DeviceGroup = ({
   components: StudioComponent[];
   disabled: boolean;
   look: Look;
+  /** A finished recording of the live component, to become the clip. */
+  onRecorded: (file: File) => void;
   onReload: () => void;
   picked: StudioComponent | null;
   setLook: (patch: Partial<Look>) => void;
 }) => {
   const [picking, setPicking] = useState(false);
+  const [recording, setRecording] = useState(false);
+  // Read after mount: the server can't know the browser.
+  const [canRecord, setCanRecord] = useState(false);
+  useEffect(() => setCanRecord(canRecordElements()), []);
   return (
     <Group title="Device">
       <DevicePicker
@@ -939,9 +964,11 @@ const DeviceGroup = ({
       />
       {look.device ? (
         <ScreenSource
+          canRecord={canRecord}
           component={picked}
           disabled={disabled}
           onChoose={() => setPicking(true)}
+          onRecord={() => setRecording(true)}
           onReload={onReload}
           onScreen={(screen) => {
             setLook({ screen });
@@ -960,6 +987,19 @@ const DeviceGroup = ({
         onPick={(component) => setLook({ component, screen: "component" })}
         open={picking}
       />
+      {recording && picked ? (
+        <RecordView
+          name={picked.name}
+          onClose={() => setRecording(false)}
+          onDone={(file) => {
+            setRecording(false);
+            setLook({ screen: "video" });
+            onRecorded(file);
+          }}
+          theme={look.componentTheme}
+          title={picked.title}
+        />
+      ) : null}
     </Group>
   );
 };
@@ -1430,6 +1470,7 @@ export const ReelStudio = ({
             components={components}
             disabled={exporting !== null}
             look={look}
+            onRecorded={takeFile}
             onReload={() => setReload((count) => count + 1)}
             picked={live.picked}
             setLook={setLook}
