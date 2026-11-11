@@ -1,22 +1,44 @@
 import { Audio, Video } from "@remotion/media";
 import type { CSSProperties } from "react";
-import { AbsoluteFill, interpolate, Sequence, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  interpolate,
+  Sequence,
+  useVideoConfig,
+} from "remotion";
 
 import type { SoundId } from "./reel-sounds";
 import { REEL_SOUNDS, soundSrc } from "./reel-sounds";
 
-// The reel itself: a 1080x1920 frame filled with one colour, the recording
+// The reel itself: a 9:16 (1080x1920) or 16:9 (1920x1080) frame filled
+// with one colour, the recording
 // placed on it, and the soundtrack (the clip's own sound, a music bed and
 // sound effects on moments). The Studio's player previews this component
 // and the export renders it, so what you see and hear is what you get.
 //
 // Remotion's in-browser renderer redraws the page onto a canvas and supports
 // only some CSS (remotion.dev/docs/client-side-rendering/limitations). Keep to
-// what's here: background colour, a positioned box, border radius with
-// overflow hidden, and a plain box shadow (no spread, no inset). Audio from
-// every mounted <Audio> and <Video> is mixed into the export.
+// what's here: background colour, an <img> with object-fit, a positioned
+// box, border radius with overflow hidden, and a plain box shadow (no
+// spread, no inset). A CSS background-image url() isn't drawn, which is why
+// the background image is an <Img> layer. Audio from every mounted <Audio>
+// and <Video> is mixed into the export.
 
-export const REEL = { height: 1920, width: 1080 } as const;
+// The frames the Studio makes. Positions and sizes are stored in the
+// chosen frame's pixels.
+export type ReelFormat = "9:16" | "16:9";
+
+export const FORMATS: Record<
+  ReelFormat,
+  { height: number; use: string; width: number }
+> = {
+  "16:9": { height: 1080, use: "YouTube, X, LinkedIn", width: 1920 },
+  "9:16": { height: 1920, use: "Reels, TikTok, Shorts", width: 1080 },
+};
+
+export const isReelFormat = (value: unknown): value is ReelFormat =>
+  value === "9:16" || value === "16:9";
 
 export interface ReelBox {
   h: number;
@@ -45,19 +67,23 @@ export interface ReelText {
   y: number;
 }
 
-// Inter (the site loads it as --font-inter), centred, wrapping at 960px.
-// The Studio's drag handles reuse this exact style, so they match the text.
+// Inter (the site loads it as --font-inter), centred, wrapping 60px in from
+// each side of the frame. The Studio's drag handles reuse this exact
+// style, so they match the text.
 export const TEXT_FONT =
   "var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif";
 
-export const textStyle = (item: ReelText): CSSProperties => ({
+export const textStyle = (
+  item: ReelText,
+  frameWidth: number
+): CSSProperties => ({
   fontFamily: TEXT_FONT,
   fontSize: item.size,
   fontWeight: item.weight,
   left: item.x,
   letterSpacing: "-0.02em",
   lineHeight: 1.15,
-  maxWidth: REEL.width - 120,
+  maxWidth: frameWidth - 120,
   position: "absolute",
   textAlign: "center",
   top: item.y,
@@ -65,6 +91,15 @@ export const textStyle = (item: ReelText): CSSProperties => ({
   whiteSpace: "pre-wrap",
   width: "max-content",
 });
+
+// An image behind everything: `fit` "cover" fills the frame (cropping),
+// "contain" shows all of it on the background colour. `dim` lays black over
+// it (0–1) so the clip and text stand out.
+export interface ReelBackdrop {
+  dim: number;
+  fit: "contain" | "cover";
+  src: string;
+}
 
 // The music bed: `start` is where in the track the reel begins.
 export interface ReelMusic {
@@ -81,9 +116,11 @@ export interface ReelMusic {
 // oxlint-disable-next-line typescript/consistent-type-definitions
 export type ReelSceneProps = {
   background: string;
+  backdrop: ReelBackdrop | null;
   box: ReelBox;
   clipVolume: number;
   cues: ReelCue[];
+  format: ReelFormat;
   muted: boolean;
   music: ReelMusic | null;
   radius: number;
@@ -166,9 +203,11 @@ export const CalibrationScene = () => (
 
 export const ReelScene = ({
   background,
+  backdrop,
   box,
   clipVolume,
   cues,
+  format,
   muted,
   music,
   radius,
@@ -178,6 +217,27 @@ export const ReelScene = ({
   texts,
 }: ReelSceneProps) => (
   <AbsoluteFill style={{ backgroundColor: background }}>
+    {backdrop ? (
+      <>
+        {/* <Img> holds the render until the image has loaded. */}
+        <Img
+          src={backdrop.src}
+          style={{
+            height: "100%",
+            left: 0,
+            objectFit: backdrop.fit,
+            position: "absolute",
+            top: 0,
+            width: "100%",
+          }}
+        />
+        {backdrop.dim > 0 ? (
+          <AbsoluteFill
+            style={{ backgroundColor: `rgba(0, 0, 0, ${backdrop.dim})` }}
+          />
+        ) : null}
+      </>
+    ) : null}
     {src ? (
       <div
         style={{
@@ -204,7 +264,13 @@ export const ReelScene = ({
       </div>
     ) : null}
     {texts.map((item) => (
-      <div key={item.id} style={{ ...textStyle(item), color: item.color }}>
+      <div
+        key={item.id}
+        style={{
+          ...textStyle(item, FORMATS[format].width),
+          color: item.color,
+        }}
+      >
         {item.text}
       </div>
     ))}

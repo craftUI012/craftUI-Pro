@@ -5,6 +5,7 @@ import {
   Cancel01Icon,
   Delete02Icon,
   Download04Icon,
+  ImageAdd02Icon,
   Upload04Icon,
 } from "@hugeicons/core-free-icons";
 import type { PlayerRef } from "@remotion/player";
@@ -21,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-import type { ReelClip } from "./reel-clip";
+import type { ReelClip, ReelImage } from "./reel-clip";
 import {
   codecLabel,
   exportReel,
@@ -30,22 +31,35 @@ import {
   formatTime,
   framesFor,
   readClip,
+  readImage,
   reelFileName,
   saveBlob,
 } from "./reel-clip";
-import type { ReelBox, ReelSceneProps, ReelText } from "./reel-scene";
-import { REEL } from "./reel-scene";
+import type {
+  ReelBackdrop,
+  ReelBox,
+  ReelFormat,
+  ReelSceneProps,
+  ReelText,
+} from "./reel-scene";
+import { FORMATS, isReelFormat } from "./reel-scene";
 import { SoundPanel, useSoundtrack } from "./reel-soundtrack";
 import { ReelStage, ReelTransport } from "./reel-stage";
 import { ReelTimeline } from "./reel-timeline";
 
-// The admin Studio: put a screen recording on a 9:16 frame, pick the
-// background, move and size the clip, export an MP4 for Reels, TikTok and
-// Shorts. All in the browser; nothing is uploaded.
+// The admin Studio: put a screen recording on a 9:16 frame (Reels, TikTok,
+// Shorts) or a 16:9 one (YouTube, X, LinkedIn), pick the background, move
+// and size the clip, export an MP4. All in the browser; nothing is
+// uploaded.
 
 type Fps = 30 | 60;
 interface Look {
   background: string;
+  /** How the background image sits: fill the frame or show all of it. */
+  backdropFit: ReelBackdrop["fit"];
+  /** Black laid over the background image, 0–0.8. */
+  backdropDim: number;
+  format: ReelFormat;
   fps: Fps;
   guides: boolean;
   radius: number;
@@ -53,7 +67,10 @@ interface Look {
 }
 
 const DEFAULT_LOOK: Look = {
+  backdropDim: 0,
+  backdropFit: "cover",
   background: "#F3F3F1",
+  format: "9:16",
   fps: 60,
   guides: true,
   radius: 40,
@@ -94,6 +111,14 @@ const useLook = () => {
       setLook((current) => ({
         ...current,
         ...(HEX.test(saved.background) && { background: saved.background }),
+        ...((saved.backdropFit === "cover" ||
+          saved.backdropFit === "contain") && {
+          backdropFit: saved.backdropFit,
+        }),
+        ...(Number.isFinite(saved.backdropDim) && {
+          backdropDim: Math.min(Math.max(saved.backdropDim, 0), 0.8),
+        }),
+        ...(isReelFormat(saved.format) && { format: saved.format }),
         ...((saved.fps === 30 || saved.fps === 60) && { fps: saved.fps }),
         ...(typeof saved.guides === "boolean" && { guides: saved.guides }),
         ...(Number.isFinite(saved.radius) && { radius: saved.radius }),
@@ -123,12 +148,14 @@ const useLook = () => {
   return [look, update] as const;
 };
 
-// ⌘V anywhere on the page with a video file on the clipboard.
-const usePasteVideo = (onFile: (file: File) => void) => {
+// ⌘V anywhere on the page with a video (the clip) or an image (the
+// background) on the clipboard.
+const usePasteFile = (onFile: (file: File) => void) => {
   useEffect(() => {
     const paste = (event: ClipboardEvent) => {
-      const file = [...(event.clipboardData?.files ?? [])].find((item) =>
-        item.type.startsWith("video/")
+      const file = [...(event.clipboardData?.files ?? [])].find(
+        (item) =>
+          item.type.startsWith("video/") || item.type.startsWith("image/")
       );
       if (file) {
         event.preventDefault();
@@ -187,9 +214,11 @@ const Group = ({
 
 // The selected text's controls: words, size, weight, colour.
 const TextEditor = ({
+  frameWidth,
   item,
   onChange,
 }: {
+  frameWidth: number;
   item: ReelText;
   onChange: (patch: Partial<ReelText>) => void;
 }) => (
@@ -276,7 +305,7 @@ const TextEditor = ({
       </span>
       <Button
         className="h-7 px-2 text-xs"
-        onClick={() => onChange({ x: REEL.width / 2 })}
+        onClick={() => onChange({ x: frameWidth / 2 })}
         size="sm"
         type="button"
         variant="outline"
@@ -343,6 +372,122 @@ const BackgroundPicker = ({
   );
 };
 
+// The background image: add one, then fill or fit it and darken it. The
+// colour above stays underneath (it shows around a fitted image).
+const BackdropPicker = ({
+  dim,
+  disabled,
+  fit,
+  image,
+  onAdd,
+  onDim,
+  onFit,
+  onRemove,
+}: {
+  dim: number;
+  disabled: boolean;
+  fit: ReelBackdrop["fit"];
+  image: ReelImage | null;
+  onAdd: () => void;
+  onDim: (dim: number) => void;
+  onFit: (fit: ReelBackdrop["fit"]) => void;
+  onRemove: () => void;
+}) => {
+  if (!image) {
+    return (
+      <Button
+        disabled={disabled}
+        onClick={onAdd}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        <Icon icon={ImageAdd02Icon} />
+        Add an image
+      </Button>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border p-3">
+      <div className="flex items-center gap-2.5">
+        {/* oxlint-disable-next-line nextjs/no-img-element -- a local blob: URL, not an optimisable asset */}
+        <img
+          alt=""
+          className="size-9 shrink-0 rounded-md border object-cover"
+          src={image.src}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs" title={image.name}>
+            {image.name}
+          </p>
+          <p className="text-muted-foreground text-xs tabular-nums">
+            {image.width}×{image.height} · {formatBytes(image.size)}
+          </p>
+        </div>
+        <Button
+          aria-label="Replace the background image"
+          className="size-7"
+          disabled={disabled}
+          onClick={onAdd}
+          size="icon"
+          title="Replace"
+          type="button"
+          variant="ghost"
+        >
+          <Icon icon={Upload04Icon} />
+        </Button>
+        <Button
+          aria-label="Remove the background image"
+          className="size-7"
+          disabled={disabled}
+          onClick={onRemove}
+          size="icon"
+          type="button"
+          variant="ghost"
+        >
+          <Icon icon={Delete02Icon} />
+        </Button>
+      </div>
+      <ToggleGroup
+        aria-label="Image fit"
+        className="w-full"
+        onValueChange={(value) =>
+          (value === "cover" || value === "contain") && onFit(value)
+        }
+        size="sm"
+        type="single"
+        value={fit}
+        variant="outline"
+      >
+        <ToggleGroupItem className="flex-1" value="cover">
+          Fill
+        </ToggleGroupItem>
+        <ToggleGroupItem className="flex-1" value="contain">
+          Fit
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between gap-4">
+          <Label className="text-xs" htmlFor="backdrop-dim">
+            Darken
+          </Label>
+          <span className="text-muted-foreground text-xs tabular-nums">
+            {Math.round(dim * 100)}%
+          </span>
+        </div>
+        <Slider
+          id="backdrop-dim"
+          max={80}
+          min={0}
+          onValueChange={([value]) => onDim(value / 100)}
+          step={1}
+          value={[Math.round(dim * 100)]}
+        />
+      </div>
+    </div>
+  );
+};
+
 const SwitchRow = ({
   checked,
   disabled,
@@ -371,6 +516,7 @@ const SwitchRow = ({
 
 // The Text section: add, pick and edit the lines of text on the frame.
 const TextGroup = ({
+  frameWidth,
   onAdd,
   onChange,
   onRemove,
@@ -378,6 +524,7 @@ const TextGroup = ({
   selected,
   texts,
 }: {
+  frameWidth: number;
   onAdd: () => void;
   onChange: (id: string, patch: Partial<ReelText>) => void;
   onRemove: (id: string) => void;
@@ -440,6 +587,7 @@ const TextGroup = ({
       )}
       {selectedItem ? (
         <TextEditor
+          frameWidth={frameWidth}
           item={selectedItem}
           onChange={(patch) => onChange(selectedItem.id, patch)}
         />
@@ -447,6 +595,42 @@ const TextGroup = ({
     </Group>
   );
 };
+
+// The top bar's frame picker: 9:16 or 16:9, with the size it exports at.
+const FrameToggle = ({
+  disabled,
+  format,
+  onFormat,
+}: {
+  disabled: boolean;
+  format: ReelFormat;
+  onFormat: (format: ReelFormat) => void;
+}) => (
+  <div className="flex items-center gap-2">
+    <ToggleGroup
+      aria-label="Frame"
+      disabled={disabled}
+      onValueChange={(value) => isReelFormat(value) && onFormat(value)}
+      size="sm"
+      type="single"
+      value={format}
+      variant="outline"
+    >
+      {(["9:16", "16:9"] as const).map((value) => (
+        <ToggleGroupItem
+          key={value}
+          title={`${FORMATS[value].width}×${FORMATS[value].height} · ${FORMATS[value].use}`}
+          value={value}
+        >
+          {value}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
+    <span className="text-muted-foreground hidden text-xs tabular-nums sm:inline">
+      {FORMATS[format].width}×{FORMATS[format].height}
+    </span>
+  </div>
+);
 
 // The top bar's right side: frame rate and Export, or the export's progress.
 const ExportBar = ({
@@ -511,11 +695,14 @@ export const ReelStudio = () => {
   const [result, setResult] = useState<string | null>(null);
   const abort = useRef<AbortController | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const imageInput = useRef<HTMLInputElement>(null);
+  const [backdrop, setBackdrop] = useState<ReelImage | null>(null);
   const playerRef = useRef<PlayerRef>(null);
   const shell = useRef<HTMLDivElement>(null);
   const [texts, setTexts] = useState<ReelText[]>([]);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const height = useFillHeight(shell);
+  const frame = FORMATS[look.format];
   const soundtrack = useSoundtrack(clip);
   const { reset: resetSound } = soundtrack;
 
@@ -532,7 +719,7 @@ export const ReelStudio = () => {
           }
           return next;
         });
-        setBox(fitBox(next));
+        setBox(fitBox(next, look.format));
         resetSound();
       } catch (error) {
         setProblem(error instanceof Error ? error.message : String(error));
@@ -540,10 +727,61 @@ export const ReelStudio = () => {
         setReading(false);
       }
     },
-    [resetSound]
+    [look.format, resetSound]
   );
 
-  usePasteVideo(loadFile);
+  const loadImage = useCallback(async (file: File) => {
+    setProblem(null);
+    try {
+      const next = await readImage(file);
+      setBackdrop((previous) => {
+        if (previous) {
+          setTimeout(() => URL.revokeObjectURL(previous.src), 1000);
+        }
+        return next;
+      });
+    } catch (error) {
+      setProblem(error instanceof Error ? error.message : String(error));
+    }
+  }, []);
+
+  // One way in for files (paste, drop, the pickers): images become the
+  // background, anything else is read as the clip.
+  const takeFile = useCallback(
+    (file: File) =>
+      file.type.startsWith("image/") ? loadImage(file) : loadFile(file),
+    [loadFile, loadImage]
+  );
+
+  usePasteFile(takeFile);
+
+  const removeBackdrop = () => {
+    if (backdrop) {
+      URL.revokeObjectURL(backdrop.src);
+    }
+    setBackdrop(null);
+  };
+
+  // Switching frames re-fits the clip to the new frame and keeps each
+  // text where it was relative to the frame (a title near the top stays
+  // near the top).
+  const changeFormat = (format: ReelFormat) => {
+    if (format === look.format) {
+      return;
+    }
+    const to = FORMATS[format];
+    setLook({ format });
+    if (clip) {
+      setBox(fitBox(clip, format));
+    }
+    setTexts((current) =>
+      current.map((item) => ({
+        ...item,
+        x: Math.round((item.x / frame.width) * to.width),
+        y: Math.round((item.y / frame.height) * to.height),
+      }))
+    );
+  };
 
   // A first text is a title; later ones are smaller grey lines under it.
   const addText = () => {
@@ -556,13 +794,14 @@ export const ReelStudio = () => {
       size: first ? 72 : 40,
       text: first ? "Your title" : "craftui.space",
       weight: first ? 500 : 400,
-      x: REEL.width / 2,
+      x: frame.width / 2,
+      // The title a fifth of the way down (380px on 9:16).
       y: last
         ? Math.min(
-            REEL.height - 200,
+            Math.round(frame.height * 0.9),
             last.y + Math.round(last.size * 1.15 + 36)
           )
-        : 380,
+        : Math.round(frame.height * 0.2),
     };
     setTexts((current) => [...current, item]);
     setSelectedText(item.id);
@@ -579,9 +818,13 @@ export const ReelStudio = () => {
   };
 
   const scene: ReelSceneProps = {
+    backdrop: backdrop
+      ? { dim: look.backdropDim, fit: look.backdropFit, src: backdrop.src }
+      : null,
     background: look.background,
     box,
     ...soundtrack.sceneAudio,
+    format: look.format,
     muted: !(clip?.hasAudio && soundtrack.mix.clip > 0),
     radius: look.radius,
     shadow: look.shadow,
@@ -608,7 +851,7 @@ export const ReelStudio = () => {
         props: { ...scene, duration: clip.duration },
         signal: controller.signal,
       });
-      const name = reelFileName();
+      const name = reelFileName(look.format);
       saveBlob(blob, name);
       const seconds = Math.max(
         1,
@@ -643,11 +886,13 @@ export const ReelStudio = () => {
       style={height ? { height } : undefined}
     >
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2.5">
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold">Studio</h1>
-          <span className="text-muted-foreground text-xs">
-            9:16 · 1080×1920
-          </span>
+          <FrameToggle
+            disabled={exporting !== null}
+            format={look.format}
+            onFormat={changeFormat}
+          />
         </div>
         <p
           className="text-muted-foreground ml-auto min-w-0 truncate text-xs"
@@ -676,7 +921,7 @@ export const ReelStudio = () => {
             guides={look.guides}
             onBoxChange={setBox}
             onChoose={() => fileInput.current?.click()}
-            onFile={loadFile}
+            onFile={takeFile}
             onRemoveText={removeText}
             onSelectText={setSelectedText}
             onTextChange={changeText}
@@ -725,7 +970,7 @@ export const ReelStudio = () => {
               <p className="text-muted-foreground text-xs">
                 {reading
                   ? "Reading the video…"
-                  : "No video yet. Paste with ⌘V or drop it on the frame."}
+                  : "No video yet. Paste with ⌘V or drop it on the frame. Images dropped or pasted become the background."}
               </p>
             )}
             <div className="flex gap-2">
@@ -778,6 +1023,29 @@ export const ReelStudio = () => {
               onChange={(background) => setLook({ background })}
               value={look.background}
             />
+            <BackdropPicker
+              dim={look.backdropDim}
+              disabled={exporting !== null}
+              fit={look.backdropFit}
+              image={backdrop}
+              onAdd={() => imageInput.current?.click()}
+              onDim={(backdropDim) => setLook({ backdropDim })}
+              onFit={(backdropFit) => setLook({ backdropFit })}
+              onRemove={removeBackdrop}
+            />
+            <input
+              accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) {
+                  loadImage(file);
+                }
+              }}
+              ref={imageInput}
+              type="file"
+            />
           </Group>
 
           <Group title="Clip style">
@@ -814,8 +1082,8 @@ export const ReelStudio = () => {
                 onClick={() =>
                   setBox((current) => ({
                     ...current,
-                    x: Math.round((REEL.width - current.w) / 2),
-                    y: Math.round((REEL.height - current.h) / 2),
+                    x: Math.round((frame.width - current.w) / 2),
+                    y: Math.round((frame.height - current.h) / 2),
                   }))
                 }
                 size="sm"
@@ -826,12 +1094,12 @@ export const ReelStudio = () => {
               </Button>
               <Button
                 disabled={!clip}
-                onClick={() => clip && setBox(fitBox(clip))}
+                onClick={() => clip && setBox(fitBox(clip, look.format))}
                 size="sm"
                 type="button"
                 variant="outline"
               >
-                Fit width
+                Fit to frame
               </Button>
             </div>
             {clip ? (
@@ -848,6 +1116,7 @@ export const ReelStudio = () => {
           </Group>
 
           <TextGroup
+            frameWidth={frame.width}
             onAdd={addText}
             onChange={changeText}
             onRemove={removeText}

@@ -13,13 +13,20 @@ import { cn } from "@/lib/utils";
 
 import type { ReelClip } from "./reel-clip";
 import { formatTime } from "./reel-clip";
-import type { ReelBox, ReelSceneProps, ReelText } from "./reel-scene";
-import { REEL, ReelScene, textStyle } from "./reel-scene";
+import type {
+  ReelBox,
+  ReelFormat,
+  ReelSceneProps,
+  ReelText,
+} from "./reel-scene";
+import { FORMATS, ReelScene, textStyle } from "./reel-scene";
 
-// The 9:16 frame: Remotion's player shows the reel, and a layer on top lets
-// you drag the clip to move it and pull a corner to resize it. Everything is
-// stored in reel pixels (1080x1920); the layer converts with the frame's
-// on-screen scale.
+// The frame (9:16 or 16:9): Remotion's player shows the reel, and a layer on
+// top lets you drag the clip to move it and pull a corner to resize it.
+// Everything is stored in the frame's own pixels (1080x1920 or 1920x1080);
+// the layer converts with the frame's on-screen scale.
+
+type Size = (typeof FORMATS)[ReelFormat];
 
 type Corner = "ne" | "nw" | "se" | "sw";
 interface Snap {
@@ -55,25 +62,38 @@ const CORNERS: { corner: Corner; className: string; label: string }[] = [
 const SNAP_PX = 6;
 const MIN_WIDTH = 160;
 
-// Where Instagram's own buttons and caption sit over a reel (Meta's Reels
-// guidance: keep the top 14%, the bottom 35% and 6% each side clear of
-// anything that must be read). Shown while arranging, never exported.
-// Guides and snap lines draw in white with mix-blend-difference, so they
-// stay visible on any background or clip.
-const SAFE = { bottom: "35%", side: "6%", top: "14%" };
+// What to keep clear of anything that must be read. 9:16: where Instagram's
+// own buttons and caption sit over a reel (Meta's Reels guidance: the top
+// 14%, the bottom 35% and 6% each side). 16:9: YouTube, X and LinkedIn
+// don't lay buttons over the picture while it plays, so an even 5%
+// title-safe margin, which also survives a player's rounded corners and
+// a slight crop. Shown while arranging, never exported. Guides and snap
+// lines draw in white with mix-blend-difference, so they stay visible on
+// any background or clip.
+const SAFE: Record<ReelFormat, { bottom: string; side: string; top: string }> =
+  {
+    "16:9": { bottom: "5%", side: "5%", top: "5%" },
+    "9:16": { bottom: "35%", side: "6%", top: "14%" },
+  };
 
-const moveBox = (start: ReelBox, dx: number, dy: number, threshold: number) => {
+const moveBox = (
+  start: ReelBox,
+  dx: number,
+  dy: number,
+  threshold: number,
+  size: Size
+) => {
   let x = start.x + dx;
   let y = start.y + dy;
   const snap: Snap = {
-    x: Math.abs(x + start.w / 2 - REEL.width / 2) < threshold,
-    y: Math.abs(y + start.h / 2 - REEL.height / 2) < threshold,
+    x: Math.abs(x + start.w / 2 - size.width / 2) < threshold,
+    y: Math.abs(y + start.h / 2 - size.height / 2) < threshold,
   };
   if (snap.x) {
-    x = (REEL.width - start.w) / 2;
+    x = (size.width - start.w) / 2;
   }
   if (snap.y) {
-    y = (REEL.height - start.h) / 2;
+    y = (size.height - start.h) / 2;
   }
   return { box: { ...start, x: Math.round(x), y: Math.round(y) }, snap };
 };
@@ -102,7 +122,10 @@ const resizeBox = (
   };
 };
 
-const useScale = (ref: RefObject<HTMLDivElement | null>) => {
+const useScale = (
+  ref: RefObject<HTMLDivElement | null>,
+  frameWidth: number
+) => {
   const [scale, setScale] = useState(0);
   useEffect(() => {
     const node = ref.current;
@@ -110,17 +133,18 @@ const useScale = (ref: RefObject<HTMLDivElement | null>) => {
       return;
     }
     const observer = new ResizeObserver(([entry]) => {
-      setScale(entry.contentRect.width / REEL.width);
+      setScale(entry.contentRect.width / frameWidth);
     });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [ref]);
+  }, [ref, frameWidth]);
   return scale;
 };
 
-// The biggest 9:16 frame that fits the area it sits in.
-const useFit = (ref: RefObject<HTMLDivElement | null>) => {
-  const [size, setSize] = useState<{ h: number; w: number } | null>(null);
+// The biggest frame of this shape that fits the area it sits in.
+const useFit = (ref: RefObject<HTMLDivElement | null>, frame: Size) => {
+  const [fit, setFit] = useState<{ h: number; w: number } | null>(null);
+  const { height: frameHeight, width: frameWidth } = frame;
   useEffect(() => {
     const node = ref.current;
     if (!node) {
@@ -129,16 +153,16 @@ const useFit = (ref: RefObject<HTMLDivElement | null>) => {
     const observer = new ResizeObserver(([entry]) => {
       const { height, width } = entry.contentRect;
       const w = Math.floor(
-        Math.min(width, (height * REEL.width) / REEL.height)
+        Math.min(width, (height * frameWidth) / frameHeight)
       );
-      setSize(
-        w > 0 ? { h: Math.round((w * REEL.height) / REEL.width), w } : null
+      setFit(
+        w > 0 ? { h: Math.round((w * frameHeight) / frameWidth), w } : null
       );
     });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [ref]);
-  return size;
+  }, [ref, frameHeight, frameWidth]);
+  return fit;
 };
 
 const NUDGE: Record<string, [number, number]> = {
@@ -155,6 +179,7 @@ const ClipLayer = ({
   onGrab,
   onSnap,
   scale,
+  size,
 }: {
   aspect: number;
   box: ReelBox;
@@ -162,6 +187,7 @@ const ClipLayer = ({
   onGrab: () => void;
   onSnap: (snap: Snap) => void;
   scale: number;
+  size: Size;
 }) => {
   const drag = useRef<{
     box: ReelBox;
@@ -192,7 +218,7 @@ const ClipLayer = ({
       onBoxChange(resizeBox(current.box, current.corner, dx, dy, aspect));
       return;
     }
-    const moved = moveBox(current.box, dx, dy, SNAP_PX / scale);
+    const moved = moveBox(current.box, dx, dy, SNAP_PX / scale, size);
     onBoxChange(moved.box);
     onSnap(moved.snap);
   };
@@ -268,6 +294,7 @@ const TextLayer = ({
   onSnap,
   scale,
   selected,
+  size,
   texts,
 }: {
   onChange: (id: string, patch: Partial<ReelText>) => void;
@@ -276,6 +303,7 @@ const TextLayer = ({
   onSnap: (snap: Snap) => void;
   scale: number;
   selected: string | null;
+  size: Size;
   texts: ReelText[];
 }) => {
   const drag = useRef<{
@@ -309,14 +337,14 @@ const TextLayer = ({
     let x = current.x + (event.clientX - current.pointerX) / scale;
     let y = current.y + (event.clientY - current.pointerY) / scale;
     const snap = {
-      x: Math.abs(x - REEL.width / 2) < SNAP_PX / scale,
-      y: Math.abs(y - REEL.height / 2) < SNAP_PX / scale,
+      x: Math.abs(x - size.width / 2) < SNAP_PX / scale,
+      y: Math.abs(y - size.height / 2) < SNAP_PX / scale,
     };
     if (snap.x) {
-      x = REEL.width / 2;
+      x = size.width / 2;
     }
     if (snap.y) {
-      y = REEL.height / 2;
+      y = size.height / 2;
     }
     onSnap(snap);
     onChange(current.id, { x: Math.round(x), y: Math.round(y) });
@@ -350,9 +378,9 @@ const TextLayer = ({
     <div
       className="pointer-events-none absolute top-0 left-0 origin-top-left"
       style={{
-        height: REEL.height,
+        height: size.height,
         transform: `scale(${scale})`,
-        width: REEL.width,
+        width: size.width,
       }}
     >
       {texts.map((item) => (
@@ -372,7 +400,7 @@ const TextLayer = ({
           onPointerMove={move}
           onPointerUp={end}
           style={{
-            ...textStyle(item),
+            ...textStyle(item, size.width),
             outlineOffset: 8 / Math.max(scale, 0.01),
             outlineWidth: 1.5 / Math.max(scale, 0.01),
           }}
@@ -418,8 +446,10 @@ export const ReelStage = ({
 }) => {
   const area = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
-  const fit = useFit(area);
-  const scale = useScale(frame);
+  const size = FORMATS[scene.format];
+  const safe = SAFE[scene.format];
+  const fit = useFit(area, size);
+  const scale = useScale(frame, size.width);
   const [snap, setSnap] = useState<Snap>({ x: false, y: false });
   const [over, setOver] = useState(false);
 
@@ -460,8 +490,8 @@ export const ReelStage = ({
           acknowledgeRemotionLicense
           clickToPlay={false}
           component={ReelScene}
-          compositionHeight={REEL.height}
-          compositionWidth={REEL.width}
+          compositionHeight={size.height}
+          compositionWidth={size.width}
           doubleClickToFullscreen={false}
           durationInFrames={durationInFrames}
           fps={fps}
@@ -477,10 +507,10 @@ export const ReelStage = ({
             aria-hidden="true"
             className="pointer-events-none absolute border border-dashed border-white/70 mix-blend-difference"
             style={{
-              bottom: SAFE.bottom,
-              left: SAFE.side,
-              right: SAFE.side,
-              top: SAFE.top,
+              bottom: safe.bottom,
+              left: safe.side,
+              right: safe.side,
+              top: safe.top,
             }}
           />
         ) : null}
@@ -499,6 +529,7 @@ export const ReelStage = ({
             onGrab={() => onSelectText(null)}
             onSnap={setSnap}
             scale={scale}
+            size={size}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
@@ -523,6 +554,7 @@ export const ReelStage = ({
             onSnap={setSnap}
             scale={scale}
             selected={selectedText}
+            size={size}
             texts={scene.texts}
           />
         ) : null}

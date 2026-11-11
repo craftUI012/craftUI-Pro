@@ -1,5 +1,10 @@
-import type { ReelBox, ReelSceneProps, ReelText } from "./reel-scene";
-import { REEL, ReelScene, TEXT_FONT } from "./reel-scene";
+import type {
+  ReelBox,
+  ReelFormat,
+  ReelSceneProps,
+  ReelText,
+} from "./reel-scene";
+import { FORMATS, ReelScene, TEXT_FONT } from "./reel-scene";
 
 // Reading a recording and exporting the reel. Both run in the browser: the
 // video never leaves this machine. The heavy parts (Mediabunny, the ProRes
@@ -87,22 +92,58 @@ export const readClip = async (file: File): Promise<ReelClip> => {
   }
 };
 
-// Where a new clip lands: as wide as the frame less a margin, centred. A
-// tall clip (a phone recording) is fitted by height instead.
+// A background image, read in the browser like the clip. Browsers open
+// PNG, JPEG, WebP, AVIF and GIF (the first frame); HEIC needs converting.
+export interface ReelImage {
+  height: number;
+  name: string;
+  size: number;
+  src: string;
+  width: number;
+}
+
+export const readImage = async (file: File): Promise<ReelImage> => {
+  const src = URL.createObjectURL(file);
+  const image = new Image();
+  image.src = src;
+  try {
+    await image.decode();
+  } catch {
+    URL.revokeObjectURL(src);
+    throw new Error(
+      "This browser can't open this image. Use a PNG, JPG or WebP."
+    );
+  }
+  return {
+    height: image.naturalHeight,
+    name: file.name,
+    size: file.size,
+    src,
+    width: image.naturalWidth,
+  };
+};
+
+// Where a clip lands in a frame: as wide as the frame less a margin,
+// centred. A clip too tall for that (a phone recording, or any screen
+// recording in a 16:9 frame) is fitted by height instead.
 const MARGIN = 60;
-export const fitBox = (clip: Pick<ReelClip, "height" | "width">): ReelBox => {
+export const fitBox = (
+  clip: Pick<ReelClip, "height" | "width">,
+  format: ReelFormat
+): ReelBox => {
+  const frame = FORMATS[format];
   const aspect = clip.width / clip.height;
-  let w = REEL.width - MARGIN * 2;
+  let w = frame.width - MARGIN * 2;
   let h = w / aspect;
-  if (h > REEL.height - MARGIN * 2) {
-    h = REEL.height - MARGIN * 2;
+  if (h > frame.height - MARGIN * 2) {
+    h = frame.height - MARGIN * 2;
     w = h * aspect;
   }
   return {
     h: Math.round(h),
     w: Math.round(w),
-    x: Math.round((REEL.width - w) / 2),
-    y: Math.round((REEL.height - h) / 2),
+    x: Math.round((frame.width - w) / 2),
+    y: Math.round((frame.height - h) / 2),
   };
 };
 
@@ -146,15 +187,16 @@ export const exportReel = async ({
   if (inputProps.texts.length > 0) {
     await loadTextFonts(inputProps.texts);
   }
+  const frame = FORMATS[inputProps.format];
   const { getBlob } = await renderMediaOnWeb({
     composition: {
       component: ReelScene,
       defaultProps: inputProps,
       durationInFrames: framesFor(duration, fps),
       fps,
-      height: REEL.height,
+      height: frame.height,
       id: "reel",
-      width: REEL.width,
+      width: frame.width,
     },
     inputProps,
     // craftUI is under Remotion's free-licence headcount (3 people or
@@ -177,8 +219,9 @@ export const exportReel = async ({
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
-export const reelFileName = (date = new Date()) =>
-  `reel-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}.mp4`;
+// reel-2026-11-11-1430.mp4, or reel-2026-11-11-1430-16x9.mp4 for 16:9.
+export const reelFileName = (format: ReelFormat, date = new Date()) =>
+  `reel-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${format === "16:9" ? "-16x9" : ""}.mp4`;
 
 export const saveBlob = (blob: Blob, name: string) => {
   const url = URL.createObjectURL(blob);
