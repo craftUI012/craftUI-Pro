@@ -36,6 +36,7 @@ export const LIVE_PREVIEWS = [
   "testimonials-section-03",
   "voice-membrane",
   "voice-orb",
+  "voice-orb-concepts",
   "word-wheel",
 ] as const;
 

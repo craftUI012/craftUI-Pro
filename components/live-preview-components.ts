@@ -6,6 +6,7 @@ import MrrMovementsPreview from "@/components/previews/mrr-movements-preview";
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
 import SwapGridPreview from "@/components/previews/swap-grid-preview";
 import VoiceMembranePreview from "@/components/previews/voice-membrane-preview";
+import VoiceOrbConceptsPreview from "@/components/previews/voice-orb-concepts-preview";
 import VoiceOrbPreview from "@/components/previews/voice-orb-preview";
 import WordWheelPreview from "@/components/previews/word-wheel-preview";
 import type { LivePreview } from "@/constants/live-previews";
@@ -60,5 +61,6 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "testimonials-section-03": TestimonialsSection03,
     "voice-membrane": VoiceMembranePreview,
     "voice-orb": VoiceOrbPreview,
+    "voice-orb-concepts": VoiceOrbConceptsPreview,
     "word-wheel": WordWheelPreview,
   };
