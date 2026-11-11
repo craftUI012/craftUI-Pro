@@ -6,6 +6,7 @@ import {
   Delete02Icon,
   Download04Icon,
   ImageAdd02Icon,
+  RefreshIcon,
   Upload04Icon,
 } from "@hugeicons/core-free-icons";
 import type { PlayerRef } from "@remotion/player";
@@ -35,6 +36,8 @@ import {
   reelFileName,
   saveBlob,
 } from "./reel-clip";
+import type { ComponentTheme, StudioComponent } from "./reel-components";
+import { ComponentPicker, isComponentTheme } from "./reel-components";
 import type { DeviceId } from "./reel-devices";
 import { DEVICE_OPTIONS, fitDevice, isDeviceId } from "./reel-devices";
 import type {
@@ -61,8 +64,14 @@ interface Look {
   backdropFit: ReelBackdrop["fit"];
   /** Black laid over the background image, 0–0.8. */
   backdropDim: number;
+  /** A live component (its registry name) for the device's screen. */
+  component: string | null;
+  /** The live component's theme, independent of the admin's. */
+  componentTheme: ComponentTheme;
   /** The device mockup the clip plays in, or none. */
   device: DeviceId | null;
+  /** What the device's screen shows: the clip, or a live component. */
+  screen: "component" | "video";
   format: ReelFormat;
   fps: Fps;
   guides: boolean;
@@ -74,11 +83,14 @@ const DEFAULT_LOOK: Look = {
   backdropDim: 0,
   backdropFit: "cover",
   background: "#F3F3F1",
+  component: null,
+  componentTheme: "light",
   device: null,
   format: "9:16",
   fps: 60,
   guides: true,
   radius: 40,
+  screen: "video",
   shadow: false,
 };
 
@@ -126,6 +138,16 @@ const useLook = () => {
         ...(isReelFormat(saved.format) && { format: saved.format }),
         ...((saved.device === null || isDeviceId(saved.device)) && {
           device: saved.device,
+        }),
+        ...((saved.screen === "video" || saved.screen === "component") && {
+          screen: saved.screen,
+        }),
+        ...((saved.component === null ||
+          typeof saved.component === "string") && {
+          component: saved.component,
+        }),
+        ...(isComponentTheme(saved.componentTheme) && {
+          componentTheme: saved.componentTheme,
         }),
         ...((saved.fps === 30 || saved.fps === 60) && { fps: saved.fps }),
         ...(typeof saved.guides === "boolean" && { guides: saved.guides }),
@@ -536,6 +558,102 @@ const DevicePicker = ({
   </div>
 );
 
+// What the phone's screen shows: the clip, or a live craftUI component
+// (picked from a searchable list), with its theme and a reload.
+const ScreenSource = ({
+  component,
+  disabled,
+  onChoose,
+  onReload,
+  onScreen,
+  onTheme,
+  screen,
+  theme,
+}: {
+  component: StudioComponent | null;
+  disabled: boolean;
+  onChoose: () => void;
+  onReload: () => void;
+  onScreen: (screen: Look["screen"]) => void;
+  onTheme: (theme: ComponentTheme) => void;
+  screen: Look["screen"];
+  theme: ComponentTheme;
+}) => (
+  <div className="flex flex-col gap-2">
+    <span className="text-xs">Screen</span>
+    <ToggleGroup
+      aria-label="Screen"
+      className="w-full"
+      disabled={disabled}
+      onValueChange={(value) =>
+        (value === "video" || value === "component") && onScreen(value)
+      }
+      size="sm"
+      type="single"
+      value={screen}
+      variant="outline"
+    >
+      <ToggleGroupItem className="flex-1" value="video">
+        Video
+      </ToggleGroupItem>
+      <ToggleGroupItem className="flex-1" value="component">
+        Component
+      </ToggleGroupItem>
+    </ToggleGroup>
+    {screen === "component" ? (
+      <div className="flex flex-col gap-2 rounded-lg border p-2.5">
+        <div className="flex items-center gap-1.5">
+          <Button
+            className="min-w-0 flex-1 justify-start"
+            disabled={disabled}
+            onClick={onChoose}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            <span className="truncate">
+              {component ? component.title : "Choose a component"}
+            </span>
+          </Button>
+          <Button
+            aria-label="Reload the component"
+            className="size-8"
+            disabled={disabled || !component}
+            onClick={onReload}
+            size="icon"
+            title="Reload"
+            type="button"
+            variant="ghost"
+          >
+            <Icon icon={RefreshIcon} />
+          </Button>
+        </div>
+        <ToggleGroup
+          aria-label="Component theme"
+          className="w-full"
+          disabled={disabled}
+          onValueChange={(value) => isComponentTheme(value) && onTheme(value)}
+          size="sm"
+          type="single"
+          value={theme}
+          variant="outline"
+        >
+          <ToggleGroupItem className="flex-1" value="light">
+            Light
+          </ToggleGroupItem>
+          <ToggleGroupItem className="flex-1" value="dark">
+            Dark
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <p className="text-muted-foreground text-xs">
+          Live in the phone at its real width, so you get the mobile layout. Use
+          it right on the frame. To export it, record it (coming next).
+        </p>
+      </div>
+    ) : null}
+  </div>
+);
+
 const SwitchRow = ({
   checked,
   disabled,
@@ -735,6 +853,7 @@ const FrameToggle = ({
 
 // The top bar's right side: frame rate and Export, or the export's progress.
 const ExportBar = ({
+  blocked,
   clip,
   exporting,
   fps,
@@ -742,6 +861,8 @@ const ExportBar = ({
   onExport,
   onFps,
 }: {
+  /** Why Export can't run right now, if it can't. */
+  blocked: string | null;
   clip: ReelClip | null;
   exporting: number | null;
   fps: Fps;
@@ -763,7 +884,13 @@ const ExportBar = ({
       <ToggleGroupItem value="60">60 fps</ToggleGroupItem>
     </ToggleGroup>
     {exporting === null ? (
-      <Button disabled={!clip} onClick={onExport} size="sm" type="button">
+      <Button
+        disabled={!clip || blocked !== null}
+        onClick={onExport}
+        size="sm"
+        title={blocked ?? undefined}
+        type="button"
+      >
         <Icon icon={Download04Icon} />
         Export MP4
       </Button>
@@ -785,6 +912,77 @@ const ExportBar = ({
     )}
   </div>
 );
+
+// The Device section: the phone, and (with a phone) what its screen shows.
+const DeviceGroup = ({
+  components,
+  disabled,
+  look,
+  onReload,
+  picked,
+  setLook,
+}: {
+  components: StudioComponent[];
+  disabled: boolean;
+  look: Look;
+  onReload: () => void;
+  picked: StudioComponent | null;
+  setLook: (patch: Partial<Look>) => void;
+}) => {
+  const [picking, setPicking] = useState(false);
+  return (
+    <Group title="Device">
+      <DevicePicker
+        disabled={disabled}
+        onChange={(device) => setLook({ device })}
+        value={look.device}
+      />
+      {look.device ? (
+        <ScreenSource
+          component={picked}
+          disabled={disabled}
+          onChoose={() => setPicking(true)}
+          onReload={onReload}
+          onScreen={(screen) => {
+            setLook({ screen });
+            if (screen === "component" && !picked) {
+              setPicking(true);
+            }
+          }}
+          onTheme={(componentTheme) => setLook({ componentTheme })}
+          screen={look.screen}
+          theme={look.componentTheme}
+        />
+      ) : null}
+      <ComponentPicker
+        components={components}
+        onOpenChange={setPicking}
+        onPick={(component) => setLook({ component, screen: "component" })}
+        open={picking}
+      />
+    </Group>
+  );
+};
+
+// The live component on the stage: shown when there's a device, its screen
+// is set to Component and a known component is picked.
+const useLiveComponent = (
+  look: Look,
+  components: StudioComponent[],
+  reload: number
+) => {
+  const picked =
+    components.find((item) => item.name === look.component) ?? null;
+  const showing = look.device && look.screen === "component" && picked;
+  return {
+    /** Export can't draw a live component: it's recorded into a clip first. */
+    blocked: showing ? "Record the live component to export it" : null,
+    picked,
+    stage: showing
+      ? { name: picked.name, reload, theme: look.componentTheme }
+      : null,
+  };
+};
 
 // Where the device sits, and what Centre and Fit move: the device when
 // there is one, else the clip. A device (re)fits whenever it's picked, its
@@ -846,7 +1044,12 @@ const useDevicePlacement = ({
   };
 };
 
-export const ReelStudio = () => {
+export const ReelStudio = ({
+  components,
+}: {
+  /** The live components the phone's screen can show. */
+  components: StudioComponent[];
+}) => {
   const [look, setLook] = useLook();
   const [clip, setClip] = useState<ReelClip | null>(null);
   const [box, setBox] = useState<ReelBox>({ h: 0, w: 0, x: 0, y: 0 });
@@ -862,8 +1065,10 @@ export const ReelStudio = () => {
   const shell = useRef<HTMLDivElement>(null);
   const [texts, setTexts] = useState<ReelText[]>([]);
   const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
   const height = useFillHeight(shell);
   const frame = FORMATS[look.format];
+  const live = useLiveComponent(look, components, reload);
   const placement = useDevicePlacement({
     box,
     clip,
@@ -1071,6 +1276,7 @@ export const ReelStudio = () => {
           {result ?? ""}
         </p>
         <ExportBar
+          blocked={live.blocked}
           clip={clip}
           exporting={exporting}
           fps={look.fps}
@@ -1089,6 +1295,7 @@ export const ReelStudio = () => {
             durationInFrames={durationInFrames}
             fps={look.fps}
             guides={look.guides}
+            live={live.stage}
             onBoxChange={setBox}
             onChoose={() => fileInput.current?.click()}
             onDeviceChange={placement.setDeviceBox}
@@ -1219,13 +1426,14 @@ export const ReelStudio = () => {
             />
           </Group>
 
-          <Group title="Device">
-            <DevicePicker
-              disabled={exporting !== null}
-              onChange={(device) => setLook({ device })}
-              value={look.device}
-            />
-          </Group>
+          <DeviceGroup
+            components={components}
+            disabled={exporting !== null}
+            look={look}
+            onReload={() => setReload((count) => count + 1)}
+            picked={live.picked}
+            setLook={setLook}
+          />
 
           {look.device ? null : (
             <Group title="Clip style">

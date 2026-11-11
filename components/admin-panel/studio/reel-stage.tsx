@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 
 import type { ReelClip } from "./reel-clip";
 import { formatTime } from "./reel-clip";
+import type { ComponentTheme } from "./reel-components";
+import { LiveScreen } from "./reel-components";
 import { DEVICES } from "./reel-devices";
 import type {
   ReelBox,
@@ -414,12 +416,50 @@ const TextLayer = ({
   );
 };
 
+// Shown until there's a clip: how to bring one in. Over a device it sits at
+// the bottom of the frame so the phone stays visible and draggable.
+const EmptyPrompt = ({
+  onChoose,
+  overDevice,
+}: {
+  onChoose: () => void;
+  overDevice: boolean;
+}) => (
+  <div
+    className={cn(
+      "pointer-events-none absolute inset-x-0 flex flex-col items-center gap-3 p-6 text-center",
+      overDevice ? "bottom-0" : "inset-y-0 justify-center"
+    )}
+  >
+    <p
+      className={cn(
+        "text-sm text-balance",
+        overDevice
+          ? "bg-background/85 rounded-md px-2 py-1"
+          : "text-muted-foreground"
+      )}
+    >
+      Paste a recording with ⌘V, drop it here, or
+    </p>
+    <Button
+      className="pointer-events-auto"
+      onClick={onChoose}
+      size="sm"
+      type="button"
+      variant="outline"
+    >
+      Choose a video
+    </Button>
+  </div>
+);
+
 export const ReelStage = ({
   box,
   clip,
   durationInFrames,
   fps,
   guides,
+  live,
   onBoxChange,
   onChoose,
   onDeviceChange,
@@ -436,6 +476,8 @@ export const ReelStage = ({
   durationInFrames: number;
   fps: number;
   guides: boolean;
+  /** A live component in the device's screen (`reload` remounts it). */
+  live: { name: string; reload: number; theme: ComponentTheme } | null;
   onBoxChange: (box: ReelBox) => void;
   onChoose: () => void;
   onDeviceChange: (box: ReelBox) => void;
@@ -550,33 +592,18 @@ export const ReelStage = ({
             size={size}
           />
         ) : null}
-        {clip ? null : (
-          <div
-            className={cn(
-              "pointer-events-none absolute inset-x-0 flex flex-col items-center gap-3 p-6 text-center",
-              scene.device ? "bottom-0" : "inset-y-0 justify-center"
-            )}
-          >
-            <p
-              className={cn(
-                "text-sm text-balance",
-                scene.device
-                  ? "bg-background/85 rounded-md px-2 py-1"
-                  : "text-muted-foreground"
-              )}
-            >
-              Paste a recording with ⌘V, drop it here, or
-            </p>
-            <Button
-              className="pointer-events-auto"
-              onClick={onChoose}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              Choose a video
-            </Button>
-          </div>
+        {scene.device && live ? (
+          <LiveScreen
+            device={scene.device}
+            frame={{ h: size.height, w: size.width }}
+            key={`${live.name}-${live.reload}`}
+            name={live.name}
+            scale={scale}
+            theme={live.theme}
+          />
+        ) : null}
+        {clip || (scene.device && live) ? null : (
+          <EmptyPrompt onChoose={onChoose} overDevice={Boolean(scene.device)} />
         )}
         {scene.texts.length > 0 ? (
           <TextLayer
