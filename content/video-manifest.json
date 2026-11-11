@@ -54,5 +54,13 @@
     "item": "hero-section-04",
     "retired": [],
     "updatedAt": "2026-11-10"
+  },
+  "inputs-prompt-composer": {
+    "bytes": 1286473,
+    "ext": ".mp4",
+    "fingerprint": "48a28305",
+    "item": "prompt-composer",
+    "retired": [],
+    "updatedAt": "2026-11-11"
   }
 }
