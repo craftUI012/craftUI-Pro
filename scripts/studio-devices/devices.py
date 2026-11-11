@@ -1,19 +1,22 @@
-# Renders the Studio's phone mockup with Blender (Cycles), from code: no
-# downloaded models. A generic modern phone (no brand marks): titanium band,
-# black glass front, a camera pill and side buttons, around a screen shaped
-# like a 390x844 phone viewport.
+# Renders the Studio's device mockups with Blender (Cycles), from code: no
+# downloaded models, no brand marks.
+#
+#   phone    a modern phone: titanium band, black glass front, camera pill,
+#            side buttons; the screen stands for a 390x844 viewport
+#   desktop  a large display: thin black glass bezel, aluminium back, a flat
+#            aluminium stand on a plate; the screen stands for 1440x810
 #
 # The screen is a holdout, so it renders fully transparent: the Studio lays
 # the video under the PNG and it shows through. The shadow is added by
 # build.mjs from the phone's silhouette (Cycles' shadow catcher left
 # speckles in the transparency that denoising doesn't clean).
 #
-# For each view it writes <out>/phone-<view>.png and <out>/phone-<view>.json
+# For each view it writes <out>/<device>-<view>.png and .json
 # with the screen's four corners in image pixels (top-left, top-right,
 # bottom-right, bottom-left), which the Studio maps the video onto.
 #
 # Run it through scripts/studio-devices/build.mjs, or by hand:
-#   Blender -b -P scripts/studio-devices/phone.py -- --out <dir> [--views front,three-quarter] [--samples 256] [--finish titanium]
+#   Blender -b -P scripts/studio-devices/devices.py -- --out <dir> --device phone [--views front,three-quarter] [--samples 256] [--finish titanium]
 
 import argparse
 import json
@@ -31,7 +34,8 @@ from mathutils import Euler, Vector
 argv = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
 parser = argparse.ArgumentParser()
 parser.add_argument("--out", required=True)
-parser.add_argument("--views", default="front,three-quarter")
+parser.add_argument("--device", default="phone", choices=["phone", "desktop"])
+parser.add_argument("--views", default="")
 parser.add_argument("--samples", type=int, default=256)
 parser.add_argument("--finish", default="titanium")
 parser.add_argument("--height", type=int, default=2600, help="image height, px")
@@ -59,10 +63,40 @@ FINISHES = {
     "silver": ((0.78, 0.78, 0.8), 0.25),
 }
 
-VIEWS = {
-    # rotation of the phone (degrees), camera lens (mm), orthographic?
-    "front": {"rot": (0, 0, 0), "ortho": True},
-    "three-quarter": {"rot": (8, -30, 2), "ortho": False, "lens": 135},
+# ── The display, in the same units, about a quarter of real size so the
+# lights suit both devices ─────────────────────────────────────────────────
+# A 16:9 screen (1440x810 viewport) with a thin, even bezel.
+
+D_SCREEN_W = 14.4
+D_SCREEN_H = D_SCREEN_W * 810 / 1440
+D_SCREEN_R = 0.04
+D_BEZEL = 0.3
+D_BODY_W = D_SCREEN_W + D_BEZEL * 2
+D_BODY_H = D_SCREEN_H + D_BEZEL * 2
+D_BODY_R = 0.16
+D_BODY_D = 0.42
+D_STAND = {"base_d": 4.2, "base_t": 0.12, "base_w": 5.4, "drop": 2.9, "neck_t": 0.22, "neck_w": 4.2}
+
+# Per device: its views (rotation in degrees, camera lens in mm, or
+# orthographic), its screen (width, height, corner radius, z of the face)
+# and the CSS viewport the screen stands for.
+DEVICES = {
+    "desktop": {
+        "screen": (D_SCREEN_W, D_SCREEN_H, D_SCREEN_R, 0.0215),
+        "viewport": {"height": 810, "width": 1440},
+        "views": {
+            # Seen from a little above, like a display on a desk.
+            "front": {"lens": 120, "ortho": False, "rot": (7, 0, 0)},
+        },
+    },
+    "phone": {
+        "screen": (SCREEN_W, SCREEN_H, SCREEN_R, 0.0215),
+        "viewport": {"height": 844, "width": 390},
+        "views": {
+            "front": {"ortho": True, "rot": (0, 0, 0)},
+            "three-quarter": {"lens": 135, "ortho": False, "rot": (8, -30, 2)},
+        },
+    },
 }
 
 
@@ -295,32 +329,107 @@ def build_phone(finish):
     return rig, screen
 
 
-def camera(scene, view):
+def desktop_finish(finish):
+    """Displays come in aluminium: the phone's default titanium reads as
+    silver here."""
+    return "silver" if finish == "titanium" else finish
+
+
+def build_desktop(finish):
+    """A large display on a flat aluminium stand. The finish colours the
+    back and stand (aluminium by default); the front is black glass."""
+    color, roughness = FINISHES[desktop_finish(finish)]
+    metal = principled("Aluminium", color, roughness, metallic=1.0)
+    glass = principled("Glass", (0.006, 0.006, 0.007), 0.04, coat=1.0)
+    screen_mat = holdout("Screen")
+    parts = []
+
+    body = slab("Body", D_BODY_W, D_BODY_H, D_BODY_R, D_BODY_D, -D_BODY_D, 16)
+    body.data.materials.append(metal)
+    smooth(body, bevel=0.05, segments=6)
+    parts.append(body)
+
+    front = slab("Front", D_BODY_W - 0.04, D_BODY_H - 0.04, D_BODY_R - 0.02, 0.03, -0.01, 16)
+    front.data.materials.append(glass)
+    smooth(front, bevel=0.008, segments=3)
+    parts.append(front)
+
+    screen = slab("Screen", D_SCREEN_W, D_SCREEN_H, D_SCREEN_R, 0, 0.0215, 8)
+    screen.data.materials.append(screen_mat)
+    parts.append(screen)
+
+    # The stand: a flat plate from behind the display down to a base plate.
+    stand = D_STAND
+    neck_top = 0.0
+    neck_bottom = -D_BODY_H / 2 - stand["drop"]
+    neck_h = neck_top - neck_bottom
+    neck_z = -D_BODY_D - 0.3
+    neck = slab("Neck", stand["neck_w"], neck_h, 0.04, stand["neck_t"], 0, 6)
+    neck.location = (0, (neck_top + neck_bottom) / 2, neck_z - stand["neck_t"])
+    neck.data.materials.append(metal)
+    smooth(neck, bevel=0.03, segments=4)
+    parts.append(neck)
+
+    base = slab("Base", stand["base_w"], stand["base_d"], 0.5, stand["base_t"], 0, 16)
+    base.rotation_euler = (math.radians(-90), 0, 0)
+    base.location = (0, neck_bottom, neck_z + stand["base_d"] / 2 - 0.6)
+    base.data.materials.append(metal)
+    smooth(base, bevel=0.05, segments=6)
+    parts.append(base)
+
+    rig = bpy.data.objects.new("Desktop", None)
+    bpy.context.collection.objects.link(rig)
+    for part in parts:
+        part.parent = rig
+    return rig, screen
+
+
+BUILDERS = {"desktop": build_desktop, "phone": build_phone}
+
+
+def framing(rig):
+    """The device's extent in world X and Y (centre and size), after it's
+    rotated: the camera frames this, so any device and view fits."""
+    bpy.context.view_layer.update()
+    points = [
+        part.matrix_world @ Vector(corner)
+        for part in rig.children
+        for corner in part.bound_box
+    ]
+    xs = [p.x for p in points]
+    ys = [p.y for p in points]
+    return (
+        ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2),
+        (max(xs) - min(xs), max(ys) - min(ys)),
+    )
+
+
+def camera(scene, view, centre, size):
     cam_data = bpy.data.cameras.new("Camera")
     cam = bpy.data.objects.new("Camera", cam_data)
     bpy.context.collection.objects.link(cam)
     scene.camera = cam
-    cam.location = (0, 0, 120)
+    cam.location = (centre[0], centre[1], 120)
     cam.rotation_euler = (0, 0, 0)
+    # A little margin: perspective makes the near parts a touch larger.
+    frame_h = size[1] * 1.08
+    cam_data.sensor_fit = "VERTICAL"
     if view["ortho"]:
         cam_data.type = "ORTHO"
-        cam_data.ortho_scale = BODY_H * 1.08
+        cam_data.ortho_scale = frame_h
     else:
         cam_data.type = "PERSP"
         cam_data.lens = view["lens"]
-        cam_data.sensor_fit = "VERTICAL"
-        # Frame the phone's height with the same margin as the front view.
-        cam_data.sensor_height = 2 * view["lens"] * math.tan(
-            math.atan((BODY_H * 1.08) / 2 / 120)
-        )
+        cam_data.sensor_height = view["lens"] * frame_h / 120
     cam_data.clip_end = 1000
     return cam
 
 
-def screen_corners(scene, cam, screen):
+def screen_corners(scene, cam, screen, spec):
     """Screen corners in image pixels: TL, TR, BR, BL."""
-    w, h = SCREEN_W / 2, SCREEN_H / 2
-    local = [Vector((-w, h, 0.0215)), Vector((w, h, 0.0215)), Vector((w, -h, 0.0215)), Vector((-w, -h, 0.0215))]
+    sw, sh, _, z = spec["screen"]
+    w, h = sw / 2, sh / 2
+    local = [Vector((-w, h, z)), Vector((w, h, z)), Vector((w, -h, z)), Vector((-w, -h, z))]
     res_x = scene.render.resolution_x
     res_y = scene.render.resolution_y
     out = []
@@ -331,35 +440,35 @@ def screen_corners(scene, cam, screen):
     return out
 
 
-def render(name, view):
+def render(device, name, view):
+    spec = DEVICES[device]
     scene = reset()
     world(scene)
     lights()
-    rig, screen = build_phone(args.finish)
+    rig, screen = BUILDERS[device](args.finish)
     rig.rotation_euler = Euler([math.radians(a) for a in view["rot"]])
-    cam = camera(scene, view)
+    centre, size = framing(rig)
+    cam = camera(scene, view, centre, size)
     scene.render.resolution_y = args.height
-    # Wide enough for the phone, its rotation and its shadow.
-    scene.render.resolution_x = round(args.height * (0.56 if view["ortho"] else 0.7))
-    if not view["ortho"]:
-        cam.data.sensor_fit = "VERTICAL"
+    scene.render.resolution_x = round(args.height * size[0] / size[1] * 1.04)
     bpy.context.view_layer.update()
-    corners = screen_corners(scene, cam, screen)
+    corners = screen_corners(scene, cam, screen, spec)
     os.makedirs(args.out, exist_ok=True)
-    base = os.path.join(args.out, f"phone-{name}")
+    base = os.path.join(args.out, f"{device}-{name}")
     scene.render.filepath = base + ".png"
     bpy.ops.render.render(write_still=True)
+    sw, _, sr, _ = spec["screen"]
     with open(base + ".json", "w") as handle:
         json.dump(
             {
-                "finish": args.finish,
+                "finish": desktop_finish(args.finish) if device == "desktop" else args.finish,
                 "height": scene.render.resolution_y,
                 "screen": corners,
                 # Corner radius of the screen, as a share of its width: the
                 # video is rounded by this before it's mapped in.
-                "screenRadius": round(SCREEN_R / SCREEN_W, 4),
+                "screenRadius": round(sr / sw, 4),
                 "view": name,
-                "viewport": {"height": 844, "width": 390},
+                "viewport": spec["viewport"],
                 "width": scene.render.resolution_x,
             },
             handle,
@@ -368,5 +477,6 @@ def render(name, view):
     print(f"wrote {base}.png")
 
 
-for view_name in [v.strip() for v in args.views.split(",") if v.strip()]:
-    render(view_name, VIEWS[view_name])
+views = DEVICES[args.device]["views"]
+for view_name in [v.strip() for v in (args.views or ",".join(views)).split(",") if v.strip()]:
+    render(args.device, view_name, views[view_name])

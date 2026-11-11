@@ -40,7 +40,13 @@ import {
 import type { ComponentTheme, StudioComponent } from "./reel-components";
 import { ComponentPicker, isComponentTheme } from "./reel-components";
 import type { DeviceId } from "./reel-devices";
-import { DEVICE_OPTIONS, fitDevice, isDeviceId } from "./reel-devices";
+import {
+  DEVICE_KINDS,
+  DEVICES,
+  fitDevice,
+  isDeviceId,
+  kindOf,
+} from "./reel-devices";
 import { canRecordElements, RecordView } from "./reel-recorder";
 import type {
   ReelBackdrop,
@@ -520,7 +526,8 @@ const BackdropPicker = ({
   );
 };
 
-// The device the clip plays in: none, or the phone front-on or tilted.
+// The device the clip plays in (none, a phone or a desktop) and, for a
+// device with more than one, its view (the phone: front-on or tilted).
 const DevicePicker = ({
   disabled,
   onChange,
@@ -529,41 +536,67 @@ const DevicePicker = ({
   disabled: boolean;
   onChange: (device: DeviceId | null) => void;
   value: DeviceId | null;
-}) => (
-  <div className="flex flex-col gap-2">
-    <span className="text-xs">Phone</span>
-    <ToggleGroup
-      aria-label="Device"
-      className="w-full"
-      disabled={disabled}
-      onValueChange={(next) => {
-        if (next === "none") {
-          onChange(null);
-        } else if (isDeviceId(next)) {
-          onChange(next);
-        }
-      }}
-      size="sm"
-      type="single"
-      value={value ?? "none"}
-      variant="outline"
-    >
-      <ToggleGroupItem className="flex-1" value="none">
-        None
-      </ToggleGroupItem>
-      {DEVICE_OPTIONS.map((option) => (
-        <ToggleGroupItem className="flex-1" key={option.id} value={option.id}>
-          {option.label}
+}) => {
+  const current = value ? kindOf(value) : null;
+  return (
+    <div className="flex flex-col gap-2">
+      <ToggleGroup
+        aria-label="Device"
+        className="w-full"
+        disabled={disabled}
+        onValueChange={(next) => {
+          const kind = DEVICE_KINDS.find((entry) => entry.kind === next);
+          if (next === "none") {
+            onChange(null);
+          } else if (kind && kind !== current) {
+            onChange(kind.views[0].id);
+          }
+        }}
+        size="sm"
+        type="single"
+        value={current?.kind ?? "none"}
+        variant="outline"
+      >
+        <ToggleGroupItem className="flex-1" value="none">
+          None
         </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
-  </div>
-);
+        {DEVICE_KINDS.map((entry) => (
+          <ToggleGroupItem
+            className="flex-1"
+            key={entry.kind}
+            value={entry.kind}
+          >
+            {entry.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      {current && current.views.length > 1 ? (
+        <ToggleGroup
+          aria-label="View"
+          className="w-full"
+          disabled={disabled}
+          onValueChange={(next) => isDeviceId(next) && onChange(next)}
+          size="sm"
+          type="single"
+          value={value ?? undefined}
+          variant="outline"
+        >
+          {current.views.map((view) => (
+            <ToggleGroupItem className="flex-1" key={view.id} value={view.id}>
+              {view.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      ) : null}
+    </div>
+  );
+};
 
-// What the phone's screen shows: the clip, or a live craftUI component
+// What the device's screen shows: the clip, or a live craftUI component
 // (picked from a searchable list), with its theme and a reload.
 const ScreenSource = ({
   canRecord,
+  viewportWidth,
   component,
   disabled,
   onChoose,
@@ -576,6 +609,8 @@ const ScreenSource = ({
 }: {
   /** Whether this browser can record one element (Chrome). */
   canRecord: boolean;
+  /** The device's CSS width, which decides the component's layout. */
+  viewportWidth: number;
   component: StudioComponent | null;
   disabled: boolean;
   onChoose: () => void;
@@ -664,8 +699,8 @@ const ScreenSource = ({
         </Button>
         <p className="text-muted-foreground text-xs">
           {canRecord
-            ? "Live in the phone at its real width, so you get the mobile layout. Record it to make the clip you export."
-            : "Live in the phone at its real width. Recording needs Chrome."}
+            ? `Live at the device's real width (${viewportWidth}px), so you get that layout. Record it to make the clip you export.`
+            : `Live at the device's real width (${viewportWidth}px). Recording needs Chrome.`}
         </p>
       </div>
     ) : null}
@@ -965,6 +1000,7 @@ const DeviceGroup = ({
       {look.device ? (
         <ScreenSource
           canRecord={canRecord}
+          viewportWidth={DEVICES[look.device].viewport.width}
           component={picked}
           disabled={disabled}
           onChoose={() => setPicking(true)}
@@ -990,6 +1026,11 @@ const DeviceGroup = ({
       {recording && picked ? (
         <RecordView
           name={picked.name}
+          viewport={
+            look.device
+              ? DEVICES[look.device].viewport
+              : { height: 844, width: 390 }
+          }
           onClose={() => setRecording(false)}
           onDone={(file) => {
             setRecording(false);
@@ -1077,7 +1118,7 @@ const useDevicePlacement = ({
     centre,
     fit,
     /** What Position shows and moves, and its name (the clip has none). */
-    label: device ? "Phone" : null,
+    label: device ? kindOf(device).label : null,
     positioned,
     scene: device ? { box: deviceBox, id: device } : null,
     setDeviceBox,
@@ -1087,7 +1128,7 @@ const useDevicePlacement = ({
 export const ReelStudio = ({
   components,
 }: {
-  /** The live components the phone's screen can show. */
+  /** The live components a device's screen can show. */
   components: StudioComponent[];
 }) => {
   const [look, setLook] = useLook();

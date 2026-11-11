@@ -1,4 +1,28 @@
 {
+  "desktop-front": {
+    "body": {
+      "h": 2428,
+      "w": 3044,
+      "x": 486,
+      "y": 486
+    },
+    "finish": "silver",
+    "height": 3400,
+    "screen": [
+      [547.07, 553.44],
+      [3468.93, 553.44],
+      [3456.96, 2180.7],
+      [559.04, 2180.7]
+    ],
+    "screenRadius": 0.0028,
+    "src": "/studio/devices/desktop-front.webp",
+    "view": "front",
+    "viewport": {
+      "height": 810,
+      "width": 1440
+    },
+    "width": 4016
+  },
   "phone-front": {
     "body": {
       "h": 2406,

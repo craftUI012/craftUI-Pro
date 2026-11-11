@@ -14,18 +14,16 @@ import { useFrameSetup } from "./reel-components";
 
 // Recording a live component into a clip, in the Studio itself.
 //
-// The component is shown flat and upright at its real size (the phone's
-// 390x844 viewport, scaled down only if the window is short), so the
-// recording is sharp and independent of the phone's tilt: the Studio maps
-// it into the phone afterwards, like any clip.
+// The component is shown flat and upright at its real size (the device's
+// viewport: 390x844 for the phone, 1440x810 for the desktop; scaled down
+// only to fit the window), so the recording is sharp and independent of
+// the device's tilt: the Studio maps it into the device afterwards.
 //
 // Chrome's tab capture (getDisplayMedia, "this tab") is narrowed to just
 // that element: Element Capture (restrictTo) where the browser has it,
 // Region Capture (cropTo) otherwise. The timer and buttons sit outside the
 // element, so they're never recorded. Tab capture has no cursor, so taps
 // show as soft dots inside the recorded element.
-
-const VIEWPORT = { height: 844, width: 390 };
 
 const wait = (ms: number) =>
   // oxlint-disable-next-line promise/avoid-new -- timers have no promise API here
@@ -36,7 +34,12 @@ const COUNTDOWN = 3;
 /** ms between clearing the countdown and starting the recorder. */
 const START_DELAY = 200;
 /** Room kept around the element for the title and controls, px. */
-const CHROME = 160;
+const CHROME = { x: 64, y: 160 };
+
+interface Viewport {
+  height: number;
+  width: number;
+}
 const TAP = { duration: 650, size: 46 };
 
 // Element and Region Capture aren't in TypeScript's DOM types yet.
@@ -197,15 +200,22 @@ type Phase =
   | { kind: "recording"; since: number }
   | { kind: "saving" };
 
-const useFitScale = () => {
+/** The largest scale (up to 1) at which the viewport fits the window. */
+const useFitScale = ({ height, width }: Viewport) => {
   const [scale, setScale] = useState(1);
   useEffect(() => {
     const update = () =>
-      setScale(Math.min(1, (window.innerHeight - CHROME) / VIEWPORT.height));
+      setScale(
+        Math.min(
+          1,
+          (window.innerHeight - CHROME.y) / height,
+          (window.innerWidth - CHROME.x) / width
+        )
+      );
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, []);
+  }, [height, width]);
   return scale;
 };
 
@@ -236,12 +246,15 @@ export const RecordView = ({
   onDone,
   theme,
   title,
+  viewport,
 }: {
   name: string;
   onClose: () => void;
   onDone: (file: File) => void;
   theme: ComponentTheme;
   title: string;
+  /** The device's CSS viewport: the component is laid out and recorded at it. */
+  viewport: Viewport;
 }) => {
   const target = useRef<HTMLDivElement>(null);
   const iframe = useRef<HTMLIFrameElement>(null);
@@ -252,7 +265,7 @@ export const RecordView = ({
   const [phase, setPhase] = useState<Phase>({ kind: "ready" });
   const [problem, setProblem] = useState<string | null>(null);
   const [taps, setTaps] = useState(true);
-  const scale = useFitScale();
+  const scale = useFitScale(viewport);
   const elapsed = useElapsed(phase);
   const setupFrame = useFrameSetup(iframe, theme);
   const listenTaps = useTapDots(iframe, dots, taps);
@@ -353,17 +366,17 @@ export const RecordView = ({
           className="relative overflow-hidden"
           ref={target}
           style={{
-            height: VIEWPORT.height * scale,
+            height: viewport.height * scale,
             isolation: "isolate",
-            width: VIEWPORT.width * scale,
+            width: viewport.width * scale,
           }}
         >
           <div
             className="absolute top-0 left-0 origin-top-left"
             style={{
-              height: VIEWPORT.height,
+              height: viewport.height,
               transform: `scale(${scale})`,
-              width: VIEWPORT.width,
+              width: viewport.width,
             }}
           >
             <iframe
@@ -429,7 +442,7 @@ export const RecordView = ({
       </div>
       <p className="text-muted-foreground max-w-sm text-center text-xs">
         {problem ??
-          "Chrome asks to share this tab: only the component is recorded. Stop or Esc ends it, and the recording goes into the phone."}
+          "Chrome asks to share this tab: only the component is recorded. Stop or Esc ends it, and the recording goes into the device."}
       </p>
     </div>,
     document.body

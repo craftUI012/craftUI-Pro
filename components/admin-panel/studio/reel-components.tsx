@@ -49,7 +49,7 @@ export const ComponentPicker = ({
   const groups = Map.groupBy(components, (item) => item.library);
   return (
     <CommandDialog
-      description="Pick a craftUI component to run inside the phone."
+      description="Pick a craftUI component to run inside the device."
       onOpenChange={onOpenChange}
       open={open}
       title="Choose a component"

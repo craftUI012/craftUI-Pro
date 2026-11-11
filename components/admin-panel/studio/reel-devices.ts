@@ -10,7 +10,9 @@ import { FORMATS } from "./reel-frame";
 // A device is placed by its body (`ReelBox` in frame pixels): the image
 // around it is the soft shadow's margin.
 
-export type DeviceId = "phone-front" | "phone-three-quarter";
+export type DeviceId = "desktop-front" | "phone-front" | "phone-three-quarter";
+
+export type DeviceKind = "desktop" | "phone";
 
 type Point = [number, number];
 
@@ -30,23 +32,55 @@ export interface DeviceRender {
 
 export const DEVICES = devices as unknown as Record<DeviceId, DeviceRender>;
 
-export const DEVICE_OPTIONS: { id: DeviceId; label: string }[] = [
-  { id: "phone-front", label: "Front" },
-  { id: "phone-three-quarter", label: "Tilted" },
+/** The devices, each with its views (the first is its default). */
+export const DEVICE_KINDS: {
+  kind: DeviceKind;
+  label: string;
+  views: { id: DeviceId; label: string }[];
+}[] = [
+  {
+    kind: "phone",
+    label: "Phone",
+    views: [
+      { id: "phone-front", label: "Front" },
+      { id: "phone-three-quarter", label: "Tilted" },
+    ],
+  },
+  {
+    kind: "desktop",
+    label: "Desktop",
+    views: [{ id: "desktop-front", label: "Front" }],
+  },
 ];
+
+/** The device a view belongs to. */
+export const kindOf = (id: DeviceId) =>
+  DEVICE_KINDS.find((entry) => entry.views.some((view) => view.id === id)) ??
+  DEVICE_KINDS[0];
 
 export const isDeviceId = (value: unknown): value is DeviceId =>
   typeof value === "string" && value in DEVICES;
 
-/** How tall the device's body is, as a share of the frame's height. */
-const FIT_HEIGHT: Record<ReelFormat, number> = { "16:9": 0.84, "9:16": 0.7 };
+/**
+ * The most of the frame a device may take, as shares of its width and
+ * height: a phone is limited by height, a desktop by width in 9:16.
+ */
+const FIT: Record<DeviceKind, Record<ReelFormat, { h: number; w: number }>> = {
+  desktop: { "16:9": { h: 0.84, w: 0.86 }, "9:16": { h: 0.6, w: 0.9 } },
+  phone: { "16:9": { h: 0.84, w: 0.9 }, "9:16": { h: 0.7, w: 0.9 } },
+};
 
 /** Where a device lands in a frame: centred, at a comfortable size. */
 export const fitDevice = (id: DeviceId, format: ReelFormat): ReelBox => {
   const { body } = DEVICES[id];
   const frame = FORMATS[format];
-  const h = frame.height * FIT_HEIGHT[format];
-  const w = (h * body.w) / body.h;
+  const limit = FIT[kindOf(id).kind][format];
+  const k = Math.min(
+    (frame.width * limit.w) / body.w,
+    (frame.height * limit.h) / body.h
+  );
+  const h = body.h * k;
+  const w = body.w * k;
   return {
     h: Math.round(h),
     w: Math.round(w),
