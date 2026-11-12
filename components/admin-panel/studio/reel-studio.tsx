@@ -5,6 +5,9 @@ import {
   Cancel01Icon,
   Delete02Icon,
   Download04Icon,
+  ImageAdd02Icon,
+  RecordIcon,
+  RefreshIcon,
   Upload04Icon,
 } from "@hugeicons/core-free-icons";
 import type { PlayerRef } from "@remotion/player";
@@ -21,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-import type { ReelClip } from "./reel-clip";
+import type { ReelClip, ReelImage } from "./reel-clip";
 import {
   codecLabel,
   exportReel,
@@ -30,22 +33,54 @@ import {
   formatTime,
   framesFor,
   readClip,
+  readImage,
   reelFileName,
   saveBlob,
 } from "./reel-clip";
-import type { ReelBox, ReelSceneProps, ReelText } from "./reel-scene";
-import { REEL } from "./reel-scene";
+import type { ComponentTheme, StudioComponent } from "./reel-components";
+import { ComponentPicker, isComponentTheme } from "./reel-components";
+import type { DeviceId } from "./reel-devices";
+import {
+  DEVICE_KINDS,
+  DEVICES,
+  fitDevice,
+  isDeviceId,
+  kindOf,
+} from "./reel-devices";
+import { canRecordElements, RecordView } from "./reel-recorder";
+import type {
+  ReelBackdrop,
+  ReelBox,
+  ReelFormat,
+  ReelSceneProps,
+  ReelText,
+} from "./reel-scene";
+import { FORMATS, isReelFormat } from "./reel-scene";
 import { SoundPanel, useSoundtrack } from "./reel-soundtrack";
 import { ReelStage, ReelTransport } from "./reel-stage";
 import { ReelTimeline } from "./reel-timeline";
 
-// The admin Studio: put a screen recording on a 9:16 frame, pick the
-// background, move and size the clip, export an MP4 for Reels, TikTok and
-// Shorts. All in the browser; nothing is uploaded.
+// The admin Studio: put a screen recording on a 9:16 frame (Reels, TikTok,
+// Shorts) or a 16:9 one (YouTube, X, LinkedIn), pick the background, move
+// and size the clip, export an MP4. All in the browser; nothing is
+// uploaded.
 
 type Fps = 30 | 60;
 interface Look {
   background: string;
+  /** How the background image sits: fill the frame or show all of it. */
+  backdropFit: ReelBackdrop["fit"];
+  /** Black laid over the background image, 0–0.8. */
+  backdropDim: number;
+  /** A live component (its registry name) for the device's screen. */
+  component: string | null;
+  /** The live component's theme, independent of the admin's. */
+  componentTheme: ComponentTheme;
+  /** The device mockup the clip plays in, or none. */
+  device: DeviceId | null;
+  /** What the device's screen shows: the clip, or a live component. */
+  screen: "component" | "video";
+  format: ReelFormat;
   fps: Fps;
   guides: boolean;
   radius: number;
@@ -53,10 +88,17 @@ interface Look {
 }
 
 const DEFAULT_LOOK: Look = {
+  backdropDim: 0,
+  backdropFit: "cover",
   background: "#F3F3F1",
+  component: null,
+  componentTheme: "light",
+  device: null,
+  format: "9:16",
   fps: 60,
   guides: true,
   radius: 40,
+  screen: "video",
   shadow: false,
 };
 
@@ -94,6 +136,27 @@ const useLook = () => {
       setLook((current) => ({
         ...current,
         ...(HEX.test(saved.background) && { background: saved.background }),
+        ...((saved.backdropFit === "cover" ||
+          saved.backdropFit === "contain") && {
+          backdropFit: saved.backdropFit,
+        }),
+        ...(Number.isFinite(saved.backdropDim) && {
+          backdropDim: Math.min(Math.max(saved.backdropDim, 0), 0.8),
+        }),
+        ...(isReelFormat(saved.format) && { format: saved.format }),
+        ...((saved.device === null || isDeviceId(saved.device)) && {
+          device: saved.device,
+        }),
+        ...((saved.screen === "video" || saved.screen === "component") && {
+          screen: saved.screen,
+        }),
+        ...((saved.component === null ||
+          typeof saved.component === "string") && {
+          component: saved.component,
+        }),
+        ...(isComponentTheme(saved.componentTheme) && {
+          componentTheme: saved.componentTheme,
+        }),
         ...((saved.fps === 30 || saved.fps === 60) && { fps: saved.fps }),
         ...(typeof saved.guides === "boolean" && { guides: saved.guides }),
         ...(Number.isFinite(saved.radius) && { radius: saved.radius }),
@@ -123,12 +186,14 @@ const useLook = () => {
   return [look, update] as const;
 };
 
-// ⌘V anywhere on the page with a video file on the clipboard.
-const usePasteVideo = (onFile: (file: File) => void) => {
+// ⌘V anywhere on the page with a video (the clip) or an image (the
+// background) on the clipboard.
+const usePasteFile = (onFile: (file: File) => void) => {
   useEffect(() => {
     const paste = (event: ClipboardEvent) => {
-      const file = [...(event.clipboardData?.files ?? [])].find((item) =>
-        item.type.startsWith("video/")
+      const file = [...(event.clipboardData?.files ?? [])].find(
+        (item) =>
+          item.type.startsWith("video/") || item.type.startsWith("image/")
       );
       if (file) {
         event.preventDefault();
@@ -187,9 +252,11 @@ const Group = ({
 
 // The selected text's controls: words, size, weight, colour.
 const TextEditor = ({
+  frameWidth,
   item,
   onChange,
 }: {
+  frameWidth: number;
   item: ReelText;
   onChange: (patch: Partial<ReelText>) => void;
 }) => (
@@ -276,7 +343,7 @@ const TextEditor = ({
       </span>
       <Button
         className="h-7 px-2 text-xs"
-        onClick={() => onChange({ x: REEL.width / 2 })}
+        onClick={() => onChange({ x: frameWidth / 2 })}
         size="sm"
         type="button"
         variant="outline"
@@ -343,6 +410,303 @@ const BackgroundPicker = ({
   );
 };
 
+// The background image: add one, then fill or fit it and darken it. The
+// colour above stays underneath (it shows around a fitted image).
+const BackdropPicker = ({
+  dim,
+  disabled,
+  fit,
+  image,
+  onAdd,
+  onDim,
+  onFit,
+  onRemove,
+}: {
+  dim: number;
+  disabled: boolean;
+  fit: ReelBackdrop["fit"];
+  image: ReelImage | null;
+  onAdd: () => void;
+  onDim: (dim: number) => void;
+  onFit: (fit: ReelBackdrop["fit"]) => void;
+  onRemove: () => void;
+}) => {
+  if (!image) {
+    return (
+      <Button
+        disabled={disabled}
+        onClick={onAdd}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        <Icon icon={ImageAdd02Icon} />
+        Add an image
+      </Button>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border p-3">
+      <div className="flex items-center gap-2.5">
+        {/* oxlint-disable-next-line nextjs/no-img-element -- a local blob: URL, not an optimisable asset */}
+        <img
+          alt=""
+          className="size-9 shrink-0 rounded-md border object-cover"
+          src={image.src}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs" title={image.name}>
+            {image.name}
+          </p>
+          <p className="text-muted-foreground text-xs tabular-nums">
+            {image.width}×{image.height} · {formatBytes(image.size)}
+          </p>
+        </div>
+        <Button
+          aria-label="Replace the background image"
+          className="size-7"
+          disabled={disabled}
+          onClick={onAdd}
+          size="icon"
+          title="Replace"
+          type="button"
+          variant="ghost"
+        >
+          <Icon icon={Upload04Icon} />
+        </Button>
+        <Button
+          aria-label="Remove the background image"
+          className="size-7"
+          disabled={disabled}
+          onClick={onRemove}
+          size="icon"
+          type="button"
+          variant="ghost"
+        >
+          <Icon icon={Delete02Icon} />
+        </Button>
+      </div>
+      <ToggleGroup
+        aria-label="Image fit"
+        className="w-full"
+        onValueChange={(value) =>
+          (value === "cover" || value === "contain") && onFit(value)
+        }
+        size="sm"
+        type="single"
+        value={fit}
+        variant="outline"
+      >
+        <ToggleGroupItem className="flex-1" value="cover">
+          Fill
+        </ToggleGroupItem>
+        <ToggleGroupItem className="flex-1" value="contain">
+          Fit
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between gap-4">
+          <Label className="text-xs" htmlFor="backdrop-dim">
+            Darken
+          </Label>
+          <span className="text-muted-foreground text-xs tabular-nums">
+            {Math.round(dim * 100)}%
+          </span>
+        </div>
+        <Slider
+          id="backdrop-dim"
+          max={80}
+          min={0}
+          onValueChange={([value]) => onDim(value / 100)}
+          step={1}
+          value={[Math.round(dim * 100)]}
+        />
+      </div>
+    </div>
+  );
+};
+
+// The device the clip plays in (none, a phone or a desktop) and, for a
+// device with more than one, its view (the phone: front-on or tilted).
+const DevicePicker = ({
+  disabled,
+  onChange,
+  value,
+}: {
+  disabled: boolean;
+  onChange: (device: DeviceId | null) => void;
+  value: DeviceId | null;
+}) => {
+  const current = value ? kindOf(value) : null;
+  return (
+    <div className="flex flex-col gap-2">
+      <ToggleGroup
+        aria-label="Device"
+        className="w-full"
+        disabled={disabled}
+        onValueChange={(next) => {
+          const kind = DEVICE_KINDS.find((entry) => entry.kind === next);
+          if (next === "none") {
+            onChange(null);
+          } else if (kind && kind !== current) {
+            onChange(kind.views[0].id);
+          }
+        }}
+        size="sm"
+        type="single"
+        value={current?.kind ?? "none"}
+        variant="outline"
+      >
+        <ToggleGroupItem className="flex-1" value="none">
+          None
+        </ToggleGroupItem>
+        {DEVICE_KINDS.map((entry) => (
+          <ToggleGroupItem
+            className="flex-1"
+            key={entry.kind}
+            value={entry.kind}
+          >
+            {entry.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      {current && current.views.length > 1 ? (
+        <ToggleGroup
+          aria-label="View"
+          className="w-full"
+          disabled={disabled}
+          onValueChange={(next) => isDeviceId(next) && onChange(next)}
+          size="sm"
+          type="single"
+          value={value ?? undefined}
+          variant="outline"
+        >
+          {current.views.map((view) => (
+            <ToggleGroupItem className="flex-1" key={view.id} value={view.id}>
+              {view.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      ) : null}
+    </div>
+  );
+};
+
+// What the device's screen shows: the clip, or a live craftUI component
+// (picked from a searchable list), with its theme and a reload.
+const ScreenSource = ({
+  canRecord,
+  viewportWidth,
+  component,
+  disabled,
+  onChoose,
+  onRecord,
+  onReload,
+  onScreen,
+  onTheme,
+  screen,
+  theme,
+}: {
+  /** Whether this browser can record one element (Chrome). */
+  canRecord: boolean;
+  /** The device's CSS width, which decides the component's layout. */
+  viewportWidth: number;
+  component: StudioComponent | null;
+  disabled: boolean;
+  onChoose: () => void;
+  onRecord: () => void;
+  onReload: () => void;
+  onScreen: (screen: Look["screen"]) => void;
+  onTheme: (theme: ComponentTheme) => void;
+  screen: Look["screen"];
+  theme: ComponentTheme;
+}) => (
+  <div className="flex flex-col gap-2">
+    <span className="text-xs">Screen</span>
+    <ToggleGroup
+      aria-label="Screen"
+      className="w-full"
+      disabled={disabled}
+      onValueChange={(value) =>
+        (value === "video" || value === "component") && onScreen(value)
+      }
+      size="sm"
+      type="single"
+      value={screen}
+      variant="outline"
+    >
+      <ToggleGroupItem className="flex-1" value="video">
+        Video
+      </ToggleGroupItem>
+      <ToggleGroupItem className="flex-1" value="component">
+        Component
+      </ToggleGroupItem>
+    </ToggleGroup>
+    {screen === "component" ? (
+      <div className="flex flex-col gap-2 rounded-lg border p-2.5">
+        <div className="flex items-center gap-1.5">
+          <Button
+            className="min-w-0 flex-1 justify-start"
+            disabled={disabled}
+            onClick={onChoose}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            <span className="truncate">
+              {component ? component.title : "Choose a component"}
+            </span>
+          </Button>
+          <Button
+            aria-label="Reload the component"
+            className="size-8"
+            disabled={disabled || !component}
+            onClick={onReload}
+            size="icon"
+            title="Reload"
+            type="button"
+            variant="ghost"
+          >
+            <Icon icon={RefreshIcon} />
+          </Button>
+        </div>
+        <ToggleGroup
+          aria-label="Component theme"
+          className="w-full"
+          disabled={disabled}
+          onValueChange={(value) => isComponentTheme(value) && onTheme(value)}
+          size="sm"
+          type="single"
+          value={theme}
+          variant="outline"
+        >
+          <ToggleGroupItem className="flex-1" value="light">
+            Light
+          </ToggleGroupItem>
+          <ToggleGroupItem className="flex-1" value="dark">
+            Dark
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <Button
+          disabled={disabled || !component || !canRecord}
+          onClick={onRecord}
+          size="sm"
+          title={canRecord ? undefined : "Recording needs Chrome"}
+          type="button"
+        >
+          <Icon icon={RecordIcon} />
+          Record
+        </Button>
+        <p className="text-muted-foreground text-xs">
+          {canRecord
+            ? `Live at the device's real width (${viewportWidth}px), so you get that layout. Record it to make the clip you export.`
+            : `Live at the device's real width (${viewportWidth}px). Recording needs Chrome.`}
+        </p>
+      </div>
+    ) : null}
+  </div>
+);
+
 const SwitchRow = ({
   checked,
   disabled,
@@ -369,8 +733,62 @@ const SwitchRow = ({
   </div>
 );
 
+// Centre, Fit to frame and the safe-zone guides; `box` is what they move
+// (the device, or the clip), `label` names it when it isn't the clip.
+const PositionGroup = ({
+  box,
+  guides,
+  label,
+  onCentre,
+  onFit,
+  onGuides,
+}: {
+  box: ReelBox | null;
+  guides: boolean;
+  label: string | null;
+  onCentre: () => void;
+  onFit: () => void;
+  onGuides: (guides: boolean) => void;
+}) => (
+  <Group title="Position">
+    <div className="grid grid-cols-2 gap-2">
+      <Button
+        disabled={!box}
+        onClick={onCentre}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        Centre
+      </Button>
+      <Button
+        disabled={!box}
+        onClick={onFit}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        Fit to frame
+      </Button>
+    </div>
+    {box ? (
+      <p className="text-muted-foreground text-xs tabular-nums">
+        {label ? `${label} ` : ""}
+        {box.w}×{box.h} at {box.x}, {box.y}
+      </p>
+    ) : null}
+    <SwitchRow
+      checked={guides}
+      id="reel-guides"
+      label="Safe-zone guides"
+      onChange={onGuides}
+    />
+  </Group>
+);
+
 // The Text section: add, pick and edit the lines of text on the frame.
 const TextGroup = ({
+  frameWidth,
   onAdd,
   onChange,
   onRemove,
@@ -378,6 +796,7 @@ const TextGroup = ({
   selected,
   texts,
 }: {
+  frameWidth: number;
   onAdd: () => void;
   onChange: (id: string, patch: Partial<ReelText>) => void;
   onRemove: (id: string) => void;
@@ -440,6 +859,7 @@ const TextGroup = ({
       )}
       {selectedItem ? (
         <TextEditor
+          frameWidth={frameWidth}
           item={selectedItem}
           onChange={(patch) => onChange(selectedItem.id, patch)}
         />
@@ -448,8 +868,45 @@ const TextGroup = ({
   );
 };
 
+// The top bar's frame picker: 9:16 or 16:9, with the size it exports at.
+const FrameToggle = ({
+  disabled,
+  format,
+  onFormat,
+}: {
+  disabled: boolean;
+  format: ReelFormat;
+  onFormat: (format: ReelFormat) => void;
+}) => (
+  <div className="flex items-center gap-2">
+    <ToggleGroup
+      aria-label="Frame"
+      disabled={disabled}
+      onValueChange={(value) => isReelFormat(value) && onFormat(value)}
+      size="sm"
+      type="single"
+      value={format}
+      variant="outline"
+    >
+      {(["9:16", "16:9"] as const).map((value) => (
+        <ToggleGroupItem
+          key={value}
+          title={`${FORMATS[value].width}×${FORMATS[value].height} · ${FORMATS[value].use}`}
+          value={value}
+        >
+          {value}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
+    <span className="text-muted-foreground hidden text-xs tabular-nums sm:inline">
+      {FORMATS[format].width}×{FORMATS[format].height}
+    </span>
+  </div>
+);
+
 // The top bar's right side: frame rate and Export, or the export's progress.
 const ExportBar = ({
+  blocked,
   clip,
   exporting,
   fps,
@@ -457,6 +914,8 @@ const ExportBar = ({
   onExport,
   onFps,
 }: {
+  /** Why Export can't run right now, if it can't. */
+  blocked: string | null;
   clip: ReelClip | null;
   exporting: number | null;
   fps: Fps;
@@ -478,7 +937,13 @@ const ExportBar = ({
       <ToggleGroupItem value="60">60 fps</ToggleGroupItem>
     </ToggleGroup>
     {exporting === null ? (
-      <Button disabled={!clip} onClick={onExport} size="sm" type="button">
+      <Button
+        disabled={!clip || blocked !== null}
+        onClick={onExport}
+        size="sm"
+        title={blocked ?? undefined}
+        type="button"
+      >
         <Icon icon={Download04Icon} />
         Export MP4
       </Button>
@@ -501,7 +966,171 @@ const ExportBar = ({
   </div>
 );
 
-export const ReelStudio = () => {
+// The Device section: the phone, and (with a phone) what its screen shows.
+const DeviceGroup = ({
+  components,
+  disabled,
+  look,
+  onRecorded,
+  onReload,
+  picked,
+  setLook,
+}: {
+  components: StudioComponent[];
+  disabled: boolean;
+  look: Look;
+  /** A finished recording of the live component, to become the clip. */
+  onRecorded: (file: File) => void;
+  onReload: () => void;
+  picked: StudioComponent | null;
+  setLook: (patch: Partial<Look>) => void;
+}) => {
+  const [picking, setPicking] = useState(false);
+  const [recording, setRecording] = useState(false);
+  // Read after mount: the server can't know the browser.
+  const [canRecord, setCanRecord] = useState(false);
+  useEffect(() => setCanRecord(canRecordElements()), []);
+  return (
+    <Group title="Device">
+      <DevicePicker
+        disabled={disabled}
+        onChange={(device) => setLook({ device })}
+        value={look.device}
+      />
+      {look.device ? (
+        <ScreenSource
+          canRecord={canRecord}
+          viewportWidth={DEVICES[look.device].viewport.width}
+          component={picked}
+          disabled={disabled}
+          onChoose={() => setPicking(true)}
+          onRecord={() => setRecording(true)}
+          onReload={onReload}
+          onScreen={(screen) => {
+            setLook({ screen });
+            if (screen === "component" && !picked) {
+              setPicking(true);
+            }
+          }}
+          onTheme={(componentTheme) => setLook({ componentTheme })}
+          screen={look.screen}
+          theme={look.componentTheme}
+        />
+      ) : null}
+      <ComponentPicker
+        components={components}
+        onOpenChange={setPicking}
+        onPick={(component) => setLook({ component, screen: "component" })}
+        open={picking}
+      />
+      {recording && picked ? (
+        <RecordView
+          name={picked.name}
+          viewport={
+            look.device
+              ? DEVICES[look.device].viewport
+              : { height: 844, width: 390 }
+          }
+          onClose={() => setRecording(false)}
+          onDone={(file) => {
+            setRecording(false);
+            setLook({ screen: "video" });
+            onRecorded(file);
+          }}
+          theme={look.componentTheme}
+          title={picked.title}
+        />
+      ) : null}
+    </Group>
+  );
+};
+
+// The live component on the stage: shown when there's a device, its screen
+// is set to Component and a known component is picked.
+const useLiveComponent = (
+  look: Look,
+  components: StudioComponent[],
+  reload: number
+) => {
+  const picked =
+    components.find((item) => item.name === look.component) ?? null;
+  const showing = look.device && look.screen === "component" && picked;
+  return {
+    /** Export can't draw a live component: it's recorded into a clip first. */
+    blocked: showing ? "Record the live component to export it" : null,
+    picked,
+    stage: showing
+      ? { name: picked.name, reload, theme: look.componentTheme }
+      : null,
+  };
+};
+
+// Where the device sits, and what Centre and Fit move: the device when
+// there is one, else the clip. A device (re)fits whenever it's picked, its
+// view changes or the frame changes (including when the saved look loads).
+const useDevicePlacement = ({
+  box,
+  clip,
+  device,
+  format,
+  setBox,
+}: {
+  box: ReelBox;
+  clip: ReelClip | null;
+  device: DeviceId | null;
+  format: ReelFormat;
+  setBox: React.Dispatch<React.SetStateAction<ReelBox>>;
+}) => {
+  const [deviceBox, setDeviceBox] = useState<ReelBox>({
+    h: 0,
+    w: 0,
+    x: 0,
+    y: 0,
+  });
+  const frame = FORMATS[format];
+
+  useEffect(() => {
+    if (device) {
+      setDeviceBox(fitDevice(device, format));
+    }
+  }, [device, format]);
+
+  const centre = () =>
+    (device ? setDeviceBox : setBox)((current) => ({
+      ...current,
+      x: Math.round((frame.width - current.w) / 2),
+      y: Math.round((frame.height - current.h) / 2),
+    }));
+  const fit = () => {
+    if (device) {
+      setDeviceBox(fitDevice(device, format));
+    } else if (clip) {
+      setBox(fitBox(clip, format));
+    }
+  };
+  let positioned: ReelBox | null = null;
+  if (device) {
+    positioned = deviceBox;
+  } else if (clip) {
+    positioned = box;
+  }
+  return {
+    centre,
+    fit,
+    /** What Position shows and moves, and its name (the clip has none). */
+    label: device ? kindOf(device).label : null,
+    positioned,
+    scene: device ? { box: deviceBox, id: device } : null,
+    setDeviceBox,
+  };
+};
+
+export const ReelStudio = ({
+  components,
+}: {
+  /** The live components a device's screen can show. */
+  components: StudioComponent[];
+}) => {
   const [look, setLook] = useLook();
   const [clip, setClip] = useState<ReelClip | null>(null);
   const [box, setBox] = useState<ReelBox>({ h: 0, w: 0, x: 0, y: 0 });
@@ -511,11 +1140,24 @@ export const ReelStudio = () => {
   const [result, setResult] = useState<string | null>(null);
   const abort = useRef<AbortController | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const imageInput = useRef<HTMLInputElement>(null);
+  const [backdrop, setBackdrop] = useState<ReelImage | null>(null);
   const playerRef = useRef<PlayerRef>(null);
   const shell = useRef<HTMLDivElement>(null);
   const [texts, setTexts] = useState<ReelText[]>([]);
   const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
   const height = useFillHeight(shell);
+  const frame = FORMATS[look.format];
+  const live = useLiveComponent(look, components, reload);
+  const placement = useDevicePlacement({
+    box,
+    clip,
+    device: look.device,
+    format: look.format,
+    setBox,
+  });
+
   const soundtrack = useSoundtrack(clip);
   const { reset: resetSound } = soundtrack;
 
@@ -532,7 +1174,7 @@ export const ReelStudio = () => {
           }
           return next;
         });
-        setBox(fitBox(next));
+        setBox(fitBox(next, look.format));
         resetSound();
       } catch (error) {
         setProblem(error instanceof Error ? error.message : String(error));
@@ -540,10 +1182,61 @@ export const ReelStudio = () => {
         setReading(false);
       }
     },
-    [resetSound]
+    [look.format, resetSound]
   );
 
-  usePasteVideo(loadFile);
+  const loadImage = useCallback(async (file: File) => {
+    setProblem(null);
+    try {
+      const next = await readImage(file);
+      setBackdrop((previous) => {
+        if (previous) {
+          setTimeout(() => URL.revokeObjectURL(previous.src), 1000);
+        }
+        return next;
+      });
+    } catch (error) {
+      setProblem(error instanceof Error ? error.message : String(error));
+    }
+  }, []);
+
+  // One way in for files (paste, drop, the pickers): images become the
+  // background, anything else is read as the clip.
+  const takeFile = useCallback(
+    (file: File) =>
+      file.type.startsWith("image/") ? loadImage(file) : loadFile(file),
+    [loadFile, loadImage]
+  );
+
+  usePasteFile(takeFile);
+
+  const removeBackdrop = () => {
+    if (backdrop) {
+      URL.revokeObjectURL(backdrop.src);
+    }
+    setBackdrop(null);
+  };
+
+  // Switching frames re-fits the clip to the new frame and keeps each
+  // text where it was relative to the frame (a title near the top stays
+  // near the top).
+  const changeFormat = (format: ReelFormat) => {
+    if (format === look.format) {
+      return;
+    }
+    const to = FORMATS[format];
+    setLook({ format });
+    if (clip) {
+      setBox(fitBox(clip, format));
+    }
+    setTexts((current) =>
+      current.map((item) => ({
+        ...item,
+        x: Math.round((item.x / frame.width) * to.width),
+        y: Math.round((item.y / frame.height) * to.height),
+      }))
+    );
+  };
 
   // A first text is a title; later ones are smaller grey lines under it.
   const addText = () => {
@@ -556,13 +1249,14 @@ export const ReelStudio = () => {
       size: first ? 72 : 40,
       text: first ? "Your title" : "craftui.space",
       weight: first ? 500 : 400,
-      x: REEL.width / 2,
+      x: frame.width / 2,
+      // The title a fifth of the way down (380px on 9:16).
       y: last
         ? Math.min(
-            REEL.height - 200,
+            Math.round(frame.height * 0.9),
             last.y + Math.round(last.size * 1.15 + 36)
           )
-        : 380,
+        : Math.round(frame.height * 0.2),
     };
     setTexts((current) => [...current, item]);
     setSelectedText(item.id);
@@ -579,9 +1273,14 @@ export const ReelStudio = () => {
   };
 
   const scene: ReelSceneProps = {
+    backdrop: backdrop
+      ? { dim: look.backdropDim, fit: look.backdropFit, src: backdrop.src }
+      : null,
     background: look.background,
     box,
     ...soundtrack.sceneAudio,
+    device: placement.scene,
+    format: look.format,
     muted: !(clip?.hasAudio && soundtrack.mix.clip > 0),
     radius: look.radius,
     shadow: look.shadow,
@@ -608,7 +1307,7 @@ export const ReelStudio = () => {
         props: { ...scene, duration: clip.duration },
         signal: controller.signal,
       });
-      const name = reelFileName();
+      const name = reelFileName(look.format);
       saveBlob(blob, name);
       const seconds = Math.max(
         1,
@@ -643,11 +1342,13 @@ export const ReelStudio = () => {
       style={height ? { height } : undefined}
     >
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2.5">
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold">Studio</h1>
-          <span className="text-muted-foreground text-xs">
-            9:16 · 1080×1920
-          </span>
+          <FrameToggle
+            disabled={exporting !== null}
+            format={look.format}
+            onFormat={changeFormat}
+          />
         </div>
         <p
           className="text-muted-foreground ml-auto min-w-0 truncate text-xs"
@@ -656,6 +1357,7 @@ export const ReelStudio = () => {
           {result ?? ""}
         </p>
         <ExportBar
+          blocked={live.blocked}
           clip={clip}
           exporting={exporting}
           fps={look.fps}
@@ -674,9 +1376,11 @@ export const ReelStudio = () => {
             durationInFrames={durationInFrames}
             fps={look.fps}
             guides={look.guides}
+            live={live.stage}
             onBoxChange={setBox}
             onChoose={() => fileInput.current?.click()}
-            onFile={loadFile}
+            onDeviceChange={placement.setDeviceBox}
+            onFile={takeFile}
             onRemoveText={removeText}
             onSelectText={setSelectedText}
             onTextChange={changeText}
@@ -725,7 +1429,7 @@ export const ReelStudio = () => {
               <p className="text-muted-foreground text-xs">
                 {reading
                   ? "Reading the video…"
-                  : "No video yet. Paste with ⌘V or drop it on the frame."}
+                  : "No video yet. Paste with ⌘V or drop it on the frame. Images dropped or pasted become the background."}
               </p>
             )}
             <div className="flex gap-2">
@@ -778,76 +1482,81 @@ export const ReelStudio = () => {
               onChange={(background) => setLook({ background })}
               value={look.background}
             />
-          </Group>
-
-          <Group title="Clip style">
-            <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between gap-4">
-                <Label className="text-xs" htmlFor="reel-radius">
-                  Corner radius
-                </Label>
-                <span className="text-muted-foreground text-xs tabular-nums">
-                  {look.radius}px
-                </span>
-              </div>
-              <Slider
-                id="reel-radius"
-                max={120}
-                min={0}
-                onValueChange={([radius]) => setLook({ radius })}
-                step={1}
-                value={[look.radius]}
-              />
-            </div>
-            <SwitchRow
-              checked={look.shadow}
-              id="reel-shadow"
-              label="Shadow"
-              onChange={(shadow) => setLook({ shadow })}
+            <BackdropPicker
+              dim={look.backdropDim}
+              disabled={exporting !== null}
+              fit={look.backdropFit}
+              image={backdrop}
+              onAdd={() => imageInput.current?.click()}
+              onDim={(backdropDim) => setLook({ backdropDim })}
+              onFit={(backdropFit) => setLook({ backdropFit })}
+              onRemove={removeBackdrop}
             />
-          </Group>
-
-          <Group title="Position">
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                disabled={!clip}
-                onClick={() =>
-                  setBox((current) => ({
-                    ...current,
-                    x: Math.round((REEL.width - current.w) / 2),
-                    y: Math.round((REEL.height - current.h) / 2),
-                  }))
+            <input
+              accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) {
+                  loadImage(file);
                 }
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                Centre
-              </Button>
-              <Button
-                disabled={!clip}
-                onClick={() => clip && setBox(fitBox(clip))}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                Fit width
-              </Button>
-            </div>
-            {clip ? (
-              <p className="text-muted-foreground text-xs tabular-nums">
-                {box.w}×{box.h} at {box.x}, {box.y}
-              </p>
-            ) : null}
-            <SwitchRow
-              checked={look.guides}
-              id="reel-guides"
-              label="Safe-zone guides"
-              onChange={(guides) => setLook({ guides })}
+              }}
+              ref={imageInput}
+              type="file"
             />
           </Group>
+
+          <DeviceGroup
+            components={components}
+            disabled={exporting !== null}
+            look={look}
+            onRecorded={takeFile}
+            onReload={() => setReload((count) => count + 1)}
+            picked={live.picked}
+            setLook={setLook}
+          />
+
+          {look.device ? null : (
+            <Group title="Clip style">
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between gap-4">
+                  <Label className="text-xs" htmlFor="reel-radius">
+                    Corner radius
+                  </Label>
+                  <span className="text-muted-foreground text-xs tabular-nums">
+                    {look.radius}px
+                  </span>
+                </div>
+                <Slider
+                  id="reel-radius"
+                  max={120}
+                  min={0}
+                  onValueChange={([radius]) => setLook({ radius })}
+                  step={1}
+                  value={[look.radius]}
+                />
+              </div>
+              <SwitchRow
+                checked={look.shadow}
+                id="reel-shadow"
+                label="Shadow"
+                onChange={(shadow) => setLook({ shadow })}
+              />
+            </Group>
+          )}
+
+          <PositionGroup
+            box={placement.positioned}
+            guides={look.guides}
+            label={placement.label}
+            onCentre={placement.centre}
+            onFit={placement.fit}
+            onGuides={(guides) => setLook({ guides })}
+          />
 
           <TextGroup
+            frameWidth={frame.width}
             onAdd={addText}
             onChange={changeText}
             onRemove={removeText}

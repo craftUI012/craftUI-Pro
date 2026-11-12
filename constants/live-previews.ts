@@ -9,6 +9,7 @@
 // components/live-preview-components.ts, which TypeScript keeps in step with
 // this list. Adding a live item: its name here, its component there.
 export const LIVE_PREVIEWS = [
+  "agent-run",
   "arc-carousel",
   "benchmarks-section",
   "bloom-menu",
@@ -25,6 +26,7 @@ export const LIVE_PREVIEWS = [
   "hero-section-04",
   "image-sphere",
   "mosaic-card",
+  "mrr-movements",
   "prompt-composer",
   "statement-section",
   "swap-grid",
@@ -34,6 +36,9 @@ export const LIVE_PREVIEWS = [
   "testimonials-section",
   "testimonials-section-02",
   "testimonials-section-03",
+  "voice-membrane",
+  "voice-orb",
+  "voice-orb-concepts",
   "word-wheel",
 ] as const;
 

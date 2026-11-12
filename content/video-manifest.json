@@ -47,6 +47,22 @@
     "retired": [],
     "updatedAt": "2026-11-09"
   },
+  "cards-voice-membrane": {
+    "bytes": 9781334,
+    "ext": ".mp4",
+    "fingerprint": "e19b742c",
+    "item": "voice-membrane",
+    "retired": [],
+    "updatedAt": "2026-11-12"
+  },
+  "cards-voice-orb": {
+    "bytes": 15392818,
+    "ext": ".mp4",
+    "fingerprint": "7d615ef7",
+    "item": "voice-orb",
+    "retired": [],
+    "updatedAt": "2026-11-12"
+  },
   "hero-curtains-hero-section": {
     "bytes": 6463573,
     "ext": ".mp4",

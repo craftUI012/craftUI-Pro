@@ -154,6 +154,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
       "finance",
       "people",
       "portfolio",
+      "ai",
     ],
     idPrefix: "BLK",
     itemLabel: { one: "block", other: "blocks" },

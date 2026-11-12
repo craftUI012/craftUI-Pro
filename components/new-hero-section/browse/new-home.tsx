@@ -134,7 +134,7 @@ export const NewHomeShell = async ({
       defaultLibrary={data.libraries[0]?.id}
       devLinks={devLinks}
       libraries={data.libraries.map(
-        ({ id, index, label, searchPlaceholder, slug }) => ({
+        ({ id, index, items, label, searchPlaceholder, slug }) => ({
           filters: Object.fromEntries(
             index.map((group) => [
               group.id,
@@ -144,6 +144,7 @@ export const NewHomeShell = async ({
             ])
           ),
           id,
+          itemCount: items.length,
           label,
           searchPlaceholder,
           slug,
