@@ -483,7 +483,10 @@ const BloomMenu = ({
               <button
                 aria-label="Close account menu"
                 className={cn(
-                  "absolute top-4 size-12 cursor-pointer rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                  // z-10: the content below comes later in the DOM (and its
+                  // blur filter makes a stacking context), so without it the
+                  // header covers the avatar and the click never lands.
+                  "absolute top-4 z-10 size-12 cursor-pointer rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                   end ? "right-4" : "left-4"
                 )}
                 onClick={() => close(true)}
