@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "bloom-menu",
+    "prompt-composer",
     "button",
     "input",
     "select",

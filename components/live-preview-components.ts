@@ -3,6 +3,7 @@ import BloomMenuPreview from "@/components/previews/bloom-menu-preview";
 import EditorialSectionPreview from "@/components/previews/editorial-section-preview";
 import MosaicCardPreview from "@/components/previews/mosaic-card-preview";
 import MrrMovementsPreview from "@/components/previews/mrr-movements-preview";
+import PromptComposerPreview from "@/components/previews/prompt-composer-preview";
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
 import SwapGridPreview from "@/components/previews/swap-grid-preview";
 import VoiceMembranePreview from "@/components/previews/voice-membrane-preview";
@@ -22,6 +23,7 @@ import GallerySection from "@/registry/sections/gallery-section";
 import HeroSection from "@/registry/sections/hero-section";
 import HeroSection02 from "@/registry/sections/hero-section-02";
 import { HeroSection03 } from "@/registry/sections/hero-section-03";
+import { HeroSection04 } from "@/registry/sections/hero-section-04";
 import TablesSection from "@/registry/sections/tables-section";
 import TablesSection02 from "@/registry/sections/tables-section-02";
 import TeamSection from "@/registry/sections/team-section";
@@ -48,9 +50,11 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "hero-section": HeroSection,
     "hero-section-02": HeroSection02,
     "hero-section-03": HeroSection03,
+    "hero-section-04": HeroSection04,
     "image-sphere": ImageSphere,
     "mosaic-card": MosaicCardPreview,
     "mrr-movements": MrrMovementsPreview,
+    "prompt-composer": PromptComposerPreview,
     "statement-section": StatementSectionPreview,
     "swap-grid": SwapGridPreview,
     "tables-section": TablesSection,

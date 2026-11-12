@@ -1301,6 +1301,182 @@
       "Membership launches for creative communities"
     ]
   },
+  "hero-section-04": {
+    "component": "HeroSection04",
+    "dependencies": ["lucide-react", "motion"],
+    "description": "A full-bleed architectural photograph cut into vertical curtain slices that open around the pointer with physics easing, over a geometric Syne headline, brand navbar, and detached floating CTA.",
+    "docs": "/docs/templates/hero-section-04",
+    "extends": null,
+    "files": ["components/blocks/hero-section-04.tsx"],
+    "id": "SEC-GHZNJT",
+    "import": "@/components/blocks/hero-section-04",
+    "library": "templates",
+    "name": "hero-section-04",
+    "paid": true,
+    "props": [
+      {
+        "description": "Brand name displayed on the left side of the navbar.",
+        "name": "brand",
+        "optional": true,
+        "type": "string",
+        "default": "\"AVEN Studio\""
+      },
+      {
+        "description": "Primary navigation links displayed in the navbar.",
+        "name": "navLinks",
+        "optional": true,
+        "type": "HeroSection04NavLink[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Call-to-action button displayed in the floating header tab.",
+        "name": "cta",
+        "optional": true,
+        "type": "HeroSection04Action",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Main headline text or JSX.",
+        "name": "title",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "( <> Cultivating <br /> Quiet Spaces. </> )"
+      },
+      {
+        "description": "Subtitle or descriptive paragraph text.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"AVEN Studio grows interiors, landscapes and objects where greenery, light and …"
+      },
+      {
+        "description": "High-resolution image URL for the interleaved curtain slice hero.",
+        "name": "imageSrc",
+        "optional": true,
+        "type": "string",
+        "default": "\"/images/hero-curtains.jpg\""
+      },
+      {
+        "description": "Image alternative text for accessibility and screen readers.",
+        "name": "imageAlt",
+        "optional": true,
+        "type": "string",
+        "default": "\"Luminescent green tendrils flowing through darkness\""
+      },
+      {
+        "description": "Optional index to select an image from IMAGE_MAP (e.g. 1 or 2).",
+        "name": "imageNumber",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Vertical focal point alignment of the photograph.",
+        "name": "imagePosition",
+        "optional": true,
+        "type": "\"top\" | \"center\" | \"bottom\"",
+        "default": "\"center\""
+      },
+      {
+        "description": "Number of vertical curtain slices on desktop. Defaults to 32 (adapts to 12 on mobile, 20 on tablet).",
+        "name": "columns",
+        "optional": true,
+        "type": "number",
+        "default": "32"
+      },
+      {
+        "description": "Duration in ms for each curtain column to open during initial animation (default: 1200).",
+        "name": "introDuration",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Hold pause in ms before the initial curtain opening begins (default: 350).",
+        "name": "introPause",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Maximum stagger delay in ms across columns from center outward (default: 350).",
+        "name": "introStagger",
+        "optional": true,
+        "type": "number",
+        "default": null
+      },
+      {
+        "description": "Optional callback fired when the image curtain is clicked.",
+        "name": "onImageClick",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "1 when this is the page's primary h1, 2 when inside documentation or secondary preview.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2",
+        "default": "1"
+      },
+      {
+        "description": "Optional container class name.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Curtains hero section",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Text label displayed for the link.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Destination URL or anchor.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "HeroSection04NavLink"
+      },
+      {
+        "fields": [
+          {
+            "description": "Button text label.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Destination URL or anchor.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "HeroSection04Action"
+      }
+    ],
+    "tags": {
+      "categories": ["portfolio", "marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["hero"]
+    },
+    "useCases": [
+      "Architecture and design studio home pages",
+      "Creative agency and portfolio landing pages",
+      "Editorial launch pages leading with photos",
+      "Luxury architecture and spatial design sites"
+    ]
+  },
   "footer-section": {
     "component": "FooterSection",
     "dependencies": ["@hugeicons/core-free-icons", "@hugeicons/react"],
@@ -4792,6 +4968,329 @@
       "Kanban, status and workflow-stage feature sections",
       "Issue tracker and team productivity landing pages",
       "Explaining how work is organized by status"
+    ]
+  },
+  "prompt-composer": {
+    "component": "PromptComposer",
+    "dependencies": ["motion", "lucide-react"],
+    "description": "An AI prompt composer: a capsule with Enter to send and voice input, a quick-prompts tray that unfolds above it, and a footer row for attachments, permission mode, model, reasoning depth and usage limits.",
+    "docs": "/docs/components/prompt-composer",
+    "extends": "div",
+    "files": ["components/ui/prompt-composer.tsx"],
+    "id": "CMP-HCWPB1",
+    "import": "@/components/ui/prompt-composer",
+    "library": "components",
+    "name": "prompt-composer",
+    "paid": true,
+    "props": [
+      {
+        "description": "The controlled text value for the prompt input.",
+        "name": "value",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Called whenever the text input value changes.",
+        "name": "onChange",
+        "optional": true,
+        "type": "(value: string) => void",
+        "default": null
+      },
+      {
+        "description": "Called when the user presses Enter or clicks the Send button.",
+        "name": "onSubmit",
+        "optional": true,
+        "type": "(prompt: string, attachments: ComposerAttachment[]) => void",
+        "default": null
+      },
+      {
+        "description": "Input placeholder string. Defaults to \"Ask anything...\".",
+        "name": "placeholder",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Whether quick prompts drawer above the composer is visible. Defaults to true.",
+        "name": "showQuickPrompts",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "List of quick prompt strings to show in the dropdown.",
+        "name": "quickPrompts",
+        "optional": true,
+        "type": "string[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Called when a quick prompt is clicked. If omitted or returns true/undefined, the composer automatically fills the prompt input.",
+        "name": "onSelectQuickPrompt",
+        "optional": true,
+        "type": "(prompt: string) => void",
+        "default": null
+      },
+      {
+        "description": "Controlled voice listening state.",
+        "name": "isListening",
+        "optional": true,
+        "type": "boolean",
+        "default": null
+      },
+      {
+        "description": "Called when the microphone voice listening state toggles.",
+        "name": "onListeningChange",
+        "optional": true,
+        "type": "(listening: boolean) => void",
+        "default": null
+      },
+      {
+        "description": "Available AI models with depths and descriptions. Defaults to ChatGPT, Claude, Gemini, DeepSeek.",
+        "name": "models",
+        "optional": true,
+        "type": "Model[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Controlled selected model ID.",
+        "name": "selectedModelId",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Controlled selected depth ID.",
+        "name": "selectedDepthId",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Called when a model or reasoning depth is selected.",
+        "name": "onSelectModel",
+        "optional": true,
+        "type": "(modelId: string, depthId: string) => void",
+        "default": null
+      },
+      {
+        "description": "Available permission modes (e.g. Auto-approve, Full access).",
+        "name": "permissionModes",
+        "optional": true,
+        "type": "PermissionMode[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Controlled selected permission mode ID.",
+        "name": "selectedPermissionId",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Called when a permission mode is chosen.",
+        "name": "onSelectPermission",
+        "optional": true,
+        "type": "(id: string) => void",
+        "default": null
+      },
+      {
+        "description": "Usage limit indicators shown at the bottom of the model dropdown.",
+        "name": "usageLimits",
+        "optional": true,
+        "type": "UsageLimit[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Controlled attachments list. When provided, attachments pills are shown above the input. If omitted, a sample mock attachment is created on clicking file/image/folders to demonstrate the UI.",
+        "name": "attachments",
+        "optional": true,
+        "type": "ComposerAttachment[]",
+        "default": null
+      },
+      {
+        "description": "Called when an attachment is added.",
+        "name": "onAddAttachment",
+        "optional": true,
+        "type": "(attachment: ComposerAttachment) => void",
+        "default": null
+      },
+      {
+        "description": "Called when an attachment pill is dismissed.",
+        "name": "onRemoveAttachment",
+        "optional": true,
+        "type": "(id: string) => void",
+        "default": null
+      },
+      {
+        "description": "Raw attachment type click handler if custom handling (e.g. opening a system file picker) is needed.",
+        "name": "onSelectAttachmentType",
+        "optional": true,
+        "type": "(type: AddAttachmentType) => void",
+        "default": null
+      },
+      {
+        "description": "Disable the composer inputs and buttons.",
+        "name": "disabled",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      }
+    ],
+    "registryDependencies": [],
+    "title": "Prompt composer",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "type",
+            "optional": false,
+            "type": "AddAttachmentType"
+          },
+          {
+            "description": "",
+            "name": "size",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "file",
+            "optional": true,
+            "type": "globalThis.File"
+          }
+        ],
+        "name": "ComposerAttachment"
+      },
+      {
+        "fields": [
+          {
+            "description": "",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "speed",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "depths",
+            "optional": false,
+            "type": "ModelDepth[]"
+          }
+        ],
+        "name": "Model"
+      },
+      {
+        "fields": [
+          {
+            "description": "",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "subtitle",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "PermissionMode"
+      },
+      {
+        "fields": [
+          {
+            "description": "",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "percentLeft",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "",
+            "name": "resetLabel",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "UsageLimit"
+      },
+      {
+        "fields": [
+          {
+            "description": "",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ModelDepth"
+      }
+    ],
+    "tags": {
+      "categories": ["inputs"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["text-inputs"]
+    },
+    "useCases": [
+      "AI assistant and copilot chat inputs",
+      "CRM and sales dashboard prompts",
+      "Agent consoles and internal tools",
+      "Any app where people write prompts to a model"
     ]
   }
 }

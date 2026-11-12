@@ -415,6 +415,46 @@
       ]
     },
     {
+      "name": "hero-section-04",
+      "type": "registry:block",
+      "title": "Curtains hero section",
+      "description": "A full-bleed architectural photograph cut into vertical curtain slices that open around the pointer with physics easing, over a geometric Syne headline, brand navbar, and detached floating CTA.",
+      "categories": [
+        "portfolio",
+        "marketing"
+      ],
+      "meta": {
+        "id": "SEC-GHZNJT",
+        "library": "templates",
+        "types": [
+          "hero"
+        ],
+        "styles": [
+          "motion",
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-08",
+        "useCases": [
+          "Architecture and design studio home pages",
+          "Creative agency and portfolio landing pages",
+          "Editorial launch pages leading with photos",
+          "Luxury architecture and spatial design sites"
+        ]
+      },
+      "dependencies": [
+        "lucide-react",
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/sections/hero-section-04.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/hero-section-04.tsx"
+        }
+      ]
+    },
+    {
       "name": "footer-section",
       "type": "registry:block",
       "title": "App download footer",
@@ -1465,6 +1505,45 @@
           "path": "registry/isometric/iso-core.tsx",
           "type": "registry:lib",
           "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
+      "name": "prompt-composer",
+      "type": "registry:ui",
+      "title": "Prompt composer",
+      "description": "An AI prompt composer: a capsule with Enter to send and voice input, a quick-prompts tray that unfolds above it, and a footer row for attachments, permission mode, model, reasoning depth and usage limits.",
+      "categories": [
+        "inputs"
+      ],
+      "meta": {
+        "id": "CMP-HCWPB1",
+        "library": "components",
+        "types": [
+          "text-inputs"
+        ],
+        "styles": [
+          "motion",
+          "minimal",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-11",
+        "useCases": [
+          "AI assistant and copilot chat inputs",
+          "CRM and sales dashboard prompts",
+          "Agent consoles and internal tools",
+          "Any app where people write prompts to a model"
+        ]
+      },
+      "dependencies": [
+        "motion",
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "registry/components/prompt-composer.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/prompt-composer.tsx"
         }
       ]
     }
