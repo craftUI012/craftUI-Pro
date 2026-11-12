@@ -21,9 +21,9 @@
   ],
   "meta": {
     "id": "ISO-Z84F1M",
-    "library": "isometric",
+    "library": "illustrations",
     "types": ["objects"],
-    "styles": ["line", "flat", "dark-mode"],
+    "styles": ["isometric", "line", "flat", "dark-mode"],
     "publishedAt": "2026-11-12",
     "useCases": [
       "Empty states for tables and dashboards with no records",

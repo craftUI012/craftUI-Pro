@@ -1224,11 +1224,12 @@
       ],
       "meta": {
         "id": "ISO-R87FKV",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "scenes"
         ],
         "styles": [
+          "isometric",
           "gradient",
           "dark-mode"
         ],
@@ -1266,11 +1267,12 @@
       ],
       "meta": {
         "id": "ISO-RPVRYG",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "scenes"
         ],
         "styles": [
+          "isometric",
           "gradient",
           "dark-mode"
         ],
@@ -1308,11 +1310,12 @@
       ],
       "meta": {
         "id": "ISO-7PVTRP",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "scenes"
         ],
         "styles": [
+          "isometric",
           "gradient",
           "dark-mode"
         ],
@@ -1350,11 +1353,12 @@
       ],
       "meta": {
         "id": "ISO-A0SDZZ",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "scenes"
         ],
         "styles": [
+          "isometric",
           "flat",
           "dark-mode"
         ],
@@ -1392,11 +1396,12 @@
       ],
       "meta": {
         "id": "ISO-RJJ8GD",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "scenes"
         ],
         "styles": [
+          "isometric",
           "flat",
           "dark-mode"
         ],
@@ -1434,11 +1439,12 @@
       ],
       "meta": {
         "id": "ISO-EP9ZS9",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "scenes"
         ],
         "styles": [
+          "isometric",
           "gradient",
           "dark-mode"
         ],
@@ -1476,11 +1482,12 @@
       ],
       "meta": {
         "id": "ISO-4E36Y0",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "scenes"
         ],
         "styles": [
+          "isometric",
           "gradient",
           "dark-mode"
         ],
@@ -1518,11 +1525,12 @@
       ],
       "meta": {
         "id": "ISO-Z84F1M",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "objects"
         ],
         "styles": [
+          "isometric",
           "line",
           "flat",
           "dark-mode"
@@ -1564,11 +1572,12 @@
       ],
       "meta": {
         "id": "ISO-CX14WM",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "objects"
         ],
         "styles": [
+          "isometric",
           "line",
           "flat",
           "dark-mode"
@@ -1610,11 +1619,12 @@
       ],
       "meta": {
         "id": "ISO-VJV1P7",
-        "library": "isometric",
+        "library": "illustrations",
         "types": [
           "objects"
         ],
         "styles": [
+          "isometric",
           "line",
           "flat",
           "dark-mode"

@@ -21,9 +21,9 @@
   ],
   "meta": {
     "id": "ISO-CX14WM",
-    "library": "isometric",
+    "library": "illustrations",
     "types": ["objects"],
-    "styles": ["line", "flat", "dark-mode"],
+    "styles": ["isometric", "line", "flat", "dark-mode"],
     "publishedAt": "2026-11-12",
     "useCases": [
       "Inbox full and storage limit screens in mail apps",

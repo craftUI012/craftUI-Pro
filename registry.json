@@ -930,9 +930,9 @@
       "categories": ["technology"],
       "meta": {
         "id": "ISO-R87FKV",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["scenes"],
-        "styles": ["gradient", "dark-mode"],
+        "styles": ["isometric", "gradient", "dark-mode"],
         "publishedAt": "2026-11-02",
         "useCases": [
           "Auth and identity product sites",
@@ -963,9 +963,9 @@
       "categories": ["technology"],
       "meta": {
         "id": "ISO-RPVRYG",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["scenes"],
-        "styles": ["gradient", "dark-mode"],
+        "styles": ["isometric", "gradient", "dark-mode"],
         "publishedAt": "2026-11-02",
         "useCases": [
           "Hosting and deployment platform sites",
@@ -996,9 +996,9 @@
       "categories": ["technology"],
       "meta": {
         "id": "ISO-7PVTRP",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["scenes"],
-        "styles": ["gradient", "dark-mode"],
+        "styles": ["isometric", "gradient", "dark-mode"],
         "publishedAt": "2026-11-02",
         "useCases": [
           "Feature flag and experimentation product sites",
@@ -1029,9 +1029,9 @@
       "categories": ["finance"],
       "meta": {
         "id": "ISO-A0SDZZ",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["scenes"],
-        "styles": ["flat", "dark-mode"],
+        "styles": ["isometric", "flat", "dark-mode"],
         "publishedAt": "2026-11-03",
         "useCases": [
           "Fintech and neobank hero sections",
@@ -1062,9 +1062,9 @@
       "categories": ["finance"],
       "meta": {
         "id": "ISO-RJJ8GD",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["scenes"],
-        "styles": ["flat", "dark-mode"],
+        "styles": ["isometric", "flat", "dark-mode"],
         "publishedAt": "2026-11-03",
         "useCases": [
           "Banking and savings product heroes",
@@ -1095,9 +1095,9 @@
       "categories": ["technology"],
       "meta": {
         "id": "ISO-EP9ZS9",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["scenes"],
-        "styles": ["gradient", "dark-mode"],
+        "styles": ["isometric", "gradient", "dark-mode"],
         "publishedAt": "2026-11-04",
         "useCases": [
           "Workflow automation and integration platform sites",
@@ -1128,9 +1128,9 @@
       "categories": ["technology"],
       "meta": {
         "id": "ISO-4E36Y0",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["scenes"],
-        "styles": ["gradient", "dark-mode"],
+        "styles": ["isometric", "gradient", "dark-mode"],
         "publishedAt": "2026-11-04",
         "useCases": [
           "Project and task management product sites",
@@ -1161,9 +1161,9 @@
       "categories": ["data"],
       "meta": {
         "id": "ISO-Z84F1M",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["objects"],
-        "styles": ["line", "flat", "dark-mode"],
+        "styles": ["isometric", "line", "flat", "dark-mode"],
         "publishedAt": "2026-11-12",
         "useCases": [
           "Empty states for tables and dashboards with no records",
@@ -1195,9 +1195,9 @@
       "categories": ["technology"],
       "meta": {
         "id": "ISO-CX14WM",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["objects"],
-        "styles": ["line", "flat", "dark-mode"],
+        "styles": ["isometric", "line", "flat", "dark-mode"],
         "publishedAt": "2026-11-12",
         "useCases": [
           "Inbox full and storage limit screens in mail apps",
@@ -1229,9 +1229,9 @@
       "categories": ["technology"],
       "meta": {
         "id": "ISO-VJV1P7",
-        "library": "isometric",
+        "library": "illustrations",
         "types": ["objects"],
-        "styles": ["line", "flat", "dark-mode"],
+        "styles": ["isometric", "line", "flat", "dark-mode"],
         "publishedAt": "2026-11-12",
         "useCases": [
           "Empty team, members and workspace screens",

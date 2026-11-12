@@ -1,8 +1,8 @@
 "use client";
 
 import {
+  Blend,
   Blocks,
-  Box,
   Component,
   LayoutTemplate,
   Menu,
@@ -30,8 +30,8 @@ import type { NavVariantProps } from "./shared";
 const LIBRARY_ICONS: Record<LibraryId, typeof Component> = {
   blocks: Blocks,
   components: Component,
+  gradients: Blend,
   illustrations: Shapes,
-  isometric: Box,
   templates: LayoutTemplate,
 };
 

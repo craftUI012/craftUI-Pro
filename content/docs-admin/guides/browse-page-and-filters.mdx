@@ -3,7 +3,7 @@ title: Browse page and filters
 description: How a registry item gets onto the home page, the taxonomy file that defines every library and filter value, and the metadata every new item needs.
 ---
 
-The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Components**, **Illustrations**, **Isometric**), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
+The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Components**, and **Illustrations** under the **UI kits** dropdown, where **Gradient backgrounds** is listed as coming soon until it has an item), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
 
 Which library an item belongs in:
 
@@ -151,13 +151,15 @@ Every browse item has a product code in `meta.id`: a three-letter library prefix
 | `blocks`                 | `BLK`  | `BLK-2DW8MF` |
 | `components`             | `CMP`  | `CMP-4N8WQ2` |
 | `illustrations`          | `ILL`  | `ILL-H6ZT3R` |
-| `isometric`              | `ISO`  | `ISO-9PXB5K` |
+| `gradients`              | `GRD`  | `GRD-5T2VNC` |
 
 `TPL` is kept for full-page templates, a separate product to come. The prefixes live in `LIBRARIES[…].idPrefix` in `constants/taxonomy.ts`.
 
 **Why random:** codes used to be counted (`SEC-0013`, `SEC-0014`…). Two people adding items on separate branches both took the next number, and their branches clashed on merge. A random code can't clash that way. The characters are [Crockford's base 32](https://www.crockford.com/base32.html): digits and capitals without I, L, O or U, so a code read out or retyped is never mistaken. That's about a billion codes per prefix, and the build still rejects a code used twice.
 
 **Older codes:** items from before the switch keep their four-digit codes (`SEC-0001` to `SEC-0015`, `BLK-0001`, `BLK-0002`). Purchases store them, so they never change, and the build accepts both forms.
+
+**Merged libraries:** Isometric was its own library until 2026-11-12, when it merged into Illustrations. Its ten items keep their `ISO-` codes: `LIBRARIES.illustrations.legacyPrefixes` lists `ISO`, so the build still accepts them. New illustrations, isometric or not, get `ILL-` codes; tag the isometric ones with the `isometric` style so the filter finds them. Old `/docs/isometric/…` addresses redirect to `/docs/illustrations/…` (`next.config.mjs`), and an old `?library=isometric` link opens Illustrations (`browse-url.ts`).
 
 Rules:
 

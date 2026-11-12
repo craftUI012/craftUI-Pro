@@ -1,6 +1,6 @@
 ---
 name: isometric-scene
-description: Create mathematically exact, modern isometric icons, product UI pieces and isometric scenes for craftUI's Isometric (ISO) library in registry/isometric, at the quality bar of Stripe, Mercury, Ramp, Linear and Vercel. Use whenever the user describes a scene or object to render in isometric ("an isometric scene of a payment flow", "make an isometric cloud deploy", "draw a warehouse in isometric", "add an isometric lock icon", "isometric dashboard panel"), asks for a new isometric icon, product panel, composition, empty state or hero illustration, asks for a category of isometrics (finance, ecommerce, devtools, AI, security…), edits anything in registry/isometric (iso-core, IsoIcon, IsoStage, IsoScene, Box, Slab, Panel, Cylinder, Extrude, Face, casts), or asks about isometric projection, angles, grid, shading, shadows or the isometric docs pages.
+description: Create mathematically exact, modern isometric icons, product UI pieces and isometric scenes for craftUI's Illustrations library (the Isometric style; source in registry/isometric), at the quality bar of Stripe, Mercury, Ramp, Linear and Vercel. Use whenever the user describes a scene or object to render in isometric ("an isometric scene of a payment flow", "make an isometric cloud deploy", "draw a warehouse in isometric", "add an isometric lock icon", "isometric dashboard panel"), asks for a new isometric icon, product panel, composition, empty state or hero illustration, asks for a category of isometrics (finance, ecommerce, devtools, AI, security…), edits anything in registry/isometric (iso-core, IsoIcon, IsoStage, IsoScene, Box, Slab, Panel, Cylinder, Extrude, Face, casts), or asks about isometric projection, angles, grid, shading, shadows or the isometric docs pages.
 ---
 
 # Isometric scene creation
@@ -251,26 +251,38 @@ charts must stand), content slots and props.
 ### 7. Register it and see it on its docs page
 
 There is no prototype board; the docs page is where a scene is checked.
+Isometric is not a library of its own any more: on 2026-11-12 it merged
+into **Illustrations** (the user: one library, one convention; a second
+skill for flat illustrations comes later). The source stays in
+`registry/isometric/` and installs to `components/isometric/`; everything
+a visitor or the registry sees says Illustrations. The ten items from
+before the merge keep their `ISO-` codes; new ones get `ILL-`.
 Follow `content/docs-admin/guides/adding-a-component.mdx`:
 - `registry.json` entry: `type: "registry:block"`, `meta.library:
-  "isometric"`, `categories` (e.g. `technology`), `meta.types: ["scenes"]`,
-  `meta.styles`, `meta.useCases`, `meta.publishedAt`, `dependencies`
+  "illustrations"`, `categories` (e.g. `technology`), `meta.types:
+  ["scenes"]`, `meta.styles` starting with `"isometric"` (the filter that
+  finds these inside Illustrations), `meta.useCases`, `meta.publishedAt`, `dependencies`
   (`motion`), and **files: the scene first, then `iso-core.tsx`** (both
   targeting `components/isometric/`, imported relatively). Shipping the core
   inside the item avoids cross-item dependencies and signed-token wiring.
-- Docs page `content/docs/isometric/<name>.mdx` (title, `hideHeader`, a
-  ≤155-character search description, `<ComponentPreview>` with the scene at
-  `max-w-2xl`), and the name in `content/docs/isometric/meta.json`.
+- Docs page `content/docs/illustrations/<name>.mdx` (title, `hideHeader`,
+  a ≤155-character search description, `<ComponentPreview>` with the scene
+  at `max-w-2xl`), and the name in `content/docs/illustrations/meta.json`.
 - Edit `registry.json` with an editor or a careful script, then run
   `pnpm exec oxfmt registry.json` so only your entry shows in the diff.
-- `pnpm registry:build` (gives the `ISO-` code; fix any "no doc comment"
+- `pnpm registry:build` (gives the `ILL-` code; fix any "no doc comment"
   warning), then `pnpm exec oxfmt registry-paid public/r`, and keep only
   this item's built JSON.
-- Open `/docs/isometric/<name>` on the dev server
+- Open `/docs/illustrations/<name>` on the dev server
   (`lsof -iTCP -sTCP:LISTEN -P | grep node`), watch the full loop, and
   check light and dark with the site's theme toggle (switch it back).
-- Check `/docs/isometric/<name>.md` (props table, files) and the Isometric
-  tab on `/`. The card screenshot is the user's step: `pnpm media`.
+- Check `/docs/illustrations/<name>.md` (props table, files) and the
+  Illustrations tab on `/` (UI kits dropdown; the Isometric style filter
+  should count it). The card screenshot is the user's step: `pnpm media`.
+- If a card is missing right after adding a docs page, the home data is
+  cached: it is keyed on the registry, the taxonomy and the media, not on
+  the docs pages. Bump `HOME_DATA_VERSION` in
+  `components/new-hero-section/data/get-home-data.ts`.
 
 ### 8. Verify, critique, fix
 

@@ -20,9 +20,9 @@
   ],
   "meta": {
     "id": "ISO-4E36Y0",
-    "library": "isometric",
+    "library": "illustrations",
     "types": ["scenes"],
-    "styles": ["gradient", "dark-mode"],
+    "styles": ["isometric", "gradient", "dark-mode"],
     "publishedAt": "2026-11-04",
     "useCases": [
       "Project and task management product sites",

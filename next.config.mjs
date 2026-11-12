@@ -50,6 +50,13 @@ const nextConfig = {
         permanent: false,
         source: "/homepage-new/docs/:path*",
       },
+      // Isometric merged into Illustrations (2026-11-12): its docs pages
+      // moved with it. One rule covers the pages and their .md mirrors.
+      {
+        destination: `${ROUTES.DOCS}/illustrations/:path*`,
+        permanent: true,
+        source: `${ROUTES.DOCS}/isometric/:path*`,
+      },
       // The docs introduction became the about page. Its markdown mirrors
       // go there too: the page they mirrored is gone.
       { destination: ROUTES.ABOUT, permanent: true, source: ROUTES.DOCS },

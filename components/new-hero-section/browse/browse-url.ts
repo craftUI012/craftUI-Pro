@@ -20,6 +20,12 @@ const OWN_PARAMS = [
   ...FILTER_GROUPS.map((group) => group.param),
 ];
 
+// Libraries that merged into another: an old link's ?library= value → the
+// slug it lives under now.
+const MOVED_LIBRARIES: Record<string, string> = {
+  isometric: "illustrations",
+};
+
 // The library and selection a URL asks for, or null when it has none of the
 // browse params.
 export const parseBrowseSearch = (
@@ -31,8 +37,10 @@ export const parseBrowseSearch = (
   if (!OWN_PARAMS.some((param) => params.has(param))) {
     return null;
   }
+  const asked = params.get(LIBRARY_PARAM);
+  const slug = (asked && MOVED_LIBRARIES[asked]) ?? asked;
   const library =
-    libraries.find((item) => item.slug === params.get(LIBRARY_PARAM)) ??
+    libraries.find((item) => item.slug === slug) ??
     libraries.find((item) => item.id === defaultLibrary);
   if (!library) {
     return null;

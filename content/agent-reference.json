@@ -3799,7 +3799,7 @@
     "component": "TwoStepSignIn",
     "dependencies": ["motion"],
     "description": "In isometric ink: a sign-in screen floating over a construction grid asks for a code, the phone hops as the text lands, the code pops off as a lit chip and is tossed into the input, the screen takes the hit, and the user is in. Objects move as solids; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/two-step-sign-in",
+    "docs": "/docs/illustrations/two-step-sign-in",
     "extends": null,
     "files": [
       "components/isometric/two-step-sign-in.tsx",
@@ -3807,7 +3807,7 @@
     ],
     "id": "ISO-R87FKV",
     "import": "@/components/isometric/two-step-sign-in",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "two-step-sign-in",
     "paid": true,
     "props": [
@@ -3961,7 +3961,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -3975,7 +3975,7 @@
     "component": "PushToDeploy",
     "dependencies": ["motion"],
     "description": "In isometric ink: git push on a terminal tile that presses in on enter sends a pulse down a cable to the dashboard floating behind it, which takes the hit as the deployment slides in, builds and goes live. Objects move as solids; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/push-to-deploy",
+    "docs": "/docs/illustrations/push-to-deploy",
     "extends": null,
     "files": [
       "components/isometric/push-to-deploy.tsx",
@@ -3983,7 +3983,7 @@
     ],
     "id": "ISO-RPVRYG",
     "import": "@/components/isometric/push-to-deploy",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "push-to-deploy",
     "paid": true,
     "props": [
@@ -4175,7 +4175,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4189,7 +4189,7 @@
     "component": "GradualRollout",
     "dependencies": ["motion"],
     "description": "In isometric ink: a feature flag's console moves a new version from 10% to 100% of traffic; the new server hops and lights up as its share jumps, the router presses, the old server sinks, and packets on light rails shift across. Objects move as solids; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/gradual-rollout",
+    "docs": "/docs/illustrations/gradual-rollout",
     "extends": null,
     "files": [
       "components/isometric/gradual-rollout.tsx",
@@ -4197,7 +4197,7 @@
     ],
     "id": "ISO-7PVTRP",
     "import": "@/components/isometric/gradual-rollout",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "gradual-rollout",
     "paid": true,
     "props": [
@@ -4383,7 +4383,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4397,7 +4397,7 @@
     "component": "WalletCoins",
     "dependencies": ["motion"],
     "description": "In isometric ink: a thin stitched wallet in a pastel of your brand, the brand card sliding out of its slit, and three currency coins ($ € £) following it out with an overshoot, fanning into an arc and swinging upright while the wallet dips, then idling on a sine wave. A hero object for fintech and banking sites; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/wallet-coins",
+    "docs": "/docs/illustrations/wallet-coins",
     "extends": null,
     "files": [
       "components/isometric/wallet-coins.tsx",
@@ -4405,7 +4405,7 @@
     ],
     "id": "ISO-A0SDZZ",
     "import": "@/components/isometric/wallet-coins",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "wallet-coins",
     "paid": true,
     "props": [
@@ -4520,7 +4520,7 @@
     "types": [],
     "tags": {
       "categories": ["finance"],
-      "styles": ["flat", "dark-mode"],
+      "styles": ["isometric", "flat", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4534,7 +4534,7 @@
     "component": "BankDeposit",
     "dependencies": ["motion"],
     "description": "In isometric ink: a small bank in a pastel of your brand, five coins on the ground beside it that leap into the door one by one on an arc, and a balance card on the left whose dollar figure counts up with every credit. A hero object for banking, savings and fintech sites; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/bank-deposit",
+    "docs": "/docs/illustrations/bank-deposit",
     "extends": null,
     "files": [
       "components/isometric/bank-deposit.tsx",
@@ -4542,7 +4542,7 @@
     ],
     "id": "ISO-RJJ8GD",
     "import": "@/components/isometric/bank-deposit",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "bank-deposit",
     "paid": true,
     "props": [
@@ -4671,7 +4671,7 @@
     "types": [],
     "tags": {
       "categories": ["finance"],
-      "styles": ["flat", "dark-mode"],
+      "styles": ["isometric", "flat", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4685,7 +4685,7 @@
     "component": "WorkflowTrigger",
     "dependencies": ["motion"],
     "description": "In soft isometric: a mail app, a chat app and an AI step float as rounded tiles, joined by dashed floor lanes with a rounded bend. An event lands in one app, brand ink fills the lane to the AI step and on to the other app, which shows what the workflow did; events take turns, so the flow runs both ways. Leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/workflow-trigger",
+    "docs": "/docs/illustrations/workflow-trigger",
     "extends": null,
     "files": [
       "components/isometric/workflow-trigger.tsx",
@@ -4693,7 +4693,7 @@
     ],
     "id": "ISO-EP9ZS9",
     "import": "@/components/isometric/workflow-trigger",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "workflow-trigger",
     "paid": true,
     "props": [
@@ -4816,7 +4816,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4830,7 +4830,7 @@
     "component": "TaskStatus",
     "dependencies": ["motion"],
     "description": "In soft isometric: a white hub tile and four pastel status tiles (Not started, In progress, Pending, Done) joined by dashed floor routes with a rounded bend. Each task pops up as an issue badge, turns into a light that runs its route with a trailing line and races round its tile's border, and the status glyph answers. No shadow, no glow; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/task-status",
+    "docs": "/docs/illustrations/task-status",
     "extends": null,
     "files": [
       "components/isometric/task-status.tsx",
@@ -4838,7 +4838,7 @@
     ],
     "id": "ISO-4E36Y0",
     "import": "@/components/isometric/task-status",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "task-status",
     "paid": true,
     "props": [
@@ -4960,7 +4960,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4974,7 +4974,7 @@
     "component": "FileCabinet",
     "dependencies": ["motion"],
     "description": "A complete empty state in isometric ink: a two-drawer file cabinet whose drawer rolls out on its slides, hits its stop and shows there is nothing inside, over a heading, a line of copy and a button you set through props (\"No data yet\" by default). Real parts, one even outline, no shadow; the open drawer's label carries your brand. Click to replay; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/file-cabinet",
+    "docs": "/docs/illustrations/file-cabinet",
     "extends": null,
     "files": [
       "components/isometric/file-cabinet.tsx",
@@ -4982,7 +4982,7 @@
     ],
     "id": "ISO-Z84F1M",
     "import": "@/components/isometric/file-cabinet",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "file-cabinet",
     "paid": true,
     "props": [
@@ -5125,7 +5125,7 @@
     "types": [],
     "tags": {
       "categories": ["data"],
-      "styles": ["line", "flat", "dark-mode"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
       "types": ["objects"]
     },
     "useCases": [
@@ -5139,7 +5139,7 @@
     "component": "OpenEnvelope",
     "dependencies": ["motion"],
     "description": "A complete \"your mail is full\" state in isometric ink, facing the screen: an open envelope so stuffed that a document is pushed out of its pocket, a second sheet behind it, and an alert badge that pops at its corner, over a heading, a line of copy and two buttons you set through props. One even outline, no shadow; the badge carries your brand. Click to replay; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/open-envelope",
+    "docs": "/docs/illustrations/open-envelope",
     "extends": null,
     "files": [
       "components/isometric/open-envelope.tsx",
@@ -5147,7 +5147,7 @@
     ],
     "id": "ISO-CX14WM",
     "import": "@/components/isometric/open-envelope",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "open-envelope",
     "paid": true,
     "props": [
@@ -5304,7 +5304,7 @@
     "types": [],
     "tags": {
       "categories": ["technology"],
-      "styles": ["line", "flat", "dark-mode"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
       "types": ["objects"]
     },
     "useCases": [
@@ -5318,7 +5318,7 @@
     "component": "IdBadge",
     "dependencies": ["motion"],
     "description": "A complete \"no members yet\" empty state in isometric ink, facing the screen: a blank ID badge hanging straight from its strap, flicked once so it swings and twists to rest, with a placeholder photo and a plus on its corner, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the plus carries your brand. Click to flick it again; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/id-badge",
+    "docs": "/docs/illustrations/id-badge",
     "extends": null,
     "files": [
       "components/isometric/id-badge.tsx",
@@ -5326,7 +5326,7 @@
     ],
     "id": "ISO-VJV1P7",
     "import": "@/components/isometric/id-badge",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "id-badge",
     "paid": true,
     "props": [
@@ -5462,7 +5462,7 @@
     "types": [],
     "tags": {
       "categories": ["technology"],
-      "styles": ["line", "flat", "dark-mode"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
       "types": ["objects"]
     },
     "useCases": [
