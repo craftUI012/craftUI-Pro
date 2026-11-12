@@ -376,6 +376,42 @@ tracks are written once for one cycle. A rotation about x needs the right
 sign to face the viewer: for a +y-facing disc, +θ tilts it up toward the
 camera, −θ turns it edge-on.
 
+Empty-state objects (one object, one beat, then stillness) are a third
+kind: `file-cabinet` is the reference, built from the user's pin
+(https://pl.pinterest.com/pin/866380047090243445/, a line-drawn cabinet
+over "No data yet"). What it settled:
+- **Quiet by default.** A 1 px outline (`strokeWidth` 0.23), paper walls
+  (in ink the walls step 0.03 and 0.07 under the top instead of 0.06 and
+  0.13, set as `--iso-surface-left-c` / `-right-c` on the stage), no
+  shadow, no grid, and it plays once (`loop` off): people sit in front of
+  an empty state. A click replays.
+- **One small brand mark**, not a brand object: the open drawer's label
+  card. Everything else is neutral; the other label is blank.
+- **A part that slides out of a housing is cut, not rigged.** Painter's
+  order cannot hide the half of a drawer still inside the cabinet, so each
+  drawer part is a box clipped at the cabinet's front plane (`Solid`) and
+  the pull distance is read from the clock. The whole object still tips
+  on a `Rig`, and the cut plane tips with it.
+- **Looking through an opening in a +y face:** one unit of depth is one
+  unit right and one up in that face's units, so the floor and inner wall
+  seen through it are two fills split by a 45° line from the opening's
+  bottom-left corner.
+- **Tips never cross rest.** The cabinet tips forward about its front feet
+  and back about its rear feet on two nested rigs, each going up and back
+  down (never negative), so no foot goes through the floor.
+- **The words ship with the object.** The user asked for the pin's copy
+  to come with the install (2026-11-12), so the item is the whole empty
+  state: content props `heading`, `description`, `actionLabel` (an empty
+  string hides each), `onAction`, and `children` to replace the button.
+  The button is the shadcn `Button` (`registryDependencies: ["button"]`)
+  with an in-file plus icon. The root is the centred column (`className`);
+  the orbit, focus ring, in-view ref and click-to-replay stay on the
+  illustration inside it (`artClassName`, `data-slot="<name>-art"`).
+  Keep the copy in its own small component, or the scene function trips
+  the lint complexity limit. The docs page is then just the component.
+- In MDX, never put a bare line of text inside a JSX `<p>`: it becomes a
+  second `<p>` and breaks hydration.
+
 | Scene | Code | Use case | Connector | Story |
 | --- | --- | --- | --- | --- |
 | `two-step-sign-in` | ISO-R87FKV | auth, SaaS security | continuity (code chip, tossed) | **The benchmark (ink, 2026-11-03):** no desk; a 12.5 × 6.6 screen floats over a dashed floor grid, phone beside it; the phone hops as the text lands; the code pops up (scale) as a lit chip with a bloom and is tossed on a lifted, tilting arc into the input; the screen is kicked back and settles; the boxes press in as digits land; brand-tinted shadows; leans with the pointer (−18°…30°), click replays; `screen` prop renders the buyer's own React UI (foreignObject, 40 px/unit) and follows the story (`SignInScreenState`) |
@@ -385,8 +421,9 @@ camera, −θ turns it edge-on.
 | `bank-deposit` | ISO-RJJ8GD | banking, savings, fintech heroes | arc (coins leaping through a door) | **Ink (2026-11-03, second pass after "too many bars, card too shallow"):** a small bank in a pastel of the brand: two step `Box`es, a flat-roofed hall whose front face carries an arched door (`archPath`, a rect with a semicircular top) and two windows, **two** columns with square capitals at the portico's ends (four read as bars in front of the door), an entablature and a pediment as a triangular `Extrude` on its front with an oculus; five small coins standing in a loose pile to the right leap through the arch 650 ms apart on sin-lifted arcs, leaning into the flight and shrinking at the threshold, the bank dipping on each landing; the card after Wise's (thick, 0.42 deep, leaning 14° on a `Rig` about x; chip + contactless waves, wordmark, the balance as the big figure, a "+$25" pill under the wordmark, network circles) counts up by `credit` per landed coin, is nudged and settles, and its waves pulse (nested `Rig`); clock-driven text via a component with `useMotionValueEvent`; 5.6 s wrapping cycle; props `cardBrand`, `label`, `start`, `credit`, `glyph`, `coinTone`; no shadow |
 | `workflow-trigger` | ISO-EP9ZS9 | workflow automation, AI agents, integrations | ink-in lanes (dashed floor routes with one rounded bend that fill solid in the brand, a bead at the head, then drain) | **Soft (2026-11-04, second pass):** laid out like the Kargul reference: mail tile front left (0, 5), chat tile behind it (0, −4), the AI step (brand, sparkle glyph) to the right (8.5, 0.5), all level at z 0.8, no shadow, no glow. Each app's lane runs along x, bends round r 1.5 and enters the AI step from the near (mail) or far (chat) side. Events take turns, one per 6.4 s cycle, and decide the direction: an email runs mail → AI → chat, a /follow-up runs chat → AI → mail. A "1 · New email · Acme Inc." pill rises out of the source on a dashed tether (the app tiles never hop: the user removed it); the lane inks in (700 ms); the AI step presses and its sparkle turns 90° with the settle; the second lane inks in; a "✓ Summary posted · #sales" pill rises over the target; hold; pills sink (and unmount, so no dot is left), ink drains toward the target. First pass (circular arch, raised AI tile, bloom and glow pools, hopping tiles) was rejected. Orbit [-12, 30] (labels face +y). Click replays; prop `events` (`from` "mail" \| "chat", `event`, `detail`, `result`, `resultDetail`) |
 | `task-status` | ISO-4E36Y0 | task and project tools, kanban, issue trackers | light run + border trace (the item collapses into a point of light in its status colour, runs the dashed route with a time-lagged trailing line, then splits and races round the target tile's top border both ways) | **Soft (2026-11-04, third pass)**, after a "Group tasks by status" landing section (https://pl.pinterest.com/pin/788763322284989241/): a near-white hub with a ring logo and four pastel status tiles in a pinwheel, each 8.5 out along one axis and 4.5 across (Done back, Not started right, In progress front, Pending left), joined by dashed floor routes with one r 1.5 bend. Per task (1.4 s apart): the issue badge (title card) pops over the hub, holds, collapses to a point; the light runs the lane (900 ms; trail = the spans the head covered 70/150/240 ms ago at falling opacity and width; under the tiles, so it leaves from under the hub and dives under its tile); on the hit the border trace runs (520 ms), holds, fades; the glyph answers in kind (dashed circle pops, spinner turns 90°, clock hand sweeps 120°, check pops). No counts (a superscript count badge was tried and removed as noise); Not started is a dashed empty circle (target rings echoed the hub's logo). The Done tick lies flat in the label's frame like the reference (a screen-upright tick was rejected). Tiles never move; no shadow, no glow. 9.4 s cycle. Props `statuses`, `tasks`. Orbit 18 |
+| `file-cabinet` | ISO-Z84F1M | empty states: no records, no files, first run | none (an empty-state object) | **Ink, paper walls, 1 px (2026-11-12):** a two-drawer cabinet 5 × 5.5 × 9.5 on four feet, front facing +y: a body with two bays cut into its front, a flush top plate, a lock on the top rail; each drawer a flush front with a label holder, a card and a level U pull (`Extrude` on the top plane), an open box behind it and a telescoping slide on its right side. At 500 ms the bottom drawer rolls out 4.75 (420 ms, slams into its stop, bounces off it twice); the cabinet tips forward 1.6° on its front feet and drops back; the top drawer slides out 0.22 and back, 80 ms late. Then still. A click (or `loop`, after 5.2 s) pushes it shut (320 ms, the cabinet rocking back 1.1° on its rear feet) and rolls it out again. The open drawer's label card is the one brand mark. `variant="line"` is the outline alone at the same pixel weight. Under it, the empty state's words: "No data yet", a line of copy, an "Add data" button. Props `heading`, `description`, `actionLabel`, `onAction`, `children`, `drawer` ("bottom" \| "top"), `loop`, `replayOnClick`, `shadow`, `artClassName`. Orbit [-14, 24] |
 
-## Known gaps (backlog, as of 2026-11-04)
+## Known gaps (backlog, as of 2026-11-12)
 
 Close these when the work touches them, and update this list:
 - The docs pages show one preview each; the "your own UI inside the
@@ -395,23 +432,42 @@ Close these when the work touches them, and update this list:
 - Pull the shared shell (`useSceneShell`, `useReplayOnClick`,
   `stageStyle`, `CustomScreen`, `Grain`), copied in each scene, into
   `iso-core.tsx`. The user rejected floor light pools (2026-11-03).
-- A frame-check script (headless render of six points of each loop into
-  a contact sheet, seam and bounds checks) is planned, not built.
+- The frame check is a method, not a repo script: Playwright from the npx
+  cache (`~/.npm/_npx/*/node_modules/playwright`, the version whose
+  Chromium is in `~/Library/Caches/ms-playwright`), `page.clock.install()`
+  before loading the docs page, wait for hydration, let the intro play in
+  real time, `clock.pauseAt`, dispatch `pointerdown` + `pointerup` on the
+  scene to replay, then `clock.runFor(ms)` and screenshot each beat; a
+  `pointermove` at the scene's left or right edge turns it to an end of
+  the orbit. `sharp` (in the repo) tiles the frames into a contact sheet.
+- `variant="line"` is broken in the six scenes before `file-cabinet`:
+  their `stageStyle` passes `"--iso-contour-w": undefined`, which blanks
+  the theme's value, so every contour falls back to a 1-unit stroke. Leave
+  the key out for `line` (or set the pixel outline, as `file-cabinet`'s
+  `BLUEPRINT` does). Not fixed there yet: each fix means rebuilding that
+  item's install file.
+- On the docs site the left and right arrow keys also go to the previous
+  and next page (`components/docs-keyboard-shortcuts.tsx`), so turning a
+  focused scene with them navigates away. Buyers' sites are unaffected.
+- `file-cabinet` has no card screenshot yet (`pnpm media`).
 - `Rig` rotations re-project geometry but face shading (`lit`) still uses
   the unrotated normals; fine for small turns and for `ink`, wrong for a
   box tossed 90° in `duotone`.
-- Soft: only `workflow-trigger` uses it so far; the shipped ink scenes
+- Soft: `workflow-trigger` and `task-status` use it; the shipped ink scenes
   were not re-checked under `variant="soft"`. Soft text pills use the
   site font; the reference's serif headings are a page concern, not a
   scene one.
 - Ink: `Cylinder` and `Sphere` keep their lit rendering and seam strokes;
   only `Box`, `Extrude` (Slab, Panel) and `Poly` take the ink edge.
-- Nine ecommerce icons (store, house, van, shelf, conveyor, box, bag, tag,
-  phone) have no `casts` yet; they fall back to a soft oval. Also not
-  re-checked after the rendering upgrade.
-- The icon and panel files from the earlier passes (finance, ecommerce,
-  technology pieces, `iso-scene.tsx`) sit in `registry/isometric/` but are
-  not registered. Use or delete them as scenes need them.
+- The icon and panel files from the earlier passes (the 27 unregistered
+  `iso-<name>.tsx` finance, ecommerce and technology pieces, and
+  `iso-scene.tsx` with `IsoScene`/`IsoSceneItem`) were deleted on
+  2026-11-12 at the user's request. `registry/isometric/` now holds only
+  `iso-core.tsx` and the seven shipped scenes. The references still name
+  those pieces (`IsoCoins`, `IsoBalancePanel`, `IsoRulePanel`, `IsoCard`,
+  the `IsoScene` API, the category kits table, the worked examples): read
+  them as history, and build any part a scene needs fresh, inside the
+  scene file. The last commit that has them is `5d541d9`.
 - `two-step-sign-in`, `push-to-deploy` and `gradual-rollout` have no card
   screenshots yet (`pnpm media`).
 - `mirror` flips text on faces; a `mirrorable={false}` guard isn't built.

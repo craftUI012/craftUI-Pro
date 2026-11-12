@@ -4970,6 +4970,171 @@
       "Explaining how work is organized by status"
     ]
   },
+  "file-cabinet": {
+    "component": "FileCabinet",
+    "dependencies": ["motion"],
+    "description": "A complete empty state in isometric ink: a two-drawer file cabinet whose drawer rolls out on its slides, hits its stop and shows there is nothing inside, over a heading, a line of copy and a button you set through props (\"No data yet\" by default). Real parts, one even outline, no shadow; the open drawer's label carries your brand. Click to replay; leans with the pointer; in your theme.",
+    "docs": "/docs/isometric/file-cabinet",
+    "extends": null,
+    "files": [
+      "components/isometric/file-cabinet.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-Z84F1M",
+    "import": "@/components/isometric/file-cabinet",
+    "library": "isometric",
+    "name": "file-cabinet",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the cabinet, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"No data yet\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Your data will appear here once you create or import your first records\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Add data\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the open drawer's label card; the rest of the cabinet stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Which drawer rolls open: \"bottom\" or \"top\".",
+        "name": "drawer",
+        "optional": true,
+        "type": "\"bottom\" | \"top\"",
+        "default": "\"bottom\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The drawer rolls open when the cabinet scrolls into view. Off shows it open and still.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Push the drawer shut and roll it open again every few seconds. Off plays it once, which suits an empty state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the cabinet pushes the drawer shut and rolls it open again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "No shadow (default), or the soft cast shadow.",
+        "name": "shadow",
+        "optional": true,
+        "type": "\"soft\" | \"none\"",
+        "default": "\"none\""
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the cabinet: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-14, 24].",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the cabinet is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-60`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole empty state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "File cabinet",
+    "types": [],
+    "tags": {
+      "categories": ["data"],
+      "styles": ["line", "flat", "dark-mode"],
+      "types": ["objects"]
+    },
+    "useCases": [
+      "Empty states for tables and dashboards with no records",
+      "First-run and onboarding screens in SaaS apps",
+      "No files, no documents and empty archive screens",
+      "CRM, admin and data products needing a placeholder"
+    ]
+  },
   "prompt-composer": {
     "component": "PromptComposer",
     "dependencies": ["motion", "lucide-react"],
