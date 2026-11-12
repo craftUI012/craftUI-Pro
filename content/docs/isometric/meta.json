@@ -8,6 +8,8 @@
     "bank-deposit",
     "workflow-trigger",
     "task-status",
-    "file-cabinet"
+    "file-cabinet",
+    "open-envelope",
+    "id-badge"
   ]
 }

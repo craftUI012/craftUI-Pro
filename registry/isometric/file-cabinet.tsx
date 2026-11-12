@@ -659,6 +659,16 @@ const BLUEPRINT: Record<string, string> = {
   "--iso-vector": "non-scaling-stroke",
 };
 
+// The engine's rim highlight has no width in the outlined variants, yet it
+// still paints a pale hairline over the front outline of every extrusion
+// (seen at 4× in Chromium). Clear its colour so the outline keeps its
+// full weight.
+const NO_RIM: Record<string, string> = {
+  "--iso-accent-rim": "transparent",
+  "--iso-main-rim": "transparent",
+  "--iso-surface-rim": "transparent",
+};
+
 /**
  * Stage overrides: no hairline contour (every edge already carries the
  * outline), the paper walls in ink, the pixel outline in the blueprint,
@@ -670,6 +680,7 @@ const stageStyle = (variant: IsoVariant) =>
     "--iso-contour-w": "0",
     ...(variant === "ink" ? PAPER : {}),
     ...(variant === "line" ? BLUEPRINT : {}),
+    ...(variant === "ink" || variant === "line" ? NO_RIM : {}),
     "--iso-inside-floor":
       "oklch(from var(--iso-surface-right-c) calc(l - 0.05) c h)",
     "--iso-inside-wall":

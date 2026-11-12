@@ -380,6 +380,34 @@ Empty-state objects (one object, one beat, then stillness) are a third
 kind: `file-cabinet` is the reference, built from the user's pin
 (https://pl.pinterest.com/pin/866380047090243445/, a line-drawn cabinet
 over "No data yet"). What it settled:
+- **Everything rests straight.** At rest every part lines up with the
+  isometric axes: uprights vertical, edges along the 30° axes. The first
+  `id-badge` hung askew (strap 3°, card −8°) and the first `open-envelope`
+  left its document 3° off, fanned a second sheet 10° and leaned its flap
+  back 28°, copying the casual tilt of the pins; the user: "make the
+  isometric straight they are wrongly tilted for someone who visits our
+  library" (2026-11-12). An off-axis rest pose reads as drawn wrong, not
+  as relaxed. Parts may swing, wobble or tip during the beat, but they
+  settle straight, and the swings stay small (the badge: 6° on its strap,
+  11° of twist). Show a second sheet by offsetting it (left and up),
+  never by turning it.
+- **Flat things face the screen.** After the rest poses were straightened
+  the user still read the envelope and the badge as tilted: "make them
+  straight faced towards the screen" (2026-11-12). An object that is
+  mostly one face (an envelope, a badge, a card, a document) looks turned
+  away at the isometric angle, and the pins show it head-on. Both now
+  default to `view="front"` (`"isometric"` keeps the three-quarter
+  angle): one static outer `Rig` turns the whole object −45° about the
+  vertical so its +y front points at the viewer, and stretches it √(3/2)
+  in z, because the camera looks down from 35.26° and foreshortens
+  heights by exactly that; the front then keeps its true proportions,
+  edges run level and plumb, and thickness shows along the top edge. It
+  is still an exact parallel projection, and it turns evenly either way
+  with the pointer (orbit 16). `IsoStage` fits its frame to `bounds`
+  without the rig, so map the bounds through the same transform
+  (`facing`). Casts are axis-aligned boxes and cannot follow the turn, so
+  these two have no `shadow` prop. Boxy objects stay isometric: the file
+  cabinet's pin is isometric and it reads as a solid from that angle.
 - **Quiet by default.** A 1 px outline (`strokeWidth` 0.23), paper walls
   (in ink the walls step 0.03 and 0.07 under the top instead of 0.06 and
   0.13, set as `--iso-surface-left-c` / `-right-c` on the stage), no
@@ -411,6 +439,29 @@ over "No data yet"). What it settled:
   the lint complexity limit. The docs page is then just the component.
 - In MDX, never put a bare line of text inside a JSX `<p>`: it becomes a
   second `<p>` and breaks hydration.
+- **Reading a pin.** `curl` the pin page with a browser user agent, take
+  the `og:image` address and swap `/736x/` for `/originals/`. The pins in
+  this series are flat front views; rebuild the object in true isometric
+  and keep the family look above rather than each pin's rendering.
+- **Paper is a face, not a solid.** In `open-envelope` the sheets and the
+  pocket's front leaf are `FacePath`s on one plane in front of the
+  envelope's extruded body; paint order (body, sheets, leaf) does the
+  hiding. Two stacked 0.3 extrusions gave three parallel edges and a dark
+  band down the side.
+- **Rounded extrusions get their side edges** in ink by setting
+  `--iso-silhouette: var(--iso-edge, none)` on the stage (the core only
+  sets it in soft). It needs `convex`, so build a notched shape from
+  convex pieces: the badge's clip plate is its own plate behind the card.
+- **A part that twists shares the 45° budget with the camera.** `id-badge`
+  twists 11° about its strap and its orbit stops at 20°: past 45° in total
+  a face goes edge-on and an extrusion draws inside out.
+- **Fit the frame to the rest pose** of something that swings; the widest
+  swings run into the stage's padding, which is not clipped. Fitting the
+  extremes made the badge small in its frame.
+- **Something that starts and ends at rest needs one clip.** The badge is
+  flicked from rest to rest, so a click replays the same clip; the cabinet
+  and the envelope end in a different state from where they start and
+  need a second clip that first undoes the beat.
 
 | Scene | Code | Use case | Connector | Story |
 | --- | --- | --- | --- | --- |
@@ -422,6 +473,8 @@ over "No data yet"). What it settled:
 | `workflow-trigger` | ISO-EP9ZS9 | workflow automation, AI agents, integrations | ink-in lanes (dashed floor routes with one rounded bend that fill solid in the brand, a bead at the head, then drain) | **Soft (2026-11-04, second pass):** laid out like the Kargul reference: mail tile front left (0, 5), chat tile behind it (0, −4), the AI step (brand, sparkle glyph) to the right (8.5, 0.5), all level at z 0.8, no shadow, no glow. Each app's lane runs along x, bends round r 1.5 and enters the AI step from the near (mail) or far (chat) side. Events take turns, one per 6.4 s cycle, and decide the direction: an email runs mail → AI → chat, a /follow-up runs chat → AI → mail. A "1 · New email · Acme Inc." pill rises out of the source on a dashed tether (the app tiles never hop: the user removed it); the lane inks in (700 ms); the AI step presses and its sparkle turns 90° with the settle; the second lane inks in; a "✓ Summary posted · #sales" pill rises over the target; hold; pills sink (and unmount, so no dot is left), ink drains toward the target. First pass (circular arch, raised AI tile, bloom and glow pools, hopping tiles) was rejected. Orbit [-12, 30] (labels face +y). Click replays; prop `events` (`from` "mail" \| "chat", `event`, `detail`, `result`, `resultDetail`) |
 | `task-status` | ISO-4E36Y0 | task and project tools, kanban, issue trackers | light run + border trace (the item collapses into a point of light in its status colour, runs the dashed route with a time-lagged trailing line, then splits and races round the target tile's top border both ways) | **Soft (2026-11-04, third pass)**, after a "Group tasks by status" landing section (https://pl.pinterest.com/pin/788763322284989241/): a near-white hub with a ring logo and four pastel status tiles in a pinwheel, each 8.5 out along one axis and 4.5 across (Done back, Not started right, In progress front, Pending left), joined by dashed floor routes with one r 1.5 bend. Per task (1.4 s apart): the issue badge (title card) pops over the hub, holds, collapses to a point; the light runs the lane (900 ms; trail = the spans the head covered 70/150/240 ms ago at falling opacity and width; under the tiles, so it leaves from under the hub and dives under its tile); on the hit the border trace runs (520 ms), holds, fades; the glyph answers in kind (dashed circle pops, spinner turns 90°, clock hand sweeps 120°, check pops). No counts (a superscript count badge was tried and removed as noise); Not started is a dashed empty circle (target rings echoed the hub's logo). The Done tick lies flat in the label's frame like the reference (a screen-upright tick was rejected). Tiles never move; no shadow, no glow. 9.4 s cycle. Props `statuses`, `tasks`. Orbit 18 |
 | `file-cabinet` | ISO-Z84F1M | empty states: no records, no files, first run | none (an empty-state object) | **Ink, paper walls, 1 px (2026-11-12):** a two-drawer cabinet 5 × 5.5 × 9.5 on four feet, front facing +y: a body with two bays cut into its front, a flush top plate, a lock on the top rail; each drawer a flush front with a label holder, a card and a level U pull (`Extrude` on the top plane), an open box behind it and a telescoping slide on its right side. At 500 ms the bottom drawer rolls out 4.75 (420 ms, slams into its stop, bounces off it twice); the cabinet tips forward 1.6° on its front feet and drops back; the top drawer slides out 0.22 and back, 80 ms late. Then still. A click (or `loop`, after 5.2 s) pushes it shut (320 ms, the cabinet rocking back 1.1° on its rear feet) and rolls it out again. The open drawer's label card is the one brand mark. `variant="line"` is the outline alone at the same pixel weight. Under it, the empty state's words: "No data yet", a line of copy, an "Add data" button. Props `heading`, `description`, `actionLabel`, `onAction`, `children`, `drawer` ("bottom" \| "top"), `loop`, `replayOnClick`, `shadow`, `artClassName`. Orbit [-14, 24] |
+| `open-envelope` | ISO-CX14WM | inbox full, storage limit, quota reached | none (a state object) | **Ink, paper walls, 1 px (2026-11-12),** from the user's pin https://pl.pinterest.com/pin/449445237833966192/ with their change: a document comes out, not a second envelope. An open envelope 8 × 5 standing on its long edge, built facing +y and shown facing the screen (`view="front"`, the default): a body 0.4 deep, the pocket's front leaf with a V edge (a face), the flap a rounded triangle standing straight up on a `Rig`. At 360 ms it swells (`press`); the document (a mark, a heading line, four lines, a folded corner) rises 2.2 straight out of the pocket with an overshoot and a 2.5° wobble that settles to upright; a plain sheet behind it, offset 0.35 left and 0.35 up, follows 90 ms late; the flap is knocked back 9° and stands up again. At 1050 ms an alert badge (a pill in the brand, "!!!") pops with scale off the top right corner and rocks to rest. A click (or `loop`): the badge shrinks away, the sheets drop back in, the envelope takes the thud, and it plays again. Two buttons under it. Props `heading`, `description`, `actionLabel`, `secondaryLabel`, `onAction`, `onSecondary`, `children`, `alert`, `view`. Orbit 16 (front), [-14, 24] (isometric) |
+| `id-badge` | ISO-VJV1P7 | no members, empty team, invite a teammate | none (an empty-state object) | **Ink, paper walls, 1 px (2026-11-12),** from the user's pin https://pl.pinterest.com/pin/449445237834064230/. A blank ID badge 5.4 × 6.6 hanging clear of the floor, built facing +y and shown facing the screen (`view="front"`, the default): a clip plate with an eyelet behind the card's top edge, a slim strap rising from it, a photo window with a placeholder figure, two lines for a name and a role, and a plus in the brand on the photo's corner. It hangs plumb. At 400 ms it is flicked: three nested rigs, the strap swinging about its top (6°, each half swing 62% of the last), the badge twisting about the strap (11°), the card turning on its eyelet 90 ms late, all settling straight; at 1500 ms the plus pulses once. A click flicks it again. Props `heading`, `description`, `actionLabel`, `onAction`, `children`, `view`. Orbit 16 (front), [-12, 20] (isometric) |
 
 ## Known gaps (backlog, as of 2026-11-12)
 
@@ -449,7 +502,15 @@ Close these when the work touches them, and update this list:
 - On the docs site the left and right arrow keys also go to the previous
   and next page (`components/docs-keyboard-shortcuts.tsx`), so turning a
   focused scene with them navigates away. Buyers' sites are unaffected.
-- `file-cabinet` has no card screenshot yet (`pnpm media`).
+- `file-cabinet`, `open-envelope` and `id-badge` have no card screenshots
+  yet (`pnpm media`).
+- `Extrude`'s rim path still paints in the outlined variants: its width is
+  `calc(var(--iso-rim-w) * 0.8)` with `--iso-rim-w: 0`, which computes to
+  `0%` and Chromium strokes it as a pale hairline over the front outline
+  of every `Slab`, `Panel` and `Extrude` (found by hiding those paths at
+  4×). The three empty-state items clear the rim colours on the stage
+  (`NO_RIM`). The core is unchanged, because the soft and ink scenes were
+  approved with it; fixing it there would darken their outlines a touch.
 - `Rig` rotations re-project geometry but face shading (`lit`) still uses
   the unrotated normals; fine for small turns and for `ink`, wrong for a
   box tossed 90° in `duotone`.
