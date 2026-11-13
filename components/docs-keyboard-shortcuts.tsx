@@ -7,6 +7,14 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useFeedback } from "@/hooks/use-feedback";
 import { trackEvent } from "@/lib/events";
 
+// Something on the page already used this key (an illustration being
+// turned, a tab list, a slider) and said so by preventing its default.
+// Then the arrow is not a request to change page.
+const HOTKEY_OPTIONS = {
+  ignoreEventWhen: (event: KeyboardEvent) => event.defaultPrevented,
+  preventDefault: true,
+};
+
 export const DocsKeyboardShortcuts = ({
   previous,
   next,
@@ -40,7 +48,7 @@ export const DocsKeyboardShortcuts = ({
     () => {
       navigate(next, "next", "ArrowRight");
     },
-    { preventDefault: true }
+    HOTKEY_OPTIONS
   );
 
   useHotkeys(
@@ -48,7 +56,7 @@ export const DocsKeyboardShortcuts = ({
     () => {
       navigate(previous, "previous", "ArrowLeft");
     },
-    { preventDefault: true }
+    HOTKEY_OPTIONS
   );
 
   return null;
