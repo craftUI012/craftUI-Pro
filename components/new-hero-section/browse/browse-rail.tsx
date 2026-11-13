@@ -2,9 +2,9 @@
 
 import {
   ArrowLeft,
+  Blend,
   Blocks,
   BookOpen,
-  Box,
   Component,
   FileText,
   History,
@@ -124,8 +124,8 @@ const RESOURCE_LINKS = [
 const LIBRARY_ICONS: Record<LibraryId, typeof Component> = {
   blocks: Blocks,
   components: Component,
+  gradients: Blend,
   illustrations: Shapes,
-  isometric: Box,
   templates: LayoutTemplate,
 };
 

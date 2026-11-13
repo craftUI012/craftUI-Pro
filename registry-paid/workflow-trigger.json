@@ -20,9 +20,9 @@
   ],
   "meta": {
     "id": "ISO-EP9ZS9",
-    "library": "isometric",
+    "library": "illustrations",
     "types": ["scenes"],
-    "styles": ["gradient", "dark-mode"],
+    "styles": ["isometric", "gradient", "dark-mode"],
     "publishedAt": "2026-11-04",
     "useCases": [
       "Workflow automation and integration platform sites",

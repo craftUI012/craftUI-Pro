@@ -92,6 +92,8 @@ export const STYLES = {
   "dark-mode": { label: "Dark mode" },
   flat: { label: "Flat" },
   gradient: { label: "Gradient" },
+  // Drawn in true isometric projection (Illustrations only).
+  isometric: { label: "Isometric" },
   line: { label: "Line" },
   minimal: { label: "Minimal" },
   motion: { label: "Motion" },
@@ -122,7 +124,7 @@ export type LibraryId =
   | "templates"
   | "blocks"
   | "illustrations"
-  | "isometric";
+  | "gradients";
 
 export interface LibraryConfig {
   label: string;
@@ -132,6 +134,10 @@ export interface LibraryConfig {
   // once an item is published, even if the item's slug or title does. "TPL"
   // is kept for full-page templates, a separate product to come.
   idPrefix: string;
+  // Prefixes of codes given before a merge or a rename, still valid on the
+  // items that carry them (a sold code never changes). New items never get
+  // one of these.
+  legacyPrefixes?: string[];
   // The library's key in the browse page's URL (/?library=blocks).
   slug: string;
   // Nouns for the result count: "1 block", "6 blocks".
@@ -207,25 +213,40 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
       "badges",
     ],
   },
+  // Gradient backgrounds: announced, nothing in it yet. A library with no
+  // items shows as "Coming soon" in the navbar and cannot be opened. Give
+  // it its categories, types and styles when the first item is added (an
+  // item must tag at least one category and one type from these lists).
+  gradients: {
+    categories: [],
+    idPrefix: "GRD",
+    itemLabel: { one: "gradient background", other: "gradient backgrounds" },
+    label: "Gradient backgrounds",
+    searchPlaceholder: "Search gradient backgrounds…",
+    slug: "gradients",
+    styles: [],
+    types: [],
+  },
+  // Every drawn item: isometric scenes and objects (the "Isometric" style)
+  // and, later, flat illustrations. Isometric was its own library until
+  // 2026-11-12; its ten items kept their ISO- codes when it merged in here.
   illustrations: {
-    categories: ["marketing", "technology", "people", "ecommerce"],
+    categories: [
+      "technology",
+      "finance",
+      "ecommerce",
+      "data",
+      "marketing",
+      "people",
+    ],
     idPrefix: "ILL",
     itemLabel: { one: "illustration", other: "illustrations" },
     label: "Illustrations",
+    legacyPrefixes: ["ISO"],
     searchPlaceholder: "Search illustrations…",
     slug: "illustrations",
-    styles: ["flat", "line", "gradient", "dark-mode"],
-    types: ["scenes", "spot", "empty-states"],
-  },
-  isometric: {
-    categories: ["technology", "finance", "ecommerce", "data"],
-    idPrefix: "ISO",
-    itemLabel: { one: "isometric item", other: "isometric items" },
-    label: "Isometric",
-    searchPlaceholder: "Search isometric…",
-    slug: "isometric",
-    styles: ["flat", "gradient", "line", "dark-mode"],
-    types: ["objects", "scenes", "devices"],
+    styles: ["isometric", "flat", "line", "gradient", "dark-mode"],
+    types: ["scenes", "objects", "devices", "spot", "empty-states"],
   },
   templates: {
     categories: [
@@ -266,5 +287,5 @@ export const NAV_LIBRARIES: LibraryId[] = [
   "blocks",
   "components",
   "illustrations",
-  "isometric",
+  "gradients",
 ];

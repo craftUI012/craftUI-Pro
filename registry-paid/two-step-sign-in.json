@@ -20,9 +20,9 @@
   ],
   "meta": {
     "id": "ISO-R87FKV",
-    "library": "isometric",
+    "library": "illustrations",
     "types": ["scenes"],
-    "styles": ["gradient", "dark-mode"],
+    "styles": ["isometric", "gradient", "dark-mode"],
     "publishedAt": "2026-11-02",
     "useCases": [
       "Auth and identity product sites",

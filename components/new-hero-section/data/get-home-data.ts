@@ -50,7 +50,7 @@ const contentHash = () =>
 // Part of the cache key. The Data Cache outlives code edits (even in dev), so
 // bump this whenever the HomeData shape changes, or pages keep getting the old
 // cached shape.
-const HOME_DATA_VERSION = "12";
+const HOME_DATA_VERSION = "13";
 
 export const getHomeData = cache(
   unstable_cache(

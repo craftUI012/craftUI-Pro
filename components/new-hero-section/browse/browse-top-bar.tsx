@@ -71,8 +71,10 @@ const TAB_CLASS = cn(
 
 // Libraries that share one navbar dropdown instead of a tab each, in menu
 // order. A library in it with no items yet is listed as "Coming soon".
+// Illustrations (Isometric merged into it), then Gradient backgrounds,
+// which has no items yet and so reads "Coming soon".
 const ART_MENU = {
-  ids: ["isometric", "illustrations"] as LibraryId[],
+  ids: ["illustrations", "gradients"] as LibraryId[],
   label: "UI kits",
 };
 
@@ -273,8 +275,9 @@ const BrowseSearch = ({
 //   [logo] craftUI   Sections  Blocks  Components  UI kits ▾
 //                          [Search ⌘K]  (Admin panel)  Pricing  [Sign in]
 //
-// Isometric and Illustrations share one dropdown, UI kits (ArtMenu); a
-// library in it with no items yet is disabled and marked Coming soon.
+// Illustrations and Gradient backgrounds share one dropdown, UI kits
+// (ArtMenu); a library in it with no items yet is disabled and marked
+// Coming soon.
 //
 // The library switch is a shadcn TabsList: its triggers drive the shell's
 // <Tabs>, whose TabsContent panels are the browse grids (browse-panels.tsx).

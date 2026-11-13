@@ -20,9 +20,9 @@
   ],
   "meta": {
     "id": "ISO-A0SDZZ",
-    "library": "isometric",
+    "library": "illustrations",
     "types": ["scenes"],
-    "styles": ["flat", "dark-mode"],
+    "styles": ["isometric", "flat", "dark-mode"],
     "publishedAt": "2026-11-03",
     "useCases": [
       "Fintech and neobank hero sections",

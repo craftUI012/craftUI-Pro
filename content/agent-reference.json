@@ -3799,7 +3799,7 @@
     "component": "TwoStepSignIn",
     "dependencies": ["motion"],
     "description": "In isometric ink: a sign-in screen floating over a construction grid asks for a code, the phone hops as the text lands, the code pops off as a lit chip and is tossed into the input, the screen takes the hit, and the user is in. Objects move as solids; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/two-step-sign-in",
+    "docs": "/docs/illustrations/two-step-sign-in",
     "extends": null,
     "files": [
       "components/isometric/two-step-sign-in.tsx",
@@ -3807,7 +3807,7 @@
     ],
     "id": "ISO-R87FKV",
     "import": "@/components/isometric/two-step-sign-in",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "two-step-sign-in",
     "paid": true,
     "props": [
@@ -3961,7 +3961,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -3975,7 +3975,7 @@
     "component": "PushToDeploy",
     "dependencies": ["motion"],
     "description": "In isometric ink: git push on a terminal tile that presses in on enter sends a pulse down a cable to the dashboard floating behind it, which takes the hit as the deployment slides in, builds and goes live. Objects move as solids; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/push-to-deploy",
+    "docs": "/docs/illustrations/push-to-deploy",
     "extends": null,
     "files": [
       "components/isometric/push-to-deploy.tsx",
@@ -3983,7 +3983,7 @@
     ],
     "id": "ISO-RPVRYG",
     "import": "@/components/isometric/push-to-deploy",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "push-to-deploy",
     "paid": true,
     "props": [
@@ -4175,7 +4175,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4189,7 +4189,7 @@
     "component": "GradualRollout",
     "dependencies": ["motion"],
     "description": "In isometric ink: a feature flag's console moves a new version from 10% to 100% of traffic; the new server hops and lights up as its share jumps, the router presses, the old server sinks, and packets on light rails shift across. Objects move as solids; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/gradual-rollout",
+    "docs": "/docs/illustrations/gradual-rollout",
     "extends": null,
     "files": [
       "components/isometric/gradual-rollout.tsx",
@@ -4197,7 +4197,7 @@
     ],
     "id": "ISO-7PVTRP",
     "import": "@/components/isometric/gradual-rollout",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "gradual-rollout",
     "paid": true,
     "props": [
@@ -4383,7 +4383,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4397,7 +4397,7 @@
     "component": "WalletCoins",
     "dependencies": ["motion"],
     "description": "In isometric ink: a thin stitched wallet in a pastel of your brand, the brand card sliding out of its slit, and three currency coins ($ € £) following it out with an overshoot, fanning into an arc and swinging upright while the wallet dips, then idling on a sine wave. A hero object for fintech and banking sites; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/wallet-coins",
+    "docs": "/docs/illustrations/wallet-coins",
     "extends": null,
     "files": [
       "components/isometric/wallet-coins.tsx",
@@ -4405,7 +4405,7 @@
     ],
     "id": "ISO-A0SDZZ",
     "import": "@/components/isometric/wallet-coins",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "wallet-coins",
     "paid": true,
     "props": [
@@ -4520,7 +4520,7 @@
     "types": [],
     "tags": {
       "categories": ["finance"],
-      "styles": ["flat", "dark-mode"],
+      "styles": ["isometric", "flat", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4534,7 +4534,7 @@
     "component": "BankDeposit",
     "dependencies": ["motion"],
     "description": "In isometric ink: a small bank in a pastel of your brand, five coins on the ground beside it that leap into the door one by one on an arc, and a balance card on the left whose dollar figure counts up with every credit. A hero object for banking, savings and fintech sites; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/bank-deposit",
+    "docs": "/docs/illustrations/bank-deposit",
     "extends": null,
     "files": [
       "components/isometric/bank-deposit.tsx",
@@ -4542,7 +4542,7 @@
     ],
     "id": "ISO-RJJ8GD",
     "import": "@/components/isometric/bank-deposit",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "bank-deposit",
     "paid": true,
     "props": [
@@ -4671,7 +4671,7 @@
     "types": [],
     "tags": {
       "categories": ["finance"],
-      "styles": ["flat", "dark-mode"],
+      "styles": ["isometric", "flat", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4685,7 +4685,7 @@
     "component": "WorkflowTrigger",
     "dependencies": ["motion"],
     "description": "In soft isometric: a mail app, a chat app and an AI step float as rounded tiles, joined by dashed floor lanes with a rounded bend. An event lands in one app, brand ink fills the lane to the AI step and on to the other app, which shows what the workflow did; events take turns, so the flow runs both ways. Leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/workflow-trigger",
+    "docs": "/docs/illustrations/workflow-trigger",
     "extends": null,
     "files": [
       "components/isometric/workflow-trigger.tsx",
@@ -4693,7 +4693,7 @@
     ],
     "id": "ISO-EP9ZS9",
     "import": "@/components/isometric/workflow-trigger",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "workflow-trigger",
     "paid": true,
     "props": [
@@ -4816,7 +4816,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4830,7 +4830,7 @@
     "component": "TaskStatus",
     "dependencies": ["motion"],
     "description": "In soft isometric: a white hub tile and four pastel status tiles (Not started, In progress, Pending, Done) joined by dashed floor routes with a rounded bend. Each task pops up as an issue badge, turns into a light that runs its route with a trailing line and races round its tile's border, and the status glyph answers. No shadow, no glow; leans with the pointer; in your theme.",
-    "docs": "/docs/isometric/task-status",
+    "docs": "/docs/illustrations/task-status",
     "extends": null,
     "files": [
       "components/isometric/task-status.tsx",
@@ -4838,7 +4838,7 @@
     ],
     "id": "ISO-4E36Y0",
     "import": "@/components/isometric/task-status",
-    "library": "isometric",
+    "library": "illustrations",
     "name": "task-status",
     "paid": true,
     "props": [
@@ -4960,7 +4960,7 @@
     ],
     "tags": {
       "categories": ["technology"],
-      "styles": ["gradient", "dark-mode"],
+      "styles": ["isometric", "gradient", "dark-mode"],
       "types": ["scenes"]
     },
     "useCases": [
@@ -4968,6 +4968,508 @@
       "Kanban, status and workflow-stage feature sections",
       "Issue tracker and team productivity landing pages",
       "Explaining how work is organized by status"
+    ]
+  },
+  "file-cabinet": {
+    "component": "FileCabinet",
+    "dependencies": ["motion"],
+    "description": "A complete empty state in isometric ink: a two-drawer file cabinet whose drawer rolls out on its slides, hits its stop and shows there is nothing inside, over a heading, a line of copy and a button you set through props (\"No data yet\" by default). Real parts, one even outline, no shadow; the open drawer's label carries your brand. Click to replay; leans with the pointer; in your theme.",
+    "docs": "/docs/illustrations/file-cabinet",
+    "extends": null,
+    "files": [
+      "components/isometric/file-cabinet.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-Z84F1M",
+    "import": "@/components/isometric/file-cabinet",
+    "library": "illustrations",
+    "name": "file-cabinet",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the cabinet, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"No data yet\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Your data will appear here once you create or import your first records\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Add data\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the open drawer's label card; the rest of the cabinet stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "Which drawer rolls open: \"bottom\" or \"top\".",
+        "name": "drawer",
+        "optional": true,
+        "type": "\"bottom\" | \"top\"",
+        "default": "\"bottom\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The drawer rolls open when the cabinet scrolls into view. Off shows it open and still.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Push the drawer shut and roll it open again every few seconds. Off plays it once, which suits an empty state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the cabinet pushes the drawer shut and rolls it open again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "No shadow (default), or the soft cast shadow.",
+        "name": "shadow",
+        "optional": true,
+        "type": "\"soft\" | \"none\"",
+        "default": "\"none\""
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the cabinet: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default [-14, 24].",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the cabinet is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-60`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole empty state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "File cabinet",
+    "types": [],
+    "tags": {
+      "categories": ["data"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["objects"]
+    },
+    "useCases": [
+      "Empty states for tables and dashboards with no records",
+      "First-run and onboarding screens in SaaS apps",
+      "No files, no documents and empty archive screens",
+      "CRM, admin and data products needing a placeholder"
+    ]
+  },
+  "open-envelope": {
+    "component": "OpenEnvelope",
+    "dependencies": ["motion"],
+    "description": "A complete \"your mail is full\" state in isometric ink, facing the screen: an open envelope so stuffed that a document is pushed out of its pocket, a second sheet behind it, and an alert badge that pops at its corner, over a heading, a line of copy and two buttons you set through props. One even outline, no shadow; the badge carries your brand. Click to replay; leans with the pointer; in your theme.",
+    "docs": "/docs/illustrations/open-envelope",
+    "extends": null,
+    "files": [
+      "components/isometric/open-envelope.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-CX14WM",
+    "import": "@/components/isometric/open-envelope",
+    "library": "illustrations",
+    "name": "open-envelope",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the envelope, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"Your mail is full\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Your inbox is out of space. Clear some by deleting files, or upgrade your stor…"
+      },
+      {
+        "description": "Label of the main button, up to about 18 characters. An empty string hides it.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Upgrade storage\""
+      },
+      {
+        "description": "Called when the main button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Label of the second button, up to about 18 characters. An empty string hides it.",
+        "name": "secondaryLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Clear space\""
+      },
+      {
+        "description": "Called when the second button is clicked.",
+        "name": "onSecondary",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy, in place of the two built-in buttons.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Mark on the alert badge, up to three characters. An empty string leaves the badge out.",
+        "name": "alert",
+        "optional": true,
+        "type": "string",
+        "default": "\"!!!\""
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, destructive, chart-2…) or any CSS colour. It shows on the alert badge; the envelope and the document stay neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The document is pushed out when the envelope scrolls into view. Off shows it out and still.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Tuck the document back in and push it out again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the envelope tucks the document back in and pushes it out again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "How it faces: \"front\" (default) turns it square to the screen, level and plumb, its thickness along the top edge; \"isometric\" shows it at the isometric three-quarter angle.",
+        "name": "view",
+        "optional": true,
+        "type": "\"front\" | \"isometric\"",
+        "default": "\"front\""
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the envelope: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default 16 in the front view, [-14, 24] in the isometric one.",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": null
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the envelope is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-60`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Open envelope",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["objects"]
+    },
+    "useCases": [
+      "Inbox full and storage limit screens in mail apps",
+      "Quota reached and upgrade prompts in SaaS products",
+      "File storage and attachment limit warnings",
+      "Empty and overflow states for messaging tools"
+    ]
+  },
+  "id-badge": {
+    "component": "IdBadge",
+    "dependencies": ["motion"],
+    "description": "A complete \"no members yet\" empty state in isometric ink, facing the screen: a blank ID badge hanging straight from its strap, flicked once so it swings and twists to rest, with a placeholder photo and a plus on its corner, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the plus carries your brand. Click to flick it again; leans with the pointer; in your theme.",
+    "docs": "/docs/illustrations/id-badge",
+    "extends": null,
+    "files": [
+      "components/isometric/id-badge.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ISO-VJV1P7",
+    "import": "@/components/isometric/id-badge",
+    "library": "illustrations",
+    "name": "id-badge",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the badge, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"No members yet\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Start by adding your first member to collaborate and get things rolling.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Add new member\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the plus at the photo's corner; the rest of the badge stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The badge is flicked and swings to rest when it scrolls into view. Off shows it hanging still.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Flick it again every few seconds. Off plays it once, which suits an empty state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the badge flicks it again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "How it faces: \"front\" (default) turns it square to the screen, level and plumb, its thickness along the top edge; \"isometric\" shows it at the isometric three-quarter angle.",
+        "name": "view",
+        "optional": true,
+        "type": "\"front\" | \"isometric\"",
+        "default": "\"front\""
+      },
+      {
+        "description": "Dashed construction grid on the floor.",
+        "name": "grid",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Let the viewer turn the badge: \"pointer\" (leans toward the pointer and settles back), \"drag\" (drag sideways or use the arrow keys), or \"off\".",
+        "name": "rotate",
+        "optional": true,
+        "type": "IsoRotate",
+        "default": "\"pointer\""
+      },
+      {
+        "description": "How far it turns, in degrees: a number for both ways, or [min, max]. Default 16 in the front view, [-12, 20] in the isometric one (keep that one under 25, or the twisting badge goes edge-on).",
+        "name": "orbit",
+        "optional": true,
+        "type": "IsoOrbit",
+        "default": null
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the badge is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-52`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole empty state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "ID badge",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["objects"]
+    },
+    "useCases": [
+      "Empty team, members and workspace screens",
+      "Invite your first teammate onboarding steps",
+      "User management and access control dashboards",
+      "HR, directory and community products with no people yet"
     ]
   },
   "prompt-composer": {
