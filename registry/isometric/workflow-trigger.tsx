@@ -701,10 +701,19 @@ const useShell = ({
   };
 };
 
+// The blueprint (`line`) drawn at stage size: its outline held at the ink's
+// pixel weight instead of a canvas-unit one, which is several times too
+// heavy on a stage.
+const LINE_OUTLINE: Record<string, string> = {
+  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
+  "--iso-vector": "non-scaling-stroke",
+};
+
 /** Stage overrides: no hairline contour outside the blueprint. */
 const stageStyle = (line: boolean) =>
   ({
-    "--iso-contour-w": line ? undefined : "0",
+    "--iso-contour-w": "0",
+    ...(line ? LINE_OUTLINE : {}),
   }) as CSSProperties;
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */

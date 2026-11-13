@@ -259,7 +259,7 @@ at the upper left:
   flipped (a flipped shadow would point toward the light).
 
 Text or asymmetric glyphs on faces read backwards when mirrored. A
-`mirrorable={false}` guard isn't built yet (see Known gaps).
+`mirrorable={false}` guard isn't built yet (see "Engine limits" in SKILL.md).
 
 ## 7a. The rig transform
 

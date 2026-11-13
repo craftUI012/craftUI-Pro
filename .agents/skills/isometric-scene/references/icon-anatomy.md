@@ -138,7 +138,8 @@ opacity; action in the first half of the loop, a still hold after it.
   (a pixel width held constant by `vector-effect: non-scaling-stroke`)
   with miter joins. `Box`, `Extrude` (so `Slab`, `Panel`) and `Poly` do
   this themselves; the back outline of an extrusion is the ink too.
-  `Cylinder` and `Sphere` still render lit (backlog).
+  `Cylinder` and `Sphere` still render lit (see "Engine limits" in
+  SKILL.md).
 - **Lit (icons, `duotone`/`solid`):** each `<svg>` gets its own `IsoDefs`:
   nine face gradients (3 palettes × 3 faces) and the blur filters, with
   ids from `useIsoId`; the paint variables point at them, so `fill:

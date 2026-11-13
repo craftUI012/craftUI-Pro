@@ -501,6 +501,13 @@ const stageStyle = (variant: IsoVariant) =>
 
 /* ───────────────────────────── Copy ───────────────────────────────────── */
 
+// Optical padding: an icon carries its own white space, so the label's
+// side gets 2px more than the icon's side (12px and 14px) or the label
+// looks pushed against the edge. The second class wins over a Button that
+// already nudges this side itself.
+const BUTTON =
+  "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
+
 /** The plus on the button. */
 const PlusIcon = () => (
   <svg
@@ -534,7 +541,7 @@ const Copy = ({
   children?: ReactNode;
 }) => {
   const button = actionLabel ? (
-    <Button className="rounded-full" onClick={onAction}>
+    <Button className={BUTTON} onClick={onAction}>
       <PlusIcon />
       {actionLabel}
     </Button>

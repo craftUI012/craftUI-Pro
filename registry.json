@@ -1256,6 +1256,40 @@
       ]
     },
     {
+      "name": "notepad",
+      "type": "registry:block",
+      "title": "Notepad",
+      "description": "A complete \"no notes yet\" empty state in isometric ink, facing the screen: a pad of paper and a pencil that taps down, writes two lines and lifts off, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the pencil's eraser carries your brand. Click to play it again; in your theme.",
+      "categories": ["data"],
+      "meta": {
+        "id": "ILL-JB9DJH",
+        "library": "illustrations",
+        "types": ["empty-states", "objects"],
+        "styles": ["isometric", "line", "flat", "dark-mode"],
+        "publishedAt": "2026-11-13",
+        "useCases": [
+          "Empty states for notes, docs and journal apps",
+          "First-run screens in editors and writing tools",
+          "No posts, no drafts and no comments screens",
+          "Onboarding steps that invite a first entry"
+        ]
+      },
+      "dependencies": ["motion"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/isometric/notepad.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/notepad.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
       "name": "prompt-composer",
       "type": "registry:ui",
       "title": "Prompt composer",

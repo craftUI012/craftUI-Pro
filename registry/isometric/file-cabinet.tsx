@@ -21,6 +21,7 @@ import {
   FacePath,
   FloorGrid,
   IsoStage,
+  projectWith,
   Rig,
   roundedRect,
   sample,
@@ -214,6 +215,36 @@ const GRID = { at: [-6, -6] as const, size: [12, 16] as const };
 const PIVOT: readonly [number, number] = [0, 1.5];
 // Turning toward the drawer fronts (+) reads better than away from them.
 const DEFAULT_ORBIT: IsoOrbit = [-14, 24];
+
+// The drawing's leftmost and rightmost points at rest, whichever drawer is
+// open: the open drawer's front, and the body's far right corner.
+const REST_EDGES: Vec3[] = [
+  [OPENING.x, FRONT_Y + PULL, 0],
+  [BODY.at[0] + BODY.size[0], BODY.at[1], 0],
+];
+
+const middle = (xs: number[]) => (Math.min(...xs) + Math.max(...xs)) / 2;
+
+/**
+ * How far to slide the stage sideways, as a percentage of its width, so
+ * the cabinet at rest sits centred over the heading and the button. The
+ * stage fits its frame to every angle the cabinet can turn to, and it
+ * turns further one way than the other, so at rest the drawing is off the
+ * frame's middle. This is the frame's middle (angles and padding as
+ * `IsoStage` uses them) minus the middle of the drawing at rest.
+ */
+const restShift = (bounds: readonly Vec3[], orbit: IsoOrbit) => {
+  const [a, b] =
+    typeof orbit === "number" ? [-Math.abs(orbit), Math.abs(orbit)] : orbit;
+  const lo = Math.max(-40, Math.min(0, a));
+  const hi = Math.min(40, Math.max(0, b));
+  const across = (points: readonly Vec3[], yaw: number) =>
+    points.map((point) => projectWith({ pivot: PIVOT, yaw }, point)[0]);
+  const all = [lo, lo / 2, 0, hi / 2, hi].flatMap((yaw) => across(bounds, yaw));
+  const width = Math.max(...all) - Math.min(...all) + 3;
+  const off = middle(all) - middle(across(REST_EDGES, 0));
+  return Math.round((off / width) * 10_000) / 100;
+};
 
 /* ───────────────────────────── Tracks ─────────────────────────────────── */
 
@@ -689,6 +720,13 @@ const stageStyle = (variant: IsoVariant) =>
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
+// Optical padding: an icon carries its own white space, so the label's
+// side gets 2px more than the icon's side (12px and 14px) or the label
+// looks pushed against the edge. The second class wins over a Button that
+// already nudges this side itself.
+const BUTTON =
+  "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
+
 /** The plus on the button. */
 const PlusIcon = () => (
   <svg
@@ -722,7 +760,7 @@ const Copy = ({
   children?: ReactNode;
 }) => {
   const button = actionLabel ? (
-    <Button className="rounded-full" onClick={onAction}>
+    <Button className={BUTTON} onClick={onAction}>
       <PlusIcon />
       {actionLabel}
     </Button>
@@ -828,6 +866,9 @@ export const FileCabinet = ({
     rotate,
   });
   const pulls = useDrawers(clock, clip, still);
+  const bounds = boundsFor(drawer);
+  // A still cabinet has no range to turn through.
+  const turn: IsoOrbit = rotate === "off" ? 0 : orbit;
   return (
     <div
       className={cn(
@@ -849,13 +890,16 @@ export const FileCabinet = ({
         onPointerUp={pointer.onPointerUp}
       >
         <IsoStage
-          bounds={boundsFor(drawer)}
+          bounds={bounds}
           camera={camera}
           casts={castsFor(drawer)}
-          orbit={rotate === "off" ? 0 : orbit}
+          orbit={turn}
           shadow={shadow === "soft"}
           strokeWidth={strokeWidth}
-          style={stageStyle(variant)}
+          style={{
+            ...stageStyle(variant),
+            translate: `${restShift(bounds, turn)}% 0`,
+          }}
           title={title}
           tone={tone}
           variant={variant}
