@@ -50,6 +50,7 @@ export interface NavLink {
 // Site pages, listed by the (commented-out) rail's phone drawer. The navbar
 // shows only Pricing (see below).
 export const SITE_NAV = [
+  { href: ROUTES.BROWSE, label: "Browse" },
   { href: ROUTES.PRICING, label: "Pricing" },
   { href: ROUTES.BLOG, label: "Blog" },
 ] as const;
@@ -317,7 +318,9 @@ export const BrowseTopBar = ({
   searchOpen: boolean;
 }) => {
   const account = useAccountLink();
-  const onPricing = usePathname() === ROUTES.PRICING;
+  const pathname = usePathname();
+  const onPricing = pathname === ROUTES.PRICING;
+  const onBrowse = pathname === ROUTES.BROWSE;
   // Admins (ADMIN_EMAILS, checked by /api/access on the server) get a link to
   // the admin panel. Everyone else never sees it; the panel checks again.
   const { isAdmin } = useAccess();
@@ -440,6 +443,23 @@ export const BrowseTopBar = ({
             </Button>
           )}
           <ModeSwitcher />
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            sound="click"
+            className={cn(
+              NAV_TYPE,
+              onBrowse && "bg-accent text-accent-foreground"
+            )}
+          >
+            <Link
+              href={ROUTES.BROWSE}
+              aria-current={onBrowse ? "page" : undefined}
+            >
+              Browse
+            </Link>
+          </Button>
           {/* Filled like an active library tab while on the pricing page. */}
           <Button
             asChild

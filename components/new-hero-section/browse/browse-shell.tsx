@@ -70,12 +70,12 @@ const useSearchShortcut = (onTrigger: () => void) => {
 const BrowseLibraryContext = createContext<LibraryId>("components");
 export const useActiveLibrary = () => use(BrowseLibraryContext);
 
-// What the shell is around comes from the URL: the browse page (/), the docs
+// What the shell is around comes from the URL: the browse page (/browse), the docs
 // (anything under ROUTES.DOCS), or any other site page (pricing, sign-in,
 // dashboard, the admin pages), which gets the navbar and nothing else.
 type ShellMode = RailMode | "page";
 const modeOf = (pathname: string): ShellMode => {
-  if (pathname === ROUTES.HOME) {
+  if (pathname === ROUTES.BROWSE) {
     return "browse";
   }
   // Not a bare prefix check: /docs-admin isn't the docs.
@@ -253,7 +253,7 @@ export const BrowseShell = ({
     setActive(value as LibraryId);
     if (mode !== "browse") {
       router.push(
-        `${ROUTES.HOME}${browseSearch("", value as LibraryId, {}, libraries, firstLibrary)}`
+        `${ROUTES.BROWSE}${browseSearch("", value as LibraryId, {}, libraries, firstLibrary)}`
       );
     }
   };

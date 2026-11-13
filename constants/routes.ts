@@ -11,6 +11,8 @@ export const ROUTES = {
   API_STATUS: "/api/status",
   // No page yet; linked from the home page's top bar.
   BLOG: "/blog",
+  // The component catalog and registry browse view (app/(home)/browse).
+  BROWSE: "/browse",
   // The previous home page (hero, templates, features, blocks, components).
   BUILD_LANDING_PAGES: "/build-landing-pages-ui-library",
   // Changelog entries live under content/docs/changelog (see lib/changelog.ts

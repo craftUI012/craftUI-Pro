@@ -58,7 +58,7 @@ const buildBreadcrumbs = (
     const library = LIBRARIES[folder];
     items.push({
       name: library.label,
-      path: `${ROUTES.HOME}?library=${library.slug}`,
+      path: `${ROUTES.BROWSE}?library=${library.slug}`,
     });
   }
 

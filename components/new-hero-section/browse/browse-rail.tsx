@@ -9,6 +9,7 @@ import {
   FileText,
   History,
   LayoutDashboard,
+  LayoutGrid,
   LayoutTemplate,
   LogIn,
   Newspaper,
@@ -139,6 +140,7 @@ const DOCS_SECTION_ICONS: Record<DocsSectionIcon, typeof Component> = {
 // Icons for the drawer's copy of the top bar's site nav.
 const SITE_NAV_ICONS: Record<(typeof SITE_NAV)[number]["href"], typeof Tag> = {
   [ROUTES.BLOG]: Newspaper,
+  [ROUTES.BROWSE]: LayoutGrid,
   [ROUTES.PRICING]: Tag,
 };
 

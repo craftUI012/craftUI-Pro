@@ -18,6 +18,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: SITE.URL,
     },
     {
+      changeFrequency: "daily",
+      priority: 0.9,
+      url: `${SITE.URL}${ROUTES.BROWSE}`,
+    },
+    {
       changeFrequency: "monthly",
       priority: 0.7,
       url: `${SITE.URL}${ROUTES.PRICING}`,

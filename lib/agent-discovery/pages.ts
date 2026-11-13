@@ -51,7 +51,7 @@ export const aboutMarkdown = (origin: string) => {
     AGENT_DOCS_DIRECTIVE_MARKDOWN,
     "## Links",
     [
-      `- [Browse the library](${base}${ROUTES.HOME})`,
+      `- [Browse the library](${base}${ROUTES.BROWSE})`,
       `- [Installation](${base}${ROUTES.DOCS_INSTALLATION}.md)`,
       `- [Pricing](${base}${ROUTES.PRICING}.md)`,
       `- [LLM index (llms.txt)](${base}${ROUTES.LLMS})`,

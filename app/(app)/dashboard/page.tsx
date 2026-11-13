@@ -163,7 +163,7 @@ const DashboardPage = async () => {
             }
             footer={
               <Button asChild size="sm" variant="outline">
-                <Link href={hasAccess ? ROUTES.HOME : ROUTES.PRICING}>
+                <Link href={hasAccess ? ROUTES.BROWSE : ROUTES.PRICING}>
                   {hasAccess ? "Browse the library" : "See plans"}
                 </Link>
               </Button>
