@@ -5,14 +5,311 @@ description: Create mathematically exact, modern isometric icons, product UI pie
 
 # Isometric scene creation
 
-The user describes a scene in words. You turn it into a true-isometric,
-choreographed scene of one real use case, built from 3D primitives, that
-ships in the craftUI registry as a paid, installable React component,
-follows the buyer's shadcn theme, and is customised through props. Every
-drawing is computed from 3D geometry, drawn in ink (flat faces, one even
-outline) and posed as solids. Nothing is hand-drawn in screen space.
+The user gives a reference picture or describes an object. You turn it
+into a drawn, animated item for craftUI's Illustrations library: built
+from 3D primitives, shipped in the registry as a paid, installable React
+component that follows the buyer's shadcn theme and is customised through
+props. Every drawing is computed from 3D geometry; nothing is hand-drawn
+in screen space.
 
-## The bar
+Four styles are kept apart: **Line** (file cabinet, envelope, badge: what
+people respond to now), **Classic** (the seven earlier scenes), and two
+the user has named but nothing ships in, **Playful** (one try, rejected)
+and **Gamified** (nothing built).
+Ask the user which one before building; the "Styles" section is the menu.
+The rules and the history of every style stay in this file.
+
+## Keeping this skill
+
+Asked for by the user on 2026-11-13:
+- **Change what is there before adding.** Before writing a rule, a lesson
+  or a table line, search this skill and its references for the topic. If
+  it exists, edit it in place (add the date and the reason); if a new rule
+  replaces an old one, rewrite the old one. Never append a second version.
+- **History stays.** The dated notes on what was tried, what the user
+  said and what was rejected are the record. Shorten them, never delete
+  them.
+
+## Styles: ask which one first
+
+There are four styles. They are kept apart, and an item is drawn in
+exactly one. **Ask the user which style before planning anything**
+(2026-11-13: "it will be good if we seperate these styles and ai ask for
+me what style do I need"); do not infer it from the subject.
+
+| Style | Looks like | Shadow, glow | View | Status |
+| --- | --- | --- | --- | --- |
+| **Line** | a fine 1 px outline, near-white faces, one small brand mark | none | faces the screen, no turning | shipped: `file-cabinet`, `open-envelope`, `id-badge`, `notepad`, `padlock`, `plug-and-socket`, `traffic-cone`, `magnifying-glass`, `bell`, `clipboard`, `trash-bin`, `calendar`, `shopping-bag`, `delivery-truck`, `picture-frame` |
+| **Classic** | the earlier scenes: flat ink faces with a 1.3 px outline, or the soft tiles with pale tinted walls | a soft cast shadow is optional in ink, none in soft; no glow | isometric angle, leans with the pointer | shipped: the seven items before 2026-11-12 |
+| **Playful** | more colourful and rounded; the one look tried was rejected | not decided | not decided | nothing shipped; needs the user's own reference |
+| **Gamified** | game-like | both allowed | not decided | first draft, nothing shipped |
+
+The user on the earlier ones, the same day: "older one can stay like
+this, because they are also good may be in some scene we can need that".
+So nothing shipped is restyled, and Classic stays on the menu. Playful and
+Gamified were named by the user ("gam cn have shadow glow playful is more
+colourful rounded we cna polish these later but lets start with these
+4"). Neither has a shipped item. Each will be set by its first item,
+from a reference the user supplies for that style; do not guess the look.
+
+## Style 1 · Line: one object, facing the screen
+
+One object, drawn in line, facing the screen, with one beat of motion and
+then stillness, shipped as a complete state with its heading, copy and
+button. `file-cabinet` is the reference, built from the user's pin
+(https://pl.pinterest.com/pin/866380047090243445/, a line-drawn cabinet
+over "No data yet"); `open-envelope`, `id-badge` and `notepad` followed,
+then `padlock`, `plug-and-socket` and `traffic-cone` (2026-11-14), the
+first three for a blocked state (no access, not connected, page not
+found) rather than an empty one, and `magnifying-glass`, `bell`,
+`clipboard` and `trash-bin` the same day, for nothing found and all
+clear; then `calendar`, `shopping-bag`, `picture-frame` and
+`delivery-truck` (2026-11-15), back to the plain empty state. A
+`parcel-box` was built in that batch and rejected the same day; the truck
+took its place.
+Direction from the user on 2026-11-13, after people responded to the
+first three:
+- **Line is one of four styles** (see "Styles"). The user first said "i
+  want this type lined isometrics as of now we can extend the style later
+  on", then the same day named three more and asked to be asked which one
+  each time.
+- **Front-faced, no turn mode.** "turn mode is not needed all i need is
+  front faced". Build new Line items facing the screen, with no pointer or
+  drag turning and no three-quarter option. The three shipped line items
+  keep what they have (they lean with the pointer, and the file cabinet
+  stands at the isometric angle like its pin): asked the same day, the
+  user chose to leave shipped items as they are.
+
+What the three settled (they were built with turning, so some of these
+mention the orbit; that is how they ship today, not a pattern for new
+ones):
+- **Everything rests straight.** At rest every part lines up with the
+  isometric axes: uprights vertical, edges along the 30° axes. The first
+  `id-badge` hung askew (strap 3°, card −8°) and the first `open-envelope`
+  left its document 3° off, fanned a second sheet 10° and leaned its flap
+  back 28°, copying the casual tilt of the pins; the user: "make the
+  isometric straight they are wrongly tilted for someone who visits our
+  library" (2026-11-12). An off-axis rest pose reads as drawn wrong, not
+  as relaxed. Parts may swing, wobble or tip during the beat, but they
+  settle straight, and the swings stay small (the badge: 6° on its strap,
+  11° of twist). Show a second sheet by offsetting it (left and up),
+  never by turning it.
+- **Flat things face the screen.** After the rest poses were straightened
+  the user still read the envelope and the badge as tilted: "make them
+  straight faced towards the screen" (2026-11-12). An object that is
+  mostly one face (an envelope, a badge, a card, a document) looks turned
+  away at the isometric angle, and the pins show it head-on. Both now
+  default to `view="front"` (`"isometric"` keeps the three-quarter
+  angle): one static outer `Rig` turns the whole object −45° about the
+  vertical so its +y front points at the viewer, and stretches it √(3/2)
+  in z, because the camera looks down from 35.26° and foreshortens
+  heights by exactly that; the front then keeps its true proportions,
+  edges run level and plumb, and thickness shows along the top edge. It
+  is still an exact parallel projection, and it turns evenly either way
+  with the pointer (orbit 16). `IsoStage` fits its frame to `bounds`
+  without the rig, so map the bounds through the same transform
+  (`facing`). Casts are axis-aligned boxes and cannot follow the turn, so
+  these two have no `shadow` prop. Boxy objects stay isometric: the file
+  cabinet's pin is isometric and it reads as a solid from that angle.
+- **Quiet by default.** A 1 px outline (`strokeWidth` 0.23), paper walls
+  (in ink the walls step 0.03 and 0.07 under the top instead of 0.06 and
+  0.13, set as `--iso-surface-left-c` / `-right-c` on the stage), no
+  shadow, no grid, and it plays once (`loop` off): people sit in front of
+  an empty state. A click replays.
+- **One small brand mark**, not a brand object: the open drawer's label
+  card. Everything else is neutral; the other label is blank.
+- **A part that slides out of a housing is cut, not rigged.** Painter's
+  order cannot hide the half of a drawer still inside the cabinet, so each
+  drawer part is a box clipped at the cabinet's front plane (`Solid`) and
+  the pull distance is read from the clock. The whole object still tips
+  on a `Rig`, and the cut plane tips with it. The padlock's shackle
+  (2026-11-14) is the front-faced case: it is drawn after the body, its
+  legs end where they meet the body's top face, and pulling it up makes
+  the legs that much longer (the outline is rebuilt from the clock's
+  value), so the bar slides out of the body instead of lifting off it.
+- **Looking through an opening in a +y face:** one unit of depth is one
+  unit right and one up in that face's units, so the floor and inner wall
+  seen through it are two fills split by a 45° line from the opening's
+  bottom-left corner.
+- **Tips never cross rest.** The cabinet tips forward about its front feet
+  and back about its rear feet on two nested rigs, each going up and back
+  down (never negative), so no foot goes through the floor. The traffic
+  cone rocks the same way, side to side: one rig about each edge of its
+  foot, taking turns. About the depth axis a positive turn drops whatever
+  is right of the pivot, so the left edge takes the negative angle and
+  the right edge the positive one. The two flaps of the parcel box (built
+  2026-11-15, then rejected and removed) were hinged the same way, and
+  showed the other half of the rule: the `toss` preset
+  winds back below zero before it throws, which swung each flap down
+  into the box and drew it over the front wall. A part hinged on a
+  housing gets its own track that starts at zero and only overshoots at
+  the open end.
+- **The words ship with the object.** The user asked for the pin's copy
+  to come with the install (2026-11-12), so the item is the whole empty
+  state: content props `heading`, `description`, `actionLabel` (an empty
+  string hides each), `onAction`, and `children` to replace the button.
+  The button is the shadcn `Button` (`registryDependencies: ["button"]`)
+  with an in-file plus icon, and optical padding: the label's side gets
+  2 px more than the icon's side (12 px and 14 px), because an icon
+  carries its own white space (user, 2026-11-13, citing the
+  make-interfaces-feel-better skill: "the side where icon is not there
+  demand extra 1 1.3 px padding for optical alignment"). The classes are
+  `has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5`;
+  the last one wins over a Button that already nudges that side itself,
+  as this site's does (by 1 px). The root is the centred column (`className`);
+  the orbit, focus ring, in-view ref and click-to-replay stay on the
+  illustration inside it (`artClassName`, `data-slot="<name>-art"`).
+  Keep the copy in its own small component, or the scene function trips
+  the lint complexity limit. The docs page is then just the component.
+- In MDX, never put a bare line of text inside a JSX `<p>`: it becomes a
+  second `<p>` and breaks hydration.
+- **Reading a pin.** `curl` the pin page with a browser user agent, take
+  the `og:image` address and swap `/736x/` for `/originals/`. The pins in
+  this series are flat front views; rebuild the object in true isometric
+  and keep the family look above rather than each pin's rendering.
+- **Paper is a face, not a solid.** In `open-envelope` the sheets and the
+  pocket's front leaf are `FacePath`s on one plane in front of the
+  envelope's extruded body; paint order (body, sheets, leaf) does the
+  hiding. Two stacked 0.3 extrusions gave three parallel edges and a dark
+  band down the side.
+- **Rounded extrusions get their side edges** in ink by setting
+  `--iso-silhouette: var(--iso-edge, none)` on the stage (the core only
+  sets it in soft). It needs `convex`, so build a notched shape from
+  convex pieces: the badge's clip plate is its own plate behind the card.
+- **A part that twists shares the 45° budget with the camera.** `id-badge`
+  twists 11° about its strap and its orbit stops at 20°: past 45° in total
+  a face goes edge-on and an extrusion draws inside out.
+- **Fit the frame to the rest pose** of something that swings; the widest
+  swings run into the stage's padding, which is not clipped. Fitting the
+  extremes made the badge small in its frame.
+- **Centre the main mass over the copy, not the whole drawing.** The
+  illustration, the heading and the button share one centre line, and the
+  eye puts that line through the object's body. A part that hangs off one
+  side (the notepad's pencil, the envelope's badge) pulled the frame's
+  middle away from the body: the first notepad sat 17 px left of its
+  heading, the envelope 24 px (user, 2026-11-13: "the icons text and
+  button is not vertically aligned note icon will be more on the right
+  side"). Make the frame even either side of the body's middle: the
+  notepad's frame reaches as far right of the pad's middle as the second
+  sheet reaches left, and the pencil overhangs into the padding; the
+  envelope adds the mirror image of its bounds, with a wider art box
+  (`w-72`) so it keeps its size. The file cabinet has no one-sided part,
+  but its frame is fitted to an uneven turning range, which left the
+  drawing 6.6 px right of its heading; it slides its stage by the
+  difference between the frame's middle and the resting drawing's
+  (`restShift`, a CSS `translate` on the stage). Measure it: the body's
+  centre (for the cabinet, the whole drawing's) should be within a pixel
+  of the heading's.
+- **Parts laid side by side along a slope are written from the lowest
+  up.** In the front view a part's thickness shows above it, so each part
+  of the notepad's pencil (cone, body, ferrule, eraser) is drawn before
+  the one above it, and its top edge hides behind that one.
+- **A new Line item has no turning at all** (`notepad` is the first):
+  no orbit hook and no pointer handlers; the art sits in a real `<button>`
+  that replays on click, or in a plain `div` when replay is off.
+- **Something that starts and ends at rest needs one clip.** The badge is
+  flicked from rest to rest, so a click replays the same clip; the cabinet
+  and the envelope end in a different state from where they start and
+  need a second clip that first undoes the beat. The padlock, the cord and
+  the cone are rest to rest too; their one clip is built twice, with a
+  400 ms wait for the first run and 80 ms after a click, so a click
+  answers at once.
+- **An outline that is not convex needs its far edge drawn** (padlock,
+  bell, the magnifying glass's ring, 2026-11-14). The engine draws the far
+  edge of an extrusion only for `convex` outlines (the hull silhouette);
+  the back path's own stroke is covered by the side fill. The recipe that
+  is exact at any lean (the bell's body, which swings): after the
+  `Extrude`, draw the same outline as a `FacePath` on the back plane, add
+  an edge from front to back at each sharp corner of the silhouette (a
+  3D segment through `useRigged()` and `project`), then paint the front
+  face once more over all of it. What is left showing of the back outline
+  is exactly the far edge. A ring is the same with its hole: the hole
+  drawn on the back plane, then the front ring repainted, leaves the near
+  inside wall edged. The padlock's shackle never leans, so it uses the
+  short form: the outer half ring on the back plane with an upright
+  `depth / √3` long at each end. Keep every side of such an outline
+  leaning in by more than the widest swing (the bell: 13° against 11°),
+  or part of its far edge goes behind the front face mid-swing.
+- **Front-faced is the object seen from the front and 30° above.** Thin
+  things show only a strip along their top; a deep thing shows its whole
+  top face at 1/√3 of its depth. So a solid stays a solid: the traffic
+  cone stands on a square foot whose top face shows, and reads as a cone,
+  not a cut-out.
+- **A round solid is drawn from its rings, in the item's own file**
+  (traffic cone). Each part is a slice between two level circles; a slice
+  is convex, so its outline is the convex hull of its two rings, sent
+  through `useRigged()` and `project`. Paint the slices from the foot up
+  and each one covers the far half of the ring it stands on, which leaves
+  exactly the visible edges, at any lean. No cone primitive went into the
+  core (shipped items carry the core, and stay as they are). The trash
+  bin is the same: its side is cut into three slices so the edge between
+  two draws a band round it, its mouth is the top ring filled a shade
+  darker (from 30° above a deep can shows only its far inside wall), its
+  ribs are straight 3D edges down the side that faces the viewer, and its
+  lid is two more discs in a rig that lifts and tips. A plain tapered tub
+  with a flat lid read as a paper cup; the bands, five ribs and a raised
+  middle on the lid made it a trash can.
+- **A flexible part is computed, not rigged** (the cord's cable). Its
+  centre line is cubic curves whose ends follow the two heads; the tube is
+  that line pushed out by half its width on either side. Where it crosses
+  itself it is two lengths, the second drawn over the first, each as a
+  fill and then its two edges as lines, so no line closes the tube where
+  they meet. A tube is round, so it shows no top strip.
+- **Look for a face.** Two matching parts over one smooth curve read as
+  eyes and a smile: the first cord, its two ends over a plain sag, did.
+  One curl in the cable, hung left of the middle, broke it; the cable's
+  outer width was then made the same on both sides so the drawing still
+  sits on the heading's centre line.
+- **The button's icon follows its verb.** A plus only where the action
+  adds something ("Connect an app", "New task"); a back arrow for "Back
+  to home", turned round in right-to-left layouts; a cross for "Clear
+  filters"; none for "Request access". Where the state asks nothing of
+  anyone the button steps back: secondary for the bell's "Notification
+  settings", and no button at all by default on the trash bin
+  (`actionLabel` is an empty string there).
+- **Seen through glass is drawn on the thing behind it** (magnifying
+  glass). The lens is a clip circle inside the card's own `Face`, a clear
+  disc, and the card's marks drawn again enlarged about the middle of the
+  opening; it is placed where the back of the ring's hole shows, and the
+  ring, drawn after it, covers the rest. The glass hangs in front of the
+  card, so its world height is raised by `y / √3` to show where it should.
+- **Cut drawn parts to an opening with a `clipPath` that holds a
+  `FacePath`** (picture frame, 2026-11-15). The clip is then projected
+  like everything else, so stroked parts (the hills, the sun) can run
+  past the picture's rounded opening and be cut by it. Draw the
+  opening's outline once more after the clipped group, over the cut ends.
+- **A flat part that leaves is thrown in a rig and shrunk away** (the
+  calendar's torn page). One rig about the page's middle carries the
+  offset, an in-plane turn and a scale that holds for most of the flight
+  and collapses at the end; nothing fades. While it is on the block it
+  is written before the rings, once it is off after them, so it passes
+  in front. Its values come from the clock as state, because the order
+  it is written in depends on them.
+- **A real box is the `Box` primitive, front on** (from the rejected
+  parcel box; the facts hold, the look did not win the user over, see
+  its line under "How each item got here"). Its +y wall is the
+  front, its +x wall is edge-on and draws as a line down the right edge,
+  and its top is covered: by one darker fill for the open mouth (from
+  30° above a deep box shows only its far inside wall) and by flaps that
+  are faces on the top plane, each in a rig about its hinge edge. A flap
+  past upright shows its other side, so its fill switches at 90°.
+- **Reduced motion is read through a store, never in the first render**
+  (found 2026-11-14). The server cannot know the visitor's setting, so it
+  renders the moving version (the replay button, the start pose). Read
+  with motion's `useReducedMotion()`, the browser's first render already
+  gives the still version, the two trees differ, and React reports a
+  failed hydration for every visitor with reduced motion on. Every Line
+  item from 2026-11-14 on uses `useSyncExternalStore` with a server
+  answer of `false` (`useReduced` in its shell), which hydrates as the
+  server rendered and switches straight after. Every new Line item must
+  do the same.
+
+## Style 2 · Classic: the earlier scenes (ink)
+
+The look of the seven items shipped before the line objects: use-case
+scenes and hero objects at the isometric angle, which lean with the
+pointer. It has two renderings, ink (this section) and soft (the next);
+the user keeps both and may ask for either when a scene needs it.
 
 Buyers put these next to their own product, so they're judged against what
 Stripe, Mercury, Ramp, Linear, Vercel and Clerk ship. The house style was
@@ -43,7 +340,9 @@ decision below serves them:
    glow pools under objects, no blurred halos around beads, chips or
    tiles. The lit thing is lit by its colour alone. No shipped scene calls
    `Bloom` any more (removed from two-step-sign-in and gradual-rollout on
-   2026-11-04); it stays in the core only as legacy API.
+   2026-11-04); it stays in the core only as legacy API. Since 2026-11-13
+   the Gamified style is the one standing exception: the user named
+   shadow and glow as part of it.
 4. **Objects act.** The things move as solids through `Rig` (hop, toss,
    press, jolt, lift, settle), with cause and follow-through: the phone
    hops because the text lands, the screen is kicked because the chip
@@ -56,54 +355,7 @@ decision below serves them:
    story, 2 to 3 objects, choreographed start to finish with a calm hold
    before the loop. Pieces on a grid joined by lines read as a diagram.
 
-## References
-
-| File | Read it when |
-| --- | --- |
-| [references/isometric-math.md](references/isometric-math.md) | Always. Projection, angles, ellipses, face mapping, ink values and light, shadows, depth order, mirroring, the rig transform, canvas and grid. Every number comes from here. |
-| [references/icon-anatomy.md](references/icon-anatomy.md) | Building or changing any icon or part: the public API (props, `--iso-*` variables, camera, rig, clock, tracks and presets, guides, bloom), palettes, primitives, keylines, rendering, details, text. |
-| [references/product-pieces.md](references/product-pieces.md) | Building UI for a screen, panel, card or chart, or starting a new category: orientation, copy-length budgets, UI vocabulary, category kits, brand style notes. |
-| [references/scene-recipes.md](references/scene-recipes.md) | Choosing the moment and composing a scene: scene types, layout, links, line weight, art direction, plan template, worked examples. |
-
-## Non-negotiable rules
-
-1. **True isometric only.** Axes at 30° to horizontal, 120° apart, equal
-   scale. Never the 2:1 "game isometric" dimetric projection (26.565°).
-2. **Geometry first.** Place primitives (`Box`, `Slab`, `Panel`, `Poly`,
-   `Cylinder`, `Sphere`, `Extrude`, `Face`…) in world units. Never write a
-   projected screen path by hand. A missing shape becomes a new primitive
-   in `iso-core.tsx`, computed from 3D, with its formula cited.
-3. **One grid.** Primitive positions and sizes are multiples of 0.5 world
-   units; face details may use 0.25. Single icons fit the 8 × 8 × 8
-   reference cube; stage scenes set their own bounds.
-4. **Ink or soft, never mixed.** `variant="ink"` draws flat faces and a
-   constant pixel outline (`--iso-edge-w` with `vector-effect:
-   non-scaling-stroke`; note vector-effect does not inherit, so it is set
-   on every path). `variant="soft"` keeps that pixel outline (1 px, tinted
-   toward the tone, round joins) over gradient faces. In `duotone` and
-   `solid`, shades come from L ∝ (1, 2, 3) as gradient paints with rims
-   and a faint hairline; `line` is the blueprint. A scene picks one style
-   as its default and every part follows it.
-5. **Everything solid declares its shadow shape** (`casts`), so shadows
-   fall along the light from the real shape, onto the floor or onto a
-   raised surface (`ground`).
-6. **Theme from tokens.** Colours come only from the buyer's shadcn
-   variables through the `--iso-*` contract (see icon-anatomy). No raw hex
-   or oklch outside the core.
-7. **Strokes after projection, one line weight.** Detail strokes are
-   `isoStroke(k)` multiples of `strokeWidth`.
-8. **Props, not forks.** Look (tone, accent, variant, strokeWidth) and
-   content (names, codes, copy, data) are props with doc comments. Never
-   name a content prop `title`: it's the accessible name.
-9. **Self-contained and installable.** A shipped item carries everything
-   it imports (`iso-core.tsx` goes inside the item). npm dependencies only
-   where needed (`motion` for choreography).
-10. **Repo rules apply:** [[section-build-rules]] (SVG in TSX, Tailwind
-    classes in the file, no separate CSS), plain `sm/md/lg/xl`
-    breakpoints, no container queries, rem not px in Tailwind arbitrary
-    values, and never run `ultracite fix` on `.mdx` files.
-
-## The soft style
+## Style 2 · Classic, the soft rendering
 
 The look of the Kargul / Chatsheet feature grid: white rounded tiles with
 pale tinted walls, one brand tile, thin grey-blue outlines, dashed arcs
@@ -162,6 +414,98 @@ Composition rules that make it read like the reference:
 - **Labels face +y**, so the orbit must favour turning toward them: check
   both ends with the arrow keys and put the short side away from them.
 
+## Style 3 · Playful (one try, rejected)
+
+From the user, 2026-11-13: "playful is more colourful rounded". Nothing
+ships in this style.
+
+**What was tried and rejected the same day.** The notepad was first built
+as Playful, after the user chose that style for it: a thick rounded
+outline (2.6 px, round joins and caps), flat colour on the ink renderer
+(the pencil's body in the brand, a pink eraser and lead through `accent`,
+a pastel of the brand on the sheet behind), chunky parts (0.7 deep),
+front-faced, with a livelier beat (a scribble while writing, a wiggle on
+lift-off). The user: "no playful does not look good make it outline
+style". It was rebuilt as a Line object. So a thick dark outline over
+flat brand colour is not what the user means by playful.
+
+**Before trying again:** ask the user for a picture of what playful looks
+like to them. The reference for the notepad had a thick rounded line and
+a pink accent, and copying that look still missed; do not infer Playful
+from a reference's line weight or accent colour.
+
+**Kept from the try (engine facts, true in any style):**
+- `Tint` declares its palette's rim colour again, so clear it again
+  inside the tint (`NO_RIM` on a `<g>`), or the tinted part's outline
+  thins.
+- In ink, round every corner and line end with `--iso-join: round` on the
+  stage and round caps on strokes.
+
+## Style 4 · Gamified (first draft)
+
+From the user, 2026-11-13: "gam cn have shadow glow". Nothing ships in
+this style yet:
+- **Shadow and glow are allowed here, and only here.** This is the one
+  standing exception to the no-glow rule. The tools exist: `Bloom` (kept
+  in the core as legacy) and the soft cast shadows drawn from `casts`.
+  Hard flat shadows stay out even here until the user asks: they were
+  removed twice from the earlier scenes.
+- **Engine today:** the nearest renderer is `solid` (full colour, lit
+  faces) with `casts` and `Bloom`. No variant has been built for Gamified.
+- **Not decided:** palette, outline or none, front-faced or angled,
+  whether motion loops, the subjects (my suggestion, not yet the user's:
+  coins, gems, chests, trophies, streaks, level-ups, progress filling).
+  Decide these on the first item, from a pin the user supplies.
+
+## References
+
+| File | Read it when |
+| --- | --- |
+| [references/isometric-math.md](references/isometric-math.md) | Always. Projection, angles, ellipses, face mapping, ink values and light, shadows, depth order, mirroring, the rig transform, canvas and grid. Every number comes from here. |
+| [references/icon-anatomy.md](references/icon-anatomy.md) | Building or changing any icon or part: the public API (props, `--iso-*` variables, camera, rig, clock, tracks and presets, guides, bloom), palettes, primitives, keylines, rendering, details, text. |
+| [references/product-pieces.md](references/product-pieces.md) | Building UI for a screen, panel, card or chart, or starting a new category: orientation, copy-length budgets, UI vocabulary, category kits, brand style notes. |
+| [references/scene-recipes.md](references/scene-recipes.md) | Choosing the moment and composing a scene: scene types, layout, links, line weight, art direction, plan template, worked examples. |
+
+## Non-negotiable rules
+
+1. **True isometric only.** Axes at 30° to horizontal, 120° apart, equal
+   scale. Never the 2:1 "game isometric" dimetric projection (26.565°).
+2. **Geometry first.** Place primitives (`Box`, `Slab`, `Panel`, `Poly`,
+   `Cylinder`, `Sphere`, `Extrude`, `Face`…) in world units. Never write a
+   projected screen path by hand. A missing shape becomes a new primitive
+   in `iso-core.tsx`, computed from 3D, with its formula cited.
+3. **One grid.** Primitive positions and sizes are multiples of 0.5 world
+   units; face details may use 0.25. Single icons fit the 8 × 8 × 8
+   reference cube; stage scenes set their own bounds.
+4. **One style per item, never mixed.** An item is drawn in one of the
+   four styles (see "Styles") and every part follows it. In the engine's
+   terms: `variant="ink"` draws flat faces and a
+   constant pixel outline (`--iso-edge-w` with `vector-effect:
+   non-scaling-stroke`; note vector-effect does not inherit, so it is set
+   on every path). `variant="soft"` keeps that pixel outline (1 px, tinted
+   toward the tone, round joins) over gradient faces. In `duotone` and
+   `solid`, shades come from L ∝ (1, 2, 3) as gradient paints with rims
+   and a faint hairline; `line` is the blueprint. A scene picks one style
+   as its default and every part follows it.
+5. **Everything solid declares its shadow shape** (`casts`), so shadows
+   fall along the light from the real shape, onto the floor or onto a
+   raised surface (`ground`).
+6. **Theme from tokens.** Colours come only from the buyer's shadcn
+   variables through the `--iso-*` contract (see icon-anatomy). No raw hex
+   or oklch outside the core.
+7. **Strokes after projection, one line weight.** Detail strokes are
+   `isoStroke(k)` multiples of `strokeWidth`.
+8. **Props, not forks.** Look (tone, accent, variant, strokeWidth) and
+   content (names, codes, copy, data) are props with doc comments. Never
+   name a content prop `title`: it's the accessible name.
+9. **Self-contained and installable.** A shipped item carries everything
+   it imports (`iso-core.tsx` goes inside the item). npm dependencies only
+   where needed (`motion` for choreography).
+10. **Repo rules apply:** [[section-build-rules]] (SVG in TSX, Tailwind
+    classes in the file, no separate CSS), plain `sm/md/lg/xl`
+    breakpoints, no container queries, rem not px in Tailwind arbitrary
+    values, and never run `ultracite fix` on `.mdx` files.
+
 ## Workflow: from a sentence to a shipped scene
 
 ### 1. Check the core
@@ -175,14 +519,16 @@ the user, because existing items will change.
 
 ### 2. Choose the use case and the moment
 
+- **Which style: Line, Classic, Playful or Gamified?** Ask the user,
+  every time. For Classic, also ask ink or soft.
 - Which feature, of which kind of company (auth, deploys, payments,
   analytics…)? Where will it sit (hero, feature section, bento card)?
 - The one physical moment that shows it (scene-recipes "Choosing the
   moment"): 2–3 objects, one surface, real UI on their screens.
 - The story as cause and effect, one line per stage.
 
-Ask only if the use case is genuinely unclear. Otherwise choose and state
-your choices.
+The style is always asked. For the rest, ask only if the use case is
+genuinely unclear; otherwise choose and state your choices.
 
 ### 3. Take stock
 
@@ -286,8 +632,20 @@ Follow `content/docs-admin/guides/adding-a-component.mdx`:
 
 ### 8. Verify, critique, fix
 
-- Screenshot the docs page several times across the loop (Claude in
-  Chrome) and zoom into each stage, in light and dark.
+- Step through the loop frame by frame and zoom into each stage, in
+  light and dark. The method (it is not a repo script): Playwright from
+  the npx cache (`~/.npm/_npx/*/node_modules/playwright`, the version
+  whose Chromium is in `~/Library/Caches/ms-playwright`),
+  `page.clock.install()` before loading the docs page, wait for
+  hydration, let the intro play in real time, `clock.pauseAt`, dispatch
+  `pointerdown` + `pointerup` on the item to replay, then
+  `clock.runFor(ms)` and screenshot each beat; for an item that turns, a
+  `pointermove` at its left or right edge takes it to an end of the orbit.
+  `sharp` (in the repo) tiles the frames into a contact sheet. A docs
+  page the dev server has not built yet answers 404 on its first hit and
+  hydrates late on the next, and a capture on the fake clock then shows
+  the first pose in every frame: request the page once with `curl` and
+  capture again.
 - **Critique against the bar** before reporting: is it one moment of a
   real use case? Would it sit next to Vercel's or Clerk's feature
   sections? Check focal point, copy realism and size, overlap, value range,
@@ -388,171 +746,215 @@ tracks are written once for one cycle. A rotation about x needs the right
 sign to face the viewer: for a +y-facing disc, +θ tilts it up toward the
 camera, −θ turns it edge-on.
 
-Empty-state objects (one object, one beat, then stillness) are a third
-kind: `file-cabinet` is the reference, built from the user's pin
-(https://pl.pinterest.com/pin/866380047090243445/, a line-drawn cabinet
-over "No data yet"). What it settled:
-- **Everything rests straight.** At rest every part lines up with the
-  isometric axes: uprights vertical, edges along the 30° axes. The first
-  `id-badge` hung askew (strap 3°, card −8°) and the first `open-envelope`
-  left its document 3° off, fanned a second sheet 10° and leaned its flap
-  back 28°, copying the casual tilt of the pins; the user: "make the
-  isometric straight they are wrongly tilted for someone who visits our
-  library" (2026-11-12). An off-axis rest pose reads as drawn wrong, not
-  as relaxed. Parts may swing, wobble or tip during the beat, but they
-  settle straight, and the swings stay small (the badge: 6° on its strap,
-  11° of twist). Show a second sheet by offsetting it (left and up),
-  never by turning it.
-- **Flat things face the screen.** After the rest poses were straightened
-  the user still read the envelope and the badge as tilted: "make them
-  straight faced towards the screen" (2026-11-12). An object that is
-  mostly one face (an envelope, a badge, a card, a document) looks turned
-  away at the isometric angle, and the pins show it head-on. Both now
-  default to `view="front"` (`"isometric"` keeps the three-quarter
-  angle): one static outer `Rig` turns the whole object −45° about the
-  vertical so its +y front points at the viewer, and stretches it √(3/2)
-  in z, because the camera looks down from 35.26° and foreshortens
-  heights by exactly that; the front then keeps its true proportions,
-  edges run level and plumb, and thickness shows along the top edge. It
-  is still an exact parallel projection, and it turns evenly either way
-  with the pointer (orbit 16). `IsoStage` fits its frame to `bounds`
-  without the rig, so map the bounds through the same transform
-  (`facing`). Casts are axis-aligned boxes and cannot follow the turn, so
-  these two have no `shadow` prop. Boxy objects stay isometric: the file
-  cabinet's pin is isometric and it reads as a solid from that angle.
-- **Quiet by default.** A 1 px outline (`strokeWidth` 0.23), paper walls
-  (in ink the walls step 0.03 and 0.07 under the top instead of 0.06 and
-  0.13, set as `--iso-surface-left-c` / `-right-c` on the stage), no
-  shadow, no grid, and it plays once (`loop` off): people sit in front of
-  an empty state. A click replays.
-- **One small brand mark**, not a brand object: the open drawer's label
-  card. Everything else is neutral; the other label is blank.
-- **A part that slides out of a housing is cut, not rigged.** Painter's
-  order cannot hide the half of a drawer still inside the cabinet, so each
-  drawer part is a box clipped at the cabinet's front plane (`Solid`) and
-  the pull distance is read from the clock. The whole object still tips
-  on a `Rig`, and the cut plane tips with it.
-- **Looking through an opening in a +y face:** one unit of depth is one
-  unit right and one up in that face's units, so the floor and inner wall
-  seen through it are two fills split by a 45° line from the opening's
-  bottom-left corner.
-- **Tips never cross rest.** The cabinet tips forward about its front feet
-  and back about its rear feet on two nested rigs, each going up and back
-  down (never negative), so no foot goes through the floor.
-- **The words ship with the object.** The user asked for the pin's copy
-  to come with the install (2026-11-12), so the item is the whole empty
-  state: content props `heading`, `description`, `actionLabel` (an empty
-  string hides each), `onAction`, and `children` to replace the button.
-  The button is the shadcn `Button` (`registryDependencies: ["button"]`)
-  with an in-file plus icon. The root is the centred column (`className`);
-  the orbit, focus ring, in-view ref and click-to-replay stay on the
-  illustration inside it (`artClassName`, `data-slot="<name>-art"`).
-  Keep the copy in its own small component, or the scene function trips
-  the lint complexity limit. The docs page is then just the component.
-- In MDX, never put a bare line of text inside a JSX `<p>`: it becomes a
-  second `<p>` and breaks hydration.
-- **Reading a pin.** `curl` the pin page with a browser user agent, take
-  the `og:image` address and swap `/736x/` for `/originals/`. The pins in
-  this series are flat front views; rebuild the object in true isometric
-  and keep the family look above rather than each pin's rendering.
-- **Paper is a face, not a solid.** In `open-envelope` the sheets and the
-  pocket's front leaf are `FacePath`s on one plane in front of the
-  envelope's extruded body; paint order (body, sheets, leaf) does the
-  hiding. Two stacked 0.3 extrusions gave three parallel edges and a dark
-  band down the side.
-- **Rounded extrusions get their side edges** in ink by setting
-  `--iso-silhouette: var(--iso-edge, none)` on the stage (the core only
-  sets it in soft). It needs `convex`, so build a notched shape from
-  convex pieces: the badge's clip plate is its own plate behind the card.
-- **A part that twists shares the 45° budget with the camera.** `id-badge`
-  twists 11° about its strap and its orbit stops at 20°: past 45° in total
-  a face goes edge-on and an extrusion draws inside out.
-- **Fit the frame to the rest pose** of something that swings; the widest
-  swings run into the stage's padding, which is not clipped. Fitting the
-  extremes made the badge small in its frame.
-- **Something that starts and ends at rest needs one clip.** The badge is
-  flicked from rest to rest, so a click replays the same clip; the cabinet
-  and the envelope end in a different state from where they start and
-  need a second clip that first undoes the beat.
+Line objects have their rules at the top of this file under "Style 1 ·
+Line".
 
-| Scene | Code | Use case | Connector | Story |
-| --- | --- | --- | --- | --- |
-| `two-step-sign-in` | ISO-R87FKV | auth, SaaS security | continuity (code chip, tossed) | **The benchmark (ink, 2026-11-03):** no desk; a 12.5 × 6.6 screen floats over a dashed floor grid, phone beside it; the phone hops as the text lands; the code pops up (scale) as a lit chip with a bloom and is tossed on a lifted, tilting arc into the input; the screen is kicked back and settles; the boxes press in as digits land; brand-tinted shadows; leans with the pointer (−18°…30°), click replays; `screen` prop renders the buyer's own React UI (foreignObject, 40 px/unit) and follows the story (`SignInScreenState`) |
-| `push-to-deploy` | ISO-RPVRYG | hosting, CI/CD, devtools | cable with a light pulse | **Ink (2026-11-03):** no desk; 12.5 × 6.6 dashboard floats over the grid, a dark terminal tile lies beside it; `git push` types → the tile presses in on enter → a pulse runs down the cable → the dashboard is kicked back and settles as the new deployment slides in, builds, turns Ready with a preview → terminal prints "✓ Live"; leans with the pointer (−12°…30°), click replays; `screen` prop (`DeployScreenState`) |
-| `gradual-rollout` | ISO-7PVTRP | feature flags, progressive delivery | light rails with trailing-dash packets | **Ink (2026-11-03):** no plate; 12 × 6.2 console floats at the back left over the grid, rails are brand light tracks on the floor; console moves a new version 10% → 50% → 100%: v2 hops, turns brand and blooms (the one lit thing), the router presses as it re-splits, v1 sinks as its rail goes quiet, packets shift → "Rolled out" kicks the console back; leans with the pointer (−15°…30°), click replays; `screen` prop (`RolloutScreenState`) |
-| `wallet-coins` | ISO-A0SDZZ | fintech, banking heroes | none (a hero object with a product moment) | **Ink (2026-11-03, third pass after an interface-craft critique):** a thin wallet (one body: thick front leaf + thin back leaf so the slit holds things, depth 1.3 for width 9.5), stitched hairline on the front, a strap across the right third with a snap; the brand card (chip, name, last four) is the one lit thing and slides out of the slit first with the settle, leaning back 9°; three currency coins ($ € £) follow 160 ms apart, fanning from the card's edge into a hand and swinging upright from a 26° lean; the wallet dips (`press`) as each leaves; idle: coins sway ±12° and bob ±0.18 on a 3.4 s sine, the card breathes ±1.5°; pastel body (tone 46% toward white, both themes); no shadow by default (the user removed the hard shadow; `shadow="hard"` and `"soft"` remain); the card rests 4 units up so its whole face reads; props `cardName`, `last4`, `currencies` |
-| `bank-deposit` | ISO-RJJ8GD | banking, savings, fintech heroes | arc (coins leaping through a door) | **Ink (2026-11-03, second pass after "too many bars, card too shallow"):** a small bank in a pastel of the brand: two step `Box`es, a flat-roofed hall whose front face carries an arched door (`archPath`, a rect with a semicircular top) and two windows, **two** columns with square capitals at the portico's ends (four read as bars in front of the door), an entablature and a pediment as a triangular `Extrude` on its front with an oculus; five small coins standing in a loose pile to the right leap through the arch 650 ms apart on sin-lifted arcs, leaning into the flight and shrinking at the threshold, the bank dipping on each landing; the card after Wise's (thick, 0.42 deep, leaning 14° on a `Rig` about x; chip + contactless waves, wordmark, the balance as the big figure, a "+$25" pill under the wordmark, network circles) counts up by `credit` per landed coin, is nudged and settles, and its waves pulse (nested `Rig`); clock-driven text via a component with `useMotionValueEvent`; 5.6 s wrapping cycle; props `cardBrand`, `label`, `start`, `credit`, `glyph`, `coinTone`; no shadow |
-| `workflow-trigger` | ISO-EP9ZS9 | workflow automation, AI agents, integrations | ink-in lanes (dashed floor routes with one rounded bend that fill solid in the brand, a bead at the head, then drain) | **Soft (2026-11-04, second pass):** laid out like the Kargul reference: mail tile front left (0, 5), chat tile behind it (0, −4), the AI step (brand, sparkle glyph) to the right (8.5, 0.5), all level at z 0.8, no shadow, no glow. Each app's lane runs along x, bends round r 1.5 and enters the AI step from the near (mail) or far (chat) side. Events take turns, one per 6.4 s cycle, and decide the direction: an email runs mail → AI → chat, a /follow-up runs chat → AI → mail. A "1 · New email · Acme Inc." pill rises out of the source on a dashed tether (the app tiles never hop: the user removed it); the lane inks in (700 ms); the AI step presses and its sparkle turns 90° with the settle; the second lane inks in; a "✓ Summary posted · #sales" pill rises over the target; hold; pills sink (and unmount, so no dot is left), ink drains toward the target. First pass (circular arch, raised AI tile, bloom and glow pools, hopping tiles) was rejected. Orbit [-12, 30] (labels face +y). Click replays; prop `events` (`from` "mail" \| "chat", `event`, `detail`, `result`, `resultDetail`) |
-| `task-status` | ISO-4E36Y0 | task and project tools, kanban, issue trackers | light run + border trace (the item collapses into a point of light in its status colour, runs the dashed route with a time-lagged trailing line, then splits and races round the target tile's top border both ways) | **Soft (2026-11-04, third pass)**, after a "Group tasks by status" landing section (https://pl.pinterest.com/pin/788763322284989241/): a near-white hub with a ring logo and four pastel status tiles in a pinwheel, each 8.5 out along one axis and 4.5 across (Done back, Not started right, In progress front, Pending left), joined by dashed floor routes with one r 1.5 bend. Per task (1.4 s apart): the issue badge (title card) pops over the hub, holds, collapses to a point; the light runs the lane (900 ms; trail = the spans the head covered 70/150/240 ms ago at falling opacity and width; under the tiles, so it leaves from under the hub and dives under its tile); on the hit the border trace runs (520 ms), holds, fades; the glyph answers in kind (dashed circle pops, spinner turns 90°, clock hand sweeps 120°, check pops). No counts (a superscript count badge was tried and removed as noise); Not started is a dashed empty circle (target rings echoed the hub's logo). The Done tick lies flat in the label's frame like the reference (a screen-upright tick was rejected). Tiles never move; no shadow, no glow. 9.4 s cycle. Props `statuses`, `tasks`. Orbit 18 |
-| `file-cabinet` | ISO-Z84F1M | empty states: no records, no files, first run | none (an empty-state object) | **Ink, paper walls, 1 px (2026-11-12):** a two-drawer cabinet 5 × 5.5 × 9.5 on four feet, front facing +y: a body with two bays cut into its front, a flush top plate, a lock on the top rail; each drawer a flush front with a label holder, a card and a level U pull (`Extrude` on the top plane), an open box behind it and a telescoping slide on its right side. At 500 ms the bottom drawer rolls out 4.75 (420 ms, slams into its stop, bounces off it twice); the cabinet tips forward 1.6° on its front feet and drops back; the top drawer slides out 0.22 and back, 80 ms late. Then still. A click (or `loop`, after 5.2 s) pushes it shut (320 ms, the cabinet rocking back 1.1° on its rear feet) and rolls it out again. The open drawer's label card is the one brand mark. `variant="line"` is the outline alone at the same pixel weight. Under it, the empty state's words: "No data yet", a line of copy, an "Add data" button. Props `heading`, `description`, `actionLabel`, `onAction`, `children`, `drawer` ("bottom" \| "top"), `loop`, `replayOnClick`, `shadow`, `artClassName`. Orbit [-14, 24] |
-| `open-envelope` | ISO-CX14WM | inbox full, storage limit, quota reached | none (a state object) | **Ink, paper walls, 1 px (2026-11-12),** from the user's pin https://pl.pinterest.com/pin/449445237833966192/ with their change: a document comes out, not a second envelope. An open envelope 8 × 5 standing on its long edge, built facing +y and shown facing the screen (`view="front"`, the default): a body 0.4 deep, the pocket's front leaf with a V edge (a face), the flap a rounded triangle standing straight up on a `Rig`. At 360 ms it swells (`press`); the document (a mark, a heading line, four lines, a folded corner) rises 2.2 straight out of the pocket with an overshoot and a 2.5° wobble that settles to upright; a plain sheet behind it, offset 0.35 left and 0.35 up, follows 90 ms late; the flap is knocked back 9° and stands up again. At 1050 ms an alert badge (a pill in the brand, "!!!") pops with scale off the top right corner and rocks to rest. A click (or `loop`): the badge shrinks away, the sheets drop back in, the envelope takes the thud, and it plays again. Two buttons under it. Props `heading`, `description`, `actionLabel`, `secondaryLabel`, `onAction`, `onSecondary`, `children`, `alert`, `view`. Orbit 16 (front), [-14, 24] (isometric) |
-| `id-badge` | ISO-VJV1P7 | no members, empty team, invite a teammate | none (an empty-state object) | **Ink, paper walls, 1 px (2026-11-12),** from the user's pin https://pl.pinterest.com/pin/449445237834064230/. A blank ID badge 5.4 × 6.6 hanging clear of the floor, built facing +y and shown facing the screen (`view="front"`, the default): a clip plate with an eyelet behind the card's top edge, a slim strap rising from it, a photo window with a placeholder figure, two lines for a name and a role, and a plus in the brand on the photo's corner. It hangs plumb. At 400 ms it is flicked: three nested rigs, the strap swinging about its top (6°, each half swing 62% of the last), the badge twisting about the strap (11°), the card turning on its eyelet 90 ms late, all settling straight; at 1500 ms the plus pulses once. A click flicks it again. Props `heading`, `description`, `actionLabel`, `onAction`, `children`, `view`. Orbit 16 (front), [-12, 20] (isometric) |
+One line per item. What each one does, beat by beat, is the storyboard
+comment at the top of its file in `registry/isometric/`, and its props are
+the doc comments there. Do not retell either here: a copy goes stale (this
+table once did, and still described glows that had been removed).
 
-## Known gaps (backlog, as of 2026-11-12)
+| Item | Code | Kind | Style | For | How things travel |
+| --- | --- | --- | --- | --- | --- |
+| `two-step-sign-in` | ISO-R87FKV | use-case scene | Classic (ink) | auth, SaaS security | the code chip itself, tossed (continuity) |
+| `push-to-deploy` | ISO-RPVRYG | use-case scene | Classic (ink) | hosting, CI/CD, devtools | cable with a light pulse |
+| `gradual-rollout` | ISO-7PVTRP | use-case scene | Classic (ink) | feature flags, progressive delivery | light rails with trailing-dash packets |
+| `wallet-coins` | ISO-A0SDZZ | hero object | Classic (ink) | fintech, banking heroes | none |
+| `bank-deposit` | ISO-RJJ8GD | hero object | Classic (ink) | banking, savings, fintech heroes | arc (coins leaping through a door) |
+| `workflow-trigger` | ISO-EP9ZS9 | use-case scene | Classic (soft) | workflow automation, AI agents, integrations | ink-in lanes |
+| `task-status` | ISO-4E36Y0 | use-case scene | Classic (soft) | task and project tools, kanban, issue trackers | light run + border trace |
+| `file-cabinet` | ISO-Z84F1M | line object | Line | empty states: no records, no files, first run | none |
+| `open-envelope` | ISO-CX14WM | line object | Line | inbox full, storage limit, quota reached | none |
+| `id-badge` | ISO-VJV1P7 | line object | Line | no members, empty team, invite a teammate | none |
+| `notepad` | ILL-JB9DJH | line object | Line | no notes, no drafts, first entry | none |
+| `padlock` | ILL-1FVWQJ | line object | Line | no access, permission denied, private or locked | none |
+| `plug-and-socket` | ILL-WVNAT3 | line object | Line | not connected, no integrations, offline | none |
+| `traffic-cone` | ILL-779H30 | line object | Line | page not found, maintenance, removed content | none |
+| `magnifying-glass` | ILL-RTRKJE | line object | Line | no search results, nothing matches the filters | none |
+| `bell` | ILL-Y1RA9M | line object | Line | no notifications, all caught up | none |
+| `clipboard` | ILL-TKBA1P | line object | Line | all tasks done, empty to-do list, finished checklist | none |
+| `trash-bin` | ILL-B43DMP | line object | Line | trash is empty, nothing deleted or archived | none |
+| `calendar` | ILL-0R808M | line object | Line | nothing scheduled, no events or bookings | none |
+| `shopping-bag` | ILL-6CMEMA | line object | Line | empty cart, empty wishlist, no purchases | none |
+| `delivery-truck` | ILL-PN1YXZ | line object | Line | no orders, no shipments, nothing out for delivery | none |
+| `picture-frame` | ILL-XANKZF | line object | Line | no images, empty gallery, no uploads | none |
 
-Close these when the work touches them, and update this list:
-- The docs pages show one preview each; the "your own UI inside the
-  screen" section and its demo were removed at the user's request
-  (2026-11-03). The `screen` prop itself still ships.
-- Pull the shared shell (`useSceneShell`, `useReplayOnClick`,
-  `stageStyle`, `CustomScreen`, `Grain`), copied in each scene, into
-  `iso-core.tsx`. The user rejected floor light pools (2026-11-03).
-- The frame check is a method, not a repo script: Playwright from the npx
-  cache (`~/.npm/_npx/*/node_modules/playwright`, the version whose
-  Chromium is in `~/Library/Caches/ms-playwright`), `page.clock.install()`
-  before loading the docs page, wait for hydration, let the intro play in
-  real time, `clock.pauseAt`, dispatch `pointerdown` + `pointerup` on the
-  scene to replay, then `clock.runFor(ms)` and screenshot each beat; a
-  `pointermove` at the scene's left or right edge turns it to an end of
-  the orbit. `sharp` (in the repo) tiles the frames into a contact sheet.
-- `variant="line"` is broken in the six scenes before `file-cabinet`:
-  their `stageStyle` passes `"--iso-contour-w": undefined`, which blanks
-  the theme's value, so every contour falls back to a 1-unit stroke. Leave
-  the key out for `line` (or set the pixel outline, as `file-cabinet`'s
-  `BLUEPRINT` does). Not fixed there yet: each fix means rebuilding that
-  item's install file.
-- On the docs site the left and right arrow keys also go to the previous
-  and next page (`components/docs-keyboard-shortcuts.tsx`), so turning a
-  focused scene with them navigates away. Buyers' sites are unaffected.
-- `file-cabinet`, `open-envelope` and `id-badge` have no card screenshots
-  yet (`pnpm media`).
-- `Extrude`'s rim path still paints in the outlined variants: its width is
-  `calc(var(--iso-rim-w) * 0.8)` with `--iso-rim-w: 0`, which computes to
-  `0%` and Chromium strokes it as a pale hairline over the front outline
-  of every `Slab`, `Panel` and `Extrude` (found by hiding those paths at
-  4×). The three empty-state items clear the rim colours on the stage
-  (`NO_RIM`). The core is unchanged, because the soft and ink scenes were
-  approved with it; fixing it there would darken their outlines a touch.
-- `Rig` rotations re-project geometry but face shading (`lit`) still uses
-  the unrotated normals; fine for small turns and for `ink`, wrong for a
-  box tossed 90° in `duotone`.
-- Soft: `workflow-trigger` and `task-status` use it; the shipped ink scenes
-  were not re-checked under `variant="soft"`. Soft text pills use the
-  site font; the reference's serif headings are a page concern, not a
-  scene one.
-- Ink: `Cylinder` and `Sphere` keep their lit rendering and seam strokes;
-  only `Box`, `Extrude` (Slab, Panel) and `Poly` take the ink edge.
-- The icon and panel files from the earlier passes (the 27 unregistered
+### How each item got here
+
+The passes each one took and what was rejected on the way. This is the
+record; keep it, and add to an item's line rather than starting a new one.
+
+- `two-step-sign-in` (2026-11-03): rebuilt as the ink benchmark: no desk,
+  a screen floating over a dashed grid, the phone beside it. Its code chip
+  had a bloom, removed 2026-11-04. The `screen` prop renders the buyer's
+  own React UI inside the screen and follows the story; its docs page
+  once had a second preview and demo for that ("your own UI inside the
+  screen"), removed at the user's request the same day, the prop stayed.
+  The user also rejected floor light pools under it.
+- `push-to-deploy` and `gradual-rollout` (2026-11-03): reworked to the
+  same ink recipe, each with a `screen` prop. The rollout's new server
+  bloomed when it took traffic; removed 2026-11-04.
+- `wallet-coins` (2026-11-03): third pass, after an interface-craft
+  critique ("still not like a wallet"): a thin stitched wallet, the brand
+  card as the one lit thing, currency coins. The user removed its hard
+  shadow; it has none by default, and `shadow="soft"` is the only option.
+- `bank-deposit` (2026-11-03): second pass after "too many bars, card too
+  shallow": two columns (four read as bars in front of the door) and a
+  thick card after Wise's with the balance on its face.
+- `workflow-trigger` (2026-11-04): second pass, laid out like the Kargul
+  reference. The first pass (a circular arch, a raised AI tile, bloom and
+  glow pools, hopping tiles) was rejected, and the user removed the app
+  tiles' hop. Hidden pills unmount, so no dot is left behind.
+- `task-status` (2026-11-04): third pass, after the user's pin
+  (https://pl.pinterest.com/pin/788763322284989241/). A count badge was
+  tried and removed as noise; "Not started" became a dashed empty circle
+  because target rings echoed the hub's logo; a tick drawn upright on
+  screen was rejected for one lying flat in the label's frame.
+- `file-cabinet` (2026-11-12): from the user's pin
+  (https://pl.pinterest.com/pin/866380047090243445/). It first shipped as
+  the illustration alone; the user asked for the words to ship with it.
+- `open-envelope` (2026-11-12): from the user's pin
+  (https://pl.pinterest.com/pin/449445237833966192/), with their change:
+  a document comes out, not a second envelope. The first pass sat askew at
+  the isometric angle; it was straightened, then turned to face the screen.
+- `id-badge` (2026-11-12): from the user's pin
+  (https://pl.pinterest.com/pin/449445237834064230/). The same two
+  corrections as the envelope.
+- `notepad` (2026-11-13): the first item with an `ILL-` code, from a
+  reference image the user pasted (no link; a notepad and pencil in a
+  thick rounded line with a pink accent). Asked, the user chose Playful
+  and the "No notes yet" copy; the Playful build was rejected ("no
+  playful does not look good make it outline style") and it was rebuilt
+  as a Line object the same day, the first one with no turning. The
+  "Playful" filter style added for it was removed again.
+- `padlock`, `plug-and-socket`, `traffic-cone` (2026-11-14): the first
+  items from a brainstorm instead of a pin. The user asked for one
+  ("brainstorm first 10-15 icons"), got fifteen Line objects in three
+  groups (nothing here yet; nothing found or all clear; something is in
+  the way) and chose the last group. All three were built in one pass
+  with no reference picture. Changed while building, before the user saw
+  them: the cord's brand mark moved from a socket light to the plug's two
+  pins, and its cable got a curl after the plain sag read as a smiling
+  face. The user's only reaction was to ask for more: "build the next
+  badge" (read as "batch").
+- `magnifying-glass`, `bell`, `clipboard`, `trash-bin` (2026-11-14): the
+  second group from the same brainstorm (nothing found, or all clear),
+  built in one pass with no reference picture. Changed from the list
+  while building: the magnifying glass looks over a card of result rows,
+  not a sheet of lines (too close to the notepad), and enlarges what is
+  under it; the clipboard's board dips when the last box fills instead of
+  its clip pressing; the trash bin became a round metal can whose lid
+  lifts and tips to show it empty, after the first pass read as a paper
+  cup. The user's reaction was to have their card images made ("can you
+  do the pnpm media for these"), then "commit this and build the next
+  batch": all seven went in as `c375661` on 2026-11-15.
+- `calendar`, `shopping-bag`, `parcel-box`, `picture-frame` (2026-11-15):
+  the first four of the last group (nothing here yet), built in one pass
+  with no reference picture. Changed from the list while building: the
+  calendar's page is torn off and thrown away rather than flipped over
+  the top (a flip stands the page a whole page's height above the block
+  on the way over); the bag's price tag hangs from its handle and
+  swings; the parcel has two flaps hinged left and right, and its first
+  pass swung them into the box before opening (see "Tips never cross
+  rest"); the picture frame hangs from a nail. Left from the list:
+  speech bubbles, bar chart, key, card terminal.
+- `parcel-box` (2026-11-15, rejected and removed; its code ILL-G9W71J
+  was never committed or sold): an open carton seen from the front and
+  above, flat `Box` faces with sharp corners, two flaps thrown open, a
+  brand shipping label. The user, on seeing the batch: "i dont like the
+  parcel box actually, please chnage it to some other illustrations".
+  They gave no reason. My reading, not theirs: it was the one item in
+  the set with hard corners and big plain faces, and the open flaps read
+  as wings; the other items are rounded objects with a few telling
+  details. Do not rebuild a carton for this state without asking.
+- `delivery-truck` (2026-11-15): the replacement, for the same "No
+  orders yet" state and copy, chosen by me (the user said "some other
+  illustration"). A box truck from its side: a rail, a box and a cab as
+  three rounded extrusions written from the rail up, wheels standing
+  proud. It rolls in on one rig, each wheel turns in its own rig by the
+  road that has passed (a slot across the hub shows the turn), and the
+  body tips 2° about the front axle on braking. A 0.1 gap between box
+  and cab filled with the grey of the extrusions' side strokes; at 0.28
+  the gap is clean and shows the rail's top through it. The user had not
+  reacted to the truck when this was written.
+
+## Open problems and engine limits (as of 2026-11-13)
+
+Tidied on 2026-11-13: finished entries went to "Closed", records moved to
+"How each item got here" and to step 8, and the rest was split into what
+is open and what the engine does not do. Keep it that way: when something
+is fixed, move it to "Closed" with its date.
+
+### Open
+
+- **The pale hairline in the engine.** `Extrude`'s rim path still paints
+  in the outlined variants: its width is `calc(var(--iso-rim-w) * 0.8)`
+  with `--iso-rim-w: 0`, which computes to `0%`, and Chromium strokes it
+  as a pale hairline over the front outline of every `Slab`, `Panel` and
+  `Extrude` (found by hiding those paths at 4×). Left in the core on
+  purpose (2026-11-13): fixing it there would make the Classic items'
+  outlines a touch crisper, and the user wants shipped items left as they
+  are. The three Line items clear the rim colours on their stage
+  (`NO_RIM`); every new Line item must do the same.
+- **The four earlier Line items fail hydration under reduced motion**
+  (`file-cabinet`, `open-envelope`, `id-badge`, `notepad`; found
+  2026-11-14, see "Reduced motion is read through a store" under Style
+  1). They read `useReducedMotion()` in the first render. The fix is the
+  `useReduced` store hook the seven later items carry; it changes nothing
+  a visitor sees. Not applied: they are shipped, and the user was asked
+  first.
+- **The shell is copied into all twenty-two items** (`useShell` or
+  `useSceneShell`, `useReplayOnClick`, `stageStyle`, `turnableLabel`,
+  `CustomScreen`, `Grain`). Move it into `iso-core.tsx` when the first
+  Playful or Gamified item is built (agreed 2026-11-13). It touches every
+  item's install file and changes nothing a visitor sees.
+- **The references describe pieces that were deleted.** The icon and
+  panel files from the earlier passes (the 27 unregistered
   `iso-<name>.tsx` finance, ecommerce and technology pieces, and
   `iso-scene.tsx` with `IsoScene`/`IsoSceneItem`) were deleted on
-  2026-11-12 at the user's request. `registry/isometric/` now holds only
-  `iso-core.tsx` and the seven shipped scenes. The references still name
-  those pieces (`IsoCoins`, `IsoBalancePanel`, `IsoRulePanel`, `IsoCard`,
-  the `IsoScene` API, the category kits table, the worked examples): read
-  them as history, and build any part a scene needs fresh, inside the
-  scene file. The last commit that has them is `5d541d9`.
-- `two-step-sign-in`, `push-to-deploy` and `gradual-rollout` have no card
-  screenshots yet (`pnpm media`).
+  2026-11-12 at the user's request; `registry/isometric/` holds only
+  `iso-core.tsx` and the shipped items. The references still name those
+  pieces (`IsoCoins`, `IsoBalancePanel`, `IsoRulePanel`, `IsoCard`, the
+  `IsoScene` API, the category kits table, the worked examples): read them
+  as history, and build any part an item needs inside its own file. The
+  last commit that has them is `5d541d9`.
+
+### Closed
+
+- 2026-11-13: **`variant="line"` in the seven Classic items.** Their
+  `stageStyle` passed `"--iso-contour-w": undefined`, which blanked the
+  theme's value, so every contour fell back to a 1-unit stroke; and the
+  blueprint's own outline was in canvas units, several times too heavy on
+  a stage. Each now sets the contour to 0 and, for `line`, the pixel
+  outline (`LINE_OUTLINE`, the same two variables as `file-cabinet`'s
+  `BLUEPRINT`). Their default look is unchanged.
+- 2026-11-13: **arrow keys on the docs site.** Turning a focused item
+  with the left and right arrows also went to the previous or next docs
+  page. `components/docs-keyboard-shortcuts.tsx` now ignores a key that
+  something on the page already handled (`event.defaultPrevented`).
+- 2026-11-12: **card screenshots.** All ten items have card media.
+
+### Engine limits
+
+What the engine does not do. No shipped item needs any of it; build what
+a new item needs when it needs it.
+- `Rig` rotations re-project geometry, but face shading (`lit`) still uses
+  the unrotated normals: fine for small turns and for ink, wrong for a
+  box tossed 90° in `duotone`.
+- The Classic ink scenes were never checked under `variant="soft"`. Soft
+  text pills use the site font; the reference's serif headings are a page
+  concern, not a scene one.
+- `Cylinder` and `Sphere` keep their lit rendering and seam strokes in
+  ink; only `Box`, `Extrude` (Slab, Panel) and `Poly` take the ink edge.
 - `mirror` flips text on faces; a `mirrorable={false}` guard isn't built.
 - `Poly` faces are flat colours, not gradients.
-- Panels stand upright; there is no tilted-plane primitive yet (a laptop
+- Panels stand upright; there is no tilted-plane primitive (a laptop
   screen leaning back would need one).
 - Badges are flat HTML circles, not part of the 3D world.
-- Turning is tested on desktop only; check frame times on a mid-range
+- Turning was tested on desktop only; check frame times on a mid-range
   phone before relying on it there.
-- Isometric parts read the camera from React context, so they render
-  inside client components (every scene is `"use client"`). A server
-  component rendering an icon directly would fail.
-- Registry wiring for items that depend on other isometric items (signed
-  tokens on dependency URLs) isn't built; scenes avoid it by shipping
-  `iso-core.tsx` inside the item.
+- Parts read the camera from React context, so every item is a client
+  component (`"use client"`); a server component rendering one directly
+  would fail.
+- Items cannot depend on other isometric items (signed tokens on
+  dependency URLs aren't wired); each ships `iso-core.tsx` inside it.

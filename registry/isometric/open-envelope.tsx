@@ -195,8 +195,16 @@ const facing = ([x, y, z]: Vec3): Vec3 => [
   (y - x) * Math.SQRT1_2,
   z * FRONT.stretch,
 ];
+// Facing the screen, the frame is made even either side of the envelope's
+// middle (x = 0), so the envelope, not the envelope plus its badge, sits
+// centred over the heading and the buttons. The badge only hangs off one
+// side; its mirror image is added to the frame so it stays inside it.
+const mirrored = ([x, y, z]: Vec3): Vec3 => [-x, y, z];
 const boundsFor = (view: View) =>
-  view === "front" ? BOUNDS.map(facing) : BOUNDS;
+  view === "front" ? [...BOUNDS, ...BOUNDS.map(mirrored)].map(facing) : BOUNDS;
+// The frame is wider for that, so the art is too, and the envelope keeps
+// its size.
+const ART_WIDTH: Record<View, string> = { front: "w-72", isometric: "w-60" };
 
 // How far it turns by default: evenly either way from the front; at the
 // isometric angle, further toward its face than away from it.
@@ -633,6 +641,13 @@ const stageStyle = (variant: IsoVariant) =>
 
 /* ───────────────────────────── Copy ───────────────────────────────────── */
 
+// Optical padding: an icon carries its own white space, so the label's
+// side gets 2px more than the icon's side (12px and 14px) or the label
+// looks pushed against the edge. The second class wins over a Button that
+// already nudges this side itself.
+const BUTTON =
+  "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
+
 const ICON = {
   "aria-hidden": true,
   "data-icon": "inline-start",
@@ -683,17 +698,13 @@ const Copy = ({
     actionLabel || secondaryLabel ? (
       <div className="flex flex-wrap items-center justify-center gap-2">
         {actionLabel ? (
-          <Button className="rounded-full" onClick={onAction}>
+          <Button className={BUTTON} onClick={onAction}>
             <UpIcon />
             {actionLabel}
           </Button>
         ) : null}
         {secondaryLabel ? (
-          <Button
-            className="rounded-full"
-            onClick={onSecondary}
-            variant="secondary"
-          >
+          <Button className={BUTTON} onClick={onSecondary} variant="secondary">
             <BinIcon />
             {secondaryLabel}
           </Button>
@@ -761,7 +772,7 @@ export interface OpenEnvelopeProps {
   orbit?: IsoOrbit;
   /** Accessible description of the illustration. Without it the envelope is decorative and the copy speaks for it. */
   title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-60`. */
+  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-72` in the front view, `w-60` in the isometric one. */
   artClassName?: string;
   /** Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide). */
   className?: string;
@@ -827,7 +838,8 @@ export const OpenEnvelope = ({
       <div
         {...turnableLabel(rotate, title)}
         className={cn(
-          "w-60 max-w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "max-w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          ART_WIDTH[view],
           artClassName
         )}
         data-slot="open-envelope-art"

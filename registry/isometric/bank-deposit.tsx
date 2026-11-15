@@ -602,6 +602,14 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
         role: "group",
       };
 
+// The blueprint (`line`) drawn at stage size: its outline held at the ink's
+// pixel weight instead of a canvas-unit one, which is several times too
+// heavy on a stage.
+const LINE_OUTLINE: Record<string, string> = {
+  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
+  "--iso-vector": "non-scaling-stroke",
+};
+
 /**
  * Stage overrides: the bank a pastel of the brand (toward white in both
  * themes), the card in the accent (the lit thing) with its print in a deep
@@ -612,7 +620,8 @@ const stageStyle = (line: boolean, coinTone: string) =>
   ({
     "--iso-accent-base": "var(--iso-accent)",
     "--iso-card-ink": "oklch(from var(--iso-accent) 0.3 calc(c * 0.6) h)",
-    "--iso-contour-w": line ? undefined : "0",
+    "--iso-contour-w": "0",
+    ...(line ? LINE_OUTLINE : {}),
     "--iso-main-base": "color-mix(in oklab, var(--iso-tone) 46%, white)",
     "--iso-shadow": "oklch(from var(--iso-tone) 0.2 calc(c * 0.6) h)",
     "--iso-surface-base": coinTone,

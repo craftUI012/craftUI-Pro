@@ -897,11 +897,20 @@ interface OrbitHandlers {
   onPointerUp?: () => void;
 }
 
+// The blueprint (`line`) drawn at stage size: its outline held at the ink's
+// pixel weight instead of a canvas-unit one, which is several times too
+// heavy on a stage.
+const LINE_OUTLINE: Record<string, string> = {
+  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
+  "--iso-vector": "non-scaling-stroke",
+};
+
 /** Stage overrides for the benchmark look: no hairline, brand-tinted shadow. */
 const stageStyle = (line: boolean) =>
   ({
     // Edgeless variants rely on light and shadow alone: no hairline.
-    "--iso-contour-w": line ? undefined : "0",
+    "--iso-contour-w": "0",
+    ...(line ? LINE_OUTLINE : {}),
     // Shadows carry the brand: a deep tint of the tone, not grey.
     "--iso-shadow":
       "color-mix(in oklab, color-mix(in oklab, var(--iso-tone) 45%, black) 20%, transparent)",

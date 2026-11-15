@@ -442,6 +442,14 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
         role: "group",
       };
 
+// The blueprint (`line`) drawn at stage size: its outline held at the ink's
+// pixel weight instead of a canvas-unit one, which is several times too
+// heavy on a stage.
+const LINE_OUTLINE: Record<string, string> = {
+  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
+  "--iso-vector": "non-scaling-stroke",
+};
+
 /**
  * Stage overrides for this hero: the wallet a pastel of the brand (toward
  * white in both themes, so it stays light on dark pages), the card and
@@ -450,7 +458,8 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
 const stageStyle = (line: boolean) =>
   ({
     "--iso-accent-base": "var(--iso-accent)",
-    "--iso-contour-w": line ? undefined : "0",
+    "--iso-contour-w": "0",
+    ...(line ? LINE_OUTLINE : {}),
     "--iso-main-base": "color-mix(in oklab, var(--iso-tone) 46%, white)",
   }) as CSSProperties;
 

@@ -17,6 +17,7 @@ import BenchmarksSection from "@/registry/sections/benchmarks-section";
 import FeatureSection02 from "@/registry/sections/feature-section-02";
 import FeatureSection03 from "@/registry/sections/feature-section-03";
 import FeatureSection04 from "@/registry/sections/feature-section-04";
+import FeatureSection05 from "@/registry/sections/feature-section-05/feature-section-05";
 import { FeatureSphereSection } from "@/registry/sections/feature-sphere-section";
 import { FooterSection } from "@/registry/sections/footer-section";
 import GallerySection from "@/registry/sections/gallery-section";
@@ -44,6 +45,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "feature-section-02": FeatureSection02,
     "feature-section-03": FeatureSection03,
     "feature-section-04": FeatureSection04,
+    "feature-section-05": FeatureSection05,
     "feature-sphere-section": FeatureSphereSection,
     "footer-section": FooterSection,
     "gallery-section": GallerySection,

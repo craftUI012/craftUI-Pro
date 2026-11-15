@@ -10,6 +10,18 @@
     "task-status",
     "file-cabinet",
     "open-envelope",
-    "id-badge"
+    "id-badge",
+    "notepad",
+    "padlock",
+    "plug-and-socket",
+    "traffic-cone",
+    "bell",
+    "trash-bin",
+    "clipboard",
+    "magnifying-glass",
+    "shopping-bag",
+    "picture-frame",
+    "calendar",
+    "delivery-truck"
   ]
 }
