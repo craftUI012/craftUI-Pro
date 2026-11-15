@@ -6815,6 +6815,526 @@
       "Help centres and docs search with nothing found"
     ]
   },
+  "shopping-bag": {
+    "component": "ShoppingBag",
+    "dependencies": ["motion"],
+    "description": "A complete \"your cart is empty\" state in isometric ink, facing the screen: an empty paper shopping bag hops, its two handles spring back on landing and the price tag swings on its string, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the tag carries your brand. Click to play it again; in your theme.",
+    "docs": "/docs/illustrations/shopping-bag",
+    "extends": null,
+    "files": [
+      "components/isometric/shopping-bag.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-6CMEMA",
+    "import": "@/components/isometric/shopping-bag",
+    "library": "illustrations",
+    "name": "shopping-bag",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the bag, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"Your cart is empty\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Add a few things and they will show up here.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Browse products\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the price tag; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The bag hops when it scrolls into view. Off shows it standing and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Hop again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the bag makes it hop again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the bag is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-44`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Shopping bag",
+    "types": [],
+    "tags": {
+      "categories": ["ecommerce"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "Empty carts, baskets and bags in shops",
+      "Empty wishlists and saved-for-later lists",
+      "No purchases and no order history yet",
+      "Checkout pages with nothing to pay for"
+    ]
+  },
+  "picture-frame": {
+    "component": "PictureFrame",
+    "dependencies": ["motion"],
+    "description": "A complete \"no images yet\" state in isometric ink, facing the screen: a picture frame on a nail holds the placeholder every empty image slot shows, two hills and a sun that rises over them and settles, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the sun carries your brand. Click to play it again; in your theme.",
+    "docs": "/docs/illustrations/picture-frame",
+    "extends": null,
+    "files": [
+      "components/isometric/picture-frame.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-XANKZF",
+    "import": "@/components/isometric/picture-frame",
+    "library": "illustrations",
+    "name": "picture-frame",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the frame, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"No images yet\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Upload your first image and it will show up here.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Upload image\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the sun; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The sun rises when the frame scrolls into view. Off shows it up and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Set the sun and raise it again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the frame sets the sun and raises it again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the frame is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-56`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Picture frame",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "Empty galleries, albums and media libraries",
+      "No uploads, attachments or assets yet",
+      "Missing cover images and avatars",
+      "Onboarding steps that ask for a first photo"
+    ]
+  },
+  "delivery-truck": {
+    "component": "DeliveryTruck",
+    "dependencies": ["motion"],
+    "description": "A complete \"no orders yet\" state in isometric ink, facing the screen: a delivery truck seen from its side rolls forward with its wheels turning, brakes with its nose dipping and sits parked, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the label on its box carries your brand. Click to play it again; in your theme.",
+    "docs": "/docs/illustrations/delivery-truck",
+    "extends": null,
+    "files": [
+      "components/isometric/delivery-truck.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-PN1YXZ",
+    "import": "@/components/isometric/delivery-truck",
+    "library": "illustrations",
+    "name": "delivery-truck",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the truck, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"No orders yet\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"When someone places an order, it will show up here.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Create order\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the label on the truck's box; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The truck rolls in and parks when it scrolls into view. Off shows it parked and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Back up and roll in again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the truck backs it up and rolls it in again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the truck is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-56`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Delivery truck",
+    "types": [],
+    "tags": {
+      "categories": ["ecommerce"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "No orders, shipments or deliveries yet",
+      "Empty tracking and fulfilment screens",
+      "Nothing out for delivery today",
+      "First-run screens in shop and logistics dashboards"
+    ]
+  },
+  "calendar": {
+    "component": "Calendar",
+    "dependencies": ["motion"],
+    "description": "A complete \"nothing scheduled\" state in isometric ink, facing the screen: a tear-off calendar whose top page, a month with days booked, is pulled off and thrown away, leaving an empty month with only today marked, over a heading, a line of copy and a button you set through props. One even outline, no shadow; today's square carries your brand. Click to play it again; in your theme.",
+    "docs": "/docs/illustrations/calendar",
+    "extends": null,
+    "files": [
+      "components/isometric/calendar.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-0R808M",
+    "import": "@/components/isometric/calendar",
+    "library": "illustrations",
+    "name": "calendar",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the calendar, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"Nothing scheduled\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Your calendar is clear. Add an event to get started.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"New event\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on today's square; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The booked page is torn off when the calendar scrolls into view. Off shows the empty month and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Put a booked page back and tear it off again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the calendar puts a booked page back and tears it off again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the calendar is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Calendar",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "Empty calendars, agendas and day views",
+      "No events, meetings or bookings yet",
+      "No upcoming appointments or reminders",
+      "Free days in scheduling and rota tools"
+    ]
+  },
   "prompt-composer": {
     "component": "PromptComposer",
     "dependencies": ["motion", "lucide-react"],

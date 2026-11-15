@@ -39,7 +39,7 @@ me what style do I need"); do not infer it from the subject.
 
 | Style | Looks like | Shadow, glow | View | Status |
 | --- | --- | --- | --- | --- |
-| **Line** | a fine 1 px outline, near-white faces, one small brand mark | none | faces the screen, no turning | shipped: `file-cabinet`, `open-envelope`, `id-badge`, `notepad`, `padlock`, `plug-and-socket`, `traffic-cone`, `magnifying-glass`, `bell`, `clipboard`, `trash-bin` |
+| **Line** | a fine 1 px outline, near-white faces, one small brand mark | none | faces the screen, no turning | shipped: `file-cabinet`, `open-envelope`, `id-badge`, `notepad`, `padlock`, `plug-and-socket`, `traffic-cone`, `magnifying-glass`, `bell`, `clipboard`, `trash-bin`, `calendar`, `shopping-bag`, `delivery-truck`, `picture-frame` |
 | **Classic** | the earlier scenes: flat ink faces with a 1.3 px outline, or the soft tiles with pale tinted walls | a soft cast shadow is optional in ink, none in soft; no glow | isometric angle, leans with the pointer | shipped: the seven items before 2026-11-12 |
 | **Playful** | more colourful and rounded; the one look tried was rejected | not decided | not decided | nothing shipped; needs the user's own reference |
 | **Gamified** | game-like | both allowed | not decided | first draft, nothing shipped |
@@ -63,7 +63,10 @@ then `padlock`, `plug-and-socket` and `traffic-cone` (2026-11-14), the
 first three for a blocked state (no access, not connected, page not
 found) rather than an empty one, and `magnifying-glass`, `bell`,
 `clipboard` and `trash-bin` the same day, for nothing found and all
-clear.
+clear; then `calendar`, `shopping-bag`, `picture-frame` and
+`delivery-truck` (2026-11-15), back to the plain empty state. A
+`parcel-box` was built in that batch and rejected the same day; the truck
+took its place.
 Direction from the user on 2026-11-13, after people responded to the
 first three:
 - **Line is one of four styles** (see "Styles"). The user first said "i
@@ -134,7 +137,13 @@ ones):
   cone rocks the same way, side to side: one rig about each edge of its
   foot, taking turns. About the depth axis a positive turn drops whatever
   is right of the pivot, so the left edge takes the negative angle and
-  the right edge the positive one.
+  the right edge the positive one. The two flaps of the parcel box (built
+  2026-11-15, then rejected and removed) were hinged the same way, and
+  showed the other half of the rule: the `toss` preset
+  winds back below zero before it throws, which swung each flap down
+  into the box and drew it over the front wall. A part hinged on a
+  housing gets its own track that starts at zero and only overshoots at
+  the open end.
 - **The words ship with the object.** The user asked for the pin's copy
   to come with the install (2026-11-12), so the item is the whole empty
   state: content props `heading`, `description`, `actionLabel` (an empty
@@ -264,16 +273,36 @@ ones):
   opening; it is placed where the back of the ring's hole shows, and the
   ring, drawn after it, covers the rest. The glass hangs in front of the
   card, so its world height is raised by `y / √3` to show where it should.
+- **Cut drawn parts to an opening with a `clipPath` that holds a
+  `FacePath`** (picture frame, 2026-11-15). The clip is then projected
+  like everything else, so stroked parts (the hills, the sun) can run
+  past the picture's rounded opening and be cut by it. Draw the
+  opening's outline once more after the clipped group, over the cut ends.
+- **A flat part that leaves is thrown in a rig and shrunk away** (the
+  calendar's torn page). One rig about the page's middle carries the
+  offset, an in-plane turn and a scale that holds for most of the flight
+  and collapses at the end; nothing fades. While it is on the block it
+  is written before the rings, once it is off after them, so it passes
+  in front. Its values come from the clock as state, because the order
+  it is written in depends on them.
+- **A real box is the `Box` primitive, front on** (from the rejected
+  parcel box; the facts hold, the look did not win the user over, see
+  its line under "How each item got here"). Its +y wall is the
+  front, its +x wall is edge-on and draws as a line down the right edge,
+  and its top is covered: by one darker fill for the open mouth (from
+  30° above a deep box shows only its far inside wall) and by flaps that
+  are faces on the top plane, each in a rig about its hinge edge. A flap
+  past upright shows its other side, so its fill switches at 90°.
 - **Reduced motion is read through a store, never in the first render**
   (found 2026-11-14). The server cannot know the visitor's setting, so it
   renders the moving version (the replay button, the start pose). Read
   with motion's `useReducedMotion()`, the browser's first render already
   gives the still version, the two trees differ, and React reports a
-  failed hydration for every visitor with reduced motion on. The seven
-  items of 2026-11-14 use `useSyncExternalStore` with a server answer of
-  `false` (`useReduced` in their shell), which hydrates as the server
-  rendered and switches straight after. Every new Line item must do the
-  same.
+  failed hydration for every visitor with reduced motion on. Every Line
+  item from 2026-11-14 on uses `useSyncExternalStore` with a server
+  answer of `false` (`useReduced` in its shell), which hydrates as the
+  server rendered and switches straight after. Every new Line item must
+  do the same.
 
 ## Style 2 · Classic: the earlier scenes (ink)
 
@@ -612,7 +641,11 @@ Follow `content/docs-admin/guides/adding-a-component.mdx`:
   `pointerdown` + `pointerup` on the item to replay, then
   `clock.runFor(ms)` and screenshot each beat; for an item that turns, a
   `pointermove` at its left or right edge takes it to an end of the orbit.
-  `sharp` (in the repo) tiles the frames into a contact sheet.
+  `sharp` (in the repo) tiles the frames into a contact sheet. A docs
+  page the dev server has not built yet answers 404 on its first hit and
+  hydrates late on the next, and a capture on the fake clock then shows
+  the first pose in every frame: request the page once with `curl` and
+  capture again.
 - **Critique against the bar** before reporting: is it one moment of a
   real use case? Would it sit next to Vercel's or Clerk's feature
   sections? Check focal point, copy realism and size, overlap, value range,
@@ -741,6 +774,10 @@ table once did, and still described glows that had been removed).
 | `bell` | ILL-Y1RA9M | line object | Line | no notifications, all caught up | none |
 | `clipboard` | ILL-TKBA1P | line object | Line | all tasks done, empty to-do list, finished checklist | none |
 | `trash-bin` | ILL-B43DMP | line object | Line | trash is empty, nothing deleted or archived | none |
+| `calendar` | ILL-0R808M | line object | Line | nothing scheduled, no events or bookings | none |
+| `shopping-bag` | ILL-6CMEMA | line object | Line | empty cart, empty wishlist, no purchases | none |
+| `delivery-truck` | ILL-PN1YXZ | line object | Line | no orders, no shipments, nothing out for delivery | none |
+| `picture-frame` | ILL-XANKZF | line object | Line | no images, empty gallery, no uploads | none |
 
 ### How each item got here
 
@@ -808,7 +845,38 @@ record; keep it, and add to an item's line rather than starting a new one.
   under it; the clipboard's board dips when the last box fills instead of
   its clip pressing; the trash bin became a round metal can whose lid
   lifts and tips to show it empty, after the first pass read as a paper
-  cup. The user had not reacted to these four when this was written.
+  cup. The user's reaction was to have their card images made ("can you
+  do the pnpm media for these"), then "commit this and build the next
+  batch": all seven went in as `c375661` on 2026-11-15.
+- `calendar`, `shopping-bag`, `parcel-box`, `picture-frame` (2026-11-15):
+  the first four of the last group (nothing here yet), built in one pass
+  with no reference picture. Changed from the list while building: the
+  calendar's page is torn off and thrown away rather than flipped over
+  the top (a flip stands the page a whole page's height above the block
+  on the way over); the bag's price tag hangs from its handle and
+  swings; the parcel has two flaps hinged left and right, and its first
+  pass swung them into the box before opening (see "Tips never cross
+  rest"); the picture frame hangs from a nail. Left from the list:
+  speech bubbles, bar chart, key, card terminal.
+- `parcel-box` (2026-11-15, rejected and removed; its code ILL-G9W71J
+  was never committed or sold): an open carton seen from the front and
+  above, flat `Box` faces with sharp corners, two flaps thrown open, a
+  brand shipping label. The user, on seeing the batch: "i dont like the
+  parcel box actually, please chnage it to some other illustrations".
+  They gave no reason. My reading, not theirs: it was the one item in
+  the set with hard corners and big plain faces, and the open flaps read
+  as wings; the other items are rounded objects with a few telling
+  details. Do not rebuild a carton for this state without asking.
+- `delivery-truck` (2026-11-15): the replacement, for the same "No
+  orders yet" state and copy, chosen by me (the user said "some other
+  illustration"). A box truck from its side: a rail, a box and a cab as
+  three rounded extrusions written from the rail up, wheels standing
+  proud. It rolls in on one rig, each wheel turns in its own rig by the
+  road that has passed (a slot across the hub shows the turn), and the
+  body tips 2° about the front axle on braking. A 0.1 gap between box
+  and cab filled with the grey of the extrusions' side strokes; at 0.28
+  the gap is clean and shows the rail's top through it. The user had not
+  reacted to the truck when this was written.
 
 ## Open problems and engine limits (as of 2026-11-13)
 
@@ -835,7 +903,7 @@ is fixed, move it to "Closed" with its date.
   `useReduced` store hook the seven later items carry; it changes nothing
   a visitor sees. Not applied: they are shipped, and the user was asked
   first.
-- **The shell is copied into all eighteen items** (`useShell` or
+- **The shell is copied into all twenty-two items** (`useShell` or
   `useSceneShell`, `useReplayOnClick`, `stageStyle`, `turnableLabel`,
   `CustomScreen`, `Grain`). Move it into `iso-core.tsx` when the first
   Playful or Gamified item is built (agreed 2026-11-13). It touches every

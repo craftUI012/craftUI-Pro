@@ -2097,6 +2097,198 @@
       ]
     },
     {
+      "name": "shopping-bag",
+      "type": "registry:block",
+      "title": "Shopping bag",
+      "description": "A complete \"your cart is empty\" state in isometric ink, facing the screen: an empty paper shopping bag hops, its two handles spring back on landing and the price tag swings on its string, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the tag carries your brand. Click to play it again; in your theme.",
+      "categories": [
+        "ecommerce"
+      ],
+      "meta": {
+        "id": "ILL-6CMEMA",
+        "library": "illustrations",
+        "types": [
+          "empty-states",
+          "objects"
+        ],
+        "styles": [
+          "isometric",
+          "line",
+          "flat",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-15",
+        "useCases": [
+          "Empty carts, baskets and bags in shops",
+          "Empty wishlists and saved-for-later lists",
+          "No purchases and no order history yet",
+          "Checkout pages with nothing to pay for"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/shopping-bag.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/shopping-bag.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
+      "name": "picture-frame",
+      "type": "registry:block",
+      "title": "Picture frame",
+      "description": "A complete \"no images yet\" state in isometric ink, facing the screen: a picture frame on a nail holds the placeholder every empty image slot shows, two hills and a sun that rises over them and settles, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the sun carries your brand. Click to play it again; in your theme.",
+      "categories": [
+        "technology"
+      ],
+      "meta": {
+        "id": "ILL-XANKZF",
+        "library": "illustrations",
+        "types": [
+          "empty-states",
+          "objects"
+        ],
+        "styles": [
+          "isometric",
+          "line",
+          "flat",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-15",
+        "useCases": [
+          "Empty galleries, albums and media libraries",
+          "No uploads, attachments or assets yet",
+          "Missing cover images and avatars",
+          "Onboarding steps that ask for a first photo"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/picture-frame.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/picture-frame.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
+      "name": "delivery-truck",
+      "type": "registry:block",
+      "title": "Delivery truck",
+      "description": "A complete \"no orders yet\" state in isometric ink, facing the screen: a delivery truck seen from its side rolls forward with its wheels turning, brakes with its nose dipping and sits parked, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the label on its box carries your brand. Click to play it again; in your theme.",
+      "categories": [
+        "ecommerce"
+      ],
+      "meta": {
+        "id": "ILL-PN1YXZ",
+        "library": "illustrations",
+        "types": [
+          "empty-states",
+          "objects"
+        ],
+        "styles": [
+          "isometric",
+          "line",
+          "flat",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-15",
+        "useCases": [
+          "No orders, shipments or deliveries yet",
+          "Empty tracking and fulfilment screens",
+          "Nothing out for delivery today",
+          "First-run screens in shop and logistics dashboards"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/delivery-truck.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/delivery-truck.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
+      "name": "calendar",
+      "type": "registry:block",
+      "title": "Calendar",
+      "description": "A complete \"nothing scheduled\" state in isometric ink, facing the screen: a tear-off calendar whose top page, a month with days booked, is pulled off and thrown away, leaving an empty month with only today marked, over a heading, a line of copy and a button you set through props. One even outline, no shadow; today's square carries your brand. Click to play it again; in your theme.",
+      "categories": [
+        "technology"
+      ],
+      "meta": {
+        "id": "ILL-0R808M",
+        "library": "illustrations",
+        "types": [
+          "empty-states",
+          "objects"
+        ],
+        "styles": [
+          "isometric",
+          "line",
+          "flat",
+          "dark-mode"
+        ],
+        "publishedAt": "2026-11-15",
+        "useCases": [
+          "Empty calendars, agendas and day views",
+          "No events, meetings or bookings yet",
+          "No upcoming appointments or reminders",
+          "Free days in scheduling and rota tools"
+        ]
+      },
+      "dependencies": [
+        "motion"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "files": [
+        {
+          "path": "registry/isometric/calendar.tsx",
+          "type": "registry:block",
+          "target": "components/isometric/calendar.tsx"
+        },
+        {
+          "path": "registry/isometric/iso-core.tsx",
+          "type": "registry:lib",
+          "target": "components/isometric/iso-core.tsx"
+        }
+      ]
+    },
+    {
       "name": "prompt-composer",
       "type": "registry:ui",
       "title": "Prompt composer",
