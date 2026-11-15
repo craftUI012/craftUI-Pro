@@ -2351,6 +2351,309 @@
       "Mobile app landing pages with a device mockup"
     ]
   },
+  "feature-section-05": {
+    "component": "ContextSection",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "@number-flow/react",
+      "motion"
+    ],
+    "description": "Two product windows on one tray: a chart of how fast a snapshot of your knowledge goes stale, and a chat whose answer names the file it read.",
+    "docs": "/docs/templates/feature-section-05",
+    "extends": "section",
+    "files": [
+      "components/sections/feature-section-05/feature-section-05.tsx",
+      "components/sections/feature-section-05/freshness-chart.tsx",
+      "components/sections/feature-section-05/source-chat.tsx"
+    ],
+    "id": "SEC-4GV1ZY",
+    "import": "@/components/sections/feature-section-05/feature-section-05",
+    "library": "templates",
+    "name": "feature-section-05",
+    "paid": true,
+    "props": [
+      {
+        "description": "The section's headline.",
+        "name": "heading",
+        "optional": true,
+        "type": "ReactNode",
+        "default": "\"Answers are only as fresh as the context behind them\""
+      },
+      {
+        "description": "The headline's level: 1 on a page it opens, 2 anywhere else. The two column titles sit one level below it.",
+        "name": "headingLevel",
+        "optional": true,
+        "type": "1 | 2 | 3",
+        "default": "2"
+      },
+      {
+        "description": "The copy above the chart, then above the chat.",
+        "name": "columns",
+        "optional": true,
+        "type": "[ContextColumn, ContextColumn]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Which window starts in front: \"chat\" or \"chart\". With \"chat\" it answers as the section comes into view; with \"chart\" the chart plays first, then hands over to the chat.",
+        "name": "defaultFront",
+        "optional": true,
+        "type": "\"chart\" | \"chat\"",
+        "default": "\"chat\""
+      },
+      {
+        "description": "The chart's own props: your changes, file count, snapshot day, sources and title. Leave out for the demo.",
+        "name": "chart",
+        "optional": true,
+        "type": "FreshnessChartProps",
+        "default": null
+      },
+      {
+        "description": "The chat's own props: the question, the answer, its second line, the file it names and the sources. Leave out for the demo.",
+        "name": "chat",
+        "optional": true,
+        "type": "SourceChatProps",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["badge", "card"],
+    "title": "AI context features",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "The window's name, e.g. \"Live context\".",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One sentence about it, in the muted colour.",
+            "name": "body",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Makes the title a link.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "ContextColumn"
+      },
+      {
+        "fields": [
+          {
+            "description": "Every change since the snapshot. Leave out for the demo.",
+            "name": "changes",
+            "optional": true,
+            "type": "ContextChange[]"
+          },
+          {
+            "description": "How many files are tracked in all.",
+            "name": "files",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "The share still current with live updates, in percent.",
+            "name": "live",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "The day the snapshot was built.",
+            "name": "snapshot",
+            "optional": true,
+            "type": "Date | string | number"
+          },
+          {
+            "description": "Today: where the timeline ends.",
+            "name": "now",
+            "optional": true,
+            "type": "Date | string | number"
+          },
+          {
+            "description": "The lanes, top first.",
+            "name": "sources",
+            "optional": true,
+            "type": "ContextSource[]"
+          },
+          {
+            "description": "The window's title.",
+            "name": "title",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "A BCP 47 locale for the dates.",
+            "name": "locale",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Draws the chart in. Flip it to true when the chart is in view.",
+            "name": "play",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "description": "A change to show while nothing is pointed at (for a guided demo).",
+            "name": "pick",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Fades the right gutter (the lines' end labels) out at lg and up, for while the window beside the chart covers it.",
+            "name": "quiet",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "FreshnessChartProps"
+      },
+      {
+        "fields": [
+          {
+            "description": "The breadcrumb: where the chat lives, then its name.",
+            "name": "crumbs",
+            "optional": true,
+            "type": "[string, string]"
+          },
+          {
+            "description": "What the visitor asked, in the bubble on the right.",
+            "name": "question",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The assistant's answer.",
+            "name": "answer",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The answer's second line: who changed which file.",
+            "name": "note",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The file that line names. Where it appears in `note` it is set apart in the accent colour.",
+            "name": "file",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "What the answer read, as a row of chips under it.",
+            "name": "sources",
+            "optional": true,
+            "type": "ChatSource[]"
+          },
+          {
+            "description": "Starts the conversation. Flip it to true when the chat is in view.",
+            "name": "play",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "SourceChatProps"
+      },
+      {
+        "fields": [
+          {
+            "description": "A stable id for the change.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "When it happened.",
+            "name": "at",
+            "optional": false,
+            "type": "Date | string | number"
+          },
+          {
+            "description": "The file that changed, e.g. \"policies/refunds.md\".",
+            "name": "file",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where the change came from. Names its lane.",
+            "name": "source",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Who made it.",
+            "name": "by",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The line as the snapshot has it.",
+            "name": "before",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The line as it is now.",
+            "name": "after",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ContextChange"
+      },
+      {
+        "fields": [
+          {
+            "description": "The source's name. A change belongs to the lane whose name matches its `source`.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Its icon: any icon from the Hugeicons core-free-icons package.",
+            "name": "icon",
+            "optional": false,
+            "type": "IconSvgElement"
+          }
+        ],
+        "name": "ContextSource"
+      },
+      {
+        "fields": [
+          {
+            "description": "The source's name, shown on its chip.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Its icon: any icon from the Hugeicons core-free-icons package.",
+            "name": "icon",
+            "optional": false,
+            "type": "IconSvgElement"
+          }
+        ],
+        "name": "ChatSource"
+      }
+    ],
+    "tags": {
+      "categories": ["ai", "marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["features"]
+    },
+    "useCases": [
+      "AI assistant and knowledge-base product pages",
+      "Enterprise search and RAG platform landing pages",
+      "Developer tools that keep docs in sync with code",
+      "Product pages that compare a live system with a stale one"
+    ]
+  },
   "arc-carousel": {
     "component": "ArcCarousel",
     "dependencies": ["motion"],

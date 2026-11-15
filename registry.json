@@ -547,6 +547,50 @@
       ]
     },
     {
+      "name": "feature-section-05",
+      "type": "registry:block",
+      "title": "AI context features",
+      "description": "Two product windows on one tray: a chart of how fast a snapshot of your knowledge goes stale, and a chat whose answer names the file it read.",
+      "categories": ["ai", "marketing"],
+      "dependencies": [
+        "@hugeicons/core-free-icons",
+        "@hugeicons/react",
+        "@number-flow/react",
+        "motion"
+      ],
+      "registryDependencies": ["badge", "card"],
+      "files": [
+        {
+          "path": "registry/sections/feature-section-05/feature-section-05.tsx",
+          "type": "registry:block",
+          "target": "components/sections/feature-section-05/feature-section-05.tsx"
+        },
+        {
+          "path": "registry/sections/feature-section-05/freshness-chart.tsx",
+          "type": "registry:component",
+          "target": "components/sections/feature-section-05/freshness-chart.tsx"
+        },
+        {
+          "path": "registry/sections/feature-section-05/source-chat.tsx",
+          "type": "registry:component",
+          "target": "components/sections/feature-section-05/source-chat.tsx"
+        }
+      ],
+      "meta": {
+        "id": "SEC-4GV1ZY",
+        "library": "templates",
+        "types": ["features"],
+        "styles": ["motion", "minimal", "dark-mode"],
+        "publishedAt": "2026-11-13",
+        "useCases": [
+          "AI assistant and knowledge-base product pages",
+          "Enterprise search and RAG platform landing pages",
+          "Developer tools that keep docs in sync with code",
+          "Product pages that compare a live system with a stale one"
+        ]
+      }
+    },
+    {
       "name": "arc-carousel",
       "type": "registry:block",
       "title": "Arc carousel",
