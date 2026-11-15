@@ -5905,6 +5905,916 @@
       "Onboarding steps that invite a first entry"
     ]
   },
+  "padlock": {
+    "component": "Padlock",
+    "dependencies": ["motion"],
+    "description": "A complete \"you don't have access\" state in isometric ink, facing the screen: a closed padlock whose shackle is pulled twice, stops on its catch and drops back, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the keyhole carries your brand. Click to play it again; in your theme.",
+    "docs": "/docs/illustrations/padlock",
+    "extends": null,
+    "files": [
+      "components/isometric/padlock.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-1FVWQJ",
+    "import": "@/components/isometric/padlock",
+    "library": "illustrations",
+    "name": "padlock",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the lock, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"You don't have access\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Ask the owner of this workspace to let you in, or switch to another account.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Request access\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the keyhole; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The lock is tried when it scrolls into view. Off shows the closed lock and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Try the lock again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the lock tries it again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the lock is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Padlock",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "No-access and permission-denied screens",
+      "Private pages, locked workspaces and restricted files",
+      "Paywalled or plan-gated features",
+      "403 pages and signed-out states"
+    ]
+  },
+  "plug-and-socket": {
+    "component": "PlugAndSocket",
+    "dependencies": ["motion"],
+    "description": "A complete \"not connected\" state in isometric ink, facing the screen: an unplugged cord whose plug reaches for its socket, stops short and springs back, the cable hanging in a loop between them, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the plug's pins carry your brand. Click to play it again; in your theme.",
+    "docs": "/docs/illustrations/plug-and-socket",
+    "extends": null,
+    "files": [
+      "components/isometric/plug-and-socket.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-WVNAT3",
+    "import": "@/components/isometric/plug-and-socket",
+    "library": "illustrations",
+    "name": "plug-and-socket",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the cord, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"Not connected\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Connect an app to start bringing your data in here.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Connect an app\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the plug's two pins; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The plug reaches for the socket when the cord scrolls into view. Off shows the two ends apart and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Reach again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the cord makes the plug reach again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the cord is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-72`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Plug and socket",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "No integrations and nothing-connected screens",
+      "Offline, connection-lost and server-unreachable states",
+      "Disconnected data sources, devices and webhooks",
+      "Setup steps that ask for a first connection"
+    ]
+  },
+  "traffic-cone": {
+    "component": "TrafficCone",
+    "dependencies": ["motion"],
+    "description": "A complete \"page not found\" state in isometric ink, seen from the front: a traffic cone on its square foot that is knocked, rocks from edge to edge and stands still, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the cone's band carries your brand. Click to knock it again; in your theme.",
+    "docs": "/docs/illustrations/traffic-cone",
+    "extends": null,
+    "files": [
+      "components/isometric/traffic-cone.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-779H30",
+    "import": "@/components/isometric/traffic-cone",
+    "library": "illustrations",
+    "name": "traffic-cone",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the cone, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"Page not found\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"The page you are looking for was moved, renamed or never existed.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Back to home\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the cone's band; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The cone is knocked and rocks to rest when it scrolls into view. Off shows it upright and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Knock it again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the cone knocks it again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the cone is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Traffic cone",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "404 and page-not-found screens",
+      "Maintenance, under-construction and coming-soon pages",
+      "Removed, archived or moved content",
+      "Features that are switched off or not ready yet"
+    ]
+  },
+  "bell": {
+    "component": "Bell",
+    "dependencies": ["motion"],
+    "description": "A complete \"you're all caught up\" state in isometric ink, facing the screen: a bell that is rung once, swings from side to side with its clapper a beat behind and hangs still, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the clapper carries your brand. Click to ring it again; in your theme.",
+    "docs": "/docs/illustrations/bell",
+    "extends": null,
+    "files": [
+      "components/isometric/bell.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-Y1RA9M",
+    "import": "@/components/isometric/bell",
+    "library": "illustrations",
+    "name": "bell",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the bell, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"You're all caught up\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"New notifications will show up here as they arrive.\""
+      },
+      {
+        "description": "Label of the button, up to about 22 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Notification settings\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the clapper; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The bell rings once when it scrolls into view. Off shows it hanging straight and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Ring it again every few seconds. Off rings it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the bell rings it again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the bell is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Bell",
+    "types": [],
+    "tags": {
+      "categories": ["technology"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "No notifications and all-caught-up screens",
+      "Empty activity feeds, alerts and mentions",
+      "Inbox zero and no-reminders states",
+      "Onboarding steps that ask to turn notifications on"
+    ]
+  },
+  "trash-bin": {
+    "component": "TrashBin",
+    "dependencies": ["motion"],
+    "description": "A complete \"trash is empty\" state in isometric ink, seen from the front: a round bin whose lid pops up, tips to show nothing inside and drops back, over a heading and a line of copy you set through props, with a button if you give it a label. One even outline, no shadow; the lid's knob carries your brand. Click to lift the lid again; in your theme.",
+    "docs": "/docs/illustrations/trash-bin",
+    "extends": null,
+    "files": [
+      "components/isometric/trash-bin.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-B43DMP",
+    "import": "@/components/isometric/trash-bin",
+    "library": "illustrations",
+    "name": "trash-bin",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the bin, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"Trash is empty\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Items you delete will show up here.\""
+      },
+      {
+        "description": "Label of an optional button, up to about 20 characters. Empty by default: an empty bin needs no action.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the lid's knob; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The lid lifts to show the empty bin when it scrolls into view. Off shows the bin shut and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Lift the lid again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the bin lifts the lid again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the bin is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Trash bin",
+    "types": [],
+    "tags": {
+      "categories": ["data"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "Empty trash, bin and recently-deleted screens",
+      "Nothing archived and no removed items",
+      "Cleared caches, logs and history",
+      "States shown after a bulk delete"
+    ]
+  },
+  "clipboard": {
+    "component": "Clipboard",
+    "dependencies": ["motion"],
+    "description": "A complete \"all tasks done\" state in isometric ink, facing the screen: a clipboard with a three-row checklist whose last box fills, pops and gets its tick, over a heading, a line of copy and a button you set through props. One even outline, no shadow; that last tick carries your brand. Click to play it again; in your theme.",
+    "docs": "/docs/illustrations/clipboard",
+    "extends": null,
+    "files": [
+      "components/isometric/clipboard.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-TKBA1P",
+    "import": "@/components/isometric/clipboard",
+    "library": "illustrations",
+    "name": "clipboard",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the clipboard, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"All tasks done\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Nothing left on your list. New tasks will show up here.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"New task\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the last ticked box; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The last box is ticked when the clipboard scrolls into view. Off shows all three ticked and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Clear the last box and tick it again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the clipboard clears the last box and ticks it again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the clipboard is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Clipboard",
+    "types": [],
+    "tags": {
+      "categories": ["data"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "All-done and nothing-left-to-do screens in task tools",
+      "Empty to-do lists, queues and review inboxes",
+      "Finished onboarding and setup checklists",
+      "Success states after the last step of a flow"
+    ]
+  },
+  "magnifying-glass": {
+    "component": "MagnifyingGlass",
+    "dependencies": ["motion"],
+    "description": "A complete \"no results found\" state in isometric ink, facing the screen: a magnifying glass sweeps over a card of placeholder rows, enlarging whatever is under it, and comes to rest, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the handle's collar carries your brand. Click to look again; in your theme.",
+    "docs": "/docs/illustrations/magnifying-glass",
+    "extends": null,
+    "files": [
+      "components/isometric/magnifying-glass.tsx",
+      "components/isometric/iso-core.tsx"
+    ],
+    "id": "ILL-RTRKJE",
+    "import": "@/components/isometric/magnifying-glass",
+    "library": "illustrations",
+    "name": "magnifying-glass",
+    "paid": true,
+    "props": [
+      {
+        "description": "Heading under the card, up to about 28 characters. An empty string hides it.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"No results found\""
+      },
+      {
+        "description": "The line under the heading: one or two short sentences. An empty string hides it.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Try a different search, or clear your filters to see everything.\""
+      },
+      {
+        "description": "Label of the button, up to about 20 characters. An empty string hides the button.",
+        "name": "actionLabel",
+        "optional": true,
+        "type": "string",
+        "default": "\"Clear filters\""
+      },
+      {
+        "description": "Called when the button is clicked.",
+        "name": "onAction",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Your own actions under the copy (a link, two buttons), in place of the built-in button.",
+        "name": "children",
+        "optional": true,
+        "type": "ReactNode",
+        "default": null
+      },
+      {
+        "description": "Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the collar of the glass's handle; the rest stays neutral.",
+        "name": "tone",
+        "optional": true,
+        "type": "IsoTone",
+        "default": "\"primary\""
+      },
+      {
+        "description": "\"ink\" (default): a fine outline with a whisper of shading on the walls. \"line\": the outline alone, faces the colour of the page. \"soft\", \"duotone\" and \"solid\" are the lit, coloured looks.",
+        "name": "variant",
+        "optional": true,
+        "type": "IsoVariant",
+        "default": "\"ink\""
+      },
+      {
+        "description": "Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes).",
+        "name": "strokeWidth",
+        "optional": true,
+        "type": "number",
+        "default": "0.23"
+      },
+      {
+        "description": "The glass looks over the rows when the card scrolls into view. Off shows it at rest and nothing moving.",
+        "name": "autoPlay",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Look again every few seconds. Off plays it once, which suits a state people sit in front of.",
+        "name": "loop",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "Clicking the card sends the glass over the rows again.",
+        "name": "replayOnClick",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "Accessible description of the illustration. Without it the drawing is decorative and the copy speaks for it.",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-56`.",
+        "name": "artClassName",
+        "optional": true,
+        "type": "string",
+        "default": null
+      },
+      {
+        "description": "Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide).",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Magnifying glass",
+    "types": [],
+    "tags": {
+      "categories": ["data"],
+      "styles": ["isometric", "line", "flat", "dark-mode"],
+      "types": ["empty-states", "objects"]
+    },
+    "useCases": [
+      "No search results and nothing-matches-your-filters screens",
+      "Empty filtered tables, lists and catalogues",
+      "Command palettes and pickers with no match",
+      "Help centres and docs search with nothing found"
+    ]
+  },
   "prompt-composer": {
     "component": "PromptComposer",
     "dependencies": ["motion", "lucide-react"],

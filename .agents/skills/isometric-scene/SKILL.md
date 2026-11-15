@@ -39,7 +39,7 @@ me what style do I need"); do not infer it from the subject.
 
 | Style | Looks like | Shadow, glow | View | Status |
 | --- | --- | --- | --- | --- |
-| **Line** | a fine 1 px outline, near-white faces, one small brand mark | none | faces the screen, no turning | shipped: `file-cabinet`, `open-envelope`, `id-badge`, `notepad` |
+| **Line** | a fine 1 px outline, near-white faces, one small brand mark | none | faces the screen, no turning | shipped: `file-cabinet`, `open-envelope`, `id-badge`, `notepad`, `padlock`, `plug-and-socket`, `traffic-cone`, `magnifying-glass`, `bell`, `clipboard`, `trash-bin` |
 | **Classic** | the earlier scenes: flat ink faces with a 1.3 px outline, or the soft tiles with pale tinted walls | a soft cast shadow is optional in ink, none in soft; no glow | isometric angle, leans with the pointer | shipped: the seven items before 2026-11-12 |
 | **Playful** | more colourful and rounded; the one look tried was rejected | not decided | not decided | nothing shipped; needs the user's own reference |
 | **Gamified** | game-like | both allowed | not decided | first draft, nothing shipped |
@@ -58,7 +58,12 @@ One object, drawn in line, facing the screen, with one beat of motion and
 then stillness, shipped as a complete state with its heading, copy and
 button. `file-cabinet` is the reference, built from the user's pin
 (https://pl.pinterest.com/pin/866380047090243445/, a line-drawn cabinet
-over "No data yet"); `open-envelope`, `id-badge` and `notepad` followed.
+over "No data yet"); `open-envelope`, `id-badge` and `notepad` followed,
+then `padlock`, `plug-and-socket` and `traffic-cone` (2026-11-14), the
+first three for a blocked state (no access, not connected, page not
+found) rather than an empty one, and `magnifying-glass`, `bell`,
+`clipboard` and `trash-bin` the same day, for nothing found and all
+clear.
 Direction from the user on 2026-11-13, after people responded to the
 first three:
 - **Line is one of four styles** (see "Styles"). The user first said "i
@@ -114,14 +119,22 @@ ones):
   order cannot hide the half of a drawer still inside the cabinet, so each
   drawer part is a box clipped at the cabinet's front plane (`Solid`) and
   the pull distance is read from the clock. The whole object still tips
-  on a `Rig`, and the cut plane tips with it.
+  on a `Rig`, and the cut plane tips with it. The padlock's shackle
+  (2026-11-14) is the front-faced case: it is drawn after the body, its
+  legs end where they meet the body's top face, and pulling it up makes
+  the legs that much longer (the outline is rebuilt from the clock's
+  value), so the bar slides out of the body instead of lifting off it.
 - **Looking through an opening in a +y face:** one unit of depth is one
   unit right and one up in that face's units, so the floor and inner wall
   seen through it are two fills split by a 45° line from the opening's
   bottom-left corner.
 - **Tips never cross rest.** The cabinet tips forward about its front feet
   and back about its rear feet on two nested rigs, each going up and back
-  down (never negative), so no foot goes through the floor.
+  down (never negative), so no foot goes through the floor. The traffic
+  cone rocks the same way, side to side: one rig about each edge of its
+  foot, taking turns. About the depth axis a positive turn drops whatever
+  is right of the pivot, so the left edge takes the negative angle and
+  the right edge the positive one.
 - **The words ship with the object.** The user asked for the pin's copy
   to come with the install (2026-11-12), so the item is the whole empty
   state: content props `heading`, `description`, `actionLabel` (an empty
@@ -188,7 +201,79 @@ ones):
 - **Something that starts and ends at rest needs one clip.** The badge is
   flicked from rest to rest, so a click replays the same clip; the cabinet
   and the envelope end in a different state from where they start and
-  need a second clip that first undoes the beat.
+  need a second clip that first undoes the beat. The padlock, the cord and
+  the cone are rest to rest too; their one clip is built twice, with a
+  400 ms wait for the first run and 80 ms after a click, so a click
+  answers at once.
+- **An outline that is not convex needs its far edge drawn** (padlock,
+  bell, the magnifying glass's ring, 2026-11-14). The engine draws the far
+  edge of an extrusion only for `convex` outlines (the hull silhouette);
+  the back path's own stroke is covered by the side fill. The recipe that
+  is exact at any lean (the bell's body, which swings): after the
+  `Extrude`, draw the same outline as a `FacePath` on the back plane, add
+  an edge from front to back at each sharp corner of the silhouette (a
+  3D segment through `useRigged()` and `project`), then paint the front
+  face once more over all of it. What is left showing of the back outline
+  is exactly the far edge. A ring is the same with its hole: the hole
+  drawn on the back plane, then the front ring repainted, leaves the near
+  inside wall edged. The padlock's shackle never leans, so it uses the
+  short form: the outer half ring on the back plane with an upright
+  `depth / √3` long at each end. Keep every side of such an outline
+  leaning in by more than the widest swing (the bell: 13° against 11°),
+  or part of its far edge goes behind the front face mid-swing.
+- **Front-faced is the object seen from the front and 30° above.** Thin
+  things show only a strip along their top; a deep thing shows its whole
+  top face at 1/√3 of its depth. So a solid stays a solid: the traffic
+  cone stands on a square foot whose top face shows, and reads as a cone,
+  not a cut-out.
+- **A round solid is drawn from its rings, in the item's own file**
+  (traffic cone). Each part is a slice between two level circles; a slice
+  is convex, so its outline is the convex hull of its two rings, sent
+  through `useRigged()` and `project`. Paint the slices from the foot up
+  and each one covers the far half of the ring it stands on, which leaves
+  exactly the visible edges, at any lean. No cone primitive went into the
+  core (shipped items carry the core, and stay as they are). The trash
+  bin is the same: its side is cut into three slices so the edge between
+  two draws a band round it, its mouth is the top ring filled a shade
+  darker (from 30° above a deep can shows only its far inside wall), its
+  ribs are straight 3D edges down the side that faces the viewer, and its
+  lid is two more discs in a rig that lifts and tips. A plain tapered tub
+  with a flat lid read as a paper cup; the bands, five ribs and a raised
+  middle on the lid made it a trash can.
+- **A flexible part is computed, not rigged** (the cord's cable). Its
+  centre line is cubic curves whose ends follow the two heads; the tube is
+  that line pushed out by half its width on either side. Where it crosses
+  itself it is two lengths, the second drawn over the first, each as a
+  fill and then its two edges as lines, so no line closes the tube where
+  they meet. A tube is round, so it shows no top strip.
+- **Look for a face.** Two matching parts over one smooth curve read as
+  eyes and a smile: the first cord, its two ends over a plain sag, did.
+  One curl in the cable, hung left of the middle, broke it; the cable's
+  outer width was then made the same on both sides so the drawing still
+  sits on the heading's centre line.
+- **The button's icon follows its verb.** A plus only where the action
+  adds something ("Connect an app", "New task"); a back arrow for "Back
+  to home", turned round in right-to-left layouts; a cross for "Clear
+  filters"; none for "Request access". Where the state asks nothing of
+  anyone the button steps back: secondary for the bell's "Notification
+  settings", and no button at all by default on the trash bin
+  (`actionLabel` is an empty string there).
+- **Seen through glass is drawn on the thing behind it** (magnifying
+  glass). The lens is a clip circle inside the card's own `Face`, a clear
+  disc, and the card's marks drawn again enlarged about the middle of the
+  opening; it is placed where the back of the ring's hole shows, and the
+  ring, drawn after it, covers the rest. The glass hangs in front of the
+  card, so its world height is raised by `y / √3` to show where it should.
+- **Reduced motion is read through a store, never in the first render**
+  (found 2026-11-14). The server cannot know the visitor's setting, so it
+  renders the moving version (the replay button, the start pose). Read
+  with motion's `useReducedMotion()`, the browser's first render already
+  gives the still version, the two trees differ, and React reports a
+  failed hydration for every visitor with reduced motion on. The seven
+  items of 2026-11-14 use `useSyncExternalStore` with a server answer of
+  `false` (`useReduced` in their shell), which hydrates as the server
+  rendered and switches straight after. Every new Line item must do the
+  same.
 
 ## Style 2 · Classic: the earlier scenes (ink)
 
@@ -649,6 +734,13 @@ table once did, and still described glows that had been removed).
 | `open-envelope` | ISO-CX14WM | line object | Line | inbox full, storage limit, quota reached | none |
 | `id-badge` | ISO-VJV1P7 | line object | Line | no members, empty team, invite a teammate | none |
 | `notepad` | ILL-JB9DJH | line object | Line | no notes, no drafts, first entry | none |
+| `padlock` | ILL-1FVWQJ | line object | Line | no access, permission denied, private or locked | none |
+| `plug-and-socket` | ILL-WVNAT3 | line object | Line | not connected, no integrations, offline | none |
+| `traffic-cone` | ILL-779H30 | line object | Line | page not found, maintenance, removed content | none |
+| `magnifying-glass` | ILL-RTRKJE | line object | Line | no search results, nothing matches the filters | none |
+| `bell` | ILL-Y1RA9M | line object | Line | no notifications, all caught up | none |
+| `clipboard` | ILL-TKBA1P | line object | Line | all tasks done, empty to-do list, finished checklist | none |
+| `trash-bin` | ILL-B43DMP | line object | Line | trash is empty, nothing deleted or archived | none |
 
 ### How each item got here
 
@@ -698,6 +790,25 @@ record; keep it, and add to an item's line rather than starting a new one.
   playful does not look good make it outline style") and it was rebuilt
   as a Line object the same day, the first one with no turning. The
   "Playful" filter style added for it was removed again.
+- `padlock`, `plug-and-socket`, `traffic-cone` (2026-11-14): the first
+  items from a brainstorm instead of a pin. The user asked for one
+  ("brainstorm first 10-15 icons"), got fifteen Line objects in three
+  groups (nothing here yet; nothing found or all clear; something is in
+  the way) and chose the last group. All three were built in one pass
+  with no reference picture. Changed while building, before the user saw
+  them: the cord's brand mark moved from a socket light to the plug's two
+  pins, and its cable got a curl after the plain sag read as a smiling
+  face. The user's only reaction was to ask for more: "build the next
+  badge" (read as "batch").
+- `magnifying-glass`, `bell`, `clipboard`, `trash-bin` (2026-11-14): the
+  second group from the same brainstorm (nothing found, or all clear),
+  built in one pass with no reference picture. Changed from the list
+  while building: the magnifying glass looks over a card of result rows,
+  not a sheet of lines (too close to the notepad), and enlarges what is
+  under it; the clipboard's board dips when the last box fills instead of
+  its clip pressing; the trash bin became a round metal can whose lid
+  lifts and tips to show it empty, after the first pass read as a paper
+  cup. The user had not reacted to these four when this was written.
 
 ## Open problems and engine limits (as of 2026-11-13)
 
@@ -717,7 +828,14 @@ is fixed, move it to "Closed" with its date.
   outlines a touch crisper, and the user wants shipped items left as they
   are. The three Line items clear the rim colours on their stage
   (`NO_RIM`); every new Line item must do the same.
-- **The shell is copied into all ten items** (`useShell` or
+- **The four earlier Line items fail hydration under reduced motion**
+  (`file-cabinet`, `open-envelope`, `id-badge`, `notepad`; found
+  2026-11-14, see "Reduced motion is read through a store" under Style
+  1). They read `useReducedMotion()` in the first render. The fix is the
+  `useReduced` store hook the seven later items carry; it changes nothing
+  a visitor sees. Not applied: they are shipped, and the user was asked
+  first.
+- **The shell is copied into all eighteen items** (`useShell` or
   `useSceneShell`, `useReplayOnClick`, `stageStyle`, `turnableLabel`,
   `CustomScreen`, `Grain`). Move it into `iso-core.tsx` when the first
   Playful or Gamified item is built (agreed 2026-11-13). It touches every
