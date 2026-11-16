@@ -52,6 +52,7 @@ export const TYPES = {
   // One pool for every library; which ones a library lists (and in what
   // order) is set in LIBRARIES below.
   badges: { label: "Badges" },
+  brands: { label: "Brands" },
   buttons: { label: "Buttons" },
   cards: { label: "Cards" },
   charts: { label: "Charts" },
@@ -269,6 +270,7 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
       "editorial",
       "features",
       "gallery",
+      "brands",
       "pricing",
       "testimonials",
       "stats",

@@ -13,6 +13,7 @@ export const LIVE_PREVIEWS = [
   "arc-carousel",
   "benchmarks-section",
   "bloom-menu",
+  "brands-section",
   "editorial-section",
   "feature-section-02",
   "feature-section-03",

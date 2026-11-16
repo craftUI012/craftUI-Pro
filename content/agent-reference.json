@@ -2654,6 +2654,143 @@
       "Product pages that compare a live system with a stale one"
     ]
   },
+  "brands-section": {
+    "component": "BrandsSection",
+    "dependencies": ["motion"],
+    "description": "A rolling list of brand names: the lit one opens its products beside it, sliding the way you move.",
+    "docs": "/docs/templates/brands-section",
+    "extends": "section",
+    "files": ["components/sections/brands-section/brands-section.tsx"],
+    "id": "SEC-0XAFJP",
+    "import": "@/components/sections/brands-section/brands-section",
+    "library": "templates",
+    "name": "brands-section",
+    "paid": true,
+    "props": [
+      {
+        "description": "The roster. Rows beyond `visible` wait their turn and roll in.",
+        "name": "brands",
+        "optional": true,
+        "type": "Brand[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "The link under the subheader. Pass `null` to leave it out.",
+        "name": "cta",
+        "optional": true,
+        "type": "{ href: string; label: string } | null",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "The subheader: one or two sentences beside the heading.",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Independent makers we stock and stand behind, from small-batch ceramics to eve…"
+      },
+      {
+        "description": "Draw the column grid over the section, the way a layout grid shows in a design tool. Off by default: it's for checking alignment.",
+        "name": "guides",
+        "optional": true,
+        "type": "boolean",
+        "default": "false"
+      },
+      {
+        "description": "The section heading, top left.",
+        "name": "heading",
+        "optional": true,
+        "type": "string",
+        "default": "\"Shop from brands like\""
+      },
+      {
+        "description": "Milliseconds each row stays lit while the cycle runs.",
+        "name": "interval",
+        "optional": true,
+        "type": "number",
+        "default": "3000"
+      },
+      {
+        "description": "How many rows the list shows at once.",
+        "name": "visible",
+        "optional": true,
+        "type": "number",
+        "default": "7"
+      }
+    ],
+    "registryDependencies": ["button"],
+    "title": "Brand roster showcase",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "What the brand makes, shown under its products: \"Ceramics\".",
+            "name": "category",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where the brand's row links to: its store or collection page.",
+            "name": "href",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Three product shots: the tall one on the left, then top and bottom right.",
+            "name": "images",
+            "optional": false,
+            "type": "[BrandImage, BrandImage, BrandImage]"
+          },
+          {
+            "description": "The brand's name, set large in the list.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "How many of its products the store carries, shown under its products.",
+            "name": "products",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "description": "Small square shown in front of the lit name. Defaults to the first image.",
+            "name": "thumbnail",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "Brand"
+      },
+      {
+        "fields": [
+          {
+            "description": "Describes the product in the shot, for anyone who can't see it.",
+            "name": "alt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Image URL. Crop it near the cell's shape (see `SHOT_SIZES`).",
+            "name": "src",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "BrandImage"
+      }
+    ],
+    "tags": {
+      "categories": ["ecommerce", "marketing"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["brands"]
+    },
+    "useCases": [
+      "Marketplaces and multi-brand stores",
+      "Concept and department store homepages",
+      "Wholesale platforms showing who they stock",
+      "Retail landing pages featuring partner brands"
+    ]
+  },
   "arc-carousel": {
     "component": "ArcCarousel",
     "dependencies": ["motion"],
