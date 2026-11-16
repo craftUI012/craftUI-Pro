@@ -196,7 +196,7 @@ const DeviceClip = ({
   );
 };
 
-const MusicBed = ({ music }: { music: ReelMusic }) => {
+export const MusicBed = ({ music }: { music: ReelMusic }) => {
   const { durationInFrames, fps } = useVideoConfig();
   // Fade points must rise strictly, even on a very short reel.
   const inEnd = Math.max(1, Math.round(music.fadeIn * fps));
@@ -226,7 +226,7 @@ const MusicBed = ({ music }: { music: ReelMusic }) => {
 // skips the same fraction of a frame into its file: the sound lands on the
 // exact sample, not the nearest frame (±8 ms at 60 fps). A cue in the first
 // instant starts at frame 0 and skips further in.
-const CueSound = ({ cue, gain }: { cue: ReelCue; gain: number }) => {
+export const CueSound = ({ cue, gain }: { cue: ReelCue; gain: number }) => {
   const { fps } = useVideoConfig();
   const sound = REEL_SOUNDS[cue.sound];
   const exact = (cue.at - sound.anchor) * fps;

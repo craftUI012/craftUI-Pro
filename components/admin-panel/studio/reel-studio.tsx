@@ -11,7 +11,7 @@ import {
   Upload04Icon,
 } from "@hugeicons/core-free-icons";
 import type { PlayerRef } from "@remotion/player";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,9 @@ import { cn } from "@/lib/utils";
 
 import type { ReelClip, ReelImage } from "./reel-clip";
 import {
+  boardFileName,
   codecLabel,
+  exportBoard,
   exportReel,
   fitBox,
   formatBytes,
@@ -47,6 +49,15 @@ import {
   isDeviceId,
   kindOf,
 } from "./reel-devices";
+import type { BoardSceneProps, BoardText } from "./reel-grid";
+import {
+  BOARD,
+  BoardStage,
+  DEFAULT_BOARD_TEXT,
+  isBoardText,
+  isDark,
+  TILE_COUNT,
+} from "./reel-grid";
 import { canRecordElements, RecordView } from "./reel-recorder";
 import type {
   ReelBackdrop,
@@ -62,12 +73,22 @@ import { ReelTimeline } from "./reel-timeline";
 
 // The admin Studio: put a screen recording on a 9:16 frame (Reels, TikTok,
 // Shorts) or a 16:9 one (YouTube, X, LinkedIn), pick the background, move
-// and size the clip, export an MP4. All in the browser; nothing is
-// uploaded.
+// and size the clip, export an MP4. Or switch to the Grid board: four
+// recordings in a 2×2 grid on a square post (reel-grid.tsx). All in the
+// browser; nothing is uploaded.
 
 type Fps = 30 | 60;
+type Layout = "grid" | "single";
 interface Look {
   background: string;
+  /** The Grid board's background colour. */
+  boardBackground: string;
+  /** The board's length in seconds, or null for its longest clip's. */
+  boardLength: number | null;
+  /** The board's words: header, captions, headline, footer. */
+  boardText: BoardText;
+  /** One clip on a frame, or the Grid board. */
+  layout: Layout;
   /** How the background image sits: fill the frame or show all of it. */
   backdropFit: ReelBackdrop["fit"];
   /** Black laid over the background image, 0–0.8. */
@@ -91,12 +112,16 @@ const DEFAULT_LOOK: Look = {
   backdropDim: 0,
   backdropFit: "cover",
   background: "#F3F3F1",
+  boardBackground: "#E8E8E1",
+  boardLength: null,
+  boardText: DEFAULT_BOARD_TEXT,
   component: null,
   componentTheme: "light",
   device: null,
   format: "9:16",
   fps: 60,
   guides: true,
+  layout: "single",
   radius: 40,
   screen: "video",
   shadow: false,
@@ -104,6 +129,7 @@ const DEFAULT_LOOK: Look = {
 
 const BACKGROUNDS = [
   { label: "Off-white", value: "#F3F3F1" },
+  { label: "Paper", value: "#E8E8E1" },
   { label: "White", value: "#FFFFFF" },
   { label: "Stone", value: "#E7E5E0" },
   { label: "Black", value: "#0A0A0A" },
@@ -117,13 +143,35 @@ const TEXT_COLOURS = [
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
-const isDark = (hex: string) => {
-  const [r, g, b] = [1, 3, 5].map((i) =>
-    Number.parseInt(hex.slice(i, i + 2), 16)
-  );
-  return 0.299 * r + 0.587 * g + 0.114 * b < 140;
-};
 const LOOK_KEY = "craftui:reel-studio";
+
+// A clip's length in seconds, 0 without one (framesFor makes that 1 frame).
+const secondsOf = (clip: ReelClip | null) => clip?.duration ?? 0;
+
+// The Grid board's part of a saved look, keeping only what checks out.
+const boardLook = (saved: Record<string, unknown>): Partial<Look> => {
+  const look: Partial<Look> = {};
+  if (
+    typeof saved.boardBackground === "string" &&
+    HEX.test(saved.boardBackground)
+  ) {
+    look.boardBackground = saved.boardBackground;
+  }
+  const length = saved.boardLength;
+  if (
+    length === null ||
+    (typeof length === "number" && length > 0 && length <= 120)
+  ) {
+    look.boardLength = length;
+  }
+  if (isBoardText(saved.boardText)) {
+    look.boardText = saved.boardText;
+  }
+  if (saved.layout === "single" || saved.layout === "grid") {
+    look.layout = saved.layout;
+  }
+  return look;
+};
 
 // The look is remembered in this browser (a convenience; the clip isn't).
 const useLook = () => {
@@ -136,6 +184,7 @@ const useLook = () => {
       setLook((current) => ({
         ...current,
         ...(HEX.test(saved.background) && { background: saved.background }),
+        ...boardLook(saved),
         ...((saved.backdropFit === "cover" ||
           saved.backdropFit === "contain") && {
           backdropFit: saved.backdropFit,
@@ -872,37 +921,259 @@ const TextGroup = ({
 const FrameToggle = ({
   disabled,
   format,
+  grid,
   onFormat,
 }: {
   disabled: boolean;
   format: ReelFormat;
+  /** The Grid board is always square, so there's nothing to pick. */
+  grid: boolean;
   onFormat: (format: ReelFormat) => void;
-}) => (
-  <div className="flex items-center gap-2">
-    <ToggleGroup
-      aria-label="Frame"
-      disabled={disabled}
-      onValueChange={(value) => isReelFormat(value) && onFormat(value)}
-      size="sm"
-      type="single"
-      value={format}
-      variant="outline"
-    >
-      {(["9:16", "16:9"] as const).map((value) => (
-        <ToggleGroupItem
-          key={value}
-          title={`${FORMATS[value].width}×${FORMATS[value].height} · ${FORMATS[value].use}`}
-          value={value}
-        >
-          {value}
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
-    <span className="text-muted-foreground hidden text-xs tabular-nums sm:inline">
-      {FORMATS[format].width}×{FORMATS[format].height}
+}) =>
+  grid ? (
+    <span className="text-muted-foreground text-xs tabular-nums">
+      1:1 · {BOARD.width}×{BOARD.height}
     </span>
-  </div>
+  ) : (
+    <div className="flex items-center gap-2">
+      <ToggleGroup
+        aria-label="Frame"
+        disabled={disabled}
+        onValueChange={(value) => isReelFormat(value) && onFormat(value)}
+        size="sm"
+        type="single"
+        value={format}
+        variant="outline"
+      >
+        {(["9:16", "16:9"] as const).map((value) => (
+          <ToggleGroupItem
+            key={value}
+            title={`${FORMATS[value].width}×${FORMATS[value].height} · ${FORMATS[value].use}`}
+            value={value}
+          >
+            {value}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      <span className="text-muted-foreground hidden text-xs tabular-nums sm:inline">
+        {FORMATS[format].width}×{FORMATS[format].height}
+      </span>
+    </div>
+  );
+
+// One clip on a frame, or the Grid board. The board is always 1:1.
+const LayoutToggle = ({
+  disabled,
+  layout,
+  onLayout,
+}: {
+  disabled: boolean;
+  layout: Layout;
+  onLayout: (layout: Layout) => void;
+}) => (
+  <ToggleGroup
+    aria-label="Layout"
+    disabled={disabled}
+    onValueChange={(value) =>
+      (value === "single" || value === "grid") && onLayout(value)
+    }
+    size="sm"
+    type="single"
+    value={layout}
+    variant="outline"
+  >
+    <ToggleGroupItem
+      title="One recording on a 9:16 or 16:9 frame"
+      value="single"
+    >
+      Single clip
+    </ToggleGroupItem>
+    <ToggleGroupItem title="Four recordings in a 2×2 grid, 1:1" value="grid">
+      Grid
+    </ToggleGroupItem>
+  </ToggleGroup>
 );
+
+// The board's four tiles: a caption each, and its video (add, replace,
+// remove). Captions are saved with the look; the videos aren't.
+const BoardTiles = ({
+  captions,
+  clips,
+  disabled,
+  onCaption,
+  onChoose,
+  onRemove,
+  reading,
+}: {
+  captions: string[];
+  clips: (ReelClip | null)[];
+  disabled: boolean;
+  onCaption: (index: number, caption: string) => void;
+  onChoose: (index: number) => void;
+  onRemove: (index: number) => void;
+  reading: number | null;
+}) => (
+  <Group title="Tiles">
+    <ol className="flex flex-col gap-3">
+      {clips.map((clip, index) => {
+        const name = `tile ${index + 1}`;
+        let status = "Empty";
+        if (reading === index) {
+          status = "Reading the video…";
+        } else if (clip) {
+          status = `${clip.name} · ${formatTime(clip.duration)}`;
+        }
+        return (
+          // The four tiles never reorder.
+          // oxlint-disable-next-line react/no-array-index-key
+          <li className="flex flex-col gap-1" key={index}>
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground w-3 shrink-0 text-xs tabular-nums">
+                {index + 1}
+              </span>
+              <Input
+                aria-label={`Caption for ${name}`}
+                className="h-8 text-xs"
+                maxLength={60}
+                onChange={(event) => onCaption(index, event.target.value)}
+                placeholder="Caption"
+                value={captions[index] ?? ""}
+              />
+              <Button
+                aria-label={
+                  clip
+                    ? `Replace the video in ${name}`
+                    : `Add a video to ${name}`
+                }
+                className="size-8 shrink-0"
+                disabled={disabled || reading !== null}
+                onClick={() => onChoose(index)}
+                size="icon"
+                title={clip ? "Replace the video" : "Add a video"}
+                type="button"
+                variant="outline"
+              >
+                <Icon icon={clip ? RefreshIcon : Upload04Icon} />
+              </Button>
+              {clip ? (
+                <Button
+                  aria-label={`Remove the video from ${name}`}
+                  className="size-8 shrink-0"
+                  disabled={disabled}
+                  onClick={() => onRemove(index)}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <Icon icon={Delete02Icon} />
+                </Button>
+              ) : null}
+            </div>
+            <p
+              className="text-muted-foreground truncate pl-4.5 text-xs tabular-nums"
+              title={clip?.name}
+            >
+              {status}
+            </p>
+          </li>
+        );
+      })}
+    </ol>
+    <p className="text-muted-foreground text-xs">
+      Drop a video on a tile, or paste with ⌘V to fill the next empty one.
+      Shorter clips loop.
+    </p>
+  </Group>
+);
+
+const BOARD_FIELDS: {
+  field: Exclude<keyof BoardText, "captions">;
+  label: string;
+  max: number;
+}[] = [
+  { field: "brand", label: "Name (next to the logo)", max: 40 },
+  { field: "label", label: "Top right", max: 40 },
+  { field: "heading", label: "Headline", max: 40 },
+  { field: "footerLeft", label: "Footer left", max: 40 },
+  { field: "footerRight", label: "Footer right", max: 40 },
+];
+
+// The board's other words. Sizes and places are fixed by the layout.
+const BoardWords = ({
+  onChange,
+  text,
+}: {
+  onChange: (patch: Partial<BoardText>) => void;
+  text: BoardText;
+}) => (
+  <Group title="Words">
+    {BOARD_FIELDS.map(({ field, label, max }) => (
+      <div className="flex flex-col gap-1.5" key={field}>
+        <Label className="text-xs" htmlFor={`board-${field}`}>
+          {label}
+        </Label>
+        <Input
+          className="h-8 text-xs"
+          id={`board-${field}`}
+          maxLength={max}
+          onChange={(event) => onChange({ [field]: event.target.value })}
+          value={text[field]}
+        />
+      </div>
+    ))}
+  </Group>
+);
+
+// How long the board runs: its longest clip by default, or a set number of
+// seconds (clips loop to fill it, or are cut short).
+const BoardLength = ({
+  auto,
+  onChange,
+  value,
+}: {
+  auto: number;
+  onChange: (value: number | null) => void;
+  value: number | null;
+}) => {
+  const [draft, setDraft] = useState(value === null ? "" : String(value));
+  useEffect(() => setDraft(value === null ? "" : String(value)), [value]);
+  let note = "1–120 seconds. Clear it to follow the longest clip.";
+  if (value === null) {
+    note =
+      auto > 0
+        ? `Auto: the longest clip, ${formatTime(auto)}.`
+        : "Auto: as long as the longest clip.";
+  }
+  return (
+    <Group title="Length">
+      <div className="flex items-center gap-2">
+        <Input
+          aria-label="Length in seconds"
+          className="h-8 w-24 text-xs tabular-nums"
+          inputMode="decimal"
+          onChange={(event) => {
+            const next = event.target.value;
+            setDraft(next);
+            const seconds = Number(next);
+            if (next.trim() === "") {
+              onChange(null);
+            } else if (
+              Number.isFinite(seconds) &&
+              seconds >= 1 &&
+              seconds <= 120
+            ) {
+              onChange(Math.round(seconds * 10) / 10);
+            }
+          }}
+          placeholder="Auto"
+          value={draft}
+        />
+        <span className="text-muted-foreground text-xs">seconds</span>
+      </div>
+      <p className="text-muted-foreground text-xs tabular-nums">{note}</p>
+    </Group>
+  );
+};
 
 // The top bar's right side: frame rate and Export, or the export's progress.
 const ExportBar = ({
@@ -1054,7 +1325,11 @@ const useLiveComponent = (
 ) => {
   const picked =
     components.find((item) => item.name === look.component) ?? null;
-  const showing = look.device && look.screen === "component" && picked;
+  const showing =
+    look.layout === "single" &&
+    look.device &&
+    look.screen === "component" &&
+    picked;
   return {
     /** Export can't draw a live component: it's recorded into a clip first. */
     blocked: showing ? "Record the live component to export it" : null,
@@ -1125,11 +1400,171 @@ const useDevicePlacement = ({
   };
 };
 
+// The Grid board's four tile videos: read into a given tile or the first
+// empty one, replaced, removed. Kept for the session only, like the clip.
+const useBoardTiles = ({
+  length,
+  setProblem,
+  setResult,
+}: {
+  /** The set length in seconds, or null for the longest clip's. */
+  length: number | null;
+  setProblem: (problem: string | null) => void;
+  setResult: (result: string | null) => void;
+}) => {
+  const [tiles, setTiles] = useState<(ReelClip | null)[]>(() =>
+    Array.from({ length: TILE_COUNT }, () => null)
+  );
+  const [readingTile, setReadingTile] = useState<number | null>(null);
+  const tileInput = useRef<HTMLInputElement>(null);
+  const choosingTile = useRef(0);
+  const longestTile = Math.max(0, ...tiles.map((tile) => tile?.duration ?? 0));
+  const firstTile = tiles.find((tile) => tile !== null) ?? null;
+  // How long the board runs (0 with no clips and no set length).
+  const duration = length ?? longestTile;
+
+  // A video for a board tile: the one given, or the first empty one.
+  const loadTile = useCallback(
+    async (index: number | null, file: File) => {
+      setProblem(null);
+      setResult(null);
+      if (file.type.startsWith("image/")) {
+        setProblem("Board tiles take videos, not images.");
+        return;
+      }
+      const target = index ?? tiles.indexOf(null);
+      if (target === -1) {
+        setProblem(
+          "All four tiles have a video. Drop it on a tile to replace that one."
+        );
+        return;
+      }
+      setReadingTile(target);
+      try {
+        const next = await readClip(file);
+        setTiles((current) =>
+          current.map((tile, position) => {
+            if (position !== target) {
+              return tile;
+            }
+            if (tile) {
+              setTimeout(() => URL.revokeObjectURL(tile.src), 1000);
+            }
+            return next;
+          })
+        );
+      } catch (error) {
+        setProblem(error instanceof Error ? error.message : String(error));
+      } finally {
+        setReadingTile(null);
+      }
+    },
+    [setProblem, setResult, tiles]
+  );
+
+  const removeTile = (index: number) =>
+    setTiles((current) =>
+      current.map((tile, position) => {
+        if (position === index && tile) {
+          URL.revokeObjectURL(tile.src);
+          return null;
+        }
+        return tile;
+      })
+    );
+
+  const chooseTile = (index: number) => {
+    choosingTile.current = index;
+    tileInput.current?.click();
+  };
+
+  return {
+    chooseTile,
+    choosingTile,
+    duration,
+    firstTile,
+    loadTile,
+    longestTile,
+    readingTile,
+    removeTile,
+    tileInput,
+    tiles,
+  };
+};
+
+// The left column for the Grid board: tiles, words, background, length.
+const BoardPanel = ({
+  board,
+  disabled,
+  look,
+  onText,
+  problem,
+  setLook,
+}: {
+  board: ReturnType<typeof useBoardTiles>;
+  disabled: boolean;
+  look: Look;
+  onText: (patch: Partial<BoardText>) => void;
+  problem: string | null;
+  setLook: (patch: Partial<Look>) => void;
+}) => (
+  <>
+    <BoardTiles
+      captions={look.boardText.captions}
+      clips={board.tiles}
+      disabled={disabled}
+      onCaption={(index, caption) =>
+        onText({
+          captions: look.boardText.captions.map((item, position) =>
+            position === index ? caption : item
+          ),
+        })
+      }
+      onChoose={board.chooseTile}
+      onRemove={board.removeTile}
+      reading={board.readingTile}
+    />
+    <input
+      accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
+      className="hidden"
+      onChange={(event) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (file) {
+          board.loadTile(board.choosingTile.current, file);
+        }
+      }}
+      ref={board.tileInput}
+      type="file"
+    />
+    {problem ? (
+      <p className="text-destructive text-xs" role="alert">
+        {problem}
+      </p>
+    ) : null}
+    <BoardWords onChange={onText} text={look.boardText} />
+    <Group title="Background">
+      <BackgroundPicker
+        onChange={(boardBackground) => setLook({ boardBackground })}
+        value={look.boardBackground}
+      />
+    </Group>
+    <BoardLength
+      auto={board.longestTile}
+      onChange={(boardLength) => setLook({ boardLength })}
+      value={look.boardLength}
+    />
+  </>
+);
+
 export const ReelStudio = ({
   components,
+  fonts,
 }: {
   /** The live components a device's screen can show. */
   components: StudioComponent[];
+  /** The Grid board's font families (next/font, loaded by the page). */
+  fonts: { sans: string; serif: string };
 }) => {
   const [look, setLook] = useLook();
   const [clip, setClip] = useState<ReelClip | null>(null);
@@ -1158,7 +1593,26 @@ export const ReelStudio = ({
     setBox,
   });
 
-  const soundtrack = useSoundtrack(clip);
+  const grid = look.layout === "grid";
+  const board = useBoardTiles({
+    length: look.boardLength,
+    setProblem,
+    setResult,
+  });
+  const { duration: boardDuration, firstTile, loadTile, tiles } = board;
+
+  // What the sound tools work against: the clip, or for the board a
+  // stand-in as long as the board (the tiles themselves are muted).
+  const soundClip = useMemo<ReelClip | null>(() => {
+    if (!grid) {
+      return clip;
+    }
+    return firstTile && boardDuration > 0
+      ? { ...firstTile, duration: boardDuration, hasAudio: false }
+      : null;
+  }, [grid, clip, firstTile, boardDuration]);
+
+  const soundtrack = useSoundtrack(soundClip);
   const { reset: resetSound } = soundtrack;
 
   const loadFile = useCallback(
@@ -1200,13 +1654,33 @@ export const ReelStudio = ({
     }
   }, []);
 
-  // One way in for files (paste, drop, the pickers): images become the
-  // background, anything else is read as the clip.
+  // One way in for files (paste, drop, the pickers). Single clip: images
+  // become the background, anything else is read as the clip. Board: a
+  // video fills the next empty tile.
   const takeFile = useCallback(
-    (file: File) =>
-      file.type.startsWith("image/") ? loadImage(file) : loadFile(file),
-    [loadFile, loadImage]
+    (file: File) => {
+      if (grid) {
+        return loadTile(null, file);
+      }
+      return file.type.startsWith("image/") ? loadImage(file) : loadFile(file);
+    },
+    [grid, loadFile, loadImage, loadTile]
   );
+
+  // The sound belongs to what's on screen, so switching layouts clears it.
+  const changeLayout = (layout: Layout) => {
+    if (layout === look.layout) {
+      return;
+    }
+    playerRef.current?.pause();
+    setLook({ layout });
+    setProblem(null);
+    setResult(null);
+    resetSound();
+  };
+
+  const changeBoardText = (patch: Partial<BoardText>) =>
+    setLook({ boardText: { ...look.boardText, ...patch } });
 
   usePasteFile(takeFile);
 
@@ -1287,12 +1761,24 @@ export const ReelStudio = ({
     src: clip?.src ?? "",
     texts,
   };
-  const durationInFrames = clip ? framesFor(clip.duration, look.fps) : 1;
+  const durationInFrames = framesFor(secondsOf(soundClip), look.fps);
+
+  const boardScene: BoardSceneProps = {
+    background: look.boardBackground,
+    cues: soundtrack.sceneAudio.cues,
+    music: soundtrack.sceneAudio.music,
+    sans: fonts.sans,
+    serif: fonts.serif,
+    sfxVolume: soundtrack.sceneAudio.sfxVolume,
+    text: look.boardText,
+    tiles: tiles.map((tile) => tile?.src ?? null),
+  };
 
   const runExport = async () => {
-    if (!clip) {
+    if (!soundClip) {
       return;
     }
+    const { duration } = soundClip;
     const controller = new AbortController();
     abort.current = controller;
     playerRef.current?.pause();
@@ -1301,13 +1787,20 @@ export const ReelStudio = ({
     setExporting(0);
     const started = performance.now();
     try {
-      const blob = await exportReel({
-        fps: look.fps,
-        onProgress: setExporting,
-        props: { ...scene, duration: clip.duration },
-        signal: controller.signal,
-      });
-      const name = reelFileName(look.format);
+      const blob = grid
+        ? await exportBoard({
+            fps: look.fps,
+            onProgress: setExporting,
+            props: { ...boardScene, duration },
+            signal: controller.signal,
+          })
+        : await exportReel({
+            fps: look.fps,
+            onProgress: setExporting,
+            props: { ...scene, duration },
+            signal: controller.signal,
+          });
+      const name = grid ? boardFileName() : reelFileName(look.format);
       saveBlob(blob, name);
       const seconds = Math.max(
         1,
@@ -1344,9 +1837,15 @@ export const ReelStudio = ({
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2.5">
         <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold">Studio</h1>
+          <LayoutToggle
+            disabled={exporting !== null}
+            layout={look.layout}
+            onLayout={changeLayout}
+          />
           <FrameToggle
             disabled={exporting !== null}
             format={look.format}
+            grid={grid}
             onFormat={changeFormat}
           />
         </div>
@@ -1358,7 +1857,7 @@ export const ReelStudio = ({
         </p>
         <ExportBar
           blocked={live.blocked}
-          clip={clip}
+          clip={soundClip}
           exporting={exporting}
           fps={look.fps}
           onCancel={() => abort.current?.abort()}
@@ -1370,36 +1869,50 @@ export const ReelStudio = ({
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] lg:grid-cols-[15.5rem_minmax(0,1fr)_21.5rem]">
         {/* Centre on a phone too: the frame comes first. */}
         <div className="bg-muted/40 flex min-h-0 flex-col items-center gap-3 p-4 lg:order-2 lg:px-6 lg:py-5">
-          <ReelStage
-            box={box}
-            clip={clip}
-            durationInFrames={durationInFrames}
-            fps={look.fps}
-            guides={look.guides}
-            live={live.stage}
-            onBoxChange={setBox}
-            onChoose={() => fileInput.current?.click()}
-            onDeviceChange={placement.setDeviceBox}
-            onFile={takeFile}
-            onRemoveText={removeText}
-            onSelectText={setSelectedText}
-            onTextChange={changeText}
-            playerRef={playerRef}
-            scene={scene}
-            selectedText={selectedText}
-          />
-          <div className="flex w-full max-w-xl flex-col gap-2">
-            <ReelTransport
-              disabled={!clip}
+          {grid ? (
+            <BoardStage
+              clips={tiles}
               durationInFrames={durationInFrames}
               fps={look.fps}
+              onChoose={board.chooseTile}
+              onFile={loadTile}
+              onRemove={board.removeTile}
+              playerRef={playerRef}
+              scene={boardScene}
+            />
+          ) : (
+            <ReelStage
+              box={box}
+              clip={clip}
+              durationInFrames={durationInFrames}
+              fps={look.fps}
+              guides={look.guides}
+              live={live.stage}
+              onBoxChange={setBox}
+              onChoose={() => fileInput.current?.click()}
+              onDeviceChange={placement.setDeviceBox}
+              onFile={takeFile}
+              onRemoveText={removeText}
+              onSelectText={setSelectedText}
+              onTextChange={changeText}
+              playerRef={playerRef}
+              scene={scene}
+              selectedText={selectedText}
+            />
+          )}
+          <div className="flex w-full max-w-xl flex-col gap-2">
+            <ReelTransport
+              disabled={!soundClip}
+              durationInFrames={durationInFrames}
+              fps={look.fps}
+              key={look.layout}
               playerRef={playerRef}
             />
-            {clip ? (
+            {soundClip ? (
               <ReelTimeline
                 cues={soundtrack.cues}
                 dropAt={soundtrack.music?.dropAt ?? null}
-                duration={clip.duration}
+                duration={soundClip.duration}
                 fps={look.fps}
                 hasMusic={soundtrack.music !== null}
                 onDropAt={soundtrack.moveDrop}
@@ -1414,162 +1927,176 @@ export const ReelStudio = ({
         </div>
 
         <aside className="flex min-h-0 flex-col gap-6 overflow-y-auto border-t p-4 lg:order-1 lg:border-t-0 lg:border-r">
-          <Group title="Clip">
-            {clip ? (
-              <div className="flex flex-col gap-0.5">
-                <p className="truncate text-sm" title={clip.name}>
-                  {clip.name}
-                </p>
-                <p className="text-muted-foreground text-xs tabular-nums">
-                  {clip.width}×{clip.height} · {formatTime(clip.duration)} ·{" "}
-                  {codecLabel(clip.codec)} · {formatBytes(clip.size)}
-                </p>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-xs">
-                {reading
-                  ? "Reading the video…"
-                  : "No video yet. Paste with ⌘V or drop it on the frame. Images dropped or pasted become the background."}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                disabled={reading || exporting !== null}
-                onClick={() => fileInput.current?.click()}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <Icon icon={Upload04Icon} />
-                {clip ? "Replace" : "Choose a video"}
-              </Button>
-              {clip ? (
-                <Button
-                  aria-label="Remove the video"
-                  disabled={exporting !== null}
-                  onClick={remove}
-                  size="icon"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Icon icon={Delete02Icon} />
-                </Button>
-              ) : null}
-            </div>
-            <input
-              accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (file) {
-                  loadFile(file);
-                }
-              }}
-              ref={fileInput}
-              type="file"
-            />
-            {problem ? (
-              <p className="text-destructive text-xs" role="alert">
-                {problem}
-              </p>
-            ) : null}
-          </Group>
-
-          <Group title="Background">
-            <BackgroundPicker
-              onChange={(background) => setLook({ background })}
-              value={look.background}
-            />
-            <BackdropPicker
-              dim={look.backdropDim}
+          {grid ? (
+            <BoardPanel
+              board={board}
               disabled={exporting !== null}
-              fit={look.backdropFit}
-              image={backdrop}
-              onAdd={() => imageInput.current?.click()}
-              onDim={(backdropDim) => setLook({ backdropDim })}
-              onFit={(backdropFit) => setLook({ backdropFit })}
-              onRemove={removeBackdrop}
+              look={look}
+              onText={changeBoardText}
+              problem={problem}
+              setLook={setLook}
             />
-            <input
-              accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (file) {
-                  loadImage(file);
-                }
-              }}
-              ref={imageInput}
-              type="file"
-            />
-          </Group>
-
-          <DeviceGroup
-            components={components}
-            disabled={exporting !== null}
-            look={look}
-            onRecorded={takeFile}
-            onReload={() => setReload((count) => count + 1)}
-            picked={live.picked}
-            setLook={setLook}
-          />
-
-          {look.device ? null : (
-            <Group title="Clip style">
-              <div className="flex flex-col gap-2.5">
-                <div className="flex items-center justify-between gap-4">
-                  <Label className="text-xs" htmlFor="reel-radius">
-                    Corner radius
-                  </Label>
-                  <span className="text-muted-foreground text-xs tabular-nums">
-                    {look.radius}px
-                  </span>
+          ) : (
+            <>
+              <Group title="Clip">
+                {clip ? (
+                  <div className="flex flex-col gap-0.5">
+                    <p className="truncate text-sm" title={clip.name}>
+                      {clip.name}
+                    </p>
+                    <p className="text-muted-foreground text-xs tabular-nums">
+                      {clip.width}×{clip.height} · {formatTime(clip.duration)} ·{" "}
+                      {codecLabel(clip.codec)} · {formatBytes(clip.size)}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-xs">
+                    {reading
+                      ? "Reading the video…"
+                      : "No video yet. Paste with ⌘V or drop it on the frame. Images dropped or pasted become the background."}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    disabled={reading || exporting !== null}
+                    onClick={() => fileInput.current?.click()}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <Icon icon={Upload04Icon} />
+                    {clip ? "Replace" : "Choose a video"}
+                  </Button>
+                  {clip ? (
+                    <Button
+                      aria-label="Remove the video"
+                      disabled={exporting !== null}
+                      onClick={remove}
+                      size="icon"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <Icon icon={Delete02Icon} />
+                    </Button>
+                  ) : null}
                 </div>
-                <Slider
-                  id="reel-radius"
-                  max={120}
-                  min={0}
-                  onValueChange={([radius]) => setLook({ radius })}
-                  step={1}
-                  value={[look.radius]}
+                <input
+                  accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) {
+                      loadFile(file);
+                    }
+                  }}
+                  ref={fileInput}
+                  type="file"
                 />
-              </div>
-              <SwitchRow
-                checked={look.shadow}
-                id="reel-shadow"
-                label="Shadow"
-                onChange={(shadow) => setLook({ shadow })}
+                {problem ? (
+                  <p className="text-destructive text-xs" role="alert">
+                    {problem}
+                  </p>
+                ) : null}
+              </Group>
+
+              <Group title="Background">
+                <BackgroundPicker
+                  onChange={(background) => setLook({ background })}
+                  value={look.background}
+                />
+                <BackdropPicker
+                  dim={look.backdropDim}
+                  disabled={exporting !== null}
+                  fit={look.backdropFit}
+                  image={backdrop}
+                  onAdd={() => imageInput.current?.click()}
+                  onDim={(backdropDim) => setLook({ backdropDim })}
+                  onFit={(backdropFit) => setLook({ backdropFit })}
+                  onRemove={removeBackdrop}
+                />
+                <input
+                  accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) {
+                      loadImage(file);
+                    }
+                  }}
+                  ref={imageInput}
+                  type="file"
+                />
+              </Group>
+
+              <DeviceGroup
+                components={components}
+                disabled={exporting !== null}
+                look={look}
+                onRecorded={takeFile}
+                onReload={() => setReload((count) => count + 1)}
+                picked={live.picked}
+                setLook={setLook}
               />
-            </Group>
+
+              {look.device ? null : (
+                <Group title="Clip style">
+                  <div className="flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between gap-4">
+                      <Label className="text-xs" htmlFor="reel-radius">
+                        Corner radius
+                      </Label>
+                      <span className="text-muted-foreground text-xs tabular-nums">
+                        {look.radius}px
+                      </span>
+                    </div>
+                    <Slider
+                      id="reel-radius"
+                      max={120}
+                      min={0}
+                      onValueChange={([radius]) => setLook({ radius })}
+                      step={1}
+                      value={[look.radius]}
+                    />
+                  </div>
+                  <SwitchRow
+                    checked={look.shadow}
+                    id="reel-shadow"
+                    label="Shadow"
+                    onChange={(shadow) => setLook({ shadow })}
+                  />
+                </Group>
+              )}
+
+              <PositionGroup
+                box={placement.positioned}
+                guides={look.guides}
+                label={placement.label}
+                onCentre={placement.centre}
+                onFit={placement.fit}
+                onGuides={(guides) => setLook({ guides })}
+              />
+
+              <TextGroup
+                frameWidth={frame.width}
+                onAdd={addText}
+                onChange={changeText}
+                onRemove={removeText}
+                onSelect={setSelectedText}
+                selected={selectedText}
+                texts={texts}
+              />
+            </>
           )}
-
-          <PositionGroup
-            box={placement.positioned}
-            guides={look.guides}
-            label={placement.label}
-            onCentre={placement.centre}
-            onFit={placement.fit}
-            onGuides={(guides) => setLook({ guides })}
-          />
-
-          <TextGroup
-            frameWidth={frame.width}
-            onAdd={addText}
-            onChange={changeText}
-            onRemove={removeText}
-            onSelect={setSelectedText}
-            selected={selectedText}
-            texts={texts}
-          />
         </aside>
 
         {/* On a short screen this column scrolls on its own; the page never does. */}
         <aside className="flex min-h-0 flex-col border-t lg:order-3 lg:overflow-y-auto lg:border-t-0 lg:border-l">
           <SoundPanel
-            clip={clip}
+            autoSync={!grid}
+            clip={soundClip}
             fps={look.fps}
             playerRef={playerRef}
             soundtrack={soundtrack}
