@@ -11,6 +11,11 @@ export const metadata: Metadata = createPageMetadata({
   title: "Pricing",
 });
 
+// Rebuilt at most every 5 minutes, so a sale (lib/billing/sale.ts) leaves
+// the page on its own soon after it ends; its countdown hides the coupon
+// at once for anyone already on the page.
+export const revalidate = 300;
+
 // No page transition: the pricing page and the links to it (navbar, CTAs)
 // open in place, without the sideways slide. The content is
 // constants/pricing.ts; the layout is components/pricing-plans.tsx.

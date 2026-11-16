@@ -21,12 +21,15 @@ interface CheckoutButtonProps {
   className?: string;
   size?: "default" | "lg";
   variant?: "default" | "secondary";
+  // The price the visitor saw, when it isn't the plan's own (a sale).
+  priceCents?: number;
 }
 
 export const CheckoutButton = ({
   className,
   label,
   plan,
+  priceCents,
   size = "default",
   variant = "default",
 }: CheckoutButtonProps) => {
@@ -40,7 +43,10 @@ export const CheckoutButton = ({
     // visitor actually saw.
     trackEvent({
       name: "checkout_started",
-      properties: { plan, price_cents: PLAN_PRICE_CENTS[plan] },
+      properties: {
+        plan,
+        price_cents: priceCents ?? PLAN_PRICE_CENTS[plan],
+      },
     });
     try {
       const response = await fetch("/api/checkout", {
