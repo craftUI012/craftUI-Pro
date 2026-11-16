@@ -63,6 +63,7 @@ export const COLLECTIONS = [
   "verification",
   "purchase",
   "resource",
+  "email_template",
 ] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 

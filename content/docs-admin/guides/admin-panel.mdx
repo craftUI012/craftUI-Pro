@@ -30,7 +30,8 @@ Admin emails may sign in **without a purchase** (`lib/auth.ts` skips the pay-fir
 | **User page** | Edit name, email and verified flag. Their purchases (add, edit, delete), sessions (sign out of one or everywhere), linked accounts, pending sign-in links. **Delete user and all records** |
 | **Purchases** | Every purchase, guests included. Filter by email or ID, kind, status. Add, edit, delete |
 | **Resources** | Saved links: websites, designers on X, X posts and tools, each with a name, a link and tags. Add, edit, delete. Filter by category (tabs), by tags (chips; a resource must have every chosen tag) and by name or link. The filters are in the URL, so a view can be bookmarked |
-| **Collections** | The raw documents of `user`, `session`, `account`, `verification`, `purchase` and `resource`, read-only, 20 per page. Session and sign-in tokens are shortened |
+| **Collections** | The raw documents of `user`, `session`, `account`, `verification`, `purchase`, `resource` and `email_template`, read-only, 20 per page. Session and sign-in tokens are shortened |
+| **Emails** | The emails the site sends on its own (sign-in link, thank-you note after a purchase): subject, default or edited words, last edit. Open one to edit its words with a live preview (see [Emails](#emails)) |
 | **Studio** | Put a screen recording on a 9:16 frame and export an MP4 for Reels, TikTok and Shorts. Runs in the browser; nothing is saved or uploaded (see [Studio](#studio)) |
 
 ## What the actions change
@@ -61,6 +62,34 @@ Stored in the `resource` collection (`ResourceDoc` in `lib/db/schema.ts`), index
 | `createdAt`, `updatedAt` | dates | |
 
 Admin-only: nothing on the public site reads it.
+
+## Emails
+
+`/admin-panel-craft/emails` lists every email the site sends on its own; each opens an editor at `/admin-panel-craft/emails/<id>` (`magic-link`, `purchase-thank-you`).
+
+The frame is fixed, in code (`lib/emails/compose.ts`): logo, heading, one black button, a line over the small print, the site's line under the card, all tables and inline styles. The editor changes only the **words**, as fields:
+
+| Field | Where it shows |
+| --- | --- |
+| Subject | The subject line |
+| Inbox preview | The grey line after the subject in most inboxes (the hidden preheader) |
+| Heading | The big line under the logo |
+| Before the button, After the button | The letter. A blank line starts a new paragraph, a single line break stays one |
+| Button | The button's label. Its **link can't be edited**: the sign-in link, or the sign-in page for the thank-you note, so an edit can't break signing in |
+| Small print | Grey text under the line at the bottom |
+
+Markup in any field: `**bold**`, `[label](https://…)` (http, https or mailto only) and values like `{{email}}`, inserted at the cursor from the chips above the fields. Each email has its own values (`variables` in `lib/emails/magic-link.ts` and `purchase-thank-you.ts`); the preview and test emails fill in their samples. Values are escaped and filled in after the markup is read, so a buyer's name can't add a link or HTML.
+
+The right side shows the email as it'll arrive (from, subject, inbox preview, then the email at desktop or phone width), its **HTML** and its **plain-text** part, all built by the same code that sends it.
+
+| Button | Effect |
+| --- | --- |
+| Save | Upserts the words into the `email_template` collection (`_id` is the email's id, with `updatedAt`, `updatedBy`). The **next email sent** uses them, no deploy. Blocked while a field has a problem (empty subject, heading or button; an unknown `{{value}}`; a link that isn't http, https or mailto) |
+| Send test | Emails the words as they are in the editor, saved or not, to the signed-in admin, with sample values and `[Test]` before the subject. Through Reloop, so it needs `RELOOP_API_KEY` |
+| Discard changes | Back to the saved words |
+| Reset to default | Deletes the email's document, so the default words in code send again |
+
+Sending (`lib/email.ts`) reads the saved words through `getEmailContent` (`lib/emails/store.ts`). It **never fails because of them**: if MongoDB can't be read, or the saved words no longer check out (a value removed in code, say), it sends the defaults and logs why (`[email] …`). Changing the defaults in code only changes emails that haven't been edited.
 
 ## Studio
 
@@ -123,7 +152,11 @@ The look (background, radius, shadow, frame rate, guides) is remembered in this 
 
 | File | Role |
 | --- | --- |
-| `app/admin-panel-craft/` | Layout (the admin check and the bar), Overview, `users/`, `users/[id]/`, `purchases/`, `resources/`, `collections/`, `studio/`, `actions.ts` |
+| `app/admin-panel-craft/` | Layout (the admin check and the bar), Overview, `users/`, `users/[id]/`, `purchases/`, `resources/`, `collections/`, `emails/` (list, editor page, its actions), `studio/`, `actions.ts` |
+| `lib/emails/compose.ts` | The email frame, the field markup, `renderEmail` and `emailProblems` (shared by sending, the preview and the actions) |
+| `lib/emails/magic-link.ts`, `purchase-thank-you.ts`, `templates.ts` | Each email's default words, values and sender; the list of emails |
+| `lib/emails/store.ts` | Saved words from `email_template`, with the fallback to the defaults |
+| `components/admin-panel/email-editor.tsx` | The editor and live preview |
 | `lib/admin/emails.ts` | `isAdminEmail` (reads `ADMIN_EMAILS`) |
 | `lib/admin/session.ts` | `requireAdminPage` (pages), `requireAdmin` (actions) |
 | `lib/admin/data.ts` | Every read: overview, users, a user's details, purchases, resources, raw collections |
