@@ -14,6 +14,8 @@ const BASE = `${ROUTES.ADMIN_PANEL}/collections`;
 const ABOUT: Record<CollectionName, string> = {
   account:
     "Sign-in methods linked to a user (better-auth). Empty while sign-in is magic link only.",
+  email_template:
+    "Edited email words from the Emails page (ours), one per email. None means the email sends its defaults.",
   purchase:
     'One document per order or subscription (ours). Only status "active" grants access.',
   resource:

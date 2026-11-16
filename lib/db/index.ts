@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import type { IndexDescription } from "mongodb";
 
-import type { PurchaseDoc, ResourceDoc } from "./schema";
+import type { EmailTemplateDoc, PurchaseDoc, ResourceDoc } from "./schema";
 
 // One MongoDB client per server process, reused by every request: opening
 // a connection per request would be slow and exhaust Atlas's connection
@@ -94,4 +94,10 @@ export const purchases = async () => {
 export const resources = async () => {
   await ensureIndexes();
   return db.collection<ResourceDoc>("resource");
+};
+
+// No indexes beyond _id: one document per email, read by its id.
+export const emailTemplates = async () => {
+  await ensureIndexes();
+  return db.collection<EmailTemplateDoc>("email_template");
 };

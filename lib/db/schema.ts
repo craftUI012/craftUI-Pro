@@ -8,6 +8,7 @@
 // Relative, not "@/…": scripts load this file without the path alias.
 import type { ResourceCategory } from "../admin/constants";
 import type { PurchaseKind } from "../billing/plans";
+import type { EmailContent, EmailId } from "../emails/compose";
 
 // One document per order or subscription. What it unlocks:
 //   kind "lifetime" | "yearly" → everything (all-access)
@@ -69,4 +70,16 @@ export interface ResourceDoc {
   updatedAt: Date;
   // http(s) only.
   url: string;
+}
+
+// An email's edited words from the admin panel's Emails page
+// (app/admin-panel-craft/emails), one document per email. Without one the
+// email sends its default words from code (lib/emails/*.ts); resetting an
+// email deletes its document. Read when sending (lib/emails/store.ts).
+export interface EmailTemplateDoc {
+  _id: EmailId;
+  content: EmailContent;
+  updatedAt: Date;
+  // The admin's email who saved it.
+  updatedBy: string;
 }
