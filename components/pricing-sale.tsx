@@ -43,7 +43,11 @@ import { cn } from "@/lib/utils";
  * On copy:
  *    0ms   copy icon blurs out (scale 1 → 0.4), tick blurs in
  *    0ms   label "Copy code" → "Copied"
- * 1800ms   back to the copy icon
+ *    0ms   coupon only: the stub tears, rotate 0 → 3° on a hinge at
+ *          one end of the tear line (bottom from md, right on phones),
+ *          opening a wedge along the dashed line
+ * 1800ms   back to the copy icon; the stub swings back, 3° → 0, with a
+ *          small settle
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
@@ -59,6 +63,15 @@ const COUPON = {
   // px the coupon rises from
   offsetY: 8,
   spring: { damping: 30, stiffness: 300, type: "spring" as const },
+};
+
+const TEAR = {
+  // back into place with a small settle
+  close: { damping: 14, stiffness: 300, type: "spring" as const },
+  // quick and firm, like paper giving way
+  open: { damping: 22, stiffness: 600, type: "spring" as const },
+  // degrees the stub swings open on copy
+  rotate: 3,
 };
 
 const COPY_ICON = {
@@ -222,29 +235,51 @@ const CopiedAnnouncer = ({
 
 /* ── Coupon ───────────────────────────────────────────── */
 
-// The two half-circle cuts at the ends of the tear line. Each is a circle
-// in the page colour with its own border, centred on the card's outer
-// edge and clipped to the half that falls inside the card, so it covers
-// the card's border there and draws the curved edge of the cut. Positions
-// are from the stub (the tear line is its top border on phones, its left
-// border from md); the 1px and 0.5px offsets centre the circle on the
-// card's border and on the 1px tear line.
-const NOTCHES = [
-  // phones: left and right ends of the horizontal tear line
-  "md:hidden -left-[calc(1px+0.625rem)] top-[calc(0.5px-0.625rem)] [clip-path:inset(0_0_0_50%)]",
-  "md:hidden -right-[calc(1px+0.625rem)] top-[calc(0.5px-0.625rem)] [clip-path:inset(0_50%_0_0)]",
-  // md up: top and bottom ends of the vertical tear line
-  "hidden md:block -top-[calc(1px+0.625rem)] left-[calc(0.5px-0.625rem)] [clip-path:inset(50%_0_0_0)]",
-  "hidden md:block -bottom-[calc(1px+0.625rem)] left-[calc(0.5px-0.625rem)] [clip-path:inset(0_0_50%_0)]",
+// The cuts at the ends of the tear line. The ticket is two pieces (the
+// offer and the stub, so the stub can tear away), and each carries its
+// half of every cut: a quarter of a circle in the page colour with its own
+// border, centred on the pieces' shared outer corner and clipped to the
+// quarter inside that piece. Together the quarters make each half-circle
+// cut. Offsets are from each piece's padding box, so the 1px steps reach
+// out over its border to the outer edge.
+//   phones: the stub sits under the offer; the tear line is across.
+//   md up:  the stub sits right of the offer; the tear line is down.
+const OFFER_NOTCHES = [
+  "md:hidden -bottom-[0.625rem] -left-[calc(1px+0.625rem)] [clip-path:inset(0_0_50%_50%)]",
+  "md:hidden -bottom-[0.625rem] -right-[calc(1px+0.625rem)] [clip-path:inset(0_50%_50%_0)]",
+  "hidden md:block -top-[calc(1px+0.625rem)] -right-[0.625rem] [clip-path:inset(50%_50%_0_0)]",
+  "hidden md:block -bottom-[calc(1px+0.625rem)] -right-[0.625rem] [clip-path:inset(0_50%_50%_0)]",
 ];
 
+const STUB_NOTCHES = [
+  // top-left: both layouts
+  "-top-[calc(1px+0.625rem)] -left-[calc(1px+0.625rem)] [clip-path:inset(50%_0_0_50%)]",
+  "md:hidden -top-[calc(1px+0.625rem)] -right-[calc(1px+0.625rem)] [clip-path:inset(50%_50%_0_0)]",
+  "hidden md:block -bottom-[calc(1px+0.625rem)] -left-[calc(1px+0.625rem)] [clip-path:inset(0_0_50%_50%)]",
+];
+
+const Notches = ({ positions }: { positions: string[] }) =>
+  positions.map((position) => (
+    <span
+      key={position}
+      aria-hidden
+      className={cn(
+        "bg-background pointer-events-none absolute size-5 rounded-full border",
+        position
+      )}
+    />
+  ));
+
 // A ticket: the offer on the left, a dashed tear line with a cut at each
-// end, and the code with a Copy button on the stub. Hides itself when the
-// countdown reaches zero.
+// end, and the code with a Copy button on the stub. Copying tears the stub
+// a little way off its hinge (TEAR); it swings back when "Copied" resets.
+// Hides itself when the countdown reaches zero.
 export const SaleCoupon = ({ sale }: { sale: SaleInfo }) => {
   const [stage, setStage] = useState(0);
   const remaining = useCountdown(sale.endsAt);
   const { copied, copy } = useCopyCode(sale.code, "coupon");
+  const reduced = useReducedMotion();
+  const torn = copied && !reduced;
 
   useEffect(() => {
     const timers = [
@@ -271,77 +306,73 @@ export const SaleCoupon = ({ sale }: { sale: SaleInfo }) => {
         y: stage >= 1 ? 0 : COUPON.offsetY,
       }}
       transition={COUPON.spring}
-      className="w-full max-w-3xl"
+      className="grid w-full max-w-3xl md:grid-cols-[1fr_16rem]"
     >
-      <div className="bg-card text-card-foreground grid rounded-xl border md:grid-cols-[1fr_16rem]">
-        <div className="flex flex-col gap-3 p-5 md:p-6">
-          <div className="flex items-center gap-2">
-            <Badge>{sale.name}</Badge>
-            <span className={cn(TYPE.cardCaption, "text-muted-foreground")}>
-              {sale.planName} only
-            </span>
-          </div>
-          <h2 className={cn(TYPE.headingPanel, "tracking-tight")}>
-            {sale.percentOff}% off {sale.planName}
-          </h2>
-          <p className={cn(TYPE.cardBody, "text-muted-foreground text-pretty")}>
-            Pay{" "}
-            <span className="text-foreground font-medium">
-              {sale.salePriceLabel}
-            </span>{" "}
-            once instead of{" "}
-            <s className="decoration-muted-foreground/60">{sale.priceLabel}</s>.
-            Every section, block and illustration, and everything we ship next.
-          </p>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: stage >= 2 ? 1 : 0 }}
-            className={cn(
-              TYPE.cardCaption,
-              "text-muted-foreground flex items-center gap-1"
-            )}
-          >
-            Ends {sale.endsLabel}, in
-            <RollingText
-              className="text-foreground font-medium"
-              text={formatRemaining(remaining)}
-            />
-          </motion.p>
-        </div>
-
-        {/* Tear line: dashed, across on phones, down from md. */}
-        <div className="relative flex flex-col justify-center gap-3 border-t border-dashed p-5 md:border-t-0 md:border-l md:p-6">
-          {NOTCHES.map((position) => (
-            <span
-              key={position}
-              aria-hidden
-              className={cn(
-                "bg-background pointer-events-none absolute size-5 rounded-full border",
-                position
-              )}
-            />
-          ))}
-          <span className={cn(TYPE.cardEyebrow, "text-muted-foreground")}>
-            Your code
-          </span>
-          <span
-            className={cn(
-              TYPE.cardMetric,
-              "font-mono font-medium tracking-wider"
-            )}
-          >
-            {sale.code}
-          </span>
-          <Button variant="secondary" className="w-full" onClick={copy}>
-            <CopyGlyph copied={copied} />
-            {copied ? "Copied" : "Copy code"}
-          </Button>
+      {/* The offer: open on the tear-line side (no border there). */}
+      <div className="bg-card text-card-foreground relative flex flex-col gap-3 rounded-t-xl border border-b-0 p-5 md:rounded-tr-none md:rounded-bl-xl md:border-r-0 md:border-b md:p-6">
+        <Notches positions={OFFER_NOTCHES} />
+        <div className="flex items-center gap-2">
+          <Badge>{sale.name}</Badge>
           <span className={cn(TYPE.cardCaption, "text-muted-foreground")}>
-            Paste it at checkout.
+            {sale.planName} only
           </span>
-          <CopiedAnnouncer code={sale.code} copied={copied} />
         </div>
+        <h2 className={cn(TYPE.headingPanel, "tracking-tight")}>
+          {sale.percentOff}% off {sale.planName}
+        </h2>
+        <p className={cn(TYPE.cardBody, "text-muted-foreground text-pretty")}>
+          Pay{" "}
+          <span className="text-foreground font-medium">
+            {sale.salePriceLabel}
+          </span>{" "}
+          once instead of{" "}
+          <s className="decoration-muted-foreground/60">{sale.priceLabel}</s>.
+          Every section, block and illustration, and everything we ship next.
+        </p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: stage >= 2 ? 1 : 0 }}
+          className={cn(
+            TYPE.cardCaption,
+            "text-muted-foreground flex items-center gap-1"
+          )}
+        >
+          Ends {sale.endsLabel}, in
+          <RollingText
+            className="text-foreground font-medium"
+            text={formatRemaining(remaining)}
+          />
+        </motion.p>
       </div>
+
+      {/* The stub: its dashed side is the tear line. The hinge is the far
+          end of that line (transform-origin), so it opens like a tear. */}
+      <motion.div
+        animate={{ rotate: torn ? TEAR.rotate : 0 }}
+        transition={torn ? TEAR.open : TEAR.close}
+        className="bg-card text-card-foreground relative flex origin-top-right flex-col justify-center gap-3 rounded-b-xl border [border-top-style:dashed] p-5 md:origin-bottom-left md:rounded-tr-xl md:rounded-bl-none md:[border-top-style:solid] md:[border-left-style:dashed] md:p-6"
+      >
+        <Notches positions={STUB_NOTCHES} />
+        <span className={cn(TYPE.cardEyebrow, "text-muted-foreground")}>
+          Your code
+        </span>
+        <span
+          className={cn(
+            TYPE.cardMetric,
+            "font-mono font-medium tracking-wider"
+          )}
+        >
+          {sale.code}
+        </span>
+        <Button variant="secondary" className="w-full" onClick={copy}>
+          <CopyGlyph copied={copied} />
+          {copied ? "Copied" : "Copy code"}
+        </Button>
+        <span className={cn(TYPE.cardCaption, "text-muted-foreground")}>
+          Paste it at checkout.
+        </span>
+        <CopiedAnnouncer code={sale.code} copied={copied} />
+      </motion.div>
     </motion.section>
   );
 };
