@@ -449,11 +449,12 @@ const StripCodeChip = ({ code }: { code: string }) => {
   );
 };
 
-// One line under the navbar on every page: the offer, the code to copy,
-// the countdown (md up) and a link to the plans (lg up), with a close
-// button. Rendered on the server so it doesn't push the page down after
-// load; it collapses when closed (remembered per code) or when the sale
-// ends.
+// One line under the navbar on every page: the offer, the code to copy
+// and a link to the plans (lg up), with a close button. No countdown here
+// (the pricing page's coupon has one); the countdown still runs unseen so
+// the strip collapses the moment the sale ends. Rendered on the server so
+// it doesn't push the page down after load; it also collapses when closed
+// (remembered per code).
 export const SaleStrip = ({ sale }: { sale: SaleInfo }) => {
   const remaining = useCountdown(sale.endsAt);
   const [dismissed, setDismissed] = useState(false);
@@ -488,13 +489,6 @@ export const SaleStrip = ({ sale }: { sale: SaleInfo }) => {
               {sale.salePriceLabel} once, with
             </span>
             <StripCodeChip code={sale.code} />
-            <span className="text-primary-foreground/70 hidden items-center gap-1 md:inline-flex">
-              Ends in
-              <RollingText
-                className="text-primary-foreground font-medium"
-                text={formatRemaining(remaining)}
-              />
-            </span>
             <Link
               href={`${ROUTES.PRICING}#plans`}
               className="hidden items-center gap-1 font-medium underline-offset-4 hover:underline lg:inline-flex"
