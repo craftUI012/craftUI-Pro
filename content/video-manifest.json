@@ -78,5 +78,13 @@
     "item": "prompt-composer",
     "retired": [],
     "updatedAt": "2026-11-11"
+  },
+  "brands-brand-roster-showcase": {
+    "bytes": 4507160,
+    "ext": ".mp4",
+    "fingerprint": "0e99b2f2",
+    "item": "brands-section",
+    "retired": [],
+    "updatedAt": "2026-11-16"
   }
 }

@@ -14,6 +14,7 @@ import type { LivePreview } from "@/constants/live-previews";
 import ArcCarousel from "@/registry/blocks/arc-carousel";
 import { ImageSphere } from "@/registry/blocks/image-sphere";
 import BenchmarksSection from "@/registry/sections/benchmarks-section";
+import { BrandsSection } from "@/registry/sections/brands-section/brands-section";
 import FeatureSection02 from "@/registry/sections/feature-section-02";
 import FeatureSection03 from "@/registry/sections/feature-section-03";
 import FeatureSection04 from "@/registry/sections/feature-section-04";
@@ -41,6 +42,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "arc-carousel": ArcCarousel,
     "benchmarks-section": BenchmarksSection,
     "bloom-menu": BloomMenuPreview,
+    "brands-section": BrandsSection,
     "editorial-section": EditorialSectionPreview,
     "feature-section-02": FeatureSection02,
     "feature-section-03": FeatureSection03,
