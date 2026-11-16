@@ -34,8 +34,10 @@ import {
   parseBrowseSearch,
 } from "@/components/new-hero-section/browse/browse-url";
 import type { LibraryId } from "@/components/new-hero-section/data/home-types";
+import { SaleStrip } from "@/components/pricing-sale";
 import { Tabs } from "@/components/ui/tabs";
 import { ROUTES } from "@/constants/routes";
+import type { SaleInfo } from "@/lib/billing/sale";
 import { trackEvent } from "@/lib/events";
 
 // How long the search box must sit still before a search is reported.
@@ -118,6 +120,7 @@ export const BrowseShell = ({
   devLinks = [],
   libraries,
   railData,
+  sale,
 }: {
   children: React.ReactNode;
   // The library the browse page opens on (the first one with items).
@@ -126,6 +129,8 @@ export const BrowseShell = ({
   devLinks?: NavLink[];
   libraries: LibraryTab[];
   railData: RailData;
+  // The running sale (lib/billing/sale.ts): a strip under the navbar.
+  sale?: SaleInfo;
 }) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -315,6 +320,7 @@ export const BrowseShell = ({
                 onSubmitSearch={onSubmitSearch}
                 onTabChange={onTabChange}
               />
+              {sale && <SaleStrip sale={sale} />}
               {children}
             </div>
 

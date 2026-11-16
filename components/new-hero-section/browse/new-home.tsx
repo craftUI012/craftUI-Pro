@@ -19,6 +19,7 @@ import type {
   Library,
 } from "@/components/new-hero-section/data/home-types";
 import { ROUTES } from "@/constants/routes";
+import { getActiveSale, toSaleInfo } from "@/lib/billing/sale";
 import { showDesignAdmin, showDocsAdmin, showSeoAdmin } from "@/lib/flags";
 
 // Cards in the first row of the first tab: on screen at load, so eager.
@@ -126,6 +127,8 @@ export const NewHomeShell = async ({
   children: React.ReactNode;
 }) => {
   const data = await getHomeData();
+  // The running sale, if any: a strip under the navbar on every page.
+  const sale = getActiveSale();
 
   return (
     <BrowseShell
@@ -151,6 +154,7 @@ export const NewHomeShell = async ({
         })
       )}
       railData={toRailData(data)}
+      sale={sale ? toSaleInfo(sale) : undefined}
     >
       {children}
     </BrowseShell>

@@ -27,6 +27,7 @@ const eventSchema = z.object({
     "search_performed",
     "paywall_viewed",
     "checkout_started",
+    "discount_code_copied",
   ]),
   properties: z
     .record(
