@@ -14,7 +14,7 @@ import {
   DocumentValidationIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { motion, useReducedMotion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import * as React from "react";
 
 import AvatarGrid, { type AvatarMember } from "./avatar-grid";
@@ -132,30 +132,34 @@ export default function TeamCluster01({
   className,
 }: TeamCluster01Props = {}) {
   const scopeId = React.useId().replace(/:/g, "");
-  const reduceMotion = useReducedMotion();
   const [selectedId, setSelectedId] = React.useState<string | null>(
     members[0]?.id ?? null
   );
   const [activeId, setActiveId] = React.useState<string | null>(
     members[0]?.id ?? null
   );
+  // The same values for everyone, so the server's first render (which
+  // can't know the visitor's motion setting) matches the browser's. With
+  // reduced motion on, the MotionConfig below drops the rise and keeps the
+  // fade.
   const rise = (delay: number) => ({
-    initial: reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 },
-    whileInView: reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
+    initial: { opacity: 0, y: 12 },
+    whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.3 },
     transition: { duration: DURATION, ease: EASE, delay },
   });
 
   return (
-    <section
-      style={TEAM_VARS}
-      className={`w-full bg-[var(--team-surface)] py-16 sm:py-20 lg:py-24 xl:py-28 ${className ?? ""}`}
-    >
-      {/* Phones and tablets stack copy, cluster and roles in one column. From
+    <MotionConfig reducedMotion="user">
+      <section
+        style={TEAM_VARS}
+        className={`w-full bg-[var(--team-surface)] py-16 sm:py-20 lg:py-24 xl:py-28 ${className ?? ""}`}
+      >
+        {/* Phones and tablets stack copy, cluster and roles in one column. From
           lg the roles sit beside the cluster, so its pointer badges would only
           repeat them; xl widens the cluster and tucks it under the copy. */}
-      <style>
-        {`
+        <style>
+          {`
           .team-${scopeId} {
             display: grid;
             gap: 2.5rem;
@@ -186,121 +190,122 @@ export default function TeamCluster01({
             }
           }
         `}
-      </style>
+        </style>
 
-      <div
-        className={`team-${scopeId} mx-auto max-w-6xl px-5 sm:px-8 xl:max-w-6xl`}
-      >
         <div
-          style={{ gridArea: "copy" }}
-          className="mx-auto max-w-xl text-left sm:text-center lg:mx-0 lg:max-w-none lg:text-left"
+          className={`team-${scopeId} mx-auto max-w-6xl px-5 sm:px-8 xl:max-w-6xl`}
         >
-          <motion.p
-            {...rise(TIMING.heading)}
-            className="text-xs font-medium tracking-[0.14em] text-[var(--team-fg-muted)] uppercase"
+          <div
+            style={{ gridArea: "copy" }}
+            className="mx-auto max-w-xl text-left sm:text-center lg:mx-0 lg:max-w-none lg:text-left"
           >
-            {eyebrow}
-          </motion.p>
-          <motion.h2
-            {...rise(TIMING.heading)}
-            className="mt-3 text-3xl font-medium tracking-tight text-balance text-[var(--team-fg)] sm:text-4xl xl:text-[2.75rem] xl:leading-[1.1]"
-          >
-            {heading}
-          </motion.h2>
-          <motion.p
-            {...rise(TIMING.body)}
-            className="mt-4 max-w-md text-base leading-relaxed text-pretty text-[var(--team-fg-muted)] sm:mx-auto lg:mx-0"
-          >
-            {body}
-          </motion.p>
-        </div>
+            <motion.p
+              {...rise(TIMING.heading)}
+              className="text-xs font-medium tracking-[0.14em] text-[var(--team-fg-muted)] uppercase"
+            >
+              {eyebrow}
+            </motion.p>
+            <motion.h2
+              {...rise(TIMING.heading)}
+              className="mt-3 text-3xl font-medium tracking-tight text-balance text-[var(--team-fg)] sm:text-4xl xl:text-[2.75rem] xl:leading-[1.1]"
+            >
+              {heading}
+            </motion.h2>
+            <motion.p
+              {...rise(TIMING.body)}
+              className="mt-4 max-w-md text-base leading-relaxed text-pretty text-[var(--team-fg-muted)] sm:mx-auto lg:mx-0"
+            >
+              {body}
+            </motion.p>
+          </div>
 
-        <div style={{ gridArea: "cluster" }} className="xl:-ml-[94px]">
-          <AvatarGrid
-            members={members}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onActiveChange={setActiveId}
-            roleBadges
-            renderBadge={(member) => (
-              <span className="block text-left">
-                <span className="block">{member.name}</span>
-                <span className="mt-0.5 block text-[9px] font-normal opacity-75">
-                  {member.role}
+          <div style={{ gridArea: "cluster" }} className="xl:-ml-[94px]">
+            <AvatarGrid
+              members={members}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onActiveChange={setActiveId}
+              roleBadges
+              renderBadge={(member) => (
+                <span className="block text-left">
+                  <span className="block">{member.name}</span>
+                  <span className="mt-0.5 block text-[9px] font-normal opacity-75">
+                    {member.role}
+                  </span>
                 </span>
-              </span>
-            )}
-            className="!p-0 !justify-center xl:!justify-start xl:[&>div]:max-w-[600px]"
-          />
-        </div>
+              )}
+              className="!p-0 !justify-center xl:!justify-start xl:[&>div]:max-w-[600px]"
+            />
+          </div>
 
-        <motion.div style={{ gridArea: "detail" }} {...rise(TIMING.detail)}>
-          <ul className="w-full text-center [--hatch-ink:oklch(0_0_0_/_0.12)] sm:mx-auto sm:max-w-md lg:mx-0 lg:text-left dark:[--hatch-ink:oklch(1_0_0_/_0.16)]">
-            {members.map((member, index) => {
-              const isActive = activeId === member.id;
-              return (
-                <li key={member.id}>
-                  {index > 0 && (
-                    <div
-                      aria-hidden="true"
-                      className="h-1"
-                      style={{
-                        backgroundImage:
-                          "repeating-linear-gradient(45deg, var(--hatch-ink) 0 1px, transparent 1px 6px)",
+          <motion.div style={{ gridArea: "detail" }} {...rise(TIMING.detail)}>
+            <ul className="w-full text-center [--hatch-ink:oklch(0_0_0_/_0.12)] sm:mx-auto sm:max-w-md lg:mx-0 lg:text-left dark:[--hatch-ink:oklch(1_0_0_/_0.16)]">
+              {members.map((member, index) => {
+                const isActive = activeId === member.id;
+                return (
+                  <li key={member.id}>
+                    {index > 0 && (
+                      <div
+                        aria-hidden="true"
+                        className="h-1"
+                        style={{
+                          backgroundImage:
+                            "repeating-linear-gradient(45deg, var(--hatch-ink) 0 1px, transparent 1px 6px)",
+                        }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      aria-pressed={isActive}
+                      aria-label={`${member.name} — ${member.role}`}
+                      onClick={() => setSelectedId(member.id)}
+                      onPointerEnter={(event) => {
+                        if (event.pointerType === "mouse")
+                          setSelectedId(member.id);
                       }}
-                    />
-                  )}
-                  <button
-                    type="button"
-                    aria-pressed={isActive}
-                    aria-label={`${member.name} — ${member.role}`}
-                    onClick={() => setSelectedId(member.id)}
-                    onPointerEnter={(event) => {
-                      if (event.pointerType === "mouse")
-                        setSelectedId(member.id);
-                    }}
-                    className={`flex w-full cursor-pointer items-start justify-between gap-4 py-2.5 text-sm sm:gap-6 transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--team-ring)] ${
-                      isActive
-                        ? "font-medium text-[var(--team-fg)]"
-                        : "text-[var(--team-fg-muted)] hover:text-[var(--team-fg)]"
-                    }`}
-                  >
-                    <span className="flex min-w-0 shrink-0 items-center gap-2.5 text-left">
-                      {member.icon && (
-                        <HugeiconsIcon
-                          icon={member.icon}
-                          size={16}
-                          strokeWidth={1.5}
-                          color="currentColor"
-                          className="shrink-0"
-                          aria-hidden="true"
-                        />
-                      )}
-                      {member.role}
-                    </span>
-                    <span className="flex min-w-0 flex-col items-end text-right">
-                      <span
-                        className={`text-xs font-normal transition-colors duration-150 ease-out ${
-                          isActive
-                            ? "text-[var(--team-fg)]"
-                            : "text-[var(--team-fg-soft)]"
-                        }`}
-                      >
-                        {member.name}
+                      className={`flex w-full cursor-pointer items-start justify-between gap-4 py-2.5 text-sm sm:gap-6 transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--team-ring)] ${
+                        isActive
+                          ? "font-medium text-[var(--team-fg)]"
+                          : "text-[var(--team-fg-muted)] hover:text-[var(--team-fg)]"
+                      }`}
+                    >
+                      <span className="flex min-w-0 shrink-0 items-center gap-2.5 text-left">
+                        {member.icon && (
+                          <HugeiconsIcon
+                            icon={member.icon}
+                            size={16}
+                            strokeWidth={1.5}
+                            color="currentColor"
+                            className="shrink-0"
+                            aria-hidden="true"
+                          />
+                        )}
+                        {member.role}
                       </span>
-                      {member.bio && (
-                        <span className="mt-0.5 text-xs leading-snug font-normal text-[var(--team-fg-muted)] sm:line-clamp-1">
-                          {member.bio}
+                      <span className="flex min-w-0 flex-col items-end text-right">
+                        <span
+                          className={`text-xs font-normal transition-colors duration-150 ease-out ${
+                            isActive
+                              ? "text-[var(--team-fg)]"
+                              : "text-[var(--team-fg-soft)]"
+                          }`}
+                        >
+                          {member.name}
                         </span>
-                      )}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </motion.div>
-      </div>
-    </section>
+                        {member.bio && (
+                          <span className="mt-0.5 text-xs leading-snug font-normal text-[var(--team-fg-muted)] sm:line-clamp-1">
+                            {member.bio}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </motion.div>
+        </div>
+      </section>
+    </MotionConfig>
   );
 }

@@ -8,6 +8,7 @@ import {
   RotateCw,
   Smartphone,
   Tablet,
+  Turtle,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useEffect, useState } from "react";
@@ -39,7 +40,7 @@ const ToolbarButton = ({
   children,
 }: {
   label: string;
-  shortcut: string;
+  shortcut?: string;
   active?: boolean;
   onClick: () => void;
   children: React.ReactNode;
@@ -64,7 +65,7 @@ const ToolbarButton = ({
     <TooltipContent className="pr-2 pl-3">
       <div className="flex items-center gap-3">
         {label}
-        <Kbd className="!text-white">{shortcut}</Kbd>
+        {shortcut ? <Kbd className="!text-white">{shortcut}</Kbd> : null}
       </div>
     </TooltipContent>
   </Tooltip>
@@ -151,7 +152,8 @@ const useCardUrl = (id?: string) => {
 
 // The strip pinned to the top of a preview box (see preview-frame.tsx): the
 // Preview/Code toggle and the install command on the left; device width,
-// reload, full screen and "Copy for AI" on the right.
+// reduced motion (live items only), reload, full screen and "Copy for AI"
+// on the right.
 export const PreviewToolbar = ({
   className,
   copyValue,
@@ -159,6 +161,7 @@ export const PreviewToolbar = ({
   installName,
   installToken,
   locked = false,
+  motion,
   onFullscreen,
   onLockedCopy,
   onReload,
@@ -177,6 +180,9 @@ export const PreviewToolbar = ({
   // The owner's token for a paid item's install command.
   installToken?: string | null;
   locked?: boolean;
+  // The reduced-motion switch (hooks/use-preview-motion.ts), for live items:
+  // their iframe can be told to reduce motion; an inline preview can't.
+  motion?: { onToggle: () => void; reduced: boolean };
   onFullscreen: () => void;
   onLockedCopy: () => void;
   onReload: () => void;
@@ -224,6 +230,19 @@ export const PreviewToolbar = ({
           </ToolbarButton>
         ))}
         <Separator className="mx-1 h-4!" orientation="vertical" />
+        {motion && (
+          <ToolbarButton
+            active={motion.reduced}
+            label={
+              motion.reduced
+                ? "Reduced motion: on"
+                : "Preview with reduced motion"
+            }
+            onClick={motion.onToggle}
+          >
+            <Turtle className="size-4.5" strokeWidth="2" />
+          </ToolbarButton>
+        )}
         <ToolbarButton label="Reload preview" onClick={onReload} shortcut="R">
           <RotateCw className="size-4.5" strokeWidth="2" />
         </ToolbarButton>

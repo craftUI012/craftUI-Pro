@@ -7,7 +7,9 @@ import { PreviewIframe } from "@/components/preview-iframe";
 import type { PreviewView, PreviewWidth } from "@/components/preview-toolbar";
 import { PreviewToolbar } from "@/components/preview-toolbar";
 import { loadItemSource, useAccess } from "@/hooks/use-access";
+import { usePreviewMotion } from "@/hooks/use-preview-motion";
 import { trackEvent } from "@/lib/events";
+import { previewSrcWithMotion } from "@/lib/preview-motion";
 import { cn } from "@/lib/utils";
 
 // Container width per toolbar selection, for previews rendered inline (a
@@ -96,6 +98,16 @@ export const PreviewFrame = ({
   const [view, setView] = React.useState<PreviewView>("preview");
   const [reloadKey, setReloadKey] = React.useState(0);
   const boxRef = React.useRef<HTMLDivElement>(null);
+  // Reduced motion, for live items: the iframe reloads with the setting
+  // asked for (lib/preview-motion.ts). Shared by every preview on the page.
+  const motion = usePreviewMotion();
+  const onToggleMotion = () => {
+    trackEvent({
+      name: "preview_motion_toggled",
+      properties: { item: installName ?? null, reduced: !motion.reduced },
+    });
+    motion.toggle();
+  };
 
   // On a phone-sized box a live item opens on the phone: its desktop layout
   // scaled down that far would be too small to read.
@@ -161,6 +173,11 @@ export const PreviewFrame = ({
         installName={installName}
         installToken={unlockedPaid ? access.installToken : null}
         locked={locked}
+        motion={
+          previewSrc
+            ? { onToggle: onToggleMotion, reduced: motion.reduced }
+            : undefined
+        }
         onLockedCopy={() => setView("code")}
         title={title}
         onFullscreen={onFullscreen}
@@ -176,7 +193,7 @@ export const PreviewFrame = ({
           {previewSrc ? (
             <PreviewIframe
               key={reloadKey}
-              src={previewSrc}
+              src={previewSrcWithMotion(previewSrc, motion.motion)}
               title={title}
               width={width}
             />
@@ -192,6 +209,14 @@ export const PreviewFrame = ({
             </div>
           )}
         </div>
+
+        {previewSrc && motion.reduced ? (
+          // Says which version is showing, so a still preview isn't taken
+          // for a broken one.
+          <span className="bg-background/90 text-muted-foreground pointer-events-none absolute top-0.5 left-6 rounded-md border px-2 py-0.5 text-xs leading-4 backdrop-blur-sm">
+            Reduced motion
+          </span>
+        ) : null}
 
         <LazyMotion features={domAnimation}>
           <AnimatePresence>
