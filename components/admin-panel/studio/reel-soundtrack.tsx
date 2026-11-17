@@ -476,7 +476,8 @@ const MusicPicker = ({
         </div>
       ) : (
         <p className="text-muted-foreground text-xs">
-          No music yet. Auto-sync picks one, or search below.
+          No music yet. Search below, or let Auto-sync pick one for a single
+          clip.
         </p>
       )}
 
@@ -562,14 +563,80 @@ const MusicPicker = ({
   );
 };
 
+// Auto-sync (a feel, the button and its status), or for the Grid board a
+// note that it's off, with the music search's status.
+const SoundHeader = ({
+  autoSync: canAutoSync,
+  clip,
+  soundtrack,
+}: {
+  autoSync: boolean;
+  clip: ReelClip | null;
+  soundtrack: Soundtrack;
+}) => {
+  const { autoSync, busy, status, summary } = soundtrack;
+  const [vibe, setVibe] = useState("");
+  return canAutoSync ? (
+    <>
+      <div className="flex gap-1.5">
+        <Input
+          aria-label="The feel you want (optional)"
+          className="h-8 text-xs"
+          disabled={!clip || busy}
+          maxLength={200}
+          onChange={(event) => setVibe(event.target.value)}
+          placeholder="Feel (optional)"
+          value={vibe}
+        />
+        <Button
+          aria-label="Auto-sync with Claude"
+          className="h-8 shrink-0"
+          disabled={!clip || busy}
+          onClick={() => autoSync(vibe)}
+          size="sm"
+          type="button"
+        >
+          <Icon icon={AiMagicIcon} />
+          Auto-sync
+        </Button>
+      </div>
+      <p
+        className={cn(
+          "text-xs",
+          status?.error ? "text-destructive" : "text-muted-foreground"
+        )}
+        role="status"
+        title={summary || undefined}
+      >
+        {status?.text ??
+          "Claude picks a sound for each moment and fits CC0 music to the key one."}
+      </p>
+    </>
+  ) : (
+    <p
+      className={cn(
+        "text-xs",
+        status?.error ? "text-destructive" : "text-muted-foreground"
+      )}
+      role="status"
+    >
+      {status?.text ??
+        "The tiles play muted. Add music and effects by hand: auto-sync reads a single clip, so it's off for the board."}
+    </p>
+  );
+};
+
 // The right-hand column: auto-sync, effects, music and the mix, all in view.
 // The effect and track lists scroll inside their own boxes.
 export const SoundPanel = ({
+  autoSync: canAutoSync = true,
   clip,
   fps,
   playerRef,
   soundtrack,
 }: {
+  /** Off for the Grid board: auto-sync reads one clip's moments. */
+  autoSync?: boolean;
   clip: ReelClip | null;
   fps: number;
   playerRef: RefObject<PlayerRef | null>;
@@ -577,8 +644,6 @@ export const SoundPanel = ({
 }) => {
   const {
     addCue,
-    autoSync,
-    busy,
     cues,
     mix,
     music,
@@ -587,11 +652,8 @@ export const SoundPanel = ({
     setMix,
     setMusic,
     setSelected,
-    status,
-    summary,
     updateCue,
   } = soundtrack;
-  const [vibe, setVibe] = useState("");
   const [newSound, setNewSound] = useState<SoundId>("click");
   const preview = usePreview();
 
@@ -601,39 +663,11 @@ export const SoundPanel = ({
     <div className="flex flex-1 flex-col lg:min-h-0">
       <div className="flex flex-col gap-2 border-b p-4">
         <h2 className="text-sm font-medium">Sound</h2>
-        <div className="flex gap-1.5">
-          <Input
-            aria-label="The feel you want (optional)"
-            className="h-8 text-xs"
-            disabled={!clip || busy}
-            maxLength={200}
-            onChange={(event) => setVibe(event.target.value)}
-            placeholder="Feel (optional)"
-            value={vibe}
-          />
-          <Button
-            aria-label="Auto-sync with Claude"
-            className="h-8 shrink-0"
-            disabled={!clip || busy}
-            onClick={() => autoSync(vibe)}
-            size="sm"
-            type="button"
-          >
-            <Icon icon={AiMagicIcon} />
-            Auto-sync
-          </Button>
-        </div>
-        <p
-          className={cn(
-            "text-xs",
-            status?.error ? "text-destructive" : "text-muted-foreground"
-          )}
-          role="status"
-          title={summary || undefined}
-        >
-          {status?.text ??
-            "Claude picks a sound for each moment and fits CC0 music to the key one."}
-        </p>
+        <SoundHeader
+          autoSync={canAutoSync}
+          clip={clip}
+          soundtrack={soundtrack}
+        />
       </div>
 
       <div className="flex flex-col gap-2 border-b p-4 lg:min-h-[9.5rem] lg:flex-1">
@@ -689,7 +723,9 @@ export const SoundPanel = ({
           </ul>
         ) : (
           <p className="text-muted-foreground text-xs">
-            None yet. Auto-sync, or add one at the playhead.
+            {canAutoSync
+              ? "None yet. Auto-sync, or add one at the playhead."
+              : "None yet. Add one at the playhead."}
           </p>
         )}
       </div>

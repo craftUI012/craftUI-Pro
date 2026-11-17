@@ -136,6 +136,27 @@ A small reel maker built on [Remotion](https://www.remotion.dev) that runs in th
 
 The look (background, radius, shadow, frame rate, guides) is remembered in this browser. The clip isn't.
 
+### Grid board
+
+**Grid** in the top bar (next to **Single clip**) switches to a square 1080×1080 post with four recordings playing at once in a 2×2 grid. It was laid out after a launch-board post and measured from its pixels (`reel-grid.tsx`):
+
+- **Header:** the craftUI logo with a name, and a label on the right.
+- **Tiles:** four 492×311 tiles, 16px apart, with a caption under each.
+- **Headline and footer:** a big serif headline, then a footer line on each side.
+
+Sizes and places are fixed; you change the words.
+
+1. **Fill the tiles.** Drop a video on a tile, use **Add video** on it (or the buttons beside its caption on the left), or paste with ⌘V to fill the next empty one. Hover a tile to replace or remove its video. Videos fill their tile (cropped at the edges) and play muted.
+2. **Words.** A caption per tile, plus name, top right, headline and both footer lines.
+3. **Background.** The same picker as the single clip; the board keeps its own colour (Paper, `#E8E8E1`, by default). On a dark colour the words turn light.
+4. **Length.** The longest clip by default; shorter clips loop. Or set 1–120 seconds.
+5. **Sound.** Music and effects work as above. Auto-sync is off: it reads a single clip's moments.
+6. **Export** saves `board-YYYY-MM-DD-HHMM.mp4`, 1080×1080. Four 1280×800 test clips over 6 s at 30 fps took about 4 s.
+
+The words, background, length and the layout choice are remembered with the look; the tile videos aren't.
+
+Fonts: the small text is **Inter Tight** and the headline **Crimson Pro**, loaded by the Studio page only (`next/font`) and passed down by their resolved family names, since the export renders outside the page. The export draws text on a canvas and ignores font variations, so the board avoids fonts with optical sizes (Source Serif 4 exported much wider than it previewed).
+
 | Detail | Notes |
 | --- | --- |
 | Browsers | Tested in Chrome. Remotion lists Chrome 94+, Firefox 130+ and Safari 26+ (needs WebCodecs) |

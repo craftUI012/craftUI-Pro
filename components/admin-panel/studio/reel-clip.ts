@@ -1,9 +1,8 @@
-import type {
-  ReelBox,
-  ReelFormat,
-  ReelSceneProps,
-  ReelText,
-} from "./reel-scene";
+import type { ComponentType } from "react";
+
+import type { BoardSceneProps } from "./reel-grid";
+import { BOARD, BoardScene } from "./reel-grid";
+import type { ReelBox, ReelFormat, ReelSceneProps } from "./reel-scene";
 import { FORMATS, ReelScene, TEXT_FONT } from "./reel-scene";
 
 // Reading a recording and exporting the reel. Both run in the browser: the
@@ -150,53 +149,58 @@ export const fitBox = (
 export const framesFor = (duration: number, fps: number) =>
   Math.max(1, Math.floor(duration * fps));
 
-// The renderer draws text with the page's fonts, so make sure Inter's
-// weights are loaded (not just declared) before it starts.
-const loadTextFonts = async (texts: ReelText[]) => {
+// The renderer draws text with the page's fonts, so make sure each font and
+// weight is loaded (not just declared) before it starts. `family` is a CSS
+// font-family; a var() one (Inter is --font-inter) is resolved first.
+const loadFonts = async (
+  fonts: { family: string; sample: string; weights: number[] }[]
+) => {
   const probe = document.createElement("span");
-  probe.style.fontFamily = TEXT_FONT;
   document.body.append(probe);
-  const family = getComputedStyle(probe).fontFamily;
+  const loads = fonts.flatMap(({ family, sample, weights }) => {
+    probe.style.fontFamily = family;
+    const resolved = getComputedStyle(probe).fontFamily;
+    return [...new Set(weights)].map((weight) =>
+      document.fonts.load(`${weight} 64px ${resolved}`, sample || "Aa")
+    );
+  });
   probe.remove();
-  const sample = texts.map((item) => item.text).join("");
-  await Promise.all(
-    [...new Set(texts.map((item) => item.weight))].map((weight) =>
-      document.fonts.load(`${weight} 64px ${family}`, sample)
-    )
-  );
+  await Promise.all(loads);
 };
 
-export const exportReel = async ({
+// Render a composition to an MP4 in the browser, then undo the AAC
+// encoder's priming delay (reel-audio-sync.ts) if it has sound.
+const renderToMp4 = async <Props extends Record<string, unknown>>({
+  component,
+  duration,
   fps,
+  height,
+  inputProps,
+  muted,
   onProgress,
-  props,
   signal,
+  width,
 }: {
+  component: ComponentType<Props>;
+  duration: number;
   fps: number;
+  height: number;
+  inputProps: Props;
+  muted: boolean;
   onProgress: (progress: number) => void;
-  props: ReelSceneProps & { duration: number };
   signal: AbortSignal;
+  width: number;
 }) => {
   const { renderMediaOnWeb } = await import("@remotion/web-renderer");
-  const { duration, ...inputProps } = props;
-  // No audio track at all only when nothing in the reel makes a sound.
-  const muted =
-    (inputProps.muted || inputProps.clipVolume === 0) &&
-    inputProps.cues.length === 0 &&
-    inputProps.music === null;
-  if (inputProps.texts.length > 0) {
-    await loadTextFonts(inputProps.texts);
-  }
-  const frame = FORMATS[inputProps.format];
   const { getBlob } = await renderMediaOnWeb({
     composition: {
-      component: ReelScene,
+      component,
       defaultProps: inputProps,
       durationInFrames: framesFor(duration, fps),
       fps,
-      height: frame.height,
+      height,
       id: "reel",
-      width: frame.width,
+      width,
     },
     inputProps,
     // craftUI is under Remotion's free-licence headcount (3 people or
@@ -211,17 +215,103 @@ export const exportReel = async ({
   if (muted) {
     return blob;
   }
-  // Undo the AAC encoder's priming delay (reel-audio-sync.ts).
   const { audioLead, shiftAudio } = await import("./reel-audio-sync");
   const lead = await audioLead();
   return lead > 0 ? shiftAudio(blob, lead) : blob;
 };
 
+export const exportReel = async ({
+  fps,
+  onProgress,
+  props,
+  signal,
+}: {
+  fps: number;
+  onProgress: (progress: number) => void;
+  props: ReelSceneProps & { duration: number };
+  signal: AbortSignal;
+}) => {
+  const { duration, ...inputProps } = props;
+  if (inputProps.texts.length > 0) {
+    await loadFonts([
+      {
+        family: TEXT_FONT,
+        sample: inputProps.texts.map((item) => item.text).join(""),
+        weights: inputProps.texts.map((item) => item.weight),
+      },
+    ]);
+  }
+  const frame = FORMATS[inputProps.format];
+  return renderToMp4({
+    component: ReelScene,
+    duration,
+    fps,
+    height: frame.height,
+    inputProps,
+    // No audio track at all only when nothing in the reel makes a sound.
+    muted:
+      (inputProps.muted || inputProps.clipVolume === 0) &&
+      inputProps.cues.length === 0 &&
+      inputProps.music === null,
+    onProgress,
+    signal,
+    width: frame.width,
+  });
+};
+
+// The Grid board (reel-grid.tsx): its tiles are muted, so it has sound only
+// from music or effects.
+export const exportBoard = async ({
+  fps,
+  onProgress,
+  props,
+  signal,
+}: {
+  fps: number;
+  onProgress: (progress: number) => void;
+  props: BoardSceneProps & { duration: number };
+  signal: AbortSignal;
+}) => {
+  const { duration, ...inputProps } = props;
+  const { text } = inputProps;
+  await loadFonts([
+    {
+      family: inputProps.sans,
+      sample: [
+        text.brand,
+        text.label,
+        text.footerLeft,
+        text.footerRight,
+        ...text.captions,
+      ].join(""),
+      weights: [400, 500],
+    },
+    { family: inputProps.serif, sample: text.heading, weights: [400] },
+  ]);
+  return renderToMp4({
+    component: BoardScene,
+    duration,
+    fps,
+    height: BOARD.height,
+    inputProps,
+    muted: inputProps.cues.length === 0 && inputProps.music === null,
+    onProgress,
+    signal,
+    width: BOARD.width,
+  });
+};
+
 const pad = (value: number) => String(value).padStart(2, "0");
+
+const stamp = (date: Date) =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}`;
 
 // reel-2026-11-11-1430.mp4, or reel-2026-11-11-1430-16x9.mp4 for 16:9.
 export const reelFileName = (format: ReelFormat, date = new Date()) =>
-  `reel-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${format === "16:9" ? "-16x9" : ""}.mp4`;
+  `reel-${stamp(date)}${format === "16:9" ? "-16x9" : ""}.mp4`;
+
+// board-2026-11-16-1430.mp4: the Grid board, 1080×1080.
+export const boardFileName = (date = new Date()) => `board-${stamp(date)}.mp4`;
 
 export const saveBlob = (blob: Blob, name: string) => {
   const url = URL.createObjectURL(blob);
