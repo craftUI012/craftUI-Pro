@@ -47,7 +47,13 @@ const SMALL = 24.5;
 const CAPTION_GAP = 12;
 const HEADER = { logo: 28, name: 30, top: 44 };
 const FOOTER_TOP = 1009;
-const HEADING = { size: 100.5, top: 878 };
+// The headline's line box is 1.4 lines tall so letters that hang below
+// the baseline (J, p, g, y) aren't clipped; `top` places its letters 18px
+// above the post's, clear of the footer even with deep descenders. Its
+// text starts on the margin like the captions, and the box reaches
+// `overhang` px further left so a J's tail (7.6px in Crimson Pro) hangs
+// into the margin instead of being cut.
+const HEADING = { lineHeight: 1.4, overhang: 20, size: 100.5, top: 840 };
 
 const LOGO_SRC = "/logo/logo-mark-256.png";
 
@@ -240,10 +246,11 @@ export const BoardScene = ({
       <div
         style={{
           ...line(serif, HEADING.size, 400, ink),
-          left: PAD - 6,
+          left: PAD - HEADING.overhang,
           letterSpacing: "-0.02em",
-          lineHeight: 1,
-          maxWidth: BOARD.width - PAD * 2,
+          lineHeight: HEADING.lineHeight,
+          maxWidth: BOARD.width - PAD * 2 + HEADING.overhang,
+          paddingLeft: HEADING.overhang,
           top: HEADING.top,
         }}
       >
