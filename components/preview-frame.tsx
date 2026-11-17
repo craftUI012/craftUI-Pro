@@ -3,12 +3,17 @@
 import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import * as React from "react";
 
+import { PreviewA11yPanel } from "@/components/preview-a11y-panel";
 import { PreviewIframe } from "@/components/preview-iframe";
+import type { PreviewKeyboard } from "@/components/preview-iframe";
+import { PreviewKeyboardReadout } from "@/components/preview-keyboard-readout";
 import type { PreviewView, PreviewWidth } from "@/components/preview-toolbar";
 import { PreviewToolbar } from "@/components/preview-toolbar";
 import { loadItemSource, useAccess } from "@/hooks/use-access";
 import { usePreviewMotion } from "@/hooks/use-preview-motion";
 import { trackEvent } from "@/lib/events";
+import type { ItemA11y } from "@/lib/item-a11y";
+import type { FocusReport, StopsReport } from "@/lib/preview-keyboard";
 import { previewSrcWithMotion } from "@/lib/preview-motion";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +32,14 @@ const WIDTH_CLASS: Record<PreviewWidth, string> = {
 // (transition: { duration: 0 } on every variant below). No stagger either —
 // curtain and card switch in the same instant.
 const INSTANT = { duration: 0 };
+
+// The views the toolbar offers: Preview always, Code with a source (or a
+// paywall), Accessibility with notes.
+const viewsOf = (hasSource: boolean, hasA11y: boolean): PreviewView[] => [
+  "preview",
+  ...(hasSource ? (["code"] as const) : []),
+  ...(hasA11y ? (["a11y"] as const) : []),
+];
 
 // Box widths under this (px) start a live preview on the phone.
 const PHONE_BOX = 768;
@@ -71,6 +84,7 @@ const CARD_VISIBLE = "inset(0% 0% 0% 0%)";
 // their token. `installName` also ids the box, so a shared link (toolbar
 // Share) scrolls to this card.
 export const PreviewFrame = ({
+  a11y,
   children,
   copyValue,
   installName,
@@ -80,6 +94,8 @@ export const PreviewFrame = ({
   source,
   title,
 }: {
+  // The item's accessibility notes (meta.a11y): the Accessibility view.
+  a11y?: ItemA11y | null;
   children?: React.ReactNode;
   copyValue?: string | null;
   installName?: string;
@@ -107,6 +123,44 @@ export const PreviewFrame = ({
       properties: { item: installName ?? null, reduced: !motion.reduced },
     });
     motion.toggle();
+  };
+
+  // Keyboard mode, for live items: numbered Tab stops in the preview and a
+  // readout under it (lib/preview-keyboard.ts). Per box; the reports reset
+  // whenever the iframe reloads.
+  const [keyboardOn, setKeyboardOn] = React.useState(false);
+  const [keyboardStart, setKeyboardStart] = React.useState(0);
+  const [stops, setStops] = React.useState<StopsReport | null>(null);
+  const [focus, setFocus] = React.useState<FocusReport | null>(null);
+  const [focusLeft, setFocusLeft] = React.useState(false);
+  const iframeSrc = previewSrc
+    ? previewSrcWithMotion(previewSrc, motion.motion)
+    : undefined;
+  React.useEffect(() => {
+    setStops(null);
+    setFocus(null);
+    setFocusLeft(false);
+  }, [iframeSrc, reloadKey, keyboardOn]);
+  const onKeyboard = React.useCallback<PreviewKeyboard["onKeyboard"]>(
+    (report) => {
+      if (report.kind === "focus") {
+        setFocus(report);
+        setFocusLeft(false);
+      } else if (report.kind === "left") {
+        setFocus(null);
+        setFocusLeft(true);
+      } else {
+        setStops(report);
+      }
+    },
+    []
+  );
+  const onToggleKeyboard = () => {
+    trackEvent({
+      name: "preview_keyboard_toggled",
+      properties: { item: installName ?? null, on: !keyboardOn },
+    });
+    setKeyboardOn((on) => !on);
   };
 
   // On a phone-sized box a live item opens on the phone: its desktop layout
@@ -145,6 +199,26 @@ export const PreviewFrame = ({
     visible: { clipPath: CARD_VISIBLE, transition: INSTANT },
   };
 
+  // What covers the preview: the Code view's source (or paywall), or the
+  // Accessibility view, whose buttons go back to the preview in the mode
+  // they describe.
+  const a11yPanel = a11y ? (
+    <PreviewA11yPanel
+      a11y={a11y}
+      onKeyboard={() => {
+        setKeyboardOn(true);
+        setView("preview");
+      }}
+      onReducedMotion={() => {
+        onToggleMotion();
+        setView("preview");
+      }}
+      reduced={motion.reduced}
+      title={title}
+    />
+  ) : null;
+  const panel = { a11y: a11yPanel, code: source ?? null, preview: null }[view];
+
   const onFullscreen = () => {
     const node = boxRef.current;
 
@@ -173,6 +247,11 @@ export const PreviewFrame = ({
         installName={installName}
         installToken={unlockedPaid ? access.installToken : null}
         locked={locked}
+        keyboard={
+          previewSrc
+            ? { on: keyboardOn, onToggle: onToggleKeyboard }
+            : undefined
+        }
         motion={
           previewSrc
             ? { onToggle: onToggleMotion, reduced: motion.reduced }
@@ -184,16 +263,17 @@ export const PreviewFrame = ({
         onReload={() => setReloadKey((key) => key + 1)}
         onViewChange={setView}
         onWidthChange={setWidth}
-        showViewToggle={Boolean(source)}
         view={view}
+        views={viewsOf(Boolean(source), Boolean(a11y))}
         width={width}
       />
       <div className="relative">
         <div className="flex justify-center overflow-auto p-6">
-          {previewSrc ? (
+          {iframeSrc ? (
             <PreviewIframe
               key={reloadKey}
-              src={previewSrcWithMotion(previewSrc, motion.motion)}
+              keyboard={{ keyboard: keyboardOn, keyboardStart, onKeyboard }}
+              src={iframeSrc}
               title={title}
               width={width}
             />
@@ -220,7 +300,7 @@ export const PreviewFrame = ({
 
         <LazyMotion features={domAnimation}>
           <AnimatePresence>
-            {view === "code" && source ? (
+            {panel ? (
               // The frame: sized to the preview behind it (inset-0) but
               // padded — grid, not absolute+inset-0, because a positioned
               // child's inset-0 measures against the parent's padding edge
@@ -247,7 +327,7 @@ export const PreviewFrame = ({
                     initial="hidden"
                     variants={cardVariants}
                   >
-                    {source}
+                    {panel}
                   </m.div>
                 </m.div>
               </div>
@@ -255,6 +335,14 @@ export const PreviewFrame = ({
           </AnimatePresence>
         </LazyMotion>
       </div>
+      {previewSrc && keyboardOn ? (
+        <PreviewKeyboardReadout
+          focus={focus}
+          left={focusLeft}
+          onStart={() => setKeyboardStart((count) => count + 1)}
+          stops={stops}
+        />
+      ) : null}
     </div>
   );
 };

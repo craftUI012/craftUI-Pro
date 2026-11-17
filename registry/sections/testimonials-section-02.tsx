@@ -3,7 +3,7 @@
 /* oxlint-disable func-style, sort-keys, no-inline-comments, nextjs/no-img-element, prefer-destructuring */
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import type { ComponentProps, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -149,118 +149,138 @@ export default function TestimonialsSection02({
     if (!el) {
       return;
     }
+    // The buttons use aria-disabled (not disabled) so focus stays on them at
+    // the ends of the row; a press there does nothing.
+    if (direction === "left" ? !canScrollLeft : !canScrollRight) {
+      return;
+    }
     const cardWidth =
       el.querySelector<HTMLElement>("[data-testimonial-card]")?.offsetWidth ??
       el.clientWidth;
     const scrollAmount = (cardWidth + 24) * (direction === "left" ? -1 : 1);
-    el.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    // Glide only when the visitor hasn't asked for reduced motion; read at
+    // click time, so there's no render-time guess to mismatch on hydration.
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    el.scrollBy({
+      left: scrollAmount,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   };
 
   return (
-    <section
-      data-slot="testimonials-section-02"
-      className={cn(
-        "relative w-full bg-background py-16 sm:py-20 lg:py-24 text-foreground",
-        className
-      )}
-      {...props}
-    >
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header row: Title on left, Carousel controls on right */}
-        <div className="flex items-center justify-between gap-4">
-          <HeadingTag className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl md:text-4xl lg:text-5xl">
-            {title}
-          </HeadingTag>
+    // reducedMotion="user" drops the cards' slide-in for visitors who ask for
+    // reduced motion; they still fade in.
+    <MotionConfig reducedMotion="user">
+      <section
+        data-slot="testimonials-section-02"
+        className={cn(
+          "relative w-full bg-background py-16 sm:py-20 lg:py-24 text-foreground",
+          className
+        )}
+        {...props}
+      >
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Header row: Title on left, Carousel controls on right */}
+          <div className="flex items-center justify-between gap-4">
+            <HeadingTag className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl md:text-4xl lg:text-5xl">
+              {title}
+            </HeadingTag>
 
-          {items.length > 0 && (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleScroll("left")}
-                aria-label="Previous testimonials"
-                disabled={!canScrollLeft}
-                className={cn(
-                  "flex size-10 sm:size-12 lg:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  canScrollLeft
-                    ? "cursor-pointer hover:bg-muted group"
-                    : "opacity-35"
-                )}
-              >
-                <ArrowLeft className="size-5 sm:size-6 group-active:scale-x-110 group-active:-translate-x-0.5 transition-transform duration-150" />
-              </button>
+            {items.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleScroll("left")}
+                  aria-label="Previous testimonials"
+                  // aria-disabled keeps the button focusable at the end of the
+                  // row, so keyboard focus doesn't fall back to the page.
+                  aria-disabled={!canScrollLeft}
+                  className={cn(
+                    "flex size-10 sm:size-12 lg:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    canScrollLeft
+                      ? "cursor-pointer hover:bg-muted group"
+                      : "opacity-35"
+                  )}
+                >
+                  <ArrowLeft className="size-5 sm:size-6 group-active:scale-x-110 group-active:-translate-x-0.5 transition-transform duration-150 motion-reduce:group-active:scale-none motion-reduce:group-active:translate-none" />
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleScroll("right")}
-                aria-label="Next testimonials"
-                disabled={!canScrollRight}
-                className={cn(
-                  "flex size-10 sm:size-12 lg:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  canScrollRight
-                    ? "cursor-pointer hover:bg-muted group"
-                    : "opacity-35"
-                )}
-              >
-                <ArrowRight className="size-5 sm:size-6 group-active:scale-x-110 group-active:translate-x-0.5 transition-transform duration-150" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Testimonials horizontal scroll track */}
-        {items.length > 0 ? (
-          <div
-            ref={scrollRef}
-            className={cn(
-              "mt-10 sm:mt-16 lg:mt-24 flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
-              "lg:-mx-8 lg:px-8 lg:scroll-pl-8 lg:scroll-pr-8",
-              "lg:[mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)]",
-              "lg:[-webkit-mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)]"
+                <button
+                  type="button"
+                  onClick={() => handleScroll("right")}
+                  aria-label="Next testimonials"
+                  aria-disabled={!canScrollRight}
+                  className={cn(
+                    "flex size-10 sm:size-12 lg:size-14 items-center justify-center border border-border bg-background text-foreground rounded-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    canScrollRight
+                      ? "cursor-pointer hover:bg-muted group"
+                      : "opacity-35"
+                  )}
+                >
+                  <ArrowRight className="size-5 sm:size-6 group-active:scale-x-110 group-active:translate-x-0.5 transition-transform duration-150 motion-reduce:group-active:scale-none motion-reduce:group-active:translate-none" />
+                </button>
+              </div>
             )}
-          >
-            {items.map((item, index) => (
-              <motion.figure
-                key={item.id}
-                data-testimonial-card
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  duration: 0.2,
-                  delay: index * 0.05,
-                  ease: "easeOut",
-                }}
-                className="group flex w-full sm:w-[calc((100%-1.5rem)/1.6)] md:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/2.4)] xl:w-[calc((100%-3rem)/2.5)] shrink-0 snap-start flex-col justify-between border border-border bg-background p-6 sm:p-8 md:p-10 rounded-none"
-              >
-                {/* Quote with opening and closing quotation marks */}
-                <blockquote className="text-sm sm:text-base md:text-lg font-normal leading-[1.65] text-foreground">
-                  &ldquo; {item.quote} &rdquo;
-                </blockquote>
-
-                {/* Author row at bottom */}
-                <figcaption className="mt-6 sm:mt-8 md:mt-12 flex items-center gap-3 sm:gap-4">
-                  <img
-                    src={item.author.avatar}
-                    alt={item.author.name}
-                    className="size-12 sm:size-14 md:size-16 shrink-0 rounded-none object-cover grayscale transition-all duration-300 ease-out group-hover:grayscale-0 hover:grayscale-0"
-                    loading="lazy"
-                  />
-                  <div className="min-w-0">
-                    <div className="text-sm sm:text-base md:text-lg font-medium text-foreground tracking-tight">
-                      {item.author.name}
-                    </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                      {item.author.role}
-                    </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground">
-                      {item.author.company}
-                    </div>
-                  </div>
-                </figcaption>
-              </motion.figure>
-            ))}
           </div>
-        ) : null}
-      </div>
-    </section>
+
+          {/* Testimonials horizontal scroll track */}
+          {items.length > 0 ? (
+            <div
+              ref={scrollRef}
+              className={cn(
+                "mt-10 sm:mt-16 lg:mt-24 flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory motion-safe:scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+                "lg:-mx-8 lg:px-8 lg:scroll-pl-8 lg:scroll-pr-8",
+                "lg:[mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)]",
+                "lg:[-webkit-mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%_-_32px),transparent)]"
+              )}
+            >
+              {items.map((item, index) => (
+                <motion.figure
+                  key={item.id}
+                  data-testimonial-card
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    duration: 0.2,
+                    delay: index * 0.05,
+                    ease: "easeOut",
+                  }}
+                  className="group flex w-full sm:w-[calc((100%-1.5rem)/1.6)] md:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/2.4)] xl:w-[calc((100%-3rem)/2.5)] shrink-0 snap-start flex-col justify-between border border-border bg-background p-6 sm:p-8 md:p-10 rounded-none"
+                >
+                  {/* Quote with opening and closing quotation marks */}
+                  <blockquote className="text-sm sm:text-base md:text-lg font-normal leading-[1.65] text-foreground">
+                    &ldquo; {item.quote} &rdquo;
+                  </blockquote>
+
+                  {/* Author row at bottom */}
+                  <figcaption className="mt-6 sm:mt-8 md:mt-12 flex items-center gap-3 sm:gap-4">
+                    <img
+                      src={item.author.avatar}
+                      // Decorative: the name is read in the caption right after.
+                      alt=""
+                      className="size-12 sm:size-14 md:size-16 shrink-0 rounded-none object-cover grayscale transition-all duration-300 ease-out group-hover:grayscale-0 hover:grayscale-0"
+                      loading="lazy"
+                    />
+                    <div className="min-w-0">
+                      <div className="text-sm sm:text-base md:text-lg font-medium text-foreground tracking-tight">
+                        {item.author.name}
+                      </div>
+                      <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                        {item.author.role}
+                      </div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">
+                        {item.author.company}
+                      </div>
+                    </div>
+                  </figcaption>
+                </motion.figure>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </section>
+    </MotionConfig>
   );
 }

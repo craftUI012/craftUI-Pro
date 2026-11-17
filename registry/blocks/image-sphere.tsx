@@ -444,14 +444,12 @@ export const ImageSphere = ({
     }
 
     const wide = window.matchMedia("(min-width: 40rem)").matches;
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const scene = new SphereScene({
       autoRotate,
       count: count ?? (wide ? 240 : 140),
       itemGroups: model.itemGroups,
-      reducedMotion: reduced,
+      reducedMotion: reducedQuery.matches,
     });
     // Settings first: the first pile opens below and must use them.
     applySettings(scene, settingsRef.current);
@@ -603,6 +601,18 @@ export const ImageSphere = ({
     intersection.observe(stage);
     const onVisibility = () => wake();
     document.addEventListener("visibilitychange", onVisibility);
+
+    // The reduced-motion setting can change while the page is open; follow
+    // it live rather than only at load.
+    const onReducedMotion = () => {
+      scene.setReducedMotion(reducedQuery.matches);
+      if (raf === 0 && renderer && width > 0) {
+        scene.step(0);
+        render();
+      }
+      wake();
+    };
+    reducedQuery.addEventListener("change", onReducedMotion);
 
     // Colours follow the theme.
     const themeObserver = new MutationObserver(() => {
@@ -773,6 +783,7 @@ export const ImageSphere = ({
       intersection.disconnect();
       themeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
+      reducedQuery.removeEventListener("change", onReducedMotion);
       stage.removeEventListener("pointerdown", onPointerDown);
       stage.removeEventListener("pointermove", onPointerMove);
       stage.removeEventListener("pointerup", onPointerUp);
@@ -882,15 +893,24 @@ export const ImageSphere = ({
         />
       )}
 
-      {/* The canvas is hidden from screen readers, so the open pile's
-          images are listed for them here, by their alt text. */}
-      {!fallback && activeGroup ? (
-        <ul aria-label={`${activeGroup.label} images`} className="sr-only">
-          {activeItems.slice(0, pileSize).map((item) => (
-            <li key={item.src}>{item.alt}</li>
-          ))}
+      {/* The canvas is hidden from screen readers, so its images are
+          listed for them here, by their alt text: the open pile's, or with
+          no group open every image on the sphere (each once, though the
+          globe repeats them to fill its cards). */}
+      {fallback ? null : (
+        <ul
+          aria-label={
+            activeGroup ? `${activeGroup.label} images` : "Images on the sphere"
+          }
+          className="sr-only"
+        >
+          {(activeGroup ? activeItems.slice(0, pileSize) : items).map(
+            (item) => (
+              <li key={item.src}>{item.alt}</li>
+            )
+          )}
         </ul>
-      ) : null}
+      )}
 
       <p aria-live="polite" className="sr-only">
         {announcement}

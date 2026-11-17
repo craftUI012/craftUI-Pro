@@ -22,7 +22,18 @@
       "E-commerce and logistics landing pages",
       "Fulfillment, shipping and Shopify app websites",
       "Product pages with illustrated feature grids"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "It doesn't animate, so nothing changes.",
+      "keyboard": [],
+      "notes": [
+        "The headline is an h2 by default (headingLevel sets 1–3), and each feature title takes the next level down, so the four titles are h3s.",
+        "The features are a real list (ul/li), each with its title and description as text.",
+        "Every drawing, the parcel badge in the headline and the crop marks are aria-hidden, so the words on the truck and flag (“Parcel”, “Tue 14”) aren't read; the titles carry the meaning.",
+        "The dashed guide lines are decorative separators that screen readers skip; the small numbers “01”–“04” are plain text read just before each title."
+      ],
+      "gaps": []
+    }
   },
   "categories": ["marketing", "ecommerce"],
   "type": "registry:block"

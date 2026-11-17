@@ -22,7 +22,20 @@
       "Products sold to several kinds of customers",
       "Enterprise sites with a page per industry",
       "Agency and studio home pages"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "It doesn't roll on its own: it holds on the first word with its neighbours faded above and below, and every transition is off.",
+      "keyboard": [],
+      "notes": [
+        "Screen readers get it as a sentence: the lead (“Built for”), then a list of every audience once; the copies of a short list and the bold duplicate layer are aria-hidden.",
+        "The rolling isn't announced: there's no live region, so screen readers aren't interrupted every step.",
+        "It renders no heading element; wrap it in your own h1 or h2 when it's the page's headline.",
+        "Words given an href become links and Tab stops; focusing one rolls it to the middle and holds the wheel still."
+      ],
+      "gaps": [
+        "With normal motion it rolls every 2 s with no end (unless loops is set) and no visible pause control; it holds only on mouse hover or focus, so touch users can't stop it (WCAG 2.2.2 Pause, Stop, Hide)."
+      ]
+    }
   },
   "categories": ["marketing"],
   "type": "registry:block"

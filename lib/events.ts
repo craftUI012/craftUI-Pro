@@ -30,6 +30,7 @@ const eventSchema = z.object({
     "discount_code_copied",
     // Docs preview accessibility tools.
     "preview_motion_toggled",
+    "preview_keyboard_toggled",
   ]),
   properties: z
     .record(

@@ -3,9 +3,12 @@
 /* oxlint-disable func-style, sort-keys, no-inline-comments, nextjs/no-img-element, prefer-destructuring */
 
 import { ArrowLeft, ArrowRight, Quote } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import type { Variants } from "motion/react";
-import type { ComponentProps } from "react";
+import type {
+  ComponentProps,
+  KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import {
   useCallback,
   useEffect,
@@ -13,6 +16,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 import { cn } from "@/lib/utils";
@@ -102,16 +106,41 @@ const LINE_DURATION = 0.22;
 const LINE_STAGGER = 0.04;
 const EXIT_DURATION = 0.14;
 
+/**
+ * The visitor's reduced-motion setting, used to drop the slide and blur
+ * from every change. The first render always says "no preference": the
+ * server can't know the setting, and a first render that differs from the
+ * server's breaks hydration. The real value follows straight after (the
+ * MotionConfig below already holds the first slide still).
+ */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false
+  );
+}
+
 interface LineCustom {
   direction: number;
   index: number;
+  /** Reduced motion: a plain fade, no slide or blur. */
+  reduce?: boolean;
 }
 
 const lineVariants: Variants = {
-  enter: ({ direction }: LineCustom) => ({
+  enter: ({ direction, reduce }: LineCustom) => ({
     opacity: 0,
-    filter: "blur(4px)",
-    x: -direction * 20,
+    filter: reduce ? "blur(0px)" : "blur(4px)",
+    x: reduce ? 0 : -direction * 20,
   }),
   center: ({ index }: LineCustom) => ({
     opacity: 1,
@@ -123,10 +152,10 @@ const lineVariants: Variants = {
       ease: "easeOut",
     },
   }),
-  exit: ({ direction }: LineCustom) => ({
+  exit: ({ direction, reduce }: LineCustom) => ({
     opacity: 0,
-    filter: "blur(4px)",
-    x: direction * 20,
+    filter: reduce ? "blur(0px)" : "blur(4px)",
+    x: reduce ? 0 : direction * 20,
     transition: {
       duration: EXIT_DURATION,
       ease: "easeIn",
@@ -137,13 +166,15 @@ const lineVariants: Variants = {
 interface AuthorCustom {
   direction: number;
   index: number;
+  /** Reduced motion: a plain fade, no slide or blur. */
+  reduce?: boolean;
 }
 
 const authorVariants: Variants = {
-  enter: ({ direction }: AuthorCustom) => ({
+  enter: ({ direction, reduce }: AuthorCustom) => ({
     opacity: 0,
-    filter: "blur(4px)",
-    x: -direction * 16,
+    filter: reduce ? "blur(0px)" : "blur(4px)",
+    x: reduce ? 0 : -direction * 16,
   }),
   center: ({ index }: AuthorCustom) => ({
     opacity: 1,
@@ -155,16 +186,25 @@ const authorVariants: Variants = {
       ease: "easeOut",
     },
   }),
-  exit: ({ direction }: AuthorCustom) => ({
+  exit: ({ direction, reduce }: AuthorCustom) => ({
     opacity: 0,
-    filter: "blur(4px)",
-    x: direction * 16,
+    filter: reduce ? "blur(0px)" : "blur(4px)",
+    x: reduce ? 0 : direction * 16,
     transition: {
       duration: EXIT_DURATION,
       ease: "easeIn",
     },
   }),
 };
+
+/** Elements where the arrow keys move a caret or a value, not the slides. */
+function isEditableTarget(target: EventTarget | null) {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      target.matches("input, textarea, select, [role='slider']"))
+  );
+}
 
 export interface TestimonialsSection03Props extends Omit<
   ComponentProps<"section">,
@@ -183,8 +223,10 @@ export default function TestimonialsSection03({
   testimonials,
   title = "Customer Testimonials",
   autoPlayInterval = false,
+  onKeyDown,
   ...props
 }: TestimonialsSection03Props) {
+  const reduce = usePrefersReducedMotion();
   // If testimonials prop is not passed (undefined), load sample data.
   // If an empty array [] is explicitly passed, populate the empty array (triggering the empty state).
   const items =
@@ -211,18 +253,61 @@ export default function TestimonialsSection03({
     setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
   }, [items.length]);
 
-  // Keyboard navigation support
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") {
-        handlePrev();
-      } else if (e.key === "ArrowRight") {
-        handleNext();
+  // What the live region reads after a change the visitor asked for. Autoplay
+  // changes stay silent, so the region doesn't talk over the page on a timer.
+  const [announcement, setAnnouncement] = useState("");
+
+  const describe = useCallback(
+    (index: number) => {
+      const item = items[index];
+      if (!item) {
+        return "";
       }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNext, handlePrev]);
+      const { name, role, company } = item.author;
+      return `Testimonial ${index + 1} of ${items.length}. ${name}, ${role}, ${company}: “${item.quote.trim().replace(/^["“](.*)["”]$/, "$1")}”`;
+    },
+    [items]
+  );
+
+  // Visitor-initiated steps: the same change as handleNext/handlePrev (which
+  // autoplay also uses), plus an announcement of the new testimonial.
+  const userNext = useCallback(() => {
+    if (items.length <= 1) {
+      return;
+    }
+    handleNext();
+    setAnnouncement(describe((activeIndex + 1) % items.length));
+  }, [activeIndex, describe, handleNext, items.length]);
+
+  const userPrev = useCallback(() => {
+    if (items.length <= 1) {
+      return;
+    }
+    handlePrev();
+    setAnnouncement(describe((activeIndex - 1 + items.length) % items.length));
+  }, [activeIndex, describe, handlePrev, items.length]);
+
+  // Arrow keys work while focus is inside the section (e.g. on the arrow
+  // buttons), never from elsewhere on the page or inside a text field.
+  const handleKeyDown = (e: ReactKeyboardEvent<HTMLElement>) => {
+    onKeyDown?.(e);
+    if (
+      e.defaultPrevented ||
+      e.altKey ||
+      e.ctrlKey ||
+      e.metaKey ||
+      isEditableTarget(e.target)
+    ) {
+      return;
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      userPrev();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      userNext();
+    }
+  };
 
   // Optional auto-play support
   useEffect(() => {
@@ -335,117 +420,50 @@ export default function TestimonialsSection03({
   }, [cleanQuote, measureWords]);
 
   return (
-    <section
-      data-slot="testimonials-section-03"
-      className={cn(
-        "relative flex min-h-[100dvh] md:min-h-[750px] lg:min-h-[850px] w-full flex-col justify-between bg-background text-foreground p-6 sm:p-8 md:p-12 lg:p-16 selection:bg-foreground selection:text-background",
-        className
-      )}
-      {...props}
-    >
-      <h2 className="sr-only">{title}</h2>
+    // reducedMotion="user" holds the first slide still for visitors who ask
+    // for less motion, before usePrefersReducedMotion has the real value.
+    <MotionConfig reducedMotion="user">
+      {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- the arrow keys are a shortcut for the focusable buttons inside, caught as they bubble up */}
+      <section
+        data-slot="testimonials-section-03"
+        className={cn(
+          "relative flex min-h-[100dvh] md:min-h-[750px] lg:min-h-[850px] w-full flex-col justify-between bg-background text-foreground p-6 sm:p-8 md:p-12 lg:p-16 selection:bg-foreground selection:text-background",
+          className
+        )}
+        {...props}
+        onKeyDown={handleKeyDown}
+      >
+        <h2 className="sr-only">{title}</h2>
 
-      {items.length === 0 ? (
-        /* Empty State */
-        <div className="flex w-full flex-1 flex-col items-center justify-center py-24 text-center">
-          <div className="flex size-14 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground">
-            <Quote className="size-6 text-muted-foreground/70" />
-          </div>
-          <h3 className="mt-4 text-xl font-medium tracking-tight text-foreground">
-            No testimonials available
-          </h3>
-          <p className="mt-1.5 text-sm text-muted-foreground max-w-sm leading-relaxed">
-            Pass an array of customer stories via the{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
-              testimonials
-            </code>{" "}
-            prop to display them here.
-          </p>
-        </div>
-      ) : (
-        /* Main container with generous vertical gap between Top and Bottom */
-        <div className="flex w-full flex-1 flex-col justify-between gap-12 sm:gap-16 md:gap-20 lg:gap-24">
-          {/* Testimonial Content: Image on left, large quote text on right, aligned to start */}
-          <div className="flex flex-col md:flex-row items-start gap-8 sm:gap-10 md:gap-12 lg:gap-16 xl:gap-24">
-            {/* Left: Monochrome Portrait Avatar (static crossfade, no translation, strictly 3:4) */}
-            <div className="relative hidden sm:block shrink-0 overflow-hidden w-full sm:w-64 md:w-72 lg:w-80 xl:w-[22rem] aspect-[3/4] bg-muted">
-              <AnimatePresence mode="wait">
-                {currentItem.author.avatar ? (
-                  <motion.img
-                    key={currentItem.id}
-                    src={currentItem.author.avatar}
-                    alt={currentItem.author.name}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.28, ease: "easeOut" }}
-                    className="absolute inset-0 size-full aspect-[3/4] object-cover object-top grayscale"
-                    loading="eager"
-                  />
-                ) : (
-                  <motion.div
-                    key={`fallback-${currentItem.id}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 size-full flex items-center justify-center bg-muted text-muted-foreground text-3xl font-medium"
-                  >
-                    {currentItem.author.name.charAt(0)}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+        {/* Always rendered so screen readers pick up each new announcement. */}
+        <p role="status" aria-live="polite" className="sr-only">
+          {announcement}
+        </p>
+
+        {items.length === 0 ? (
+          /* Empty State */
+          <div className="flex w-full flex-1 flex-col items-center justify-center py-24 text-center">
+            <div className="flex size-14 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground">
+              <Quote className="size-6 text-muted-foreground/70" />
             </div>
-
-            {/* Right: Testimonial Quote (broken by visual display line & staggered) */}
-            <div
-              ref={quoteContainerRef}
-              className="relative flex-1 min-w-0 flex flex-col justify-start items-start text-left w-full"
-            >
-              {/* Invisible measurement element to calculate real wrapped display lines */}
-              <div
-                ref={measureRef}
-                aria-hidden="true"
-                className="pointer-events-none invisible absolute inset-x-0 top-0 select-none text-2xl sm:text-2xl md:text-3xl lg:text-5xl font-medium leading-[1.25] tracking-tight text-left w-full"
-              >
-                {measureWords.map((word, i) => (
-                  <span key={i} data-measure-word className="inline-block">
-                    {word}
-                    {i < measureWords.length - 1 ? "\u00A0" : ""}
-                  </span>
-                ))}
-              </div>
-
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.blockquote
-                  key={currentItem.id}
-                  custom={direction}
-                  className="relative text-2xl sm:text-2xl md:text-3xl lg:text-5xl font-medium leading-[1.25] tracking-tight text-foreground text-left flex flex-col items-start w-full"
-                >
-                  {(lines.length > 0 ? lines : [`“${cleanQuote}”`]).map(
-                    (line, idx) => (
-                      <motion.span
-                        key={`${currentItem.id}-line-${idx}`}
-                        custom={{ direction, index: idx }}
-                        variants={lineVariants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        className="block"
-                      >
-                        {line}
-                      </motion.span>
-                    )
-                  )}
-                </motion.blockquote>
-              </AnimatePresence>
-            </div>
+            <h3 className="mt-4 text-xl font-medium tracking-tight text-foreground">
+              No testimonials available
+            </h3>
+            <p className="mt-1.5 text-sm text-muted-foreground max-w-sm leading-relaxed">
+              Pass an array of customer stories via the{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                testimonials
+              </code>{" "}
+              prop to display them here.
+            </p>
           </div>
-
-          {/* Bottom Area: Author credentials on left, navigation controls on right */}
-          <div className="flex flex-row items-end justify-between gap-6 pt-6 sm:pt-8 md:pt-12">
-            {/* Author Name and Role (with mobile thumbnail using static crossfade) */}
-            <div className="flex flex-row gap-4 items-center">
-              <div className="relative shrink-0 overflow-hidden h-20 aspect-[3/4] bg-muted block sm:hidden">
+        ) : (
+          /* Main container with generous vertical gap between Top and Bottom */
+          <div className="flex w-full flex-1 flex-col justify-between gap-12 sm:gap-16 md:gap-20 lg:gap-24">
+            {/* Testimonial Content: Image on left, large quote text on right, aligned to start */}
+            <div className="flex flex-col md:flex-row items-start gap-8 sm:gap-10 md:gap-12 lg:gap-16 xl:gap-24">
+              {/* Left: Monochrome Portrait Avatar (static crossfade, no translation, strictly 3:4) */}
+              <div className="relative hidden sm:block shrink-0 overflow-hidden w-full sm:w-64 md:w-72 lg:w-80 xl:w-[22rem] aspect-[3/4] bg-muted">
                 <AnimatePresence mode="wait">
                   {currentItem.author.avatar ? (
                     <motion.img
@@ -461,11 +479,11 @@ export default function TestimonialsSection03({
                     />
                   ) : (
                     <motion.div
-                      key={`fallback-mobile-${currentItem.id}`}
+                      key={`fallback-${currentItem.id}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 size-full flex items-center justify-center bg-muted text-muted-foreground text-sm font-medium"
+                      className="absolute inset-0 size-full flex items-center justify-center bg-muted text-muted-foreground text-3xl font-medium"
                     >
                       {currentItem.author.name.charAt(0)}
                     </motion.div>
@@ -473,92 +491,173 @@ export default function TestimonialsSection03({
                 </AnimatePresence>
               </div>
 
-              {/* Author details: Name, Role, Company animated together at once */}
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={currentItem.id}
-                  custom={direction}
-                  className="min-w-0 flex flex-col items-start"
+              {/* Right: Testimonial Quote (broken by visual display line & staggered) */}
+              <div
+                ref={quoteContainerRef}
+                className="relative flex-1 min-w-0 flex flex-col justify-start items-start text-left w-full"
+              >
+                {/* Invisible measurement element to calculate real wrapped display lines */}
+                <div
+                  ref={measureRef}
+                  aria-hidden="true"
+                  className="pointer-events-none invisible absolute inset-x-0 top-0 select-none text-2xl sm:text-2xl md:text-3xl lg:text-5xl font-medium leading-[1.25] tracking-tight text-left w-full"
                 >
-                  <motion.div
-                    key={`${currentItem.id}-author-name`}
-                    custom={{
-                      direction,
-                      index: 0,
-                    }}
-                    variants={authorVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-medium tracking-tight text-foreground"
+                  {measureWords.map((word, i) => (
+                    <span key={i} data-measure-word className="inline-block">
+                      {word}
+                      {i < measureWords.length - 1 ? "\u00A0" : ""}
+                    </span>
+                  ))}
+                </div>
+
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.blockquote
+                    key={currentItem.id}
+                    custom={direction}
+                    className="relative text-2xl sm:text-2xl md:text-3xl lg:text-5xl font-medium leading-[1.25] tracking-tight text-foreground text-left flex flex-col items-start w-full"
                   >
-                    {currentItem.author.name}
-                  </motion.div>
-
-                  <div className="mt-1 sm:mt-2 text-xs sm:text-base md:text-lg lg:text-xl text-muted-foreground font-normal leading-relaxed">
-                    <motion.div
-                      key={`${currentItem.id}-author-role`}
-                      custom={{
-                        direction,
-                        index: 1,
-                      }}
-                      variants={authorVariants}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                    >
-                      {currentItem.author.role}
-                    </motion.div>
-
-                    <motion.div
-                      key={`${currentItem.id}-author-company`}
-                      custom={{
-                        direction,
-                        index: 2,
-                      }}
-                      variants={authorVariants}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                    >
-                      {currentItem.author.company}
-                    </motion.div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+                    {(lines.length > 0 ? lines : [`“${cleanQuote}”`]).map(
+                      (line, idx) => (
+                        <motion.span
+                          key={`${currentItem.id}-line-${idx}`}
+                          custom={{ direction, index: idx, reduce }}
+                          variants={lineVariants}
+                          initial="enter"
+                          animate="center"
+                          exit="exit"
+                          className="block"
+                        >
+                          {line}
+                        </motion.span>
+                      )
+                    )}
+                  </motion.blockquote>
+                </AnimatePresence>
+              </div>
             </div>
 
-            {/* Large Circular Previous / Next Buttons */}
-            {items.length > 1 && (
-              <div className="flex items-center gap-3 sm:gap-4 md:gap-5 shrink-0 self-end sm:self-auto">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  aria-label="Previous testimonial"
-                  className="flex size-10 sm:size-16 md:size-20 lg:size-24 items-center justify-center rounded-full border border-border text-foreground transition-all duration-150 hover:border-foreground hover:bg-muted active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
-                >
-                  <ArrowLeft
-                    className="size-5 sm:size-6 md:size-7 lg:size-8 text-foreground"
-                    strokeWidth={1.75}
-                  />
-                </button>
+            {/* Bottom Area: Author credentials on left, navigation controls on right */}
+            <div className="flex flex-row items-end justify-between gap-6 pt-6 sm:pt-8 md:pt-12">
+              {/* Author Name and Role (with mobile thumbnail using static crossfade) */}
+              <div className="flex flex-row gap-4 items-center">
+                <div className="relative shrink-0 overflow-hidden h-20 aspect-[3/4] bg-muted block sm:hidden">
+                  <AnimatePresence mode="wait">
+                    {currentItem.author.avatar ? (
+                      <motion.img
+                        key={currentItem.id}
+                        src={currentItem.author.avatar}
+                        alt={currentItem.author.name}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.28, ease: "easeOut" }}
+                        className="absolute inset-0 size-full aspect-[3/4] object-cover object-top grayscale"
+                        loading="eager"
+                      />
+                    ) : (
+                      <motion.div
+                        key={`fallback-mobile-${currentItem.id}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 size-full flex items-center justify-center bg-muted text-muted-foreground text-sm font-medium"
+                      >
+                        {currentItem.author.name.charAt(0)}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  aria-label="Next testimonial"
-                  className="flex size-10 sm:size-16 md:size-20 lg:size-24 items-center justify-center rounded-full border border-border text-foreground transition-all duration-150 hover:border-foreground hover:bg-muted active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
-                >
-                  <ArrowRight
-                    className="size-5 sm:size-6 md:size-7 lg:size-8 text-foreground"
-                    strokeWidth={1.75}
-                  />
-                </button>
+                {/* Author details: Name, Role, Company animated together at once */}
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={currentItem.id}
+                    custom={direction}
+                    className="min-w-0 flex flex-col items-start"
+                  >
+                    <motion.div
+                      key={`${currentItem.id}-author-name`}
+                      custom={{
+                        direction,
+                        index: 0,
+                        reduce,
+                      }}
+                      variants={authorVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-medium tracking-tight text-foreground"
+                    >
+                      {currentItem.author.name}
+                    </motion.div>
+
+                    <div className="mt-1 sm:mt-2 text-xs sm:text-base md:text-lg lg:text-xl text-muted-foreground font-normal leading-relaxed">
+                      <motion.div
+                        key={`${currentItem.id}-author-role`}
+                        custom={{
+                          direction,
+                          index: 1,
+                          reduce,
+                        }}
+                        variants={authorVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                      >
+                        {currentItem.author.role}
+                      </motion.div>
+
+                      <motion.div
+                        key={`${currentItem.id}-author-company`}
+                        custom={{
+                          direction,
+                          index: 2,
+                          reduce,
+                        }}
+                        variants={authorVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                      >
+                        {currentItem.author.company}
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
-            )}
+
+              {/* Large Circular Previous / Next Buttons */}
+              {items.length > 1 && (
+                <div className="flex items-center gap-3 sm:gap-4 md:gap-5 shrink-0 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={userPrev}
+                    aria-label="Previous testimonial"
+                    className="flex size-10 sm:size-16 md:size-20 lg:size-24 items-center justify-center rounded-full border border-border text-foreground transition-all duration-150 hover:border-foreground hover:bg-muted active:scale-95 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+                  >
+                    <ArrowLeft
+                      className="size-5 sm:size-6 md:size-7 lg:size-8 text-foreground"
+                      strokeWidth={1.75}
+                    />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={userNext}
+                    aria-label="Next testimonial"
+                    className="flex size-10 sm:size-16 md:size-20 lg:size-24 items-center justify-center rounded-full border border-border text-foreground transition-all duration-150 hover:border-foreground hover:bg-muted active:scale-95 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+                  >
+                    <ArrowRight
+                      className="size-5 sm:size-6 md:size-7 lg:size-8 text-foreground"
+                      strokeWidth={1.75}
+                    />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </section>
+        )}
+      </section>
+    </MotionConfig>
   );
 }

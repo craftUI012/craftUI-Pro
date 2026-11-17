@@ -66,6 +66,13 @@ export interface AvatarGridProps {
    * the grid having to know anything about how they are laid out.
    */
   onActiveChange?: (id: string | null) => void;
+  /**
+   * Whether the member tiles are Tab stops and read by screen readers.
+   * Defaults to true. Pass false when a list outside the grid offers the
+   * same choice, so each person isn't reached twice under the same name;
+   * the tiles still answer the mouse and touch.
+   */
+  focusable?: boolean;
   className?: string;
 }
 
@@ -311,6 +318,7 @@ export default function AvatarGrid({
   selectedId: selectedIdProp,
   onSelect,
   onActiveChange,
+  focusable = true,
   className,
 }: AvatarGridProps = {}) {
   const scopeId = React.useId().replace(/:/g, "");
@@ -572,6 +580,12 @@ export default function AvatarGrid({
               >
                 <motion.div
                   className="size-full"
+                  // Not a Tab stop: Motion makes an element with a press
+                  // gesture focusable unless told otherwise, which put a
+                  // nameless, roleless stop before every member's button.
+                  // The button inside is what keyboards and screen readers
+                  // use.
+                  tabIndex={-1}
                   // Hover only ever comes from a real pointer. On touch, tapping
                   // fires enter with no matching leave, which would strand a
                   // tile lifted and in colour until something else was tapped.
@@ -593,6 +607,10 @@ export default function AvatarGrid({
                     type="button"
                     aria-label={`${member.name} — ${member.role}`}
                     aria-pressed={selectedId === member.id}
+                    // With `focusable` off, the outside list is the keyboard
+                    // and screen-reader path; these become pointer-only.
+                    aria-hidden={focusable ? undefined : true}
+                    tabIndex={focusable ? undefined : -1}
                     onClick={() => select(member.id)}
                     className={`tile-${scopeId} relative block size-full cursor-pointer overflow-hidden rounded-[26%] transition-[box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--avatar-ring)]`}
                   >

@@ -1,7 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { ComponentProps } from "react";
 import { TextMorph } from "torph/react";
 
@@ -621,6 +627,31 @@ const MicIcon = () => (
   </svg>
 );
 
+/*
+ * The visitor's reduced-motion setting, for values picked during render (the
+ * eyebrow's entry and exit). The first render reads false on server and
+ * client alike, so hydration matches; the real value follows right after.
+ */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+const subscribeReducedMotion = (onChange: () => void) => {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+
+const usePrefersReducedMotion = () =>
+  useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false
+  );
+
+/** The eyebrow's entry and exit: a rise and unblur, or a plain fade. */
+const EYEBROW_IN = { filter: "blur(2px)", opacity: 0, y: 4 };
+const EYEBROW_OUT = { filter: "blur(2px)", opacity: 0, y: -4 };
+const EYEBROW_FADE = { filter: "blur(0px)", opacity: 0, y: 0 };
+
 export interface VoiceOrbProps extends Omit<ComponentProps<"div">, "onToggle"> {
   /**
    * What the assistant is doing. Leave it out for the built-in demo, which
@@ -656,6 +687,7 @@ export const VoiceOrb = ({
   ...props
 }: VoiceOrbProps) => {
   const [micOn, setMicOn] = useState(false);
+  const reduceMotion = usePrefersReducedMotion();
   const mic = useMicLevel(micOn);
   const demo = useVoiceDemo(mic.status === "on" ? mic.level : undefined);
   const isDemo = state === undefined;
@@ -681,8 +713,8 @@ export const VoiceOrb = ({
                 <motion.p
                   animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
                   className="text-muted-foreground absolute inset-x-0 bottom-full mb-1.5 text-[0.625rem] font-medium tracking-[0.2em] whitespace-nowrap uppercase"
-                  exit={{ filter: "blur(2px)", opacity: 0, y: -4 }}
-                  initial={{ filter: "blur(2px)", opacity: 0, y: 4 }}
+                  exit={reduceMotion ? EYEBROW_FADE : EYEBROW_OUT}
+                  initial={reduceMotion ? EYEBROW_FADE : EYEBROW_IN}
                   key={above}
                   transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                 >
@@ -706,8 +738,9 @@ export const VoiceOrb = ({
       {showControls ? (
         <div className="mt-6 flex flex-col items-center gap-3">
           <Button
+            // The name already says what a press does ("Start talking" or
+            // "Stop"), so no aria-pressed: "Stop, pressed" would read oddly.
             aria-label={buttonLabel ?? (active ? "Stop" : "Start talking")}
-            aria-pressed={active}
             className="size-14 rounded-full"
             onClick={isDemo ? demo.toggle : onToggle}
             size="icon"

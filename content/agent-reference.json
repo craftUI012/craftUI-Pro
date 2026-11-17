@@ -322,6 +322,13 @@
         "default": "\"#\""
       },
       {
+        "description": "The single-key shortcuts (C, /, R, S, D). They only answer while focus or the pointer is in this table; pass `false` to turn them off (the hint line under the table goes with them).",
+        "name": "shortcuts",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
         "description": "Extra classes for the section's root element.",
         "name": "className",
         "optional": true,

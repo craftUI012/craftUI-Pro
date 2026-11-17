@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { LIVE_PREVIEW_COMPONENTS } from "@/components/live-preview-components";
+import { PreviewKeyboardInspector } from "@/components/preview-keyboard-inspector";
 import { PreviewSizeReporter } from "@/components/preview-size-reporter";
 import { isLivePreview, LIVE_PREVIEWS } from "@/constants/live-previews";
 import { PREVIEW_MOTION_SCRIPT } from "@/lib/preview-motion";
@@ -16,7 +17,8 @@ import { PREVIEW_MOTION_SCRIPT } from "@/lib/preview-motion";
 // The toolbar's reduced-motion switch loads it with ?motion=reduce (or
 // full): PREVIEW_MOTION_SCRIPT, first in the page, sets that up before the
 // item's code runs (lib/preview-motion.ts). Without the parameter it does
-// nothing, so the page stays static.
+// nothing, so the page stays static. The toolbar's Keyboard switch talks to
+// PreviewKeyboardInspector (numbered Tab stops, focus reports).
 
 export const dynamicParams = false;
 
@@ -55,6 +57,7 @@ const ComponentPreviewPage = async ({
           <Item />
         </main>
       </PreviewSizeReporter>
+      <PreviewKeyboardInspector />
     </>
   );
 };

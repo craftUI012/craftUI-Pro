@@ -22,7 +22,45 @@
       "Architecture and design studio websites",
       "Portfolio and selected work pages",
       "Collection and campaign showcases"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "Autoplay starts paused. Steps jump straight to the item instead of springing, the image swaps with no slide, blur or fade, and the speed lean, detent pulse and hover transitions are off.",
+      "keyboard": [
+        {
+          "keys": "Tab",
+          "action": "Moves to “Pause” (shown only while focused), then the dial, then the “View project: …” image link."
+        },
+        {
+          "keys": "Enter / Space",
+          "action": "On “Pause”, stops autoplay; the button then reads “Play” and resumes it."
+        },
+        {
+          "keys": "↑ / →",
+          "action": "On the dial, steps to the next project."
+        },
+        {
+          "keys": "↓ / ←",
+          "action": "On the dial, steps to the previous project."
+        },
+        {
+          "keys": "Home / End",
+          "action": "On the dial, jumps to the first or last project."
+        },
+        {
+          "keys": "Enter",
+          "action": "On the dial or the image link, opens the active project's link."
+        }
+      ],
+      "notes": [
+        "The block is a region named “Selected projects” with the role description “carousel”, and autoplay pauses while focus or the pointer is inside it.",
+        "The dial is a vertical slider of the same name whose value reads like “Quiet Room, 2024, 5 of 6”; the labels drawn on the arc are aria-hidden.",
+        "Each image uses its item's alt text, and the link around it is named “View project: <project>”.",
+        "Changes made by dragging or tapping are announced through a polite live region; autoplay steps stay silent."
+      ],
+      "gaps": [
+        "Autoplay steps every 2.5 s or so without end, and the lasting “Pause” button is only visible while it has keyboard focus, so mouse and touch users can only pause by hovering or dragging (WCAG 2.2.2 Pause, Stop, Hide)."
+      ]
+    }
   },
   "categories": ["portfolio", "marketing"],
   "type": "registry:block"

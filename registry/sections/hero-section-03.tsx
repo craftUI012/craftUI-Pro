@@ -401,7 +401,10 @@ const CardBack = ({
     className={cn(
       FACE,
       EDGE,
-      "hs3-back flex flex-col bg-card p-[8%] text-left text-[0.5625rem] text-card-foreground sm:text-[0.6875rem] md:text-[0.75rem] lg:text-[0.8125rem]"
+      "hs3-back flex flex-col bg-card p-[8%] text-left text-[0.5625rem] text-card-foreground sm:text-[0.6875rem] md:text-[0.75rem] lg:text-[0.8125rem]",
+      // Focus stays on the front's button while the card is turned, and
+      // the front (with its ring) faces away: the back shows the ring.
+      "peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring"
     )}
     id={id}
     onClick={onClose}
@@ -730,7 +733,7 @@ export const HeroSection03 = ({
                             className={cn(
                               FACE,
                               EDGE,
-                              "block cursor-pointer bg-muted outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+                              "peer block cursor-pointer bg-muted outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                             )}
                             onBlur={() => setFocused(null)}
                             onClick={() => {

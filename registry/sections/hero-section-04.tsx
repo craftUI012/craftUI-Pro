@@ -11,7 +11,7 @@ import {
   useReducedMotion,
   useSpring,
 } from "motion/react";
-import type { AnimationPlaybackControls } from "motion/react";
+import type { AnimationPlaybackControls, MotionValue } from "motion/react";
 import { Geist, Syne } from "next/font/google";
 import type { ReactNode, SVGProps } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -232,6 +232,22 @@ export const InterleavedImageSlices = ({
 
   const reducedMotion = useReducedMotion();
 
+  // Moves a curtain spring to a new value. Under reduced motion the slices
+  // change at once instead of springing (the colour fade still plays).
+  const settle = useCallback(
+    (
+      target: MotionValue<number>,
+      spring: MotionValue<number>,
+      value: number
+    ) => {
+      target.set(value);
+      if (reducedMotion) {
+        spring.jump(value);
+      }
+    },
+    [reducedMotion]
+  );
+
   // Measure container and adapt columns smoothly
   useEffect(() => {
     const container = containerRef.current;
@@ -394,14 +410,19 @@ export const InterleavedImageSlices = ({
           // Leaving while revealed re-enables the curtains.
           isClickedRef.current = false;
           setIsClicked(false);
-          hoverTarget.set(1);
-          colTarget.set(center);
-          openTarget.set(1);
+          settle(hoverTarget, hoverScale, 1);
+          settle(colTarget, col, center);
+          settle(openTarget, open, 1);
         }
         return;
       }
 
       isHoveredRef.current = true;
+      // Under reduced motion the slices don't follow the pointer: they stay
+      // at rest until a click opens them.
+      if (reducedMotion) {
+        return;
+      }
       hoverTarget.set(isClickedRef.current ? 1 : 1.4);
 
       const fraction = Math.max(
@@ -416,9 +437,9 @@ export const InterleavedImageSlices = ({
       // Leaving while revealed re-enables the curtains.
       isClickedRef.current = false;
       setIsClicked(false);
-      hoverTarget.set(1);
-      colTarget.set(center);
-      openTarget.set(1);
+      settle(hoverTarget, hoverScale, 1);
+      settle(colTarget, col, center);
+      settle(openTarget, open, 1);
     };
 
     window.addEventListener("pointermove", handlePointerMove, {
@@ -450,6 +471,7 @@ export const InterleavedImageSlices = ({
     open,
     introProgress,
     renderCurtains,
+    settle,
   ]);
 
   const handleContainerClick = () => {
@@ -463,9 +485,9 @@ export const InterleavedImageSlices = ({
     const nextClicked = !isClickedRef.current;
     isClickedRef.current = nextClicked;
     setIsClicked(nextClicked);
-    openTarget.set(nextClicked ? 0 : 1);
-    const hoveredScale = isHoveredRef.current ? 1.4 : 1;
-    hoverTarget.set(nextClicked ? 1 : hoveredScale);
+    settle(openTarget, open, nextClicked ? 0 : 1);
+    const hoveredScale = isHoveredRef.current && !reducedMotion ? 1.4 : 1;
+    settle(hoverTarget, hoverScale, nextClicked ? 1 : hoveredScale);
     onClick?.();
   };
 
@@ -477,7 +499,13 @@ export const InterleavedImageSlices = ({
       role="button"
       tabIndex={0}
       aria-expanded={isClicked}
-      aria-label="Toggle curtain slices"
+      // The photo sits inside this control, whose name replaces its content,
+      // so the photo's description is folded into the name.
+      aria-label={
+        imageAlt
+          ? `Toggle curtain slices: ${imageAlt}`
+          : "Toggle curtain slices"
+      }
       onClick={handleContainerClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -702,7 +730,7 @@ const HeroSection04Header = ({
                     : "Open navigation menu"
                 }
                 aria-expanded={mobileMenuOpen}
-                className="lg:hidden mr-2 sm:mr-3 flex size-8 items-center justify-center rounded-none text-muted-foreground hover:bg-muted hover:text-foreground transition-[background-color,color,transform] duration-150 ease-out active:scale-95"
+                className="lg:hidden mr-2 sm:mr-3 flex size-8 items-center justify-center rounded-none text-muted-foreground hover:bg-muted hover:text-foreground transition-[background-color,color,transform] duration-150 ease-out active:scale-95 motion-reduce:active:scale-100"
               >
                 {mobileMenuOpen ? (
                   <X className="size-4" />
@@ -744,7 +772,7 @@ const HeroSection04Header = ({
                   className="group flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 rounded-none text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80 transition-colors"
                 >
                   <span className="truncate">{label}</span>
-                  <ArrowRightIcon className="size-4 shrink-0 opacity-60 transition-transform duration-150 group-hover:translate-x-0.5" />
+                  <ArrowRightIcon className="size-4 shrink-0 opacity-60 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0" />
                 </a>
               ))}
             </div>
@@ -846,8 +874,8 @@ export const HeroSection04 = ({
       {/* Floating responsive navigation header */}
       <HeroSection04Header brand={brand} cta={cta} navLinks={navLinks} />
 
-      {/* Main content */}
-      <main className="flex w-full flex-col">
+      {/* Main content (a div: the page around the section owns <main>) */}
+      <div className="flex w-full flex-col">
         {/* Full-width interactive image curtain at the top */}
         <div className="relative w-full overflow-hidden">
           <InterleavedImageSlices
@@ -886,7 +914,7 @@ export const HeroSection04 = ({
             </p>
           ) : null}
         </div>
-      </main>
+      </div>
     </section>
   );
 };

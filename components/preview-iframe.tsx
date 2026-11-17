@@ -6,6 +6,8 @@ import { DEVICES } from "@/components/hero-templates/templates-data";
 import type { PreviewWidth } from "@/components/preview-toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PREVIEW_SIZE_MESSAGE } from "@/constants/live-previews";
+import type { FocusReport, StopsReport } from "@/lib/preview-keyboard";
+import { KEYBOARD_MESSAGE } from "@/lib/preview-keyboard";
 
 // A live item in an iframe at a real device width: the item's own window is
 // that wide, so its breakpoints switch exactly as on the device. The widths
@@ -36,11 +38,27 @@ const deviceWidth = (width: PreviewWidth, available: number) => {
   return DEVICE_WIDTH[width];
 };
 
+// Keyboard mode (lib/preview-keyboard.ts): `keyboard` turns the numbered
+// Tab stops on inside the page, `onKeyboard` gets its reports, and each
+// change of `keyboardStart` moves focus to the first stop.
+export interface PreviewKeyboard {
+  keyboard: boolean;
+  keyboardStart: number;
+  onKeyboard: (
+    report:
+      | ({ kind: "focus" } & FocusReport)
+      | { kind: "left" }
+      | ({ kind: "stops" } & StopsReport)
+  ) => void;
+}
+
 export const PreviewIframe = ({
+  keyboard,
   src,
   title,
   width,
 }: {
+  keyboard?: PreviewKeyboard;
   src: string;
   title?: string;
   width: PreviewWidth;
@@ -51,6 +69,55 @@ export const PreviewIframe = ({
   // it never loads at the wrong size.
   const [available, setAvailable] = React.useState(0);
   const [height, setHeight] = React.useState<number | null>(null);
+  const keyboardOn = keyboard?.keyboard ?? false;
+  const keyboardStart = keyboard?.keyboardStart ?? 0;
+  const onKeyboard = keyboard?.onKeyboard;
+
+  // Tell the page whether Keyboard mode is on: now, and whenever it
+  // (re)loads.
+  const sendKeyboard = React.useCallback(() => {
+    frame.current?.contentWindow?.postMessage(
+      { on: keyboardOn, type: KEYBOARD_MESSAGE.mode },
+      window.location.origin
+    );
+  }, [keyboardOn]);
+  React.useEffect(sendKeyboard, [sendKeyboard]);
+
+  React.useEffect(() => {
+    if (keyboardStart === 0) {
+      return;
+    }
+    const target = frame.current?.contentWindow;
+    target?.focus();
+    target?.postMessage(
+      { type: KEYBOARD_MESSAGE.start },
+      window.location.origin
+    );
+  }, [keyboardStart]);
+
+  React.useEffect(() => {
+    if (!onKeyboard) {
+      return;
+    }
+    const onMessage = (event: MessageEvent) => {
+      if (
+        event.origin !== window.location.origin ||
+        event.source !== frame.current?.contentWindow
+      ) {
+        return;
+      }
+      const { type, ...data } = event.data ?? {};
+      if (type === KEYBOARD_MESSAGE.focus) {
+        onKeyboard({ ...(data as FocusReport), kind: "focus" });
+      } else if (type === KEYBOARD_MESSAGE.left) {
+        onKeyboard({ kind: "left" });
+      } else if (type === KEYBOARD_MESSAGE.stops) {
+        onKeyboard({ ...(data as StopsReport), kind: "stops" });
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [onKeyboard]);
 
   React.useLayoutEffect(() => {
     const node = outer.current;
@@ -102,6 +169,7 @@ export const PreviewIframe = ({
           <iframe
             className="absolute top-0 left-0 origin-top-left border-0"
             loading="lazy"
+            onLoad={sendKeyboard}
             ref={frame}
             src={src}
             style={{

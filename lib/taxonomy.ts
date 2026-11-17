@@ -4,6 +4,7 @@ import type {
   LibraryConfig,
   LibraryId,
 } from "@/constants/taxonomy";
+import { itemA11yErrors } from "@/lib/item-a11y";
 
 // Reads and checks registry items against the filter vocabulary in
 // constants/taxonomy.ts. Kept free of Next.js imports: scripts/build-registry.mjs
@@ -13,6 +14,9 @@ export interface TaxonomyRegistryItem {
   name: string;
   categories?: string[];
   meta?: {
+    // Accessibility notes for the docs preview's Accessibility view
+    // (lib/item-a11y.ts). Optional for now.
+    a11y?: unknown;
     // Free to install without a plan. Everything else is paid.
     free?: unknown;
     // The product code purchases store, e.g. "SEC-7K3QX9" (see
@@ -185,6 +189,7 @@ export const validateRegistryTaxonomy = (
       errors.push(`${at}: meta.free must be true or false.`);
     }
     errors.push(...useCaseErrors(at, meta.useCases));
+    errors.push(...itemA11yErrors(at, meta.a11y));
 
     const values = itemFilterValues(item);
     for (const group of FILTER_GROUPS) {

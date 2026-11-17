@@ -644,6 +644,23 @@ export class SphereScene {
     this.motorSpeed = 0;
   }
 
+  /**
+   * Follows the reduced-motion setting when it changes after load. Turning
+   * it on stops the ball where it is (no ramp down) and stands it upright;
+   * cards in flight finish instantly on the next step. Turning it off lets
+   * the motor take the idle turn up again.
+   */
+  setReducedMotion(reduced: boolean) {
+    if (reduced === this.reducedMotion) {
+      return;
+    }
+    this.reducedMotion = reduced;
+    if (reduced && !this.dragging) {
+      this.hold();
+      this.orientation = this.upright(this.orientation);
+    }
+  }
+
   startDrag(px: number, py: number) {
     this.hold();
     this.dragging = true;

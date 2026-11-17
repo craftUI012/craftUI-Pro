@@ -206,9 +206,14 @@ const Photo = ({
         and still covers the card. With plain `layout` a freshly mounted
         photo jumps to its final size and leaves a gap while the card is
         still shrinking. */}
+    {/* A background image, so it stays 3:4 as the card changes shape; the
+        role and label give it the alt text an <img> would have. Inside a
+        card button the button's name carries the alt instead. */}
     <motion.span
+      aria-label={item.alt || undefined}
       className={PHOTO_BOX}
       layoutId={`${layoutId}-photo`}
+      role={item.alt ? "img" : undefined}
       style={{
         ...placeOf(item.focus),
         backgroundImage: `url("${item.image}")`,
@@ -407,7 +412,9 @@ const Card = ({
   buttonRef: (node: HTMLButtonElement | null) => void;
 }) => (
   <motion.button
-    aria-label={item.subtitle ? `${item.title}, ${item.subtitle}` : item.title}
+    // The button's name replaces its content, so the photo's alt text is
+    // folded in after the title and line.
+    aria-label={`${item.subtitle ? `${item.title}, ${item.subtitle}` : item.title}${item.alt ? `. ${item.alt}` : ""}`}
     className={cn(
       "group relative min-h-0 min-w-0 cursor-pointer rounded-[8px] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
       browsing ? "flex-1" : "aspect-square md:aspect-auto"

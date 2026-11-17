@@ -22,7 +22,17 @@
       "SaaS and analytics product landing pages",
       "Developer tool feature overviews",
       "Product pages that explain an approach in three points"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "It doesn't animate by default, so nothing changes. When a card has an `href`, its arrow nudges on hover only when motion is allowed.",
+      "keyboard": [],
+      "notes": [
+        "The headline is an h2 by default (`headingLevel` sets 1–3) and each card title is one level below it; the three cards are a list.",
+        "The three drawings are hidden from screen readers, so each card's claim comes from its title and description.",
+        "When a card has an `href`, its title becomes a link stretched over the whole card, and the card shows a focus outline while the link has focus."
+      ],
+      "gaps": []
+    }
   },
   "categories": ["marketing", "data"],
   "type": "registry:block"

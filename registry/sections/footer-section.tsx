@@ -573,9 +573,13 @@ export const FooterSection = ({
                   <span className="block truncate text-[0.9375rem] font-medium">
                     {post.name}
                   </span>
+                  {/* Hidden separators: without them the link's name runs
+                      the name, handle and post together. */}
+                  <span className="sr-only">, </span>
                   <span className="block truncate text-[0.8125rem] text-white/45">
                     {post.handle}
                   </span>
+                  <span className="sr-only">: </span>
                 </span>
                 <HugeiconsIcon
                   aria-hidden="true"

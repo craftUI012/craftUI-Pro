@@ -225,6 +225,9 @@ export default function TeamCluster01({
               selectedId={selectedId}
               onSelect={setSelectedId}
               onActiveChange={setActiveId}
+              // The role list below offers the same choice with the bios,
+              // so it alone takes Tab; otherwise each person is two stops.
+              focusable={false}
               roleBadges
               renderBadge={(member) => (
                 <span className="block text-left">
@@ -257,7 +260,8 @@ export default function TeamCluster01({
                     <button
                       type="button"
                       aria-pressed={isActive}
-                      aria-label={`${member.name} — ${member.role}`}
+                      // Named by its own text (role, name, bio), so the bio
+                      // is read too; the hidden commas keep the parts apart.
                       onClick={() => setSelectedId(member.id)}
                       onPointerEnter={(event) => {
                         if (event.pointerType === "mouse")
@@ -281,6 +285,7 @@ export default function TeamCluster01({
                           />
                         )}
                         {member.role}
+                        <span className="sr-only">, </span>
                       </span>
                       <span className="flex min-w-0 flex-col items-end text-right">
                         <span
@@ -291,6 +296,7 @@ export default function TeamCluster01({
                           }`}
                         >
                           {member.name}
+                          {member.bio && <span className="sr-only">, </span>}
                         </span>
                         {member.bio && (
                           <span className="mt-0.5 text-xs leading-snug font-normal text-[var(--team-fg-muted)] sm:line-clamp-1">

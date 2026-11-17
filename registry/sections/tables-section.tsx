@@ -103,6 +103,18 @@ const MenuRadioGroup = ({ onValueChange, ...props }: MenuRadioGroupProps) => {
   );
 };
 
+// A shortcut's key, drawn beside its control's name. Hidden from screen
+// readers so it doesn't run into the name ("SDKS"): the control carries it
+// as aria-keyshortcuts instead. Drawn only while shortcuts are on.
+const ShortcutKbd = ({
+  on,
+  ...props
+}: React.ComponentProps<typeof Kbd> & { on: boolean }) =>
+  on ? <Kbd aria-hidden {...props} /> : null;
+
+/** The aria-keyshortcuts value for a key, while shortcuts are on. */
+const shortcutKey = (on: boolean, key: string) => (on ? key : undefined);
+
 // API keys table, modelled on the Reloop dashboard's API keys page: header
 // actions, search + filters toolbar, selectable rows with a per-row menu,
 // pagination footer, and the full key lifecycle (create, rename, rotate,
@@ -137,6 +149,12 @@ export interface ApiKeysSectionProps {
   sdkHref?: string;
   /** Where the toolbar's "Docs" link goes. */
   docsHref?: string;
+  /**
+   * The single-key shortcuts (C, /, R, S, D). They only answer while focus
+   * or the pointer is in this table; pass `false` to turn them off (the
+   * hint line under the table goes with them).
+   */
+  shortcuts?: boolean;
   /** Extra classes for the section's root element. */
   className?: string;
 }
@@ -390,6 +408,8 @@ interface ToolbarProps {
   loading: boolean;
   onRefresh: () => void;
   searchRef: React.RefObject<HTMLInputElement | null>;
+  /** Whether the single-key shortcuts are on, so their hints show. */
+  shortcuts: boolean;
 }
 
 const KeysToolbar = ({
@@ -406,6 +426,7 @@ const KeysToolbar = ({
   loading,
   onRefresh,
   searchRef,
+  shortcuts,
 }: ToolbarProps) => (
   <div className="mt-6 flex flex-wrap items-center gap-2">
     <div className="relative min-w-0 flex-1 sm:max-w-xs">
@@ -419,6 +440,7 @@ const KeysToolbar = ({
         onChange={(event) => onQueryChange(event.target.value)}
         placeholder="Search API keys..."
         aria-label="Search API keys"
+        aria-keyshortcuts={shortcutKey(shortcuts, "/")}
         className="pr-12 pl-8"
       />
       {query ? (
@@ -434,7 +456,12 @@ const KeysToolbar = ({
           <X aria-hidden className="size-4" />
         </button>
       ) : (
-        <Kbd className="absolute top-1/2 right-2.5 -translate-y-1/2">/</Kbd>
+        <ShortcutKbd
+          on={shortcuts}
+          className="absolute top-1/2 right-2.5 -translate-y-1/2"
+        >
+          /
+        </ShortcutKbd>
       )}
     </div>
 
@@ -535,12 +562,16 @@ const KeysToolbar = ({
         onClick={onRefresh}
         disabled={loading}
         aria-label="Refresh API keys"
+        aria-keyshortcuts={shortcutKey(shortcuts, "R")}
       >
         <RefreshCw
           aria-hidden
-          className={cn("size-4", loading && "animate-spin")}
+          className={cn(
+            "size-4",
+            loading && "animate-spin motion-reduce:animate-none"
+          )}
         />
-        <Kbd>R</Kbd>
+        <ShortcutKbd on={shortcuts}>R</ShortcutKbd>
       </Button>
     </div>
   </div>
@@ -558,7 +589,8 @@ interface TableProps {
   onTogglePage: (checked: boolean) => void;
   onToggleRow: (id: string, checked: boolean) => void;
   copied: string | null;
-  onCopy: (id: string, text: string) => void;
+  /** `message` is read out by the status line once the copy succeeds. */
+  onCopy: (id: string, text: string, message?: string) => void;
   onEdit: (row: ApiKeyRow) => void;
   onRotate: (row: ApiKeyRow) => void;
   onSetStatus: (ids: string[], status: ApiKeyStatus) => void;
@@ -566,6 +598,8 @@ interface TableProps {
   onClearFilters: () => void;
   onOpenCreate: () => void;
   now: number;
+  /** Whether the single-key shortcuts are on, so their hints show. */
+  shortcuts: boolean;
 }
 
 /* The select-all box. Its "some rows" state is drawn here rather than with
@@ -626,6 +660,7 @@ const KeysTable = ({
   onClearFilters,
   onOpenCreate,
   now,
+  shortcuts,
 }: TableProps) => {
   const colSpan = 3 + visibleCount + 1;
 
@@ -651,14 +686,21 @@ const KeysTable = ({
       <p className="text-muted-foreground text-sm">
         Create your first key to start sending email over the API or SMTP.
       </p>
-      <Button onClick={onOpenCreate} className="mt-2">
+      <Button
+        aria-keyshortcuts={shortcutKey(shortcuts, "C")}
+        onClick={onOpenCreate}
+        className="mt-2"
+      >
         <span aria-hidden className="text-base leading-none">
           +
         </span>
         Create API key
-        <Kbd className="bg-primary-foreground/20 text-primary-foreground shadow-none dark:bg-primary-foreground/20">
+        <ShortcutKbd
+          on={shortcuts}
+          className="bg-primary-foreground/20 text-primary-foreground shadow-none dark:bg-primary-foreground/20"
+        >
           C
-        </Kbd>
+        </ShortcutKbd>
       </Button>
     </div>
   );
@@ -670,7 +712,7 @@ const KeysTable = ({
         {Array.from({ length: 4 }, (_, i) => (
           <TableRow key={`skeleton-${i}`}>
             <TableCell className="pl-4" colSpan={colSpan}>
-              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full motion-reduce:animate-none" />
             </TableCell>
           </TableRow>
         ))}
@@ -708,6 +750,8 @@ const KeysTable = ({
               title={`Rename ${row.name}`}
               className="font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid"
             >
+              {/* The tooltip only shows on hover: say what it does here too. */}
+              <span className="sr-only">Rename </span>
               {row.name}
             </button>
           </TableCell>
@@ -719,7 +763,13 @@ const KeysTable = ({
                 </code>
                 <button
                   type="button"
-                  onClick={() => onCopy(`prefix-${row.id}`, row.prefix)}
+                  onClick={() =>
+                    onCopy(
+                      `prefix-${row.id}`,
+                      row.prefix,
+                      `Copied the prefix of ${row.name}.`
+                    )
+                  }
                   aria-label={`Copy prefix of ${row.name}`}
                   title="Copy prefix"
                   className="text-muted-foreground hover:text-foreground rounded-sm p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
@@ -810,7 +860,13 @@ const KeysTable = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onClick={() => onCopy(`menu-${row.id}`, row.prefix)}
+                  onClick={() =>
+                    onCopy(
+                      `menu-${row.id}`,
+                      row.prefix,
+                      `Copied the prefix of ${row.name}.`
+                    )
+                  }
                 >
                   <Copy aria-hidden className="size-4" />
                   Copy prefix
@@ -1360,16 +1416,13 @@ const DeleteKeysDialog = ({
 };
 
 // Keyboard shortcuts belong to one table at a time: the one with focus or
-// the pointer over it, or the only one on the page. Without this, two tables
-// on one page would both answer the same key.
+// the pointer over it. Never page-wide, so a stray key elsewhere (or speech
+// input dictating while focus is outside) can't trigger them.
 const ownsShortcuts = (section: HTMLElement | null): boolean => {
   if (!section) {
     return false;
   }
-  if (section.contains(document.activeElement) || section.matches(":hover")) {
-    return true;
-  }
-  return document.querySelectorAll("[data-shortcuts]").length === 1;
+  return section.contains(document.activeElement) || section.matches(":hover");
 };
 
 export default function TablesSection({
@@ -1377,6 +1430,7 @@ export default function TablesSection({
   currentUser = "you",
   sdkHref = "#",
   docsHref = "#",
+  shortcuts = true,
   className,
 }: ApiKeysSectionProps = {}) {
   const [keys, setKeys] = React.useState<ApiKeyRow[]>(
@@ -1400,6 +1454,14 @@ export default function TablesSection({
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [loading, setLoading] = React.useState(false);
   const [copied, setCopied] = React.useState<string | null>(null);
+  // The status line's latest message. `n` flips a trailing space so the same
+  // message (a second copy) is still read out again.
+  const [liveMessage, setLiveMessage] = React.useState({ n: 0, text: "" });
+  const announce = React.useCallback(
+    (text: string) => setLiveMessage((prev) => ({ n: prev.n + 1, text })),
+    []
+  );
+  const messageText = `${liveMessage.text}${liveMessage.n % 2 ? "\u00A0" : ""}`;
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editId, setEditId] = React.useState<string | null>(null);
@@ -1489,6 +1551,9 @@ export default function TablesSection({
     createOpen || editId !== null || rotateId !== null || deleteIds !== null;
 
   React.useEffect(() => {
+    if (!shortcuts) {
+      return;
+    }
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
         return;
@@ -1523,9 +1588,9 @@ export default function TablesSection({
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [anyDialogOpen, openCreate, refresh]);
+  }, [anyDialogOpen, openCreate, refresh, shortcuts]);
 
-  const handleCopy = async (id: string, text: string) => {
+  const handleCopy = async (id: string, text: string, message?: string) => {
     const ok = await copyToClipboard(text);
     if (!ok) {
       return;
@@ -1534,8 +1599,31 @@ export default function TablesSection({
       clearTimeout(copyTimer.current);
     }
     setCopied(id);
+    if (message) {
+      announce(message);
+    }
     copyTimer.current = setTimeout(() => setCopied(null), 1600);
   };
+
+  // A search or filter only changes the rows, so say how many match once
+  // typing pauses. Skipped on the first render: nothing has changed yet.
+  const matchCount = filtered.length;
+  const filtersChanged = React.useRef(false);
+  React.useEffect(() => {
+    if (!filtersChanged.current) {
+      filtersChanged.current = true;
+      return;
+    }
+    const id = setTimeout(() => {
+      announce(
+        matchCount === 0
+          ? "No keys match."
+          : `${matchCount} ${matchCount === 1 ? "key matches" : "keys match"}.`
+      );
+    }, 600);
+    return () => clearTimeout(id);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- Announces a search or filter change only; the count is read when it does.
+  }, [query, statusFilter, userFilter]);
 
   const togglePage = (checked: boolean) => {
     setSelected((prev) => {
@@ -1638,32 +1726,42 @@ export default function TablesSection({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {/* The key hints are hidden from screen readers so they don't
+                run into the names ("SDKS"); aria-keyshortcuts says it. */}
             <a
               ref={sdkRef}
               href={sdkHref}
+              aria-keyshortcuts={shortcutKey(shortcuts, "S")}
               className={cn(buttonVariants({ variant: "outline" }))}
             >
               <CodeXml aria-hidden className="size-4" />
               SDK
-              <Kbd>S</Kbd>
+              <ShortcutKbd on={shortcuts}>S</ShortcutKbd>
             </a>
             <a
               ref={docsRef}
               href={docsHref}
+              aria-keyshortcuts={shortcutKey(shortcuts, "D")}
               className={cn(buttonVariants({ variant: "outline" }))}
             >
               <BookOpen aria-hidden className="size-4" />
               Documentation
-              <Kbd>D</Kbd>
+              <ShortcutKbd on={shortcuts}>D</ShortcutKbd>
             </a>
-            <Button onClick={openCreate}>
+            <Button
+              aria-keyshortcuts={shortcutKey(shortcuts, "C")}
+              onClick={openCreate}
+            >
               <span aria-hidden className="text-base leading-none">
                 +
               </span>
               Create API key
-              <Kbd className="bg-primary-foreground/20 text-primary-foreground shadow-none dark:bg-primary-foreground/20">
+              <ShortcutKbd
+                on={shortcuts}
+                className="bg-primary-foreground/20 text-primary-foreground shadow-none dark:bg-primary-foreground/20"
+              >
                 C
-              </Kbd>
+              </ShortcutKbd>
             </Button>
           </div>
         </div>
@@ -1701,6 +1799,7 @@ export default function TablesSection({
           loading={loading}
           onRefresh={refresh}
           searchRef={searchRef}
+          shortcuts={shortcuts}
         />
 
         <div className="border-border bg-card mt-4 overflow-hidden rounded-xl border shadow-sm">
@@ -1724,6 +1823,7 @@ export default function TablesSection({
             onClearFilters={clearFilters}
             onOpenCreate={openCreate}
             now={now}
+            shortcuts={shortcuts}
           />
           <KeysFooter
             selectedCount={selected.size}
@@ -1742,11 +1842,13 @@ export default function TablesSection({
           />
         </div>
 
-        <p className="text-muted-foreground mt-4 text-xs">
-          Shortcuts: <Kbd>C</Kbd> create · <Kbd>/</Kbd> search · <Kbd>R</Kbd>{" "}
-          refresh · <Kbd>S</Kbd> SDK · <Kbd>D</Kbd> docs · <Kbd>Enter</Kbd>{" "}
-          confirm in dialogs
-        </p>
+        {shortcuts ? (
+          <p className="text-muted-foreground mt-4 text-xs">
+            Shortcuts: <Kbd>C</Kbd> create · <Kbd>/</Kbd> search · <Kbd>R</Kbd>{" "}
+            refresh · <Kbd>S</Kbd> SDK · <Kbd>D</Kbd> docs · <Kbd>Enter</Kbd>{" "}
+            confirm in dialogs
+          </p>
+        ) : null}
       </div>
 
       <CreateKeyDialog
@@ -1778,8 +1880,8 @@ export default function TablesSection({
         onConfirm={removeKeys}
       />
 
-      <div aria-live="polite" className="sr-only">
-        {loading ? "Refreshing API keys." : ""}
+      <div aria-live="polite" className="sr-only" role="status">
+        {loading ? "Refreshing API keys." : messageText}
       </div>
     </section>
   );
