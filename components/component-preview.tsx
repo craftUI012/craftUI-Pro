@@ -5,8 +5,10 @@ import { PaidSource } from "@/components/paid-source";
 import { PreviewFrame } from "@/components/preview-frame";
 import { isLivePreview } from "@/constants/live-previews";
 import { ROUTES } from "@/constants/routes";
+import { readItemA11y } from "@/lib/item-a11y";
 import {
   getDemoSource,
+  getRegistryItem,
   getRegistryItemMeta,
   getRegistryItemTitle,
   getRegistrySource,
@@ -53,6 +55,13 @@ export const ComponentPreview = async ({
   // page, so the toolbar's device widths switch its breakpoints too; the
   // children are then only what the MDX shows and aren't rendered here.
   const live = name !== undefined && isLivePreview(name);
+  // The Accessibility view, for items with notes (registry meta.a11y).
+  // (Typed from registry.json, which only has the field once an item does.)
+  const a11y = name
+    ? readItemA11y(
+        (getRegistryItem(name)?.meta as { a11y?: unknown } | undefined)?.a11y
+      )
+    : null;
 
   let sourceSlot: ReactNode = null;
 
@@ -71,6 +80,7 @@ export const ComponentPreview = async ({
 
   return (
     <PreviewFrame
+      a11y={a11y}
       copyValue={code}
       installName={name}
       itemId={itemId}

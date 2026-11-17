@@ -150,6 +150,10 @@ export default function TestimonialSection({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [, setDirection] = useState(1);
   const [timerKey, setTimerKey] = useState(0);
+  // What the live region says after a button press or a swipe. The timer's
+  // own changes leave it alone, so a section left running never talks over
+  // the page.
+  const [status, setStatus] = useState("");
 
   const count = testimonials.length;
   // The list can shrink while a later story is showing.
@@ -157,16 +161,31 @@ export default function TestimonialSection({
   const HeadingTag = `h${headingLevel}` as const;
   const [first, second] = current?.metrics ?? [];
 
+  const announce = (index: number) => {
+    const item = testimonials[index];
+    setStatus(
+      item
+        ? `${index + 1} of ${count}: ${item.name}, ${item.role} at ${item.company}. “${item.quote}”`
+        : ""
+    );
+  };
+
   const handlePrev = () => {
+    const shown = Math.min(currentIndex, count - 1);
+    const target = shown <= 0 ? count - 1 : shown - 1;
     setDirection(-1);
-    setCurrentIndex((prev) => (prev === 0 ? count - 1 : prev - 1));
+    setCurrentIndex(target);
     setTimerKey((k) => k + 1);
+    announce(target);
   };
 
   const handleNext = () => {
+    const shown = Math.min(currentIndex, count - 1);
+    const target = shown >= count - 1 ? 0 : shown + 1;
     setDirection(1);
-    setCurrentIndex((prev) => (prev >= count - 1 ? 0 : prev + 1));
+    setCurrentIndex(target);
     setTimerKey((k) => k + 1);
+    announce(target);
   };
 
   // Unified swipe / drag gesture (handles touch, mouse drag, and stylus on mobile)
@@ -405,15 +424,18 @@ export default function TestimonialSection({
                   </div>
                 </div>
 
-                {/* Tablet Arrow Controls — Static, never unmounts or fades */}
-                <div className="hidden shrink-0 grid-cols-2 divide-x divide-border border-l border-border self-stretch sm:grid lg:hidden">
+                {/* Tablet Arrow Controls — Static, never unmounts or fades.
+                    Under 640px the design has no buttons (stories change by
+                    swiping), so they stay visually hidden there until one
+                    has keyboard focus: a keyboard path at every width. */}
+                <div className="grid shrink-0 grid-cols-2 divide-x divide-border border-l border-border self-stretch max-sm:sr-only max-sm:focus-within:not-sr-only lg:hidden">
                   <button
                     type="button"
                     onClick={handlePrev}
                     aria-label="Previous testimonial"
                     className="group flex aspect-square h-full cursor-pointer items-center justify-center bg-card transition-colors hover:bg-muted active:bg-muted/80"
                   >
-                    <ArrowLeft className="size-5 text-muted-foreground transition-transform duration-100 ease-out group-hover:-translate-x-0.5 group-hover:text-foreground active:scale-95" />
+                    <ArrowLeft className="size-5 text-muted-foreground transition-transform duration-100 ease-out group-hover:text-foreground motion-safe:group-hover:-translate-x-0.5 motion-safe:active:scale-95" />
                   </button>
                   <button
                     type="button"
@@ -421,9 +443,10 @@ export default function TestimonialSection({
                     aria-label="Next testimonial"
                     className="group relative flex aspect-square h-full cursor-pointer items-center justify-center overflow-hidden bg-card transition-colors hover:bg-muted active:bg-muted/80"
                   >
-                    <ArrowRight className="size-5 text-muted-foreground transition-transform duration-100 ease-out group-hover:translate-x-0.5 group-hover:text-foreground active:scale-95" />
-                    {/* Tablet autoscroll progress line */}
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1 bg-transparent">
+                    <ArrowRight className="size-5 text-muted-foreground transition-transform duration-100 ease-out group-hover:text-foreground motion-safe:group-hover:translate-x-0.5 motion-safe:active:scale-95" />
+                    {/* Tablet autoscroll progress line (phones have their own,
+                        across the section's foot) */}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1 bg-transparent max-sm:hidden">
                       <motion.div
                         key={`tablet-timer-${currentIndex}-${timerKey}`}
                         initial={{ width: "0%" }}
@@ -432,7 +455,7 @@ export default function TestimonialSection({
                           duration: interval,
                           ease: "linear",
                         }}
-                        className="h-full bg-primary"
+                        className="h-full bg-primary motion-reduce:hidden"
                       />
                     </div>
                   </button>
@@ -517,7 +540,7 @@ export default function TestimonialSection({
                 aria-label="Previous testimonial"
                 className="group flex size-full cursor-pointer items-center justify-center bg-card transition-colors duration-200 hover:bg-muted active:bg-muted/80"
               >
-                <ArrowLeft className="size-6 text-muted-foreground transition-transform duration-100 ease-out group-hover:-translate-x-1 group-hover:text-foreground active:scale-95" />
+                <ArrowLeft className="size-6 text-muted-foreground transition-transform duration-100 ease-out group-hover:text-foreground motion-safe:group-hover:-translate-x-1 motion-safe:active:scale-95" />
               </button>
 
               <button
@@ -526,7 +549,7 @@ export default function TestimonialSection({
                 aria-label="Next testimonial"
                 className="group relative flex size-full cursor-pointer items-center justify-center overflow-hidden bg-card transition-colors duration-200 hover:bg-muted active:bg-muted/80"
               >
-                <ArrowRight className="size-6 text-muted-foreground transition-transform duration-100 ease-out group-hover:translate-x-1 group-hover:text-foreground active:scale-95" />
+                <ArrowRight className="size-6 text-muted-foreground transition-transform duration-100 ease-out group-hover:text-foreground motion-safe:group-hover:translate-x-1 motion-safe:active:scale-95" />
 
                 {/* Auto-scroll progress timer line at the bottom of the next button */}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1 bg-transparent">
@@ -538,14 +561,16 @@ export default function TestimonialSection({
                       duration: interval,
                       ease: "linear",
                     }}
-                    className="h-full bg-primary"
+                    className="h-full bg-primary motion-reduce:hidden"
                   />
                 </div>
               </button>
             </div>
           </div>
 
-          {/* Auto-scroll progress line spanning the bottom of the whole section on mobile only */}
+          {/* Auto-scroll progress line spanning the bottom of the whole section on mobile only.
+              Every progress fill hides with reduced motion: a bar sweeping
+              across is movement, and the stories still change without it. */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1 overflow-hidden bg-muted sm:hidden">
             <motion.div
               key={`progress-full-${currentIndex}-${timerKey}`}
@@ -555,11 +580,15 @@ export default function TestimonialSection({
                 duration: interval,
                 ease: "linear",
               }}
-              className="h-full bg-primary"
+              className="h-full bg-primary motion-reduce:hidden"
             />
           </div>
         </div>
       </div>
+      {/* Always rendered, so the first press is announced too. */}
+      <p className="sr-only" role="status">
+        {status}
+      </p>
     </section>
   );
 }

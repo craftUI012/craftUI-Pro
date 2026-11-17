@@ -311,6 +311,9 @@ const MosaicCard = ({
   const [index, setIndex] = useState(0);
   const [changes, setChanges] = useState(0);
   const [resting, setResting] = useState(false);
+  // What the live region says after a press. Automatic changes leave it
+  // alone, so a card left running never talks over the page.
+  const [status, setStatus] = useState("");
   const [leaving, setLeaving] = useState<{
     item: MosaicCardItem;
     tiles: Tile[];
@@ -328,29 +331,39 @@ const MosaicCard = ({
     }
   }, [index, items, count]);
 
-  const next = useCallback(() => {
-    const from = items[index];
-    if (leaving || count < 2 || !from) {
-      return;
-    }
-    setIndex((i) => (i + 1) % count);
-    setChanges((c) => c + 1);
-    if (prefersReducedMotion()) {
-      return;
-    }
-    setLeaving({ item: from, tiles: buildTiles(tiles) });
-    timer.current = window.setTimeout(
-      () => setLeaving(null),
-      tiles * TIMING.cluster + TIMING.tile + 400
-    );
-  }, [count, index, items, leaving, tiles]);
+  const next = useCallback(
+    (announce?: boolean) => {
+      const from = items[index];
+      if (leaving || count < 2 || !from) {
+        return;
+      }
+      const to = (index + 1) % count;
+      setIndex(to);
+      setChanges((c) => c + 1);
+      if (announce) {
+        const item = items[to];
+        setStatus(
+          item ? `${to + 1} of ${count}: ${item.text} ${item.alt}` : ""
+        );
+      }
+      if (prefersReducedMotion()) {
+        return;
+      }
+      setLeaving({ item: from, tiles: buildTiles(tiles) });
+      timer.current = window.setTimeout(
+        () => setLeaving(null),
+        tiles * TIMING.cluster + TIMING.tile + 400
+      );
+    },
+    [count, index, items, leaving, tiles]
+  );
 
   // Moves on by itself every `interval` seconds while nothing holds it.
   useEffect(() => {
     if (!interval || resting || !visible || leaving || prefersReducedMotion()) {
       return;
     }
-    const id = window.setTimeout(next, interval * 1000);
+    const id = window.setTimeout(() => next(), interval * 1000);
     return () => window.clearTimeout(id);
   }, [interval, resting, visible, leaving, next]);
 
@@ -396,6 +409,13 @@ const MosaicCard = ({
       />
 
       <figcaption className="pointer-events-none absolute inset-x-0 top-0 z-[12] grid p-5 sm:p-6">
+        {/* The counter is drawn for the eye only; this gives screen
+            readers the place in the set alongside the line. */}
+        {count > 1 ? (
+          <span className="sr-only">
+            {index + 1} of {count}:{" "}
+          </span>
+        ) : null}
         {leaving ? (
           <Words
             className="mc-out col-start-1 row-start-1"
@@ -420,10 +440,14 @@ const MosaicCard = ({
         aria-label={nextLabel}
         className="absolute inset-0 z-20 cursor-pointer rounded-[inherit] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset"
         onBlur={() => setResting(false)}
-        onClick={next}
+        onClick={() => next(true)}
         onFocus={() => setResting(true)}
         type="button"
       />
+      {/* Always rendered, so the first press is announced too. */}
+      <p className="sr-only" role="status">
+        {status}
+      </p>
     </figure>
   );
 };

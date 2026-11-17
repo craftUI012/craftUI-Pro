@@ -32,9 +32,11 @@ import { StatementFlow } from "./statement-section-flow";
  * scroll position (statement-section-flow.ts places the words), so it
  * plays as smoothly backward as forward. Before the script runs the
  * statement is plain centred text, so the server's HTML reads fine.
- * Screen readers get both statements once; the moving copies are hidden
- * from them. With reduced motion nothing blurs, drifts or scales: the
- * second statement fades in place.
+ * Screen readers get both statements once and the photo by its `alt`; the
+ * moving copies are hidden from them. With reduced motion nothing moves:
+ * the lines stay parted round the small circle and fade out, the circle
+ * crossfades into the whole photo (it never grows), and the second
+ * statement fades in place.
  * ───────────────────────────────────────────────────────────────────────── */
 
 const sans = Roboto_Flex({ display: "swap", subsets: ["latin"] });
@@ -84,6 +86,17 @@ const REVEAL = {
   trackingFrom: 0.08,
   /** Letter spacing at rest, in ems. */
   trackingTo: -0.015,
+} as const;
+
+/**
+ * With reduced motion: shares of the scroll over which the statement fades
+ * out, then the circle crossfades into the whole photo. Nothing moves.
+ */
+const REDUCED = {
+  photoFrom: 0.42,
+  photoTo: SCROLL.cover,
+  textFrom: 0.2,
+  textTo: 0.46,
 } as const;
 
 /** Blur on a departing word: px per px/s of its speed, and its most. */
@@ -266,6 +279,7 @@ export const StatementSection = ({
   const spaceRef = useRef<HTMLSpanElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const stillRef = useRef<HTMLImageElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
   const revealRef = useRef<HTMLParagraphElement>(null);
   const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -283,6 +297,7 @@ export const StatementSection = ({
     const space = spaceRef.current;
     const lens = windowRef.current;
     const picture = imageRef.current;
+    const still = stillRef.current;
     const scrim = scrimRef.current;
     const second = revealRef.current;
     if (!section || !stage || !block || !space || !lens || !picture) {
@@ -294,9 +309,8 @@ export const StatementSection = ({
     }
     const nodes = spans as HTMLSpanElement[];
     const flow = new StatementFlow(nodes.length);
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduced = motionQuery.matches;
     const [fx, fy] = parseFocus(focus);
 
     let disposed = false;
@@ -331,6 +345,37 @@ export const StatementSection = ({
     };
 
     // ── The photo: framing, drift, zoom ──────────────────────────────────
+    /**
+     * Reduced motion: the circle keeps its rest size and framing, then
+     * crossfades into the whole photo (a still copy, centred, under it),
+     * so nothing grows or moves.
+     */
+    const drawStillPhoto = (p: number, rest: number) => {
+      const cx = width / 2;
+      const cy = height / 2;
+      const t = smooth(
+        clamp01((p - REDUCED.photoFrom) / (REDUCED.photoTo - REDUCED.photoFrom))
+      );
+      lens.style.clipPath = "none";
+      if (still) {
+        still.hidden = false;
+        still.style.opacity = String(t);
+      }
+      // The resting framing, toward the subject, as at the top of the scroll.
+      const { zoom } = CAMERA;
+      const rw = width * zoom;
+      const rh = height * zoom;
+      const roomX = Math.max(rw / 2 - Math.min(rest, cx), 0);
+      const roomY = Math.max(rh / 2 - Math.min(rest, cy), 0);
+      const tx = Math.min(Math.max(-(fx - 0.5) * rw, -roomX), roomX);
+      const ty = Math.min(Math.max(-(fy - 0.5) * rh, -roomY), roomY);
+      picture.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${zoom})`;
+      // The circle, on the photo itself now (the lens is open for the still
+      // copy): in its own box, before its transform.
+      picture.style.clipPath = `circle(${rest / zoom}px at ${cx - tx / zoom}px ${cy - ty / zoom}px)`;
+      picture.style.opacity = String(1 - t);
+    };
+
     const drawPhoto = (p: number, r: number) => {
       const cx = width / 2;
       const cy = height / 2;
@@ -339,7 +384,7 @@ export const StatementSection = ({
       const opening = easeInOut(Math.min(p / SCROLL.cover, 1));
       const hold = smooth(clamp01((p - REVEAL.end) / (1 - REVEAL.end)));
       const zoom =
-        p < SCROLL.cover || reduced
+        p < SCROLL.cover
           ? CAMERA.zoom - (CAMERA.zoom - 1) * opening
           : 1 + CAMERA.pushIn * hold;
 
@@ -351,12 +396,11 @@ export const StatementSection = ({
       const rh = height * zoom;
       const away = 1 - opening;
       let tx = -(fx - 0.5) * rw * away;
-      let ty = -(fy - 0.5) * rh * away;
-      if (!reduced) {
-        // A slow drift while the circle grows: none at rest (so the subject
-        // is framed exactly) or once it's full, most on the way.
-        ty -= CAMERA.drift * height * Math.sin(Math.PI * away);
-      }
+      // A slow drift while the circle grows: none at rest (so the subject
+      // is framed exactly) or once it's full, most on the way.
+      let ty =
+        -(fy - 0.5) * rh * away -
+        CAMERA.drift * height * Math.sin(Math.PI * away);
       // Never so far that the photo's edge shows inside the circle.
       const roomX = Math.max(rw / 2 - Math.min(r, cx), 0);
       const roomY = Math.max(rh / 2 - Math.min(r, cy), 0);
@@ -389,11 +433,12 @@ export const StatementSection = ({
     };
 
     // ── The words: place, fade at the edge, blur with speed ──────────────
-    const drawWords = (dt: number) => {
+    /** `fade` scales every word's opacity (reduced motion fades them out). */
+    const drawWords = (dt: number, fade = 1) => {
       for (const [i, node] of nodes.entries()) {
         const x = flow.x[i];
         node.style.transform = `translate3d(${x}px, ${flow.y[i] + shift[i]}px, 0)`;
-        const opacity = Math.round(flow.opacity[i] * 100) / 100;
+        const opacity = Math.round(flow.opacity[i] * fade * 100) / 100;
         if (shownOpacity[i] !== opacity) {
           shownOpacity[i] = opacity;
           node.style.opacity = opacity === 1 ? "" : String(opacity);
@@ -422,8 +467,19 @@ export const StatementSection = ({
         velocity += (-k * (progress - goal) - 2 * Math.sqrt(k) * velocity) * dt;
         progress += velocity * dt;
       }
-      const r = radiusAt(progress, width, height, flow.lineHeight);
       const rest = flow.lineHeight * SCROLL.restRadius;
+      if (reduced) {
+        // The lines stay where they part round the resting circle and
+        // fade out; the photo fades in round it. Nothing changes place.
+        flow.layout(width, height, width / 2, height / 2, rest, rest);
+        drawStillPhoto(progress, rest);
+        drawReveal(progress);
+        const t =
+          (progress - REDUCED.textFrom) / (REDUCED.textTo - REDUCED.textFrom);
+        drawWords(0, 1 - smooth(clamp01(t)));
+        return false;
+      }
+      const r = radiusAt(progress, width, height, flow.lineHeight);
       flow.layout(width, height, width / 2, height / 2, r, rest);
       drawPhoto(progress, r);
       drawReveal(progress);
@@ -491,6 +547,26 @@ export const StatementSection = ({
     void start();
 
     const onScroll = () => wake();
+    // The setting can change while the page is open: clear what only the
+    // other mode sets, then redraw in the new one.
+    const onMotionChange = () => {
+      reduced = motionQuery.matches;
+      picture.style.clipPath = "";
+      picture.style.opacity = "";
+      if (still) {
+        still.hidden = true;
+      }
+      if (second) {
+        second.style.transform = "";
+        second.style.filter = "";
+        second.style.letterSpacing = "";
+      }
+      if (measured && !disposed) {
+        step(0, true);
+        prevX.set(flow.x);
+      }
+    };
+    motionQuery.addEventListener("change", onMotionChange);
     // The window's height sets the stage's; the stage itself is fixed px.
     const onResize = () => {
       if (measured && !disposed) {
@@ -509,6 +585,7 @@ export const StatementSection = ({
       scrollTarget.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       document.fonts.removeEventListener("loadingdone", onResize);
+      motionQuery.removeEventListener("change", onMotionChange);
     };
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- Rebuilt when the words, accent or framing change, keyed on their text.
   }, [wordsKey, emphasis, focus, scroller]);
@@ -530,17 +607,31 @@ export const StatementSection = ({
         ref={stageRef}
         className="sticky top-0 h-[var(--stage-h,100svh)] overflow-hidden"
       >
-        {/* The circle: a window onto the photo, which moves inside it. */}
+        {/* The circle: a window onto the photo, which moves inside it. The
+            photo is the one thing here screen readers get, by its alt. */}
         <div
           ref={windowRef}
-          aria-hidden
           className="absolute inset-0 z-10 overflow-hidden"
           style={{ clipPath: "circle(0px at 50% 50%)" }}
         >
+          {/* Reduced motion only: the whole photo, still, that the circle
+              crossfades into. Hidden (and so never fetched, being lazy)
+              until then; a copy, so screen readers skip it. */}
+          {/* oxlint-disable-next-line nextjs/no-img-element -- Any URL the host passes, with no next.config image domains to set up. */}
+          <img
+            ref={stillRef}
+            alt=""
+            className="absolute inset-0 size-full object-cover"
+            decoding="async"
+            hidden
+            loading="lazy"
+            src={image.src}
+            style={{ objectPosition: focus }}
+          />
           {/* oxlint-disable-next-line nextjs/no-img-element -- Any URL the host passes, with no next.config image domains to set up. */}
           <img
             ref={imageRef}
-            alt=""
+            alt={image.alt}
             className="absolute inset-0 size-full object-cover will-change-transform"
             decoding="async"
             src={image.src}

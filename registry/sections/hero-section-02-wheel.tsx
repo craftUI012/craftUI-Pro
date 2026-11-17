@@ -118,11 +118,15 @@ const Frame = ({
   const opacity = useTransform(offset, (o) => frameOpacity(o, count));
   const shade = useTransform(offset, (o) => Math.min(Math.abs(o) * 0.08, 0.45));
   const zIndex = useTransform(offset, (o) => 40 - Math.round(Math.abs(o)));
+  // The button's name (the description) hides what's inside it, so the
+  // picture's alt text comes through as its description instead.
+  const pictureId = useId();
 
   return (
     <motion.button
       ref={setRef}
       aria-current={isCrest || undefined}
+      aria-describedby={reel.alt ? pictureId : undefined}
       aria-label={reel.description}
       className={cn(
         "group/frame absolute top-0 left-0 cursor-grab outline-none select-none active:cursor-grabbing",
@@ -167,6 +171,7 @@ const Frame = ({
           <img
             alt={reel.alt}
             className="size-full object-cover"
+            id={pictureId}
             decoding="async"
             draggable={false}
             loading="lazy"

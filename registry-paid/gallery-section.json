@@ -21,7 +21,37 @@
       "Furniture, product and lifestyle brand websites",
       "Campaign and lookbook pages",
       "Studio and portfolio home pages"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "The rail stops drifting, and opening, closing, the dock swell and the custom cursor jump straight to their end state instead of easing. Focusing a photo still shifts the rail, instantly.",
+      "keyboard": [
+        {
+          "keys": "Tab",
+          "action": "Moves through the nine photos; the rail shifts to keep the focused one in view"
+        },
+        {
+          "keys": "← / →",
+          "action": "Moves focus to the previous or next photo, wrapping at the ends"
+        },
+        {
+          "keys": "Enter / Space",
+          "action": "Opens the focused photo large, or closes it again"
+        },
+        {
+          "keys": "Esc",
+          "action": "Closes the open photo"
+        }
+      ],
+      "notes": [
+        "The headline is an h2 by default (headingLevel sets 1 to 3).",
+        "Each photo is a button named by its alt text, like “A pale wooden bar stool against a soft blue wall”, with aria-expanded showing whether it is open; the image inside has empty alt.",
+        "The rail repeats the photos so it can loop, but only one set is focusable and exposed; the copies are aria-hidden and out of the Tab order.",
+        "The “View” / “Close” cursor disc is aria-hidden and only appears for a mouse or trackpad."
+      ],
+      "gaps": [
+        "With normal motion the rail drifts sideways without end and stops only while hovered, focused or open; there is no visible pause control, though `speed={0}` holds it still (WCAG 2.2.2 Pause, Stop, Hide)."
+      ]
+    }
   },
   "categories": ["marketing"],
   "type": "registry:block"

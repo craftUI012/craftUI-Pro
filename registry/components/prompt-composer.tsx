@@ -18,8 +18,15 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { ComponentProps, RefObject } from "react";
 
 import { cn } from "@/lib/utils";
@@ -169,6 +176,29 @@ export const DEFAULT_USAGE_LIMITS: UsageLimit[] = [
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
+/*
+ * The visitor's reduced-motion setting, for motion decided during render (the
+ * listening wave's loop, the tray's unfold). The first render reads false on
+ * server and client alike, so hydration matches; the real value follows.
+ */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+const subscribeReducedMotion = (onChange: () => void) => {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+
+const usePrefersReducedMotion = () =>
+  useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false
+  );
+
+/** Keyboard focus only: a mouse click also focuses, but shouldn't open things early. */
+const isKeyboardFocus = (element: Element) => element.matches(":focus-visible");
+
 const useDismissOnOutside = (
   ref: RefObject<HTMLDivElement | null>,
   onDismiss: () => void
@@ -188,6 +218,50 @@ const useDismissOnOutside = (
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [ref]);
+};
+
+/*
+ * Keyboard closing for the footer menus: Esc closes the open menu and hands
+ * focus back to its button, and tabbing out of the menu closes it too.
+ */
+const useKeyboardDismiss = (
+  ref: RefObject<HTMLDivElement | null>,
+  triggerRef: RefObject<HTMLButtonElement | null>,
+  open: boolean,
+  onDismiss: () => void
+) => {
+  const handlerRef = useRef(onDismiss);
+
+  useEffect(() => {
+    handlerRef.current = onDismiss;
+  }, [onDismiss]);
+
+  useEffect(() => {
+    const container = ref.current;
+    if (!open || !container) {
+      return;
+    }
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handlerRef.current();
+        triggerRef.current?.focus();
+      }
+    };
+    // Only when focus moves to something else on the page: a click on the
+    // menu's own padding blurs to nothing and must not close it.
+    const handleFocusOut = (e: FocusEvent) => {
+      const next = e.relatedTarget;
+      if (next instanceof Node && !container.contains(next)) {
+        handlerRef.current();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    container.addEventListener("focusout", handleFocusOut);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      container.removeEventListener("focusout", handleFocusOut);
+    };
+  }, [open, ref, triggerRef]);
 };
 
 const CircularProgress = ({
@@ -303,6 +377,7 @@ const MicButton = ({
 );
 
 const ListeningWave = () => {
+  const reduceMotion = usePrefersReducedMotion();
   const bars = [
     { delay: 0, duration: 0.6, maxScale: 1, minScale: 0.25 },
     { delay: 0.15, duration: 0.5, maxScale: 1.15, minScale: 0.35 },
@@ -318,16 +393,25 @@ const ListeningWave = () => {
           key={i}
           className="h-4 w-0.5 origin-center rounded-full bg-foreground/70"
           initial={{ scaleY: bar.minScale }}
-          animate={{ scaleY: [bar.minScale, bar.maxScale, bar.minScale] }}
-          transition={{
-            delay: bar.delay,
-            duration: bar.duration,
-            ease: "easeInOut",
-            repeat: Infinity,
+          // Reduced motion: the bars hold still at mid height.
+          animate={{
+            scaleY: reduceMotion
+              ? (bar.minScale + bar.maxScale) / 2
+              : [bar.minScale, bar.maxScale, bar.minScale],
           }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : {
+                  delay: bar.delay,
+                  duration: bar.duration,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                }
+          }
         />
       ))}
-      <span className="ml-2 text-base text-muted-foreground animate-pulse">
+      <span className="ml-2 text-base text-muted-foreground animate-pulse motion-reduce:animate-none">
         Listening...
       </span>
     </div>
@@ -637,6 +721,8 @@ export const QuickPromptsDropdown = ({
 }) => {
   const [promptsExpanded, setPromptsExpanded] = useState<boolean>(false);
   const [hoveredPrompt, setHoveredPrompt] = useState<number | null>(null);
+  const reduceMotion = usePrefersReducedMotion();
+  const listId = useId();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLButtonElement>(null);
@@ -732,7 +818,7 @@ export const QuickPromptsDropdown = ({
             initial={false}
             animate={{ clipPath }}
             transition={
-              isInitialMount.current
+              isInitialMount.current || reduceMotion
                 ? { duration: 0 }
                 : {
                     duration: 0.25,
@@ -748,7 +834,11 @@ export const QuickPromptsDropdown = ({
             )}
           >
             {/* Prompts list: Placed ABOVE the title Quick Prompts. Stays in DOM so clipPath physically slices through on exit */}
+            {/* inert while folded: the clipped-away prompts leave the Tab
+                order and the accessibility tree. */}
             <div
+              id={listId}
+              inert={!promptsExpanded}
               onMouseLeave={() => setHoveredPrompt(null)}
               className={cn(
                 "flex w-full flex-col space-y-0.5 pb-0.5",
@@ -768,6 +858,8 @@ export const QuickPromptsDropdown = ({
 
             {/* Header: Fixed at bottom-left */}
             <button
+              aria-controls={listId}
+              aria-expanded={promptsExpanded}
               className="group flex w-max pt-2 cursor-pointer items-center gap-1 px-2 py-1 select-none"
               onClick={handleToggle}
               ref={headerRef}
@@ -808,6 +900,7 @@ const PermissionMenuItem = ({
   onHover,
   onLeave,
   onSelect,
+  onKeyboardFocus,
 }: {
   mode: PermissionMode;
   isActive: boolean;
@@ -816,50 +909,72 @@ const PermissionMenuItem = ({
   onHover: () => void;
   onLeave: () => void;
   onSelect: () => void;
-}) => (
-  <button
-    type="button"
-    onClick={onSelect}
-    onMouseEnter={onHover}
-    onMouseLeave={onLeave}
-    className={cn(
-      "group text-xs relative flex w-full cursor-pointer flex-col rounded-xl p-2 text-left transition-colors select-none",
-      isActive
-        ? "text-foreground"
-        : "text-muted-foreground hover:text-foreground"
-    )}
-  >
-    <AnimatePresence>
-      {isHovered && (
-        <HoverIndicator
-          layoutId="v2-permission-hover-indicator"
-          rounded="rounded-xl"
-          bg="bg-accent"
-        />
+  onKeyboardFocus: () => void;
+}) => {
+  const subtitleId = useId();
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      // Keyboard focus shows the description at once (the mouse waits 1 s).
+      onFocus={(e) => {
+        if (isKeyboardFocus(e.currentTarget)) {
+          onKeyboardFocus();
+        }
+      }}
+      onBlur={onLeave}
+      aria-pressed={isActive}
+      aria-describedby={mode.subtitle ? subtitleId : undefined}
+      className={cn(
+        "group text-xs relative flex w-full cursor-pointer flex-col rounded-xl p-2 text-left transition-colors select-none",
+        isActive
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground"
       )}
-    </AnimatePresence>
-    <div className="relative z-10 flex w-full items-center gap-2">
-      {mode.id === "full-access" ? (
-        <Zap size={12} className="shrink-0 text-destructive" />
-      ) : (
-        <ShieldCheck size={12} className="shrink-0 text-muted-foreground" />
-      )}
-      <div
-        className={cn(
-          "text-xs font-medium",
-          mode.id === "full-access" ? "text-destructive" : "text-foreground"
+    >
+      <AnimatePresence>
+        {isHovered && (
+          <HoverIndicator
+            layoutId="v2-permission-hover-indicator"
+            rounded="rounded-xl"
+            bg="bg-accent"
+          />
         )}
-      >
-        {mode.label}
+      </AnimatePresence>
+      <div className="relative z-10 flex w-full items-center gap-2">
+        {mode.id === "full-access" ? (
+          <Zap size={12} className="shrink-0 text-destructive" />
+        ) : (
+          <ShieldCheck size={12} className="shrink-0 text-muted-foreground" />
+        )}
+        <div
+          className={cn(
+            "text-xs font-medium",
+            mode.id === "full-access" ? "text-destructive" : "text-foreground"
+          )}
+        >
+          {mode.label}
+        </div>
       </div>
-    </div>
-    {subtitleVisible && (
-      <div className="absolute left-full top-0 z-50 ml-2 w-44 rounded-lg bg-popover p-2 text-xs leading-snug font-normal text-muted-foreground shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)]">
+      {/* Screen readers get the description from here, always (hidden
+        keeps it out of the button's name; aria-describedby still reads it).
+        The floating copy below is for sight only. */}
+      <span hidden id={subtitleId}>
         {mode.subtitle}
-      </div>
-    )}
-  </button>
-);
+      </span>
+      {subtitleVisible && (
+        <div
+          aria-hidden
+          className="absolute left-full top-0 z-50 ml-2 w-44 rounded-lg bg-popover p-2 text-xs leading-snug font-normal text-muted-foreground shadow-[0_4px_16px_rgb(0_0_0/0.12),0_12px_32px_rgb(0_0_0/0.18)]"
+        >
+          {mode.subtitle}
+        </div>
+      )}
+    </button>
+  );
+};
 
 interface PermissionSelectorProps {
   modes?: PermissionMode[];
@@ -885,6 +1000,7 @@ const PermissionSelector = ({
     typeof setTimeout
   > | null>(null);
   const permissionDropdownRef = useRef<HTMLDivElement>(null);
+  const permissionTriggerRef = useRef<HTMLButtonElement>(null);
 
   const activeModeId = selectedModeId ?? internalModeId;
 
@@ -915,6 +1031,27 @@ const PermissionSelector = ({
     }, 1000);
   };
 
+  const handleModeKeyboardFocus = (modeId: string) => {
+    if (permissionSubtitleTimerRef.current) {
+      clearTimeout(permissionSubtitleTimerRef.current);
+    }
+    setHoveredPermission(modeId);
+    setPermissionSubtitleVisible(true);
+  };
+
+  const closePermissionDropdown = () => {
+    setPermissionDropdownOpen(false);
+    setHoveredPermission(null);
+    setPermissionSubtitleVisible(false);
+  };
+
+  useKeyboardDismiss(
+    permissionDropdownRef,
+    permissionTriggerRef,
+    permissionDropdownOpen,
+    closePermissionDropdown
+  );
+
   const handleModeLeave = (modeId: string) => {
     if (permissionSubtitleTimerRef.current) {
       clearTimeout(permissionSubtitleTimerRef.current);
@@ -934,7 +1071,9 @@ const PermissionSelector = ({
   return (
     <div className="relative flex items-center" ref={permissionDropdownRef}>
       <button
+        ref={permissionTriggerRef}
         type="button"
+        aria-expanded={permissionDropdownOpen}
         onClick={() => setPermissionDropdownOpen((prev) => !prev)}
         className={cn(
           "text-sm flex cursor-pointer items-center gap-2 rounded-full border-none bg-transparent px-2 py-2 font-normal transition-colors select-none hover:bg-foreground/5 dark:hover:bg-foreground/10",
@@ -954,7 +1093,7 @@ const PermissionSelector = ({
           height={14}
           strokeWidth={2}
           className={cn(
-            "shrink-0 transition-transform",
+            "shrink-0 transition-transform motion-reduce:transition-none",
             activeModeId === "full-access"
               ? "text-destructive"
               : "text-muted-foreground",
@@ -1004,6 +1143,7 @@ const PermissionSelector = ({
                   }
                   onHover={() => handleModeHover(mode.id)}
                   onLeave={() => handleModeLeave(mode.id)}
+                  onKeyboardFocus={() => handleModeKeyboardFocus(mode.id)}
                   onSelect={() => handleSelect(mode.id)}
                 />
               ))}
@@ -1072,11 +1212,12 @@ const ModelSelector = ({
       )
   );
   const modelDropdownRef = useRef<HTMLDivElement>(null);
+  const modelTriggerRef = useRef<HTMLButtonElement>(null);
   const submenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeModelId = selectedModelId ?? internalModelId;
 
-  useDismissOnOutside(modelDropdownRef, () => {
+  const closeModelDropdown = () => {
     if (submenuTimeoutRef.current) {
       clearTimeout(submenuTimeoutRef.current);
     }
@@ -1084,7 +1225,15 @@ const ModelSelector = ({
     setHoveredModel(null);
     setOpenSubmenuModelId(null);
     setHoveredDepth(null);
-  });
+  };
+
+  useDismissOnOutside(modelDropdownRef, closeModelDropdown);
+  useKeyboardDismiss(
+    modelDropdownRef,
+    modelTriggerRef,
+    modelDropdownOpen,
+    closeModelDropdown
+  );
 
   useEffect(
     () => () => {
@@ -1103,6 +1252,16 @@ const ModelSelector = ({
     submenuTimeoutRef.current = setTimeout(() => {
       setOpenSubmenuModelId(modelId);
     }, 400);
+  };
+
+  // Keyboard path to the depths: focusing a model opens its depth list at
+  // once, and Tab then walks into it (it sits right after the model).
+  const handleModelKeyboardFocus = (modelId: string) => {
+    if (submenuTimeoutRef.current) {
+      clearTimeout(submenuTimeoutRef.current);
+    }
+    setHoveredModel(modelId);
+    setOpenSubmenuModelId(modelId);
   };
 
   const handleModelMouseLeave = (modelId: string) => {
@@ -1141,22 +1300,26 @@ const ModelSelector = ({
   return (
     <div className="relative flex items-center" ref={modelDropdownRef}>
       <button
+        ref={modelTriggerRef}
         type="button"
+        aria-expanded={modelDropdownOpen}
         onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
         className="text-sm flex cursor-pointer items-center gap-1 rounded-full border-none bg-transparent px-3 py-2 font-normal text-muted-foreground transition-colors select-none hover:bg-foreground/5 dark:hover:bg-foreground/10 hover:text-foreground"
       >
+        {/* The " " between depth and model makes the name read "Quick
+            ChatGPT"; on screen the flex gap spaces them, as before. */}
         <span className="leading-none flex gap-1">
           <span className="text-xs font-light tracking-wide ">
             {currentDepthLabel}
-          </span>
-          {currentModel?.name}
+          </span>{" "}
+          <span>{currentModel?.name}</span>
         </span>
         <ChevronDown
           width={14}
           height={14}
           strokeWidth={2}
           className={cn(
-            "shrink-0 text-muted-foreground transition-transform",
+            "shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none",
             modelDropdownOpen && "rotate-180"
           )}
         />
@@ -1212,7 +1375,13 @@ const ModelSelector = ({
                   >
                     <button
                       type="button"
+                      aria-pressed={isActive}
                       onClick={() => handleSelectModel(model.id)}
+                      onFocus={(e) => {
+                        if (isKeyboardFocus(e.currentTarget)) {
+                          handleModelKeyboardFocus(model.id);
+                        }
+                      }}
                       className={cn(
                         "group text-xs relative flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left transition-colors select-none",
                         isActive
@@ -1262,6 +1431,7 @@ const ModelSelector = ({
                                 <button
                                   key={depth.id}
                                   type="button"
+                                  aria-pressed={isDepthActive}
                                   onClick={() =>
                                     handleSelectModel(model.id, depth.id)
                                   }
@@ -1413,7 +1583,9 @@ const PromptCapsule = ({
     <motion.div
       layout
       transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-      className="w-full rounded-3xl bg-muted p-2"
+      // The text field draws no outline of its own, so the composer shows
+      // the focus ring while the field has keyboard focus.
+      className="w-full rounded-3xl bg-muted p-2 has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50"
     >
       {/* Optional Attachments Pill Row */}
       <AnimatePresence initial={false}>
@@ -1448,6 +1620,8 @@ const PromptCapsule = ({
             onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder={placeholder}
+            // A real name: the placeholder disappears as you type.
+            aria-label="Message"
             className="w-full bg-transparent px-2 text-base font-normal text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
           />
         )}
@@ -1668,49 +1842,54 @@ export const PromptComposer = ({
   };
 
   return (
-    <div
-      className={cn(
-        "flex h-full w-full overflow-hidden bg-transparent text-foreground px-4 sm:px-6 lg:px-8",
-        className
-      )}
-      data-slot="prompt-composer"
-      {...props}
-    >
-      {/* Prompt box: centred */}
-      <div className="relative z-30 mx-auto w-full max-w-[640px] my-auto">
-        {/* Chat Window Outer Container */}
-        <div className="relative w-full">
-          {/* Quick Prompts Extension */}
-          <QuickPromptsDropdown
-            isVisible={showQuickPrompts}
-            prompts={quickPrompts}
-            onSelectPrompt={handleQuickPrompt}
-          />
+    // reducedMotion="user": for visitors who ask for reduced motion, menus
+    // and the tray fade without scaling or rising, and the hover pill and
+    // capsule resize jump instead of sliding.
+    <MotionConfig reducedMotion="user">
+      <div
+        className={cn(
+          "flex h-full w-full overflow-hidden bg-transparent text-foreground px-4 sm:px-6 lg:px-8",
+          className
+        )}
+        data-slot="prompt-composer"
+        {...props}
+      >
+        {/* Prompt box: centred */}
+        <div className="relative z-30 mx-auto w-full max-w-[640px] my-auto">
+          {/* Chat Window Outer Container */}
+          <div className="relative w-full">
+            {/* Quick Prompts Extension */}
+            <QuickPromptsDropdown
+              isVisible={showQuickPrompts}
+              prompts={quickPrompts}
+              onSelectPrompt={handleQuickPrompt}
+            />
 
-          {/* Stable Prompt Capsule: input row with controls and attachment pills */}
-          <PromptCapsule
-            value={inputValue}
-            onChange={handleInputChange}
-            onSubmit={handleSubmit}
-            placeholder={placeholder}
-            isListening={isListening}
-            onListeningChange={onListeningChange}
-            models={models}
-            selectedModelId={selectedModelId}
-            selectedDepthId={selectedDepthId}
-            onSelectModel={onSelectModel}
-            permissionModes={permissionModes}
-            selectedPermissionId={selectedPermissionId}
-            onSelectPermission={onSelectPermission}
-            usageLimits={usageLimits}
-            attachments={currentAttachments}
-            onRemoveAttachment={handleRemoveAttachment}
-            onSelectAttachment={handleAttachmentSelect}
-            disabled={disabled}
-          />
+            {/* Stable Prompt Capsule: input row with controls and attachment pills */}
+            <PromptCapsule
+              value={inputValue}
+              onChange={handleInputChange}
+              onSubmit={handleSubmit}
+              placeholder={placeholder}
+              isListening={isListening}
+              onListeningChange={onListeningChange}
+              models={models}
+              selectedModelId={selectedModelId}
+              selectedDepthId={selectedDepthId}
+              onSelectModel={onSelectModel}
+              permissionModes={permissionModes}
+              selectedPermissionId={selectedPermissionId}
+              onSelectPermission={onSelectPermission}
+              usageLimits={usageLimits}
+              attachments={currentAttachments}
+              onRemoveAttachment={handleRemoveAttachment}
+              onSelectAttachment={handleAttachmentSelect}
+              disabled={disabled}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 };
 

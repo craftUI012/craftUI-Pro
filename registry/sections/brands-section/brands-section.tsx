@@ -6,7 +6,7 @@ import {
   useInView,
   useReducedMotion,
 } from "motion/react";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useId, useReducer, useRef, useState } from "react";
 import type { ComponentProps } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,13 @@ import { cn } from "@/lib/utils";
  * the pointer or focus leaves. The cycle only runs while the list is on
  * screen. With reduced motion nothing cycles by itself and every change is
  * instant.
+ *
+ * Since the cycle may never run (reduced motion, focus resting in the
+ * list), a "Show more brands" button after the rows swaps the waiting
+ * brands in at once. It's hidden until focused, and always shown with
+ * reduced motion. Each brand's link carries its category, count and the
+ * products' alt text as its description, since the photos themselves are
+ * hidden from screen readers (they swap on every step).
  * ───────────────────────────────────────────────────────────────────────── */
 
 // Everything below animates only `transform`, `opacity` and `filter`, each
@@ -235,6 +242,7 @@ interface Cycle {
 
 type CycleAction =
   | { type: "advance" }
+  | { type: "more" }
   | { keyboard: boolean; row: number; type: "select" };
 
 const startCycle = ({ total, visible }: { total: number; visible: number }) => {
@@ -253,6 +261,16 @@ const rollRow = (rolls: number[], row: number) =>
   rolls.map((count, i) => (i === row ? count + 1 : count));
 
 const cycleReducer = (state: Cycle, action: CycleAction): Cycle => {
+  if (action.type === "more") {
+    // Every waiting brand (up to a row each) rolls in at once, below the lit
+    // row as the cycle would bring them, and the light stays where it is.
+    let next = state;
+    const steps = Math.min(state.queue.length, state.slots.length);
+    for (let i = 0; i < steps; i += 1) {
+      next = cycleReducer(next, { type: "advance" });
+    }
+    return { ...next, active: state.active, instant: true };
+  }
   if (action.type === "select") {
     if (state.active === action.row) {
       return state;
@@ -489,6 +507,9 @@ export const BrandsSection = ({
   useEffect(() => () => window.clearTimeout(intent.current), []);
   const onScreen = useInView(list, { amount: 0.3 });
   const reduced = useReducedMotion() ?? false;
+  const idBase = useId();
+  // What "Show more brands" brought in, read out once by the status line.
+  const [announcement, setAnnouncement] = useState("");
 
   const running = onScreen && !reduced && !held.focus && !held.pointer;
 
@@ -535,6 +556,14 @@ export const BrandsSection = ({
   const still = reduced || cycle.instant;
   const move: ShotMove = { d: cycle.direction, still };
 
+  const showMore = () => {
+    const incoming = cycle.queue
+      .slice(0, cycle.slots.length)
+      .map((index) => brands[index].name);
+    dispatch({ type: "more" });
+    setAnnouncement(`Now showing ${incoming.join(", ")}.`);
+  };
+
   return (
     <section
       data-slot="brands-section"
@@ -579,8 +608,10 @@ export const BrandsSection = ({
             "mt-12 gap-y-4 lg:mt-16 lg:grid-rows-2 lg:gap-y-6"
           )}
         >
+          {/* Flex gaps, not space-y: the hidden "Show more brands" row is
+              out of flow until shown, so it adds no space at rest. */}
           <ul
-            className="col-span-4 row-start-1 -mb-2 min-w-0 space-y-1 pb-2 mask-[linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] max-lg:mb-6 md:col-span-8 md:space-y-2 lg:col-span-6 lg:row-span-2 lg:mask-none"
+            className="col-span-4 row-start-1 -mb-2 flex min-w-0 flex-col gap-1 pb-2 mask-[linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] max-lg:mb-6 md:col-span-8 md:gap-2 lg:col-span-6 lg:row-span-2 lg:mask-none"
             onBlur={(event) => {
               if (!event.currentTarget.contains(event.relatedTarget)) {
                 setHeld((h) => ({ ...h, focus: false }));
@@ -598,9 +629,21 @@ export const BrandsSection = ({
             {cycle.slots.map((brandIndex, row) => {
               const item = brands[brandIndex];
               const isLit = row === cycle.active;
+              const detailsId = `${idBase}-details-${row}`;
               return (
                 <li key={row}>
+                  {/* The products' alt text, as the link's description. */}
+                  <span hidden id={detailsId}>
+                    {[
+                      item.category,
+                      item.products ? `${item.products} products` : null,
+                      ...item.images.map((image) => image.alt),
+                    ]
+                      .filter(Boolean)
+                      .join(". ")}
+                  </span>
                   <a
+                    aria-describedby={detailsId}
                     aria-label={item.name}
                     className={cn(
                       "group/brand relative flex min-h-10 w-full items-center rounded-lg transition-colors duration-200 outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground motion-reduce:transition-none sm:min-h-12 lg:min-h-16 xl:min-h-18",
@@ -626,6 +669,7 @@ export const BrandsSection = ({
                     onPointerLeave={() => window.clearTimeout(intent.current)}
                   >
                     <span className="pointer-events-none block h-10 w-0 shrink-0 overflow-hidden rounded-md transition-[width,margin-right] duration-300 ease-[cubic-bezier(0.645,0.045,0.355,1)] group-data-active/brand:mr-3 group-data-active/brand:w-10 motion-reduce:transition-none sm:h-12 sm:group-data-active/brand:w-12 lg:h-16 lg:rounded-xl lg:group-data-active/brand:mr-4 lg:group-data-active/brand:w-16 xl:h-18 xl:group-data-active/brand:w-18">
+                      {/* oxlint-disable-next-line nextjs/no-img-element -- Any URL the host passes, with no next.config image domains to set up. */}
                       <img
                         alt=""
                         className="size-10 max-w-none bg-muted object-cover sm:size-12 lg:size-16 xl:size-18"
@@ -647,7 +691,21 @@ export const BrandsSection = ({
                 </li>
               );
             })}
+            {cycle.queue.length > 0 ? (
+              <li className="sr-only focus-within:not-sr-only motion-reduce:not-sr-only">
+                <button
+                  className="rounded-sm py-1 text-sm text-muted-foreground underline decoration-foreground/30 underline-offset-4 outline-none hover:text-foreground hover:decoration-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground"
+                  onClick={showMore}
+                  type="button"
+                >
+                  Show more brands
+                </button>
+              </li>
+            ) : null}
           </ul>
+          <p className="sr-only" role="status">
+            {announcement}
+          </p>
 
           {CELLS.map((cell, shot) => (
             <div

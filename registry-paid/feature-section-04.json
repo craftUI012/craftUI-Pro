@@ -22,7 +22,17 @@
       "Crypto wallet and fintech app websites",
       "Security and privacy feature pages",
       "Mobile app landing pages with a device mockup"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "It doesn’t animate, so nothing changes.",
+      "keyboard": [],
+      "notes": [
+        "The headline is an h2 by default (headingLevel sets 1 to 3), and each feature title is one level below it, inside two lists of tiles.",
+        "The blurred background photo has empty alt text, and the phone mockup (including its on-screen text), icon plates and engraving are SVGs marked aria-hidden.",
+        "Screen readers get the headline, the intro and the five feature titles with their descriptions, in that order."
+      ],
+      "gaps": []
+    }
   },
   "categories": ["finance", "marketing"],
   "type": "registry:block"

@@ -37,7 +37,9 @@ import { cn } from "@/lib/utils";
  *   the section pins; the page's scroll slides the press cards left, 1px
  *   for 1px. Each card stops at the left edge a slice past the one before
  *   (`peek`) and the next slides over it, so the features pile up like
- *   cuttings and the last ends in full view
+ *   cuttings and the last ends in full view. Under reduced motion the
+ *   cards don't glide with the scroll: each one drops into its place in
+ *   the stack at once, halfway through its stretch of scroll
  *
  * Open: one card leaves the deck (ms after the click)
  *      0ms   the cards lying on top of it slide off to the right (deck
@@ -362,7 +364,7 @@ const FeatureDetails = ({
             aria-hidden
             className="grid size-11 place-items-center bg-black/20"
           >
-            <ArrowIcon className="size-3.5 transition-transform duration-200 ease-out group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
+            <ArrowIcon className="size-3.5 transition-transform duration-200 ease-out group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 motion-reduce:group-hover/link:translate-0" />
           </span>
           <span className="sr-only">
             {isExternal(feature.href)
@@ -566,8 +568,10 @@ const FeatureCard = ({
           <time className="font-medium" dateTime={feature.date}>
             {formatDate(feature.date)}
           </time>
+          {/* Not aria-hidden: from sm up this is the only copy of the kind
+              (the phone copy above is display: none there). */}
           {feature.kind ? (
-            <span aria-hidden className="hidden text-foreground/65 sm:inline">
+            <span className="hidden text-foreground/65 sm:inline">
               {feature.kind}
             </span>
           ) : null}
@@ -745,11 +749,16 @@ export const EditorialSection = ({
 
     const draw = () => {
       const { peek, travel, width } = geometry.current;
-      const scrolled = clamp(
+      const raw = clamp(
         viewTop() - section.getBoundingClientRect().top,
         0,
         travel
       );
+      // Reduced motion: the scroll moves the deck in whole steps, one card
+      // per step, so nothing slides continuously under the visitor's scroll.
+      const step = width - peek;
+      const scrolled =
+        reduceMotion && step > 0 ? Math.round(raw / step) * step : raw;
       const parted = part.get();
       const chosen = outRef.current;
       const railWidth = rail.clientWidth;
@@ -816,7 +825,7 @@ export const EditorialSection = ({
       stopPart();
       scrollTarget.removeEventListener("scroll", draw);
     };
-  }, [count, part, scroller]);
+  }, [count, part, reduceMotion, scroller]);
 
   // ── Open and close ──────────────────────────────────────────────────────
   /** Parts (1) or closes (0) the deck; at once under reduced motion. */

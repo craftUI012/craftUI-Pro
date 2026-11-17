@@ -5,7 +5,7 @@
  * for this file only. */
 /* oxlint-disable func-style, sort-keys, curly, no-nested-ternary, no-negated-condition, unicorn/no-nested-ternary, jsx-a11y/alt-text, nextjs/no-img-element, no-inline-comments, no-plusplus, typescript/array-type, typescript/consistent-type-definitions, unicorn/prefer-string-replace-all, unicorn/no-array-sort, unicorn/prefer-spread */
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import * as React from "react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -66,6 +66,13 @@ export interface AvatarGridProps {
    * the grid having to know anything about how they are laid out.
    */
   onActiveChange?: (id: string | null) => void;
+  /**
+   * Whether the member tiles are Tab stops and read by screen readers.
+   * Defaults to true. Pass false when a list outside the grid offers the
+   * same choice, so each person isn't reached twice under the same name;
+   * the tiles still answer the mouse and touch.
+   */
+  focusable?: boolean;
   className?: string;
 }
 
@@ -228,27 +235,20 @@ function RoleBadge({
   member,
   renderBadge,
   side,
-  reduceMotion,
 }: {
   member: AvatarMember;
   renderBadge?: (member: AvatarMember) => React.ReactNode;
   side: "left" | "right";
-  reduceMotion: boolean | null;
 }) {
   const content = renderBadge ? renderBadge(member) : member.role;
   const isLeft = side === "left";
   const offset = isLeft ? 8 : -8;
   return (
     <motion.div
-      initial={
-        reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9, x: offset }
-      }
-      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, x: 0 }}
-      exit={
-        reduceMotion
-          ? { opacity: 0 }
-          : { opacity: 0, scale: 0.92, x: offset * 0.75 }
-      }
+      // With reduced motion, AvatarGrid's MotionConfig keeps only the fade.
+      initial={{ opacity: 0, scale: 0.9, x: offset }}
+      animate={{ opacity: 1, scale: 1, x: 0 }}
+      exit={{ opacity: 0, scale: 0.92, x: offset * 0.75 }}
       transition={{ duration: 0.18, ease: EASE_FADE }}
       // Hook for callers that want the badge at some breakpoints only — a
       // section that renders roles in its own copy column can hide these with
@@ -277,6 +277,31 @@ function RoleBadge({
   );
 }
 
+// ── Reduced motion ────────────────────────────────────────────────────────────
+
+/**
+ * The visitor's reduced-motion setting, for the hover lift and the press.
+ * The first render always says "no preference": the server can't know the
+ * setting, and a first render that differs from the server's breaks
+ * hydration. The real value follows straight after. (Entrances don't need
+ * this: the MotionConfig in AvatarGrid handles them.)
+ */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function usePrefersReducedMotion() {
+  return React.useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false
+  );
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 
 export default function AvatarGrid({
@@ -293,10 +318,11 @@ export default function AvatarGrid({
   selectedId: selectedIdProp,
   onSelect,
   onActiveChange,
+  focusable = true,
   className,
 }: AvatarGridProps = {}) {
   const scopeId = React.useId().replace(/:/g, "");
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   // Split state, the same way contact-reveal-card does it: hover is a preview,
   // click commits. Without the committed half there is no way to pick a member
   // on a touch device, where hover doesn't exist.
@@ -332,11 +358,11 @@ export default function AvatarGrid({
    * moving to say so. Same for the hover lift and the press, handled below.
    */
   const enter = {
-    initial: reduceMotion
-      ? { opacity: 0 }
-      : // 0.95, never 0 — nothing appears from nothing.
-        { opacity: 0, scale: 0.95 },
-    animate: reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 },
+    // 0.95, never 0 — nothing appears from nothing. The same values for
+    // everyone, so the server's render matches the browser's; with reduced
+    // motion the MotionConfig below drops the scale and keeps the fade.
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
     transition: (rank: number) => ({
       duration: ENTRANCE_DURATION,
       ease: EASE_ENTRANCE,
@@ -393,16 +419,17 @@ export default function AvatarGrid({
   }, [rows, columns, occupied]);
 
   return (
-    <div
-      style={AVATAR_VARS}
-      className={`flex h-full w-full items-center justify-center bg-[var(--avatar-surface)] p-6 ${className ?? ""}`}
-    >
+    <MotionConfig reducedMotion="user">
       <div
-        className={`relative grid aspect-square w-full max-w-[460px] ${GRID_GAP}`}
-        style={gridTemplate}
-        onMouseLeave={() => setHoveredId(null)}
+        style={AVATAR_VARS}
+        className={`flex h-full w-full items-center justify-center bg-[var(--avatar-surface)] p-6 ${className ?? ""}`}
       >
-        {/*
+        <div
+          className={`relative grid aspect-square w-full max-w-[460px] ${GRID_GAP}`}
+          style={gridTemplate}
+          onMouseLeave={() => setHoveredId(null)}
+        >
+          {/*
           Depth is a layered box-shadow, not a border: the ring layer reads as
           the 1px edge while the two soft layers do the lift, and because every
           layer is transparent it holds up over any background the block is
@@ -411,8 +438,8 @@ export default function AvatarGrid({
           style block because a three-layer shadow with commas doesn't survive
           Tailwind's arbitrary-value syntax cleanly.
         */}
-        <style>
-          {`
+          <style>
+            {`
             .tile-${scopeId} {
               box-shadow:
                 0px 0px 0px 1px oklch(0 0 0 / 0.06),
@@ -486,162 +513,172 @@ export default function AvatarGrid({
               --edge-b: oklch(1 0 0 / 0.07);
             }
           `}
-        </style>
+          </style>
 
-        {/*
+          {/*
           Placeholder shells live on their own layer so the radial mask can fade
           them out towards the edges without touching the avatars stacked above
           — masking the whole grid would dim the outer cards with them. The
           layer mirrors the parent's tracks and gap exactly, so the shells stay
           on the same grid they would have occupied inline.
         */}
-        <div
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 grid ${GRID_GAP}`}
-          style={{
-            ...gridTemplate,
-            maskImage: mask || undefined,
-            WebkitMaskImage: mask || undefined,
-          }}
-        >
-          {emptyCells.map(([row, column]) => (
-            <EmptyTile key={`empty-${row}-${column}`} cell={[row, column]} />
-          ))}
-        </div>
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-0 grid ${GRID_GAP}`}
+            style={{
+              ...gridTemplate,
+              maskImage: mask || undefined,
+              WebkitMaskImage: mask || undefined,
+            }}
+          >
+            {emptyCells.map(([row, column]) => (
+              <EmptyTile key={`empty-${row}-${column}`} cell={[row, column]} />
+            ))}
+          </div>
 
-        {/* Brand mark — same tile geometry as an avatar, so the cluster stays
+          {/* Brand mark — same tile geometry as an avatar, so the cluster stays
             on grid. Rank 0 of the entrance: the cluster is built around it, so
             it is the thing the eye should be given first. */}
-        <motion.div
-          style={{ gridRow: logoCell[0], gridColumn: logoCell[1] }}
-          className={`tile-${scopeId} relative flex items-center justify-center rounded-[26%] bg-[var(--avatar-muted)] text-[var(--avatar-fg)]`}
-          initial={enter.initial}
-          animate={enter.animate}
-          transition={enter.transition(0)}
-        >
-          {logo}
-          <span aria-hidden="true" className={`logo-edge-${scopeId}`} />
-        </motion.div>
-
-        {extraTiles.map((tile) => (
-          <div
-            key={`extra-${tile.cell[0]}-${tile.cell[1]}`}
-            style={{ gridRow: tile.cell[0], gridColumn: tile.cell[1] }}
-            className="relative"
+          <motion.div
+            style={{ gridRow: logoCell[0], gridColumn: logoCell[1] }}
+            className={`tile-${scopeId} relative flex items-center justify-center rounded-[26%] bg-[var(--avatar-muted)] text-[var(--avatar-fg)]`}
+            initial={enter.initial}
+            animate={enter.animate}
+            transition={enter.transition(0)}
           >
-            {tile.content}
-          </div>
-        ))}
+            {logo}
+            <span aria-hidden="true" className={`logo-edge-${scopeId}`} />
+          </motion.div>
 
-        {members.map((member) => {
-          const isActive = activeId === member.id;
-          return (
-            // Two layers on purpose: the outer one owns the entrance, the
-            // inner one owns hover and press. Sharing a single element would
-            // mean one `transition` serving a delayed tween and an
-            // interruptible spring at once, and the entrance delay would leak
-            // into every hover.
-            <motion.div
-              key={member.id}
-              style={{ gridRow: member.cell[0], gridColumn: member.cell[1] }}
-              // z-index has to jump on hover or the lifted tile slides under
-              // its neighbours mid-animation.
-              className={`relative ${isActive ? "z-10" : "z-0"}`}
-              initial={enter.initial}
-              animate={enter.animate}
-              transition={enter.transition(ringRank.get(member.id) ?? 1)}
+          {extraTiles.map((tile) => (
+            <div
+              key={`extra-${tile.cell[0]}-${tile.cell[1]}`}
+              style={{ gridRow: tile.cell[0], gridColumn: tile.cell[1] }}
+              className="relative"
             >
-              <motion.div
-                className="size-full"
-                // Hover only ever comes from a real pointer. On touch, tapping
-                // fires enter with no matching leave, which would strand a
-                // tile lifted and in colour until something else was tapped.
-                onPointerEnter={(event) => {
-                  if (event.pointerType === "mouse") setHoveredId(member.id);
-                }}
-                onPointerLeave={(event) => {
-                  if (event.pointerType === "mouse") setHoveredId(null);
-                }}
-                onFocusCapture={() => setHoveredId(member.id)}
-                onBlurCapture={() => setHoveredId(null)}
-                animate={{ scale: reduceMotion ? 1 : isActive ? 1.03 : 1 }}
-                // Press wins over the hover lift — Motion gives gesture props
-                // priority over `animate`, so the two never fight.
-                whileTap={reduceMotion ? undefined : { scale: 0.96 }}
-                transition={SPRING}
-              >
-                <button
-                  type="button"
-                  aria-label={`${member.name} — ${member.role}`}
-                  aria-pressed={selectedId === member.id}
-                  onClick={() => select(member.id)}
-                  className={`tile-${scopeId} relative block size-full cursor-pointer overflow-hidden rounded-[26%] transition-[box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--avatar-ring)]`}
-                >
-                  <img
-                    src={member.src}
-                    alt=""
-                    // outline, not border or ring: it sits inset without adding
-                    // to the layout, and it follows the border-radius. Pure
-                    // black/white at 10% — a tinted neutral picks up the surface
-                    // underneath and reads as dirt on the photo edge.
-                    //
-                    // The filter timing is tuned to the lift's spring rather
-                    // than left on Tailwind's default: colour and lift are one
-                    // object answering one hover, so they have to land together.
-                    className="size-full rounded-[26%] object-cover object-center outline-1 -outline-offset-1 outline-black/10 transition-[filter,opacity] duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] dark:outline-white/10"
-                    // Two-part state, one gesture: the active face gains its
-                    // colour and the rest step back. The dim only applies once
-                    // something is active — at rest every face sits at full
-                    // strength, so the cluster still reads as a group portrait
-                    // rather than a permanently deselected list.
-                    style={{
-                      filter: isActive ? "none" : "grayscale(1)",
-                      opacity: !activeId || isActive ? 1 : DIM_OPACITY,
-                    }}
-                    draggable={false}
-                  />
-                </button>
-              </motion.div>
+              {tile.content}
+            </div>
+          ))}
 
-              {/* Outside the hover layer on purpose: nested in it, the badge
+          {members.map((member) => {
+            const isActive = activeId === member.id;
+            return (
+              // Two layers on purpose: the outer one owns the entrance, the
+              // inner one owns hover and press. Sharing a single element would
+              // mean one `transition` serving a delayed tween and an
+              // interruptible spring at once, and the entrance delay would leak
+              // into every hover.
+              <motion.div
+                key={member.id}
+                style={{ gridRow: member.cell[0], gridColumn: member.cell[1] }}
+                // z-index has to jump on hover or the lifted tile slides under
+                // its neighbours mid-animation.
+                className={`relative ${isActive ? "z-10" : "z-0"}`}
+                initial={enter.initial}
+                animate={enter.animate}
+                transition={enter.transition(ringRank.get(member.id) ?? 1)}
+              >
+                <motion.div
+                  className="size-full"
+                  // Not a Tab stop: Motion makes an element with a press
+                  // gesture focusable unless told otherwise, which put a
+                  // nameless, roleless stop before every member's button.
+                  // The button inside is what keyboards and screen readers
+                  // use.
+                  tabIndex={-1}
+                  // Hover only ever comes from a real pointer. On touch, tapping
+                  // fires enter with no matching leave, which would strand a
+                  // tile lifted and in colour until something else was tapped.
+                  onPointerEnter={(event) => {
+                    if (event.pointerType === "mouse") setHoveredId(member.id);
+                  }}
+                  onPointerLeave={(event) => {
+                    if (event.pointerType === "mouse") setHoveredId(null);
+                  }}
+                  onFocusCapture={() => setHoveredId(member.id)}
+                  onBlurCapture={() => setHoveredId(null)}
+                  animate={{ scale: reduceMotion ? 1 : isActive ? 1.03 : 1 }}
+                  // Press wins over the hover lift — Motion gives gesture props
+                  // priority over `animate`, so the two never fight.
+                  whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+                  transition={SPRING}
+                >
+                  <button
+                    type="button"
+                    aria-label={`${member.name} — ${member.role}`}
+                    aria-pressed={selectedId === member.id}
+                    // With `focusable` off, the outside list is the keyboard
+                    // and screen-reader path; these become pointer-only.
+                    aria-hidden={focusable ? undefined : true}
+                    tabIndex={focusable ? undefined : -1}
+                    onClick={() => select(member.id)}
+                    className={`tile-${scopeId} relative block size-full cursor-pointer overflow-hidden rounded-[26%] transition-[box-shadow] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--avatar-ring)]`}
+                  >
+                    <img
+                      src={member.src}
+                      alt=""
+                      // outline, not border or ring: it sits inset without adding
+                      // to the layout, and it follows the border-radius. Pure
+                      // black/white at 10% — a tinted neutral picks up the surface
+                      // underneath and reads as dirt on the photo edge.
+                      //
+                      // The filter timing is tuned to the lift's spring rather
+                      // than left on Tailwind's default: colour and lift are one
+                      // object answering one hover, so they have to land together.
+                      className="size-full rounded-[26%] object-cover object-center outline-1 -outline-offset-1 outline-black/10 transition-[filter,opacity] duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] dark:outline-white/10"
+                      // Two-part state, one gesture: the active face gains its
+                      // colour and the rest step back. The dim only applies once
+                      // something is active — at rest every face sits at full
+                      // strength, so the cluster still reads as a group portrait
+                      // rather than a permanently deselected list.
+                      style={{
+                        filter: isActive ? "none" : "grayscale(1)",
+                        opacity: !activeId || isActive ? 1 : DIM_OPACITY,
+                      }}
+                      draggable={false}
+                    />
+                  </button>
+                </motion.div>
+
+                {/* Outside the hover layer on purpose: nested in it, the badge
                   would inherit the 1.08 lift and its text would scale with the
                   photo. Side follows the tile's column so a badge on a
                   left-hand tile points inward, never off the grid. */}
-              <AnimatePresence initial={false}>
-                {roleBadges && isActive && (
-                  <RoleBadge
-                    key={member.id}
-                    // The caller's render function is handed down rather than
-                    // called here: invoking opaque code with a member in this
-                    // scope makes the React Compiler treat `members` as
-                    // possibly mutated, and it bails out of memoizing
-                    // everything derived from it. Inside the badge — a
-                    // component with no memoization to lose — it costs nothing.
-                    member={member}
-                    renderBadge={renderBadge}
-                    // Outermost columns always point inward — a badge hung off
-                    // column 1 has nothing to hang into and leaves the grid
-                    // entirely, which is what happens on a compact 3-wide
-                    // layout where every tile is an edge tile. Everything in
-                    // between points away from the centre, so badges don't
-                    // land on top of the brand mark.
-                    side={
-                      member.cell[1] === 1
-                        ? "right"
-                        : member.cell[1] === columns
-                          ? "left"
-                          : member.cell[1] <= logoCell[1]
+                <AnimatePresence initial={false}>
+                  {roleBadges && isActive && (
+                    <RoleBadge
+                      key={member.id}
+                      // The caller's render function is handed down rather than
+                      // called here: invoking opaque code with a member in this
+                      // scope makes the React Compiler treat `members` as
+                      // possibly mutated, and it bails out of memoizing
+                      // everything derived from it. Inside the badge — a
+                      // component with no memoization to lose — it costs nothing.
+                      member={member}
+                      renderBadge={renderBadge}
+                      // Outermost columns always point inward — a badge hung off
+                      // column 1 has nothing to hang into and leaves the grid
+                      // entirely, which is what happens on a compact 3-wide
+                      // layout where every tile is an edge tile. Everything in
+                      // between points away from the centre, so badges don't
+                      // land on top of the brand mark.
+                      side={
+                        member.cell[1] === 1
+                          ? "right"
+                          : member.cell[1] === columns
                             ? "left"
-                            : "right"
-                    }
-                    reduceMotion={reduceMotion}
-                  />
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
+                            : member.cell[1] <= logoCell[1]
+                              ? "left"
+                              : "right"
+                      }
+                    />
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }

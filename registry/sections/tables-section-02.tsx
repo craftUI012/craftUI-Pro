@@ -1077,17 +1077,22 @@ const TicketsHeader = ({
       </p>
     </div>
     <div className="flex flex-wrap items-center gap-2">
-      <Button variant="outline" onClick={onExport}>
+      {/* The shortcut letters are for the eye; screen readers get them from
+          aria-keyshortcuts instead of hearing "Export E". */}
+      <Button aria-keyshortcuts="E" variant="outline" onClick={onExport}>
         <Download aria-hidden className="size-4" />
         Export
-        <Kbd>E</Kbd>
+        <Kbd aria-hidden>E</Kbd>
       </Button>
-      <Button onClick={onNew}>
+      <Button aria-keyshortcuts="C" onClick={onNew}>
         <span aria-hidden className="text-base leading-none">
           +
         </span>
         New ticket
-        <Kbd className="bg-primary-foreground/20 text-primary-foreground shadow-none dark:bg-primary-foreground/20">
+        <Kbd
+          aria-hidden
+          className="bg-primary-foreground/20 text-primary-foreground shadow-none dark:bg-primary-foreground/20"
+        >
           C
         </Kbd>
       </Button>
@@ -1112,7 +1117,10 @@ const ViewTabs = ({
     {/* One row that scrolls sideways on small screens. Tabs keep their own
         width (flex-none overrides the shadcn trigger's flex-1), so nothing
         stretches or wraps; the scrollbar is hidden. */}
-    <TabsList className="w-full justify-start overflow-x-auto [scrollbar-width:none] sm:w-fit [&::-webkit-scrollbar]:hidden">
+    <TabsList
+      aria-label="Ticket views"
+      className="w-full justify-start overflow-x-auto [scrollbar-width:none] sm:w-fit [&::-webkit-scrollbar]:hidden"
+    >
       {VIEWS.map((item) => (
         <TabsTrigger
           key={item.id}
@@ -1389,6 +1397,7 @@ const SearchBox = ({
       onChange={(event) => onQueryChange(event.target.value)}
       placeholder="Search tickets, people, tags..."
       aria-label="Search tickets"
+      aria-keyshortcuts="/"
       className="pr-12 pl-8"
     />
     {query ? (
@@ -1404,7 +1413,9 @@ const SearchBox = ({
         <X aria-hidden className="size-4" />
       </button>
     ) : (
-      <Kbd className="absolute top-1/2 right-2.5 -translate-y-1/2">/</Kbd>
+      <Kbd aria-hidden className="absolute top-1/2 right-2.5 -translate-y-1/2">
+        /
+      </Kbd>
     )}
   </div>
 );
@@ -2181,7 +2192,7 @@ const NewTicketDialog = ({
             <DialogTitle>New ticket</DialogTitle>
             <DialogDescription>
               Log a conversation on a customer&apos;s behalf. They get a copy by
-              email.
+              email. Subject and email are required.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -2193,6 +2204,7 @@ const NewTicketDialog = ({
                 onChange={(event) => set({ subject: event.target.value })}
                 placeholder="Can't connect the Slack integration"
                 maxLength={120}
+                required
                 autoFocus
               />
             </div>
@@ -2211,6 +2223,7 @@ const NewTicketDialog = ({
                 <Input
                   id={`${id}-email`}
                   type="email"
+                  required
                   value={form.email}
                   onChange={(event) => set({ email: event.target.value })}
                   placeholder="jordan@acme.com"
@@ -2436,7 +2449,10 @@ const TicketSheet = ({
         }
       }}
     >
-      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md">
+      {/* With reduced motion the sheet fades in and out instead of
+          sliding: the translate is zeroed (important, to beat the
+          primitive's state selectors) and a fade takes its place. */}
+      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md motion-reduce:[--tw-enter-translate-x:0]! motion-reduce:[--tw-exit-translate-x:0]! motion-reduce:data-[state=closed]:fade-out-0 motion-reduce:data-[state=open]:fade-in-0">
         {row && (
           <>
             <SheetHeader className="border-b">
@@ -2606,18 +2622,13 @@ const matchesFilters = (
   ].some((text) => text.toLowerCase().includes(query));
 };
 
-// Keyboard shortcuts belong to one table at a time: the one with focus or
-// the pointer over it, or the only one on the page. Without this, two tables
-// on one page would both answer the same key.
-const ownsShortcuts = (section: HTMLElement | null): boolean => {
-  if (!section) {
-    return false;
-  }
-  if (section.contains(document.activeElement) || section.matches(":hover")) {
-    return true;
-  }
-  return document.querySelectorAll("[data-shortcuts]").length === 1;
-};
+// Keyboard shortcuts work only while focus is inside this table, so a
+// single letter typed elsewhere on the page (or by speech input) never
+// fires one, and two tables on one page never answer the same key. A click
+// anywhere in the section focuses it (it has tabIndex -1), so mouse users
+// arm them by clicking the table.
+const ownsShortcuts = (section: HTMLElement | null): boolean =>
+  section !== null && section.contains(document.activeElement);
 
 export default function TablesSection02({
   initialTickets,
@@ -2708,6 +2719,34 @@ export default function TablesSection02({
   }, [inCurrentView, query, filters, sort, now]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+  // After a search, filter or view change settles, say how many tickets now
+  // match. Keyed on what the visitor changed, not on the count, so ticking
+  // timers, refreshes and edits don't announce; the short wait lets a typed
+  // search finish before it's read out.
+  const matchCount = React.useRef(filtered.length);
+  React.useEffect(() => {
+    matchCount.current = filtered.length;
+  });
+  const matchKey = [
+    view,
+    query.trim().toLowerCase(),
+    [...filters.status].join(","),
+    [...filters.priority].join(","),
+    filters.assignee,
+  ].join("|");
+  const firstMatchKey = React.useRef(matchKey);
+  React.useEffect(() => {
+    if (matchKey === firstMatchKey.current) {
+      return;
+    }
+    firstMatchKey.current = "";
+    const id = setTimeout(() => {
+      const n = matchCount.current;
+      setAnnouncement(n === 1 ? "1 ticket matches." : `${n} tickets match.`);
+    }, 600);
+    return () => clearTimeout(id);
+  }, [matchKey]);
 
   React.useEffect(() => {
     if (page > totalPages) {
@@ -2909,7 +2948,13 @@ export default function TablesSection02({
       ref={sectionRef}
       data-slot="tables-section-02"
       data-shortcuts=""
-      className={cn("bg-background text-foreground w-full", className)}
+      // Focusable by click only (not a Tab stop), so clicking the table
+      // puts focus inside it and its shortcuts answer.
+      tabIndex={-1}
+      className={cn(
+        "bg-background text-foreground w-full outline-none",
+        className
+      )}
     >
       {/* Fills whatever it's placed in: the host page or app layout sets the
           width. Only side padding, so it never touches the edges. */}
@@ -2958,10 +3003,14 @@ export default function TablesSection02({
               onClick={refresh}
               disabled={loading}
               aria-label="Refresh tickets"
+              aria-keyshortcuts="R"
             >
               <RefreshCw
                 aria-hidden
-                className={cn("size-4", loading && "animate-spin")}
+                className={cn(
+                  "size-4",
+                  loading && "animate-spin motion-reduce:animate-none"
+                )}
               />
               <Kbd>R</Kbd>
             </Button>

@@ -28,6 +28,9 @@ const eventSchema = z.object({
     "paywall_viewed",
     "checkout_started",
     "discount_code_copied",
+    // Docs preview accessibility tools.
+    "preview_motion_toggled",
+    "preview_keyboard_toggled",
   ]),
   properties: z
     .record(

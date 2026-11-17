@@ -23,7 +23,44 @@
       "Profile menus in community and creator apps",
       "Workspace switchers and settings shortcuts",
       "Admin panels and internal tools"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "The card no longer grows out of the avatar and the press scale is dropped: the card appears in place, and its name, email and items still fade in from a light blur over 0.2 s.",
+      "keyboard": [
+        {
+          "keys": "Tab",
+          "action": "Moves to the “Account menu” avatar button. Tabbing out of the open menu closes it."
+        },
+        {
+          "keys": "Enter / Space / ↓",
+          "action": "Opens the menu with focus on its first item."
+        },
+        {
+          "keys": "↑ / ↓",
+          "action": "Moves between the items, wrapping round at the ends."
+        },
+        {
+          "keys": "Home / End",
+          "action": "Jumps to the first or last item."
+        },
+        {
+          "keys": "Enter",
+          "action": "Picks the focused item and closes the menu (Space also works on “Sign out”)."
+        },
+        {
+          "keys": "Esc",
+          "action": "Closes the menu and returns focus to the avatar."
+        }
+      ],
+      "notes": [
+        "The avatar is a button named “Account menu” (set by the label prop) with aria-haspopup=\"menu\" and aria-expanded; the photo inside it has alt=\"\".",
+        "The items sit in a role=\"menu\" named “Account menu”, as menuitem links and buttons in groups split by separators; the page you're on is marked aria-current=\"page\".",
+        "Item icons are aria-hidden; the Team row's plus badge reads “Invite” through screen-reader-only text, and the “PRO” badge is plain text.",
+        "The name and email sit above the menu as plain text, outside the menu role, so they're read when browsing the card, not while arrowing through items.",
+        "Opening from the keyboard focuses the first item; Esc, picking an item and the “Close account menu” avatar in the card all return focus to the trigger."
+      ],
+      "gaps": []
+    }
   },
   "categories": ["navigation"],
   "type": "registry:ui"

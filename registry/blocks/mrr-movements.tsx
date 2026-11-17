@@ -53,7 +53,8 @@ import { cn } from "@/lib/utils";
  * in three columns: the labels (values, then plan names) right-aligned on
  * the left; the month; and on the right, from sm up, each line labelled at
  * its own end and each plan's net beside its lane. A tick's height grows
- * with the money it moved, so the big changes stand out on their lane.
+ * with the money it moved, so the big changes stand out on their lane; a
+ * gain rises above the lane and a loss hangs below it.
  * While the month runs, a Today line marks where the data stops.
  *
  * ANIMATION STORYBOARD
@@ -743,9 +744,11 @@ const Axes = ({
 };
 
 /**
- * A tick's height: 6px for the smallest change, up to 16px for the month's
+ * A tick's reach: 6px for the smallest change, up to 16px for the month's
  * biggest (by area, so a change four times bigger is twice as tall); the
- * picked one grows 4px more.
+ * picked one grows 4px more. Half of it is drawn on one side of the track:
+ * a gain rises above it and a loss hangs below, like the chart's lines, so
+ * the sign reads without its colour.
  */
 const tickHeight = (change: Change, model: Model, on: boolean) =>
   6 + 10 * Math.sqrt(Math.abs(change.delta) / model.biggest) + (on ? 4 : 0);
@@ -794,18 +797,18 @@ const Lane = ({
         y2={y}
       />
       {changes.map((change) => {
-        const height = tickHeight(change, model, change.id === active);
+        const reach = tickHeight(change, model, change.id === active) / 2;
+        const gain = change.delta >= 0;
+        // It overlaps the 2px track by 1px, so it stays joined to it.
         return (
           <rect
             key={change.id}
-            className={
-              change.delta >= 0 ? "fill-(--mrr-up)" : "fill-(--mrr-down)"
-            }
-            height={height}
+            className={gain ? "fill-(--mrr-up)" : "fill-(--mrr-down)"}
+            height={reach + 1}
             rx={1}
             width={2}
             x={geo.x(change.time) - 1}
-            y={y - height / 2}
+            y={gain ? y - reach : y - 1}
           />
         );
       })}

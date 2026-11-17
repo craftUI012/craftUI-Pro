@@ -4,6 +4,8 @@
  * from this repo's lint rules on purely stylistic points, so those are off
  * for this file only. */
 /* oxlint-disable func-style, sort-keys, typescript/consistent-type-definitions, no-nested-ternary, no-negated-condition, curly, unicorn/numeric-separators-style, unicorn/no-nested-ternary */
+/* Every link is a placeholder (href="#") for the host to point at a real page. */
+/* oxlint-disable jsx-a11y/anchor-is-valid */
 
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -380,6 +382,18 @@ function AktaHero01({
   plateImage = "/images/data-panel-hero-plate.webp",
   className = "",
 }: AktaHero01Props) {
+  // Below lg the nav links are hidden for room; a Menu button discloses them
+  // under the header so they can still be reached on small screens.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = React.useId();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const onMenuKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Escape" && menuOpen) {
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    }
+  };
+
   return (
     <section
       style={FONT_VARS}
@@ -431,7 +445,7 @@ function AktaHero01({
             ))}
           </nav>
 
-          <div className={cn("flex items-center p-2 sm:p-3", RULE_L_LG)}>
+          <div className={cn("flex items-center gap-1 p-2 sm:p-3", RULE_L_LG)}>
             <a
               href="#"
               className={cn(
@@ -447,8 +461,62 @@ function AktaHero01({
                 Try for free
               </RollLabel>
             </a>
+            <button
+              ref={menuButtonRef}
+              type="button"
+              aria-expanded={menuOpen}
+              aria-controls={menuId}
+              onClick={() => setMenuOpen((open) => !open)}
+              onKeyDown={onMenuKeyDown}
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-2.5 sm:px-3 lg:hidden",
+                TYPE_NAV,
+                INK_MUTED,
+                cn("transition-colors", HOVER_INK, RING_CHIP)
+              )}
+            >
+              Menu
+              <IconChevronDown
+                className={cn("size-3.5", menuOpen && "rotate-180")}
+                aria-hidden="true"
+              />
+            </button>
           </div>
         </header>
+
+        {/* The small-screen menu: the same links as the lg nav, stacked.
+            `hidden` keeps them out of the tab order while it's closed. */}
+        <nav
+          id={menuId}
+          aria-label="Site"
+          hidden={!menuOpen}
+          onKeyDown={onMenuKeyDown}
+          className={cn("lg:hidden", RULE_T)}
+        >
+          <ul className="flex flex-col px-4 py-2 sm:px-6">
+            {NAV.map((item) => (
+              <li key={item.label}>
+                <a
+                  href="#"
+                  className={cn(
+                    "flex items-center gap-1.5 py-2.5",
+                    TYPE_NAV,
+                    INK_MUTED,
+                    cn("transition-colors", HOVER_INK, RING_CHIP)
+                  )}
+                >
+                  {item.label}
+                  {item.caret && (
+                    <IconChevronDown className="size-3.5" aria-hidden="true" />
+                  )}
+                  {item.external && (
+                    <IconArrowUpRight className="size-3.5" aria-hidden="true" />
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
       {/* announcement — the band is full-bleed so its two rules cross the whole

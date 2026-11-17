@@ -510,9 +510,12 @@ const IMAGE_VARIANTS = {
   }),
 };
 
+/* Reduced motion: the image fades, nothing moves. The resting values match
+ * IMAGE_VARIANTS.center, so the server's first render (which can't know the
+ * visitor's setting) and the browser's agree, whichever set is picked. */
 const REDUCED_VARIANTS = {
-  center: { opacity: 1 },
-  enter: { opacity: 0 },
+  center: IMAGE_VARIANTS.center,
+  enter: { ...IMAGE_VARIANTS.center, opacity: 0 },
   exit: { opacity: 0, transition: { duration: 0 } },
 };
 
@@ -588,6 +591,14 @@ const ArcCarousel = ({
   const shownRef = useRef(0);
 
   const [playing, setPlaying] = useState(true);
+  /* With reduced motion the dial doesn't turn on its own: the picture
+   * changing every few seconds is the movement that setting asks to avoid.
+   * Autoplay starts paused; Play, a drag, a tap or the keys still move it. */
+  useEffect(() => {
+    if (reduceMotion) {
+      setPlaying(false);
+    }
+  }, [reduceMotion]);
   const [hovered, setHovered] = useState(false);
   const [dragging, setDragging] = useState(false);
   /* The active item's link, so the dial can open it. */

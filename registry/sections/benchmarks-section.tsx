@@ -647,7 +647,9 @@ function UnitField({ metric }: { metric: BenchmarkMetric }) {
     <div>
       <p className={cn(TYPE_LABEL, "uppercase", INK_MUTED)}>Correct per 100</p>
 
-      <ul className="mt-3 space-y-3">
+      {/* Hidden from screen readers like the other forms: MetricTable below
+       * already reads each provider and figure, so this would say them twice. */}
+      <ul className="mt-3 space-y-3" aria-hidden="true">
         {rows.map((row) => {
           const correct = Math.round(row.n as number);
           const ink = row.brand ? BRAND : INK_MUTED;

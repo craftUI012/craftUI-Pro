@@ -77,7 +77,8 @@ import type { DotOrbState } from "./generative-ui";
  * list drives the whole card in one motion; the chevron turns on the
  * same spring. A finished step's dot
  * pops from 1.6× (200ms, ease-out). With reduced motion nothing moves or
- * blurs: labels and calls swap in a fade and the loaders hold still.
+ * blurs: labels and calls swap in a fade, panels take their new height at
+ * once and only fade (AutoHeight), and the loaders hold still.
  * Screen readers get the run's status as a short sentence, politely.
  * ───────────────────────────────────────────────────────────────────────── */
 

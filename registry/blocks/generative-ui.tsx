@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { useSyncExternalStore } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -399,6 +400,28 @@ export const PANEL_SPRING = {
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 /**
+ * The visitor's reduced-motion setting. MotionConfig's reducedMotion only
+ * drops transforms, so a panel's height would still grow; this snaps it.
+ * The first render always says "no preference" (the server can't know the
+ * setting, and a differing first render breaks hydration); the real value
+ * follows straight after, before any panel is toggled.
+ */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+const subscribeReducedMotion = (onChange: () => void) => {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+
+const usePrefersReducedMotion = () =>
+  useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false
+  );
+
+/**
  * Opens to its content's height, then follows it as the content changes
  * (an output replacing a loader, a step opening inside), so nothing ever
  * jumps. Closed, its content is inert: out of the Tab order and hidden
@@ -411,6 +434,8 @@ const EASE_OUT = [0.23, 1, 0.32, 1] as const;
  * inside the open steps list): the inner panel's spring alone drives the
  * card, frame for frame, instead of the outer one chasing a target that
  * moves every frame and clipping the inner one as it lags behind.
+ *
+ * With reduced motion the height changes at once and only the fade plays.
  */
 export const AutoHeight = ({
   children,
@@ -423,22 +448,26 @@ export const AutoHeight = ({
   id?: string;
   /** Open or closed. */
   open: boolean;
-}) => (
-  <motion.div
-    animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-    className="overflow-hidden"
-    id={id}
-    inert={!open}
-    initial={false}
-    transition={{
-      height: open ? PANEL_SPRING.open : PANEL_SPRING.close,
-      opacity: {
-        delay: open ? 0.05 : 0,
-        duration: open ? PANEL.fadeIn : PANEL.fadeOut,
-        ease: EASE_OUT,
-      },
-    }}
-  >
-    {children}
-  </motion.div>
-);
+}) => {
+  const reduce = usePrefersReducedMotion();
+  const spring = open ? PANEL_SPRING.open : PANEL_SPRING.close;
+  return (
+    <motion.div
+      animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
+      className="overflow-hidden"
+      id={id}
+      inert={!open}
+      initial={false}
+      transition={{
+        height: reduce ? { duration: 0 } : spring,
+        opacity: {
+          delay: open ? 0.05 : 0,
+          duration: open ? PANEL.fadeIn : PANEL.fadeOut,
+          ease: EASE_OUT,
+        },
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};

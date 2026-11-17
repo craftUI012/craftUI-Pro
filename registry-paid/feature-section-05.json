@@ -41,7 +41,48 @@
       "Enterprise search and RAG platform landing pages",
       "Developer tools that keep docs in sync with code",
       "Product pages that compare a live system with a stale one"
-    ]
+    ],
+    "a11y": {
+      "reducedMotion": "Nothing plays: the chart is drawn complete with no line-end pulse, the chat shows its whole answer with a fade only and no shimmer, the windows swap without sliding, and the crosshair jumps.",
+      "keyboard": [
+        {
+          "keys": "Tab",
+          "action": "Moves to the “Live context” link, the chart's slider, then the “Traceable answers” link."
+        },
+        {
+          "keys": "→ / ↑",
+          "action": "On the chart, steps to the next change and shows it as a diff."
+        },
+        {
+          "keys": "← / ↓",
+          "action": "On the chart, steps to the previous change."
+        },
+        {
+          "keys": "Page Up / Page Down",
+          "action": "On the chart, jumps ten changes forward or back."
+        },
+        {
+          "keys": "Home / End",
+          "action": "On the chart, jumps to the first or the last change."
+        },
+        {
+          "keys": "Esc",
+          "action": "Closes the change details."
+        },
+        {
+          "keys": "Enter",
+          "action": "Follows the focused column-title link."
+        }
+      ],
+      "notes": [
+        "The section title is an h2 by default and the two column titles are h3 links, “Live context” and “Traceable answers”.",
+        "The chart drawing is aria-hidden; a screen-reader sentence gives the totals: share still live, the snapshot's share, the number of changes and the sources.",
+        "The slider “Changes since the snapshot” reads each change in words: date, file, who changed it, the old and new line, and the snapshot's share at that point.",
+        "In the chat, the question and answer carry hidden “Question:” and “Answer:” prefixes, the chips are a list named “Sources”, and the “Reading 4 sources” shimmer is hidden.",
+        "Tabbing into the chart brings its window to the front, and tabbing out of it brings the chat back."
+      ],
+      "gaps": []
+    }
   },
   "categories": ["ai", "marketing"],
   "type": "registry:block"
