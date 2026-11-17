@@ -1,3 +1,4 @@
+import { getSessionCookie } from "better-auth/cookies";
 import { headers } from "next/headers";
 import { z } from "zod";
 
@@ -23,7 +24,17 @@ const checkoutSchema = z.object({
   plan: z.enum(["lifetime", "yearly"]),
 });
 
+// Warms the function: the pricing page calls this when it opens, so the
+// buyer's click doesn't wait for a cold start (loading the auth, database
+// and Dodo modules). Does no work and returns nothing.
+export const GET = () =>
+  new Response(null, { headers: { "Cache-Control": "no-store" }, status: 204 });
+
+// A checkout slower than this is logged, to spot it in production.
+const SLOW_MS = 3000;
+
 export const POST = async (request: Request) => {
+  const started = performance.now();
   if (!isDodoConfigured()) {
     return Response.json(
       { error: "Payments are not configured yet." },
@@ -51,10 +62,13 @@ export const POST = async (request: Request) => {
     );
   }
 
-  const session = await auth.api
-    .getSession({ headers: await headers() })
-    .catch(() => null);
+  // Most buyers are guests: without a session cookie there's no session to
+  // look up, so skip the database and go straight to Dodo.
+  const session = getSessionCookie(request)
+    ? await auth.api.getSession({ headers: await headers() }).catch(() => null)
+    : null;
   const email = session?.user.email.toLowerCase();
+  const sessionMs = performance.now() - started;
 
   try {
     const checkout = await getDodo().checkoutSessions.create({
@@ -76,9 +90,26 @@ export const POST = async (request: Request) => {
     if (!checkout.checkout_url) {
       throw new Error("Dodo returned no checkout URL.");
     }
-    return Response.json({ url: checkout.checkout_url });
+    const totalMs = performance.now() - started;
+    if (totalMs > SLOW_MS) {
+      console.warn(
+        `[checkout] Slow checkout: ${Math.round(totalMs)}ms (session ${Math.round(sessionMs)}ms, Dodo ${Math.round(totalMs - sessionMs)}ms)`
+      );
+    }
+    return Response.json(
+      { url: checkout.checkout_url },
+      {
+        // Visible in the browser's network panel: where the time went.
+        headers: {
+          "Server-Timing": `session;dur=${sessionMs.toFixed(0)}, dodo;dur=${(totalMs - sessionMs).toFixed(0)}`,
+        },
+      }
+    );
   } catch (error) {
-    console.error("[checkout] Dodo checkout failed", error);
+    console.error(
+      `[checkout] Dodo checkout failed after ${Math.round(performance.now() - started)}ms`,
+      error
+    );
     return Response.json(
       { error: "Couldn't start checkout. Please try again." },
       { status: 502 }

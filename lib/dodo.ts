@@ -19,6 +19,11 @@ export const getDodo = () => {
   client ??= new DodoPayments({
     bearerToken: process.env.DODO_PAYMENTS_API_KEY ?? "",
     environment: dodoEnvironment,
+    // The SDK's defaults (a minute per try, two retries) could leave a buyer
+    // on "Redirecting…" for minutes if Dodo is slow. 15s and one retry: a
+    // slow call fails while they're still there, with a message to retry.
+    maxRetries: 1,
+    timeout: 15_000,
     // Verifies webhook signatures in webhooks.unwrap().
     webhookKey: process.env.DODO_PAYMENTS_WEBHOOK_KEY ?? null,
   });
