@@ -12,5 +12,7 @@ export const LINK = {
   GITHUB_ORG: `https://github.com/${GITHUB.org}`,
   LICENSE: `${githubUrl}/blob/${GITHUB.branch}/LICENSE`,
   SHADCN_MCP_DOCS: "https://ui.shadcn.com/docs/mcp",
+  // The free agent skills (public repo; the isometrics skill is a folder).
+  SKILLS_REPO: `https://github.com/${GITHUB.org}/Skills`,
   SPONSOR: `https://github.com/sponsors/${GITHUB.user}`,
 } as const;

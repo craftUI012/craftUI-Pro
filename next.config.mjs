@@ -50,6 +50,12 @@ const nextConfig = {
         permanent: false,
         source: "/homepage-new/docs/:path*",
       },
+      // The isometrics skill's page moved out of the docs to its own route.
+      {
+        destination: ROUTES.SKILLS_ISOMETRICS,
+        permanent: true,
+        source: `${ROUTES.DOCS}/isometrics-skill`,
+      },
       // The docs introduction became the about page. Its markdown mirrors
       // go there too: the page they mirrored is gone.
       { destination: ROUTES.ABOUT, permanent: true, source: ROUTES.DOCS },
