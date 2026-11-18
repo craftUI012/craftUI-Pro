@@ -38,6 +38,6 @@
       "Checkout pages with nothing to pay for"
     ]
   },
-  "categories": ["ecommerce"],
+  "categories": ["commerce"],
   "type": "registry:block"
 }

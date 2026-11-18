@@ -2124,7 +2124,7 @@
       "title": "Two-step sign-in",
       "description": "In isometric ink: a sign-in screen floating over a construction grid asks for a code, the phone hops as the text lands, the code pops off as a lit chip and is tossed into the input, the screen takes the hit, and the user is in. Objects move as solids; leans with the pointer; in your theme.",
       "categories": [
-        "technology"
+        "security"
       ],
       "meta": {
         "id": "ISO-R87FKV",
@@ -2166,7 +2166,7 @@
       "title": "Push to deploy",
       "description": "In isometric ink: git push on a terminal tile that presses in on enter sends a pulse down a cable to the dashboard floating behind it, which takes the hit as the deployment slides in, builds and goes live. Objects move as solids; leans with the pointer; in your theme.",
       "categories": [
-        "technology"
+        "developer"
       ],
       "meta": {
         "id": "ISO-RPVRYG",
@@ -2208,7 +2208,7 @@
       "title": "Gradual rollout",
       "description": "In isometric ink: a feature flag's console moves a new version from 10% to 100% of traffic; the new server hops and lights up as its share jumps, the router presses, the old server sinks, and packets on light rails shift across. Objects move as solids; leans with the pointer; in your theme.",
       "categories": [
-        "technology"
+        "developer"
       ],
       "meta": {
         "id": "ISO-7PVTRP",
@@ -2250,7 +2250,7 @@
       "title": "Wallet, card and currencies",
       "description": "In isometric ink: a thin stitched wallet in a pastel of your brand, the brand card sliding out of its slit, and three currency coins ($ € £) following it out with an overshoot, fanning into an arc and swinging upright while the wallet dips, then idling on a sine wave. A hero object for fintech and banking sites; leans with the pointer; in your theme.",
       "categories": [
-        "finance"
+        "commerce"
       ],
       "meta": {
         "id": "ISO-A0SDZZ",
@@ -2292,7 +2292,7 @@
       "title": "Bank deposit",
       "description": "In isometric ink: a small bank in a pastel of your brand, five coins on the ground beside it that leap into the door one by one on an arc, and a balance card on the left whose dollar figure counts up with every credit. A hero object for banking, savings and fintech sites; leans with the pointer; in your theme.",
       "categories": [
-        "finance"
+        "commerce"
       ],
       "meta": {
         "id": "ISO-RJJ8GD",
@@ -2334,7 +2334,7 @@
       "title": "Workflow trigger",
       "description": "In soft isometric: a mail app, a chat app and an AI step float as rounded tiles, joined by dashed floor lanes with a rounded bend. An event lands in one app, brand ink fills the lane to the AI step and on to the other app, which shows what the workflow did; events take turns, so the flow runs both ways. Leans with the pointer; in your theme.",
       "categories": [
-        "technology"
+        "developer"
       ],
       "meta": {
         "id": "ISO-EP9ZS9",
@@ -2376,7 +2376,7 @@
       "title": "Task status",
       "description": "In soft isometric: a white hub tile and four pastel status tiles (Not started, In progress, Pending, Done) joined by dashed floor routes with a rounded bend. Each task pops up as an issue badge, turns into a light that runs its route with a trailing line and races round its tile's border, and the status glyph answers. No shadow, no glow; leans with the pointer; in your theme.",
       "categories": [
-        "technology"
+        "developer"
       ],
       "meta": {
         "id": "ISO-4E36Y0",
@@ -2418,7 +2418,7 @@
       "title": "File cabinet",
       "description": "A complete empty state in isometric ink: a two-drawer file cabinet whose drawer rolls out on its slides, hits its stop and shows there is nothing inside, over a heading, a line of copy and a button you set through props (\"No data yet\" by default). Real parts, one even outline, no shadow; the open drawer's label carries your brand. Click to replay; leans with the pointer; in your theme.",
       "categories": [
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-Z84F1M",
@@ -2469,7 +2469,7 @@
       "title": "Open envelope",
       "description": "A complete \"your mail is full\" state in isometric ink, facing the screen: an open envelope so stuffed that a document is pushed out of its pocket, a second sheet behind it, and an alert badge that pops at its corner, over a heading, a line of copy and two buttons you set through props. One even outline, no shadow; the badge carries your brand. Click to replay; leans with the pointer; in your theme.",
       "categories": [
-        "technology"
+        "communication"
       ],
       "meta": {
         "id": "ISO-CX14WM",
@@ -2520,7 +2520,7 @@
       "title": "ID badge",
       "description": "A complete \"no members yet\" empty state in isometric ink, facing the screen: a blank ID badge hanging straight from its strap, flicked once so it swings and twists to rest, with a placeholder photo and a plus on its corner, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the plus carries your brand. Click to flick it again; leans with the pointer; in your theme.",
       "categories": [
-        "technology"
+        "security"
       ],
       "meta": {
         "id": "ISO-VJV1P7",
@@ -2571,7 +2571,7 @@
       "title": "Notepad",
       "description": "A complete \"no notes yet\" empty state in isometric ink, facing the screen: a pad of paper and a pencil that taps down, writes two lines and lifts off, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the pencil's eraser carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "data"
+        "work"
       ],
       "meta": {
         "id": "ISO-JB9DJH",
@@ -2623,7 +2623,7 @@
       "title": "Padlock",
       "description": "A complete \"you don't have access\" state in isometric ink, facing the screen: a closed padlock whose shackle is pulled twice, stops on its catch and drops back, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the keyhole carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology"
+        "security"
       ],
       "meta": {
         "id": "ISO-1FVWQJ",
@@ -2675,7 +2675,7 @@
       "title": "Plug and socket",
       "description": "A complete \"not connected\" state in isometric ink, facing the screen: an unplugged cord whose plug reaches for its socket, stops short and springs back, the cable hanging in a loop between them, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the plug's pins carry your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology"
+        "status"
       ],
       "meta": {
         "id": "ISO-WVNAT3",
@@ -2727,7 +2727,7 @@
       "title": "Traffic cone",
       "description": "A complete \"page not found\" state in isometric ink, seen from the front: a traffic cone on its square foot that is knocked, rocks from edge to edge and stands still, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the cone's band carries your brand. Click to knock it again; in your theme.",
       "categories": [
-        "technology"
+        "status"
       ],
       "meta": {
         "id": "ISO-779H30",
@@ -2779,7 +2779,7 @@
       "title": "Bell",
       "description": "A complete \"you're all caught up\" state in isometric ink, facing the screen: a bell that is rung once, swings from side to side with its clapper a beat behind and hangs still, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the clapper carries your brand. Click to ring it again; in your theme.",
       "categories": [
-        "technology"
+        "communication"
       ],
       "meta": {
         "id": "ISO-Y1RA9M",
@@ -2831,7 +2831,7 @@
       "title": "Trash bin",
       "description": "A complete \"trash is empty\" state in isometric ink, seen from the front: a round bin whose lid pops up, tips to show nothing inside and drops back, over a heading and a line of copy you set through props, with a button if you give it a label. One even outline, no shadow; the lid's knob carries your brand. Click to lift the lid again; in your theme.",
       "categories": [
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-B43DMP",
@@ -2883,7 +2883,7 @@
       "title": "Clipboard",
       "description": "A complete \"all tasks done\" state in isometric ink, facing the screen: a clipboard with a three-row checklist whose last box fills, pops and gets its tick, over a heading, a line of copy and a button you set through props. One even outline, no shadow; that last tick carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "data"
+        "work"
       ],
       "meta": {
         "id": "ISO-TKBA1P",
@@ -2935,7 +2935,7 @@
       "title": "Magnifying glass",
       "description": "A complete \"no results found\" state in isometric ink, facing the screen: a magnifying glass sweeps over a card of placeholder rows, enlarging whatever is under it, and comes to rest, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the handle's collar carries your brand. Click to look again; in your theme.",
       "categories": [
-        "data"
+        "status"
       ],
       "meta": {
         "id": "ISO-RTRKJE",
@@ -2987,7 +2987,7 @@
       "title": "Shopping bag",
       "description": "A complete \"your cart is empty\" state in isometric ink, facing the screen: an empty paper shopping bag hops, its two handles spring back on landing and the price tag swings on its string, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the tag carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "ecommerce"
+        "commerce"
       ],
       "meta": {
         "id": "ISO-6CMEMA",
@@ -3039,7 +3039,7 @@
       "title": "Picture frame",
       "description": "A complete \"no images yet\" state in isometric ink, facing the screen: a picture frame on a nail holds the placeholder every empty image slot shows, two hills and a sun that rises over them and settles, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the sun carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology"
+        "status"
       ],
       "meta": {
         "id": "ISO-XANKZF",
@@ -3091,7 +3091,7 @@
       "title": "Delivery truck",
       "description": "A complete \"no orders yet\" state in isometric ink, facing the screen: a delivery truck seen from its side rolls forward with its wheels turning, brakes with its nose dipping and sits parked, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the label on its box carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "ecommerce"
+        "commerce"
       ],
       "meta": {
         "id": "ISO-PN1YXZ",
@@ -3143,7 +3143,7 @@
       "title": "Calendar",
       "description": "A complete \"nothing scheduled\" state in isometric ink, facing the screen: a tear-off calendar whose top page, a month with days booked, is pulled off and thrown away, leaving an empty month with only today marked, over a heading, a line of copy and a button you set through props. One even outline, no shadow; today's square carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology"
+        "time"
       ],
       "meta": {
         "id": "ISO-0R808M",
@@ -3195,8 +3195,7 @@
       "title": "Map pin",
       "description": "A complete \"no locations yet\" state in isometric line, facing the screen: a map pin that hops once on its empty spot and lands with one bounce, the spot widening under it, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the dot in the head carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "ecommerce"
+        "status"
       ],
       "meta": {
         "id": "ISO-J6MCTB",
@@ -3248,8 +3247,7 @@
       "title": "Folder",
       "description": "A complete \"no files yet\" state in isometric line, facing the screen: a document folder whose front flap tips open on its fold, lets three blank pages pop out in arcs and pulls them swiftly back in before it shuts, over a heading, a line of copy and an upload button you set through props. One even outline, no shadow; the label on the tab carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-EYA0WS",
@@ -3301,8 +3299,7 @@
       "title": "Gift box",
       "description": "A complete \"no rewards yet\" state in isometric line, facing the screen: a gift box whose lid lifts and tips to peek inside, shows it empty and drops back with one bounce, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the bow carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "marketing",
-        "ecommerce"
+        "commerce"
       ],
       "meta": {
         "id": "ISO-WFRH3B",
@@ -3354,8 +3351,7 @@
       "title": "Mailbox",
       "description": "A complete \"no mail yet\" state in isometric line, facing the screen: a rounded mailbox on its post whose door drops open to show the empty inside and swings back shut, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the flag carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "marketing"
+        "communication"
       ],
       "meta": {
         "id": "ISO-EE0XCE",
@@ -3407,7 +3403,7 @@
       "title": "Toggle switch",
       "description": "A complete \"this feature is off\" state in isometric line, facing the screen: a chunky toggle switch whose knob tries to slide on, stops a third of the way and slides back off, over a heading, a line of copy and a request-access button you set through props. One even outline, no shadow; the off mark carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology"
+        "status"
       ],
       "meta": {
         "id": "ISO-Y3P3MF",
@@ -3459,8 +3455,7 @@
       "title": "Cloud upload",
       "description": "A complete \"nothing uploaded yet\" state in isometric line, facing the screen: a cloud whose arrow shoots up out of it, hangs, and drops back home with one bounce, over a heading, a line of copy and an upload button you set through props. One even outline, no shadow; the arrow carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-D20KP9",
@@ -3512,8 +3507,7 @@
       "title": "Chat bubble",
       "description": "A complete \"no messages yet\" state in isometric line, facing the screen: a speech bubble whose three dots hop once in a typing wave and settle, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the dots carry your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "communication"
       ],
       "meta": {
         "id": "ISO-NA0X8X",
@@ -3565,8 +3559,7 @@
       "title": "Hourglass",
       "description": "A complete \"nothing here yet\" state in isometric line, facing the screen: an hourglass that turns over and lets its sand run back down until it ends as it began, over a heading, a line of copy and a refresh button you set through props. One even outline, no shadow; the sand carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "time"
       ],
       "meta": {
         "id": "ISO-T1D7NR",
@@ -3618,8 +3611,7 @@
       "title": "Stopwatch",
       "description": "A complete \"no time tracked\" state in isometric line, facing the screen: a stopwatch whose crown is pressed and sends the hand sweeping one full turn back to twelve, over a heading, a line of copy and a start-timer button you set through props. One even outline, no shadow; the hand carries your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "time"
       ],
       "meta": {
         "id": "ISO-W1R1D8",
@@ -3671,8 +3663,7 @@
       "title": "Sprout pot",
       "description": "A complete \"no projects yet\" state in isometric line, facing the screen: a flower pot where a shoot pushes up out of the soil and opens two leaves one after the other, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the leaves carry your brand. Click to play it again; in your theme.",
       "categories": [
-        "technology",
-        "marketing"
+        "work"
       ],
       "meta": {
         "id": "ISO-2KEK39",
@@ -3724,8 +3715,7 @@
       "title": "Archive box",
       "description": "A complete \"no archived items\" state in isometric line: a banker's archive box whose lid lifts and tips back as two blank pages pop up and drop back in, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the label card on its front carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-XFSD7Q",
@@ -3777,8 +3767,7 @@
       "title": "Document",
       "description": "A complete \"no documents yet\" state in isometric line, facing the screen: a page with a title, an image, lines of text and a signature that hops once and flicks its folded corner, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the title bar carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-B52DMJ",
@@ -3830,8 +3819,7 @@
       "title": "Database",
       "description": "A complete \"no data yet\" state in isometric line: the classic three-layer database stack, a row of status lights on each layer, lifting in a wave and closing, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the top layer's status light carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-EHCYZR",
@@ -3883,7 +3871,7 @@
       "title": "Server",
       "description": "A complete \"no servers connected\" state in isometric line: a server tower with a vented side whose three units slide out in turn and back, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the top unit's status light carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-TRX1EQ",
@@ -3935,7 +3923,7 @@
       "title": "USB drive",
       "description": "A complete \"no device connected\" state in isometric line: a USB stick lying flat on the desk that pushes forward as if into a port and slides back, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the light on its top carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-W38G1B",
@@ -3987,7 +3975,7 @@
       "title": "Printer",
       "description": "A complete \"nothing to print\" state in isometric line: a desktop printer that wakes, feeds a blank page onto its output tray and pulls it straight back, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the status light carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-BH5C87",
@@ -4039,8 +4027,7 @@
       "title": "Inbox tray",
       "description": "A complete \"nothing to review\" state in isometric line: an office letter tray that a ruled sheet drops into and is whisked up out of, leaving it empty, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the label on its lip carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-HB2332",
@@ -4092,8 +4079,7 @@
       "title": "Hard drive",
       "description": "A complete \"no backups yet\" state in isometric line, facing the screen: an open hard drive whose read arm swings in over the platter, finds nothing and parks again by its magnet, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the read head carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-0K4A12",
@@ -4145,8 +4131,7 @@
       "title": "Briefcase",
       "description": "A complete \"no projects yet\" state in isometric line: a briefcase whose latches pop, whose handle lifts and drops back and whose latches snap shut, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the name plate on the lid carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "work"
       ],
       "meta": {
         "id": "ISO-5D3X6J",
@@ -4198,8 +4183,7 @@
       "title": "Floppy disk",
       "description": "A complete \"nothing saved yet\" state in isometric line, facing the screen: a floppy disk whose shutter slides open on an empty window and snaps shut, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the stripe on its label carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "files-storage"
       ],
       "meta": {
         "id": "ISO-881JJX",
@@ -4251,7 +4235,7 @@
       "title": "Shield",
       "description": "A complete \"you're protected\" state in isometric line, facing the screen: a security shield that lifts while a check draws itself on its inner plate and then settles back down, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the check carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology"
+        "security"
       ],
       "meta": {
         "id": "ISO-V24SAR",
@@ -4303,7 +4287,7 @@
       "title": "Key",
       "description": "A complete \"no API keys yet\" state in isometric line: a classic key lying flat that is lifted, pushed forward as if into a lock and turned a quarter turn about its length, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the band round its collar carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology"
+        "security"
       ],
       "meta": {
         "id": "ISO-R0VQ54",
@@ -4355,8 +4339,7 @@
       "title": "Safe",
       "description": "A complete \"your vault is empty\" state in isometric line: a small safe whose dial spins, whose wheel handle turns and whose door swings open a little on an empty inside and shuts, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the dial's index mark carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "finance"
+        "security"
       ],
       "meta": {
         "id": "ISO-2PQF7N",
@@ -4408,8 +4391,7 @@
       "title": "Keyring",
       "description": "A complete \"no passwords saved\" state in isometric line, facing the screen: a key ring hanging from a small wall hook whose keys swing on the ring when it's jostled, then hang still, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the tag carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "security"
       ],
       "meta": {
         "id": "ISO-5WGKV9",
@@ -4461,8 +4443,7 @@
       "title": "Fingerprint scanner",
       "description": "A complete \"no devices enrolled\" state in isometric line: a desk fingerprint reader whose scan bar sweeps its empty glass pad and back, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the status light carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "security"
       ],
       "meta": {
         "id": "ISO-AMBVGF",
@@ -4514,8 +4495,7 @@
       "title": "Card reader",
       "description": "A complete \"no access cards\" state in isometric line: a wall-mounted card reader tapped once by a blank access card, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the status light carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "security"
       ],
       "meta": {
         "id": "ISO-ECBFZ2",
@@ -4567,7 +4547,7 @@
       "title": "Certificate",
       "description": "A complete \"no certificates yet\" state in isometric line, facing the screen: a certificate whose ribboned seal lifts and stamps back onto the page, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the seal carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology"
+        "security"
       ],
       "meta": {
         "id": "ISO-0NXQV7",
@@ -4619,8 +4599,7 @@
       "title": "Webcam",
       "description": "A complete \"no cameras online\" state in isometric line: a webcam on a small stand whose privacy shutter slides open, looks one way and the other about its neck, finds nothing and slides shut, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the status light carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "people"
+        "security"
       ],
       "meta": {
         "id": "ISO-CXFSC4",
@@ -4672,8 +4651,7 @@
       "title": "Radar scope",
       "description": "A complete \"no active alerts\" state in isometric line, facing the screen: a radar scope whose sweep goes once round its range rings, finds nothing and stops pointing straight up as the centre dot pops, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the centre dot carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology",
-        "data"
+        "security"
       ],
       "meta": {
         "id": "ISO-P1K4NJ",
@@ -4725,7 +4703,7 @@
       "title": "Router",
       "description": "A complete \"no firewall rules\" state in isometric line: a network router whose three antennas tip one after another before the padlock on its front clicks shut, over a heading, a line of copy and a button you set through props. One even outline, no shadow; the padlock carries your brand. Plays when it comes into view or each time `active` turns true; in your theme.",
       "categories": [
-        "technology"
+        "security"
       ],
       "meta": {
         "id": "ISO-6DV131",

@@ -38,6 +38,6 @@
       "Setup steps that ask for a first connection"
     ]
   },
-  "categories": ["technology"],
+  "categories": ["status"],
   "type": "registry:block"
 }

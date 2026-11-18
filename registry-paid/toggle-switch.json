@@ -38,6 +38,6 @@
       "Settings that need permission to change"
     ]
   },
-  "categories": ["technology"],
+  "categories": ["status"],
   "type": "registry:block"
 }

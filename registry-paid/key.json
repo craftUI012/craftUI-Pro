@@ -38,6 +38,6 @@
       "Integrations pages before anything is connected"
     ]
   },
-  "categories": ["technology"],
+  "categories": ["security"],
   "type": "registry:block"
 }

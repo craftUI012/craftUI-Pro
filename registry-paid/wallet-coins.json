@@ -31,6 +31,6 @@
       "Empty states for balances and transactions"
     ]
   },
-  "categories": ["finance"],
+  "categories": ["commerce"],
   "type": "registry:block"
 }

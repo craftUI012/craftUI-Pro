@@ -38,6 +38,6 @@
       "CRM, admin and data products needing a placeholder"
     ]
   },
-  "categories": ["data"],
+  "categories": ["files-storage"],
   "type": "registry:block"
 }

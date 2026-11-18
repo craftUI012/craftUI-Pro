@@ -38,6 +38,6 @@
       "Loyalty dashboards before the first reward"
     ]
   },
-  "categories": ["marketing", "ecommerce"],
+  "categories": ["commerce"],
   "type": "registry:block"
 }

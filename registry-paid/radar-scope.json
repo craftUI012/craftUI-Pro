@@ -38,6 +38,6 @@
       "Threat-detection or fraud scans that found nothing"
     ]
   },
-  "categories": ["technology", "data"],
+  "categories": ["security"],
   "type": "registry:block"
 }

@@ -195,6 +195,15 @@ export const validateRegistryTaxonomy = (
       if (REQUIRED_GROUPS.has(group.id) && slugs.length === 0) {
         errors.push(`${at}: ${fieldOf[group.id]} needs at least one value.`);
       }
+      if (
+        group.id === "categories" &&
+        library.singleCategory &&
+        slugs.length > 1
+      ) {
+        errors.push(
+          `${at}: ${library.label} items take exactly one category (has ${slugs.join(", ")}). Pick the one the object is about.`
+        );
+      }
       const listed: readonly string[] = library[group.id];
       for (const slug of slugs) {
         if (!Object.hasOwn(POOLS[group.id], slug)) {

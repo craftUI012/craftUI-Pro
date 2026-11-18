@@ -16,6 +16,8 @@ Which library an item belongs in:
 
 Components' **Categories** are what the control does (Inputs, Actions, Navigation, Overlays, Feedback, Data display), not the kind of product it's for like the other libraries.
 
+Isometrics' **Categories** are what the object is about: Files & storage, Security, Communication, Commerce, Time, Work, Status and Developer. Each item takes **exactly one** (`singleCategory: true` on the library; the build rejects a second). New objects are built in batches by subject (subjects taken from Hugeicons' icon groups); a batch either fills one of these categories or adds one new category to the pool and to `LIBRARIES.isometrics.categories`. A link straight to a set: `/?library=isometrics&category=security`.
+
 Two files drive everything on it. No list of cards or filter values lives in the components:
 
 | File                    | Defines                                                                                         |

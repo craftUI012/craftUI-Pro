@@ -38,6 +38,6 @@
       "First-run screens in shop and logistics dashboards"
     ]
   },
-  "categories": ["ecommerce"],
+  "categories": ["commerce"],
   "type": "registry:block"
 }

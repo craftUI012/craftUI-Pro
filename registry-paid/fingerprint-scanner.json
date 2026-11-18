@@ -38,6 +38,6 @@
       "Admin views of staff with no fingerprint on file"
     ]
   },
-  "categories": ["technology", "people"],
+  "categories": ["security"],
   "type": "registry:block"
 }

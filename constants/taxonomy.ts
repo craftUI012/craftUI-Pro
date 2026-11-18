@@ -29,15 +29,21 @@ export interface TaxonomyValue {
 }
 
 export const CATEGORIES = {
-  // Components group by what the control does (Inputs, Overlays, …); the
-  // other libraries by the kind of product it's for (Finance, AI, …).
+  // Components group by what the control does (Inputs, Overlays, …);
+  // Isometrics by what the object is about (Security, Files & storage, …:
+  // one category per Hugeicons-style batch); the other libraries by the
+  // kind of product they're for (Finance, AI, …).
   actions: { label: "Actions" },
   ai: { label: "AI" },
+  commerce: { label: "Commerce" },
+  communication: { label: "Communication" },
   company: { label: "Company" },
   data: { label: "Data" },
   "data-display": { label: "Data display" },
+  developer: { label: "Developer" },
   ecommerce: { label: "E-commerce" },
   feedback: { label: "Feedback" },
+  "files-storage": { label: "Files & storage" },
   finance: { label: "Finance" },
   inputs: { label: "Inputs" },
   marketing: { label: "Marketing" },
@@ -45,7 +51,11 @@ export const CATEGORIES = {
   overlays: { label: "Overlays" },
   people: { label: "People" },
   portfolio: { label: "Portfolio" },
+  security: { label: "Security" },
+  status: { label: "Status" },
   technology: { label: "Technology" },
+  time: { label: "Time" },
+  work: { label: "Work" },
 } as const satisfies Record<string, TaxonomyValue>;
 
 export const TYPES = {
@@ -141,6 +151,8 @@ export interface LibraryConfig {
   searchPlaceholder: string;
   // What the Type group is called in this library, when not "Type".
   typeLabel?: string;
+  // Each item takes exactly one category (the build rejects more).
+  singleCategory?: boolean;
   // The values its filter index lists, in display order.
   categories: CategoryId[];
   types: TypeId[];
@@ -240,18 +252,23 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
   // empty states). Source in registry/isometric, docs at /docs/isometrics.
   // Split back out of Illustrations on 2026-11-17; every item is ISO-.
   isometrics: {
+    // What the object is about, one category per item (enforced:
+    // `singleCategory`). Each new batch fills one of these or adds one.
     categories: [
-      "technology",
-      "finance",
-      "ecommerce",
-      "data",
-      "marketing",
-      "people",
+      "files-storage",
+      "security",
+      "communication",
+      "commerce",
+      "time",
+      "work",
+      "status",
+      "developer",
     ],
     idPrefix: "ISO",
     itemLabel: { one: "isometric", other: "isometrics" },
     label: "Isometrics",
     searchPlaceholder: "Search isometrics…",
+    singleCategory: true,
     slug: "isometrics",
     styles: ["line", "flat", "gradient", "dark-mode"],
     types: ["scenes", "objects", "devices", "spot", "empty-states"],

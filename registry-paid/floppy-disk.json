@@ -38,6 +38,6 @@
       "Offline or local saves panels"
     ]
   },
-  "categories": ["technology", "data"],
+  "categories": ["files-storage"],
   "type": "registry:block"
 }

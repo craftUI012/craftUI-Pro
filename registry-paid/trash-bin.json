@@ -38,6 +38,6 @@
       "States shown after a bulk delete"
     ]
   },
-  "categories": ["data"],
+  "categories": ["files-storage"],
   "type": "registry:block"
 }

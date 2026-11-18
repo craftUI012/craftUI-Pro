@@ -38,6 +38,6 @@
       "Billing hours and invoices with no time yet"
     ]
   },
-  "categories": ["technology", "people"],
+  "categories": ["time"],
   "type": "registry:block"
 }

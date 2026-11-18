@@ -700,7 +700,10 @@ empty library for flat art (`ILL-`, coming soon). The source stays in
 `registry/isometric/` and installs to `components/isometric/`.
 Follow `content/docs-admin/guides/adding-a-component.mdx`:
 - `registry.json` entry: `type: "registry:block"`, `meta.library:
-  "isometrics"`, `categories` (e.g. `technology`), `meta.types:
+  "isometrics"`, `categories`: exactly ONE subject category (files-storage,
+  security, communication, commerce, time, work, status or developer; a new
+  batch may add one to the pool and to LIBRARIES.isometrics.categories; the
+  build rejects a second category, 2026-11-18), `meta.types:
   ["scenes"]`, `meta.styles` from the library list (`line`, `flat`,
   `gradient`, `dark-mode`; no `isometric` style, the library says it),
   `meta.useCases`, `meta.publishedAt`, `dependencies`

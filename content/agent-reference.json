@@ -4407,7 +4407,7 @@
       }
     ],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["security"],
       "styles": ["gradient", "dark-mode"],
       "types": ["scenes"]
     },
@@ -4621,7 +4621,7 @@
       }
     ],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["developer"],
       "styles": ["gradient", "dark-mode"],
       "types": ["scenes"]
     },
@@ -4829,7 +4829,7 @@
       }
     ],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["developer"],
       "styles": ["gradient", "dark-mode"],
       "types": ["scenes"]
     },
@@ -4966,7 +4966,7 @@
     "title": "Wallet, card and currencies",
     "types": [],
     "tags": {
-      "categories": ["finance"],
+      "categories": ["commerce"],
       "styles": ["flat", "dark-mode"],
       "types": ["scenes"]
     },
@@ -5117,7 +5117,7 @@
     "title": "Bank deposit",
     "types": [],
     "tags": {
-      "categories": ["finance"],
+      "categories": ["commerce"],
       "styles": ["flat", "dark-mode"],
       "types": ["scenes"]
     },
@@ -5262,7 +5262,7 @@
       }
     ],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["developer"],
       "styles": ["gradient", "dark-mode"],
       "types": ["scenes"]
     },
@@ -5406,7 +5406,7 @@
       }
     ],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["developer"],
       "styles": ["gradient", "dark-mode"],
       "types": ["scenes"]
     },
@@ -5572,7 +5572,7 @@
     "title": "File cabinet",
     "types": [],
     "tags": {
-      "categories": ["data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["objects"]
     },
@@ -5752,7 +5752,7 @@
     "title": "Open envelope",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["communication"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["objects"]
     },
@@ -5911,7 +5911,7 @@
     "title": "ID badge",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["objects"]
     },
@@ -6037,7 +6037,7 @@
     "title": "Notepad",
     "types": [],
     "tags": {
-      "categories": ["data"],
+      "categories": ["work"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -6163,7 +6163,7 @@
     "title": "Padlock",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -6289,7 +6289,7 @@
     "title": "Plug and socket",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["status"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -6415,7 +6415,7 @@
     "title": "Traffic cone",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["status"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -6541,7 +6541,7 @@
     "title": "Bell",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["communication"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -6667,7 +6667,7 @@
     "title": "Trash bin",
     "types": [],
     "tags": {
-      "categories": ["data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -6793,7 +6793,7 @@
     "title": "Clipboard",
     "types": [],
     "tags": {
-      "categories": ["data"],
+      "categories": ["work"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -6919,7 +6919,7 @@
     "title": "Magnifying glass",
     "types": [],
     "tags": {
-      "categories": ["data"],
+      "categories": ["status"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7045,7 +7045,7 @@
     "title": "Shopping bag",
     "types": [],
     "tags": {
-      "categories": ["ecommerce"],
+      "categories": ["commerce"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7171,7 +7171,7 @@
     "title": "Picture frame",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["status"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7297,7 +7297,7 @@
     "title": "Delivery truck",
     "types": [],
     "tags": {
-      "categories": ["ecommerce"],
+      "categories": ["commerce"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7423,7 +7423,7 @@
     "title": "Calendar",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["time"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7549,7 +7549,7 @@
     "title": "Map pin",
     "types": [],
     "tags": {
-      "categories": ["technology", "ecommerce"],
+      "categories": ["status"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7675,7 +7675,7 @@
     "title": "Folder",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7801,7 +7801,7 @@
     "title": "Gift box",
     "types": [],
     "tags": {
-      "categories": ["marketing", "ecommerce"],
+      "categories": ["commerce"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -7927,7 +7927,7 @@
     "title": "Mailbox",
     "types": [],
     "tags": {
-      "categories": ["technology", "marketing"],
+      "categories": ["communication"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8053,7 +8053,7 @@
     "title": "Toggle switch",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["status"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8179,7 +8179,7 @@
     "title": "Cloud upload",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8305,7 +8305,7 @@
     "title": "Chat bubble",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["communication"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8431,7 +8431,7 @@
     "title": "Hourglass",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["time"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8557,7 +8557,7 @@
     "title": "Stopwatch",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["time"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8683,7 +8683,7 @@
     "title": "Sprout pot",
     "types": [],
     "tags": {
-      "categories": ["technology", "marketing"],
+      "categories": ["work"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8809,7 +8809,7 @@
     "title": "Archive box",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -8935,7 +8935,7 @@
     "title": "Document",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9061,7 +9061,7 @@
     "title": "Database",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9187,7 +9187,7 @@
     "title": "Server",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9313,7 +9313,7 @@
     "title": "USB drive",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9439,7 +9439,7 @@
     "title": "Printer",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9565,7 +9565,7 @@
     "title": "Inbox tray",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9691,7 +9691,7 @@
     "title": "Hard drive",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9817,7 +9817,7 @@
     "title": "Briefcase",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["work"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -9943,7 +9943,7 @@
     "title": "Floppy disk",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["files-storage"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10069,7 +10069,7 @@
     "title": "Shield",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10195,7 +10195,7 @@
     "title": "Key",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10321,7 +10321,7 @@
     "title": "Safe",
     "types": [],
     "tags": {
-      "categories": ["technology", "finance"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10447,7 +10447,7 @@
     "title": "Keyring",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10573,7 +10573,7 @@
     "title": "Fingerprint scanner",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10699,7 +10699,7 @@
     "title": "Card reader",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10825,7 +10825,7 @@
     "title": "Certificate",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -10951,7 +10951,7 @@
     "title": "Webcam",
     "types": [],
     "tags": {
-      "categories": ["technology", "people"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -11077,7 +11077,7 @@
     "title": "Radar scope",
     "types": [],
     "tags": {
-      "categories": ["technology", "data"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },
@@ -11203,7 +11203,7 @@
     "title": "Router",
     "types": [],
     "tags": {
-      "categories": ["technology"],
+      "categories": ["security"],
       "styles": ["line", "flat", "dark-mode"],
       "types": ["empty-states", "objects"]
     },

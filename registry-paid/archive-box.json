@@ -38,6 +38,6 @@
       "The archived tab of an inbox or CRM"
     ]
   },
-  "categories": ["technology", "data"],
+  "categories": ["files-storage"],
   "type": "registry:block"
 }

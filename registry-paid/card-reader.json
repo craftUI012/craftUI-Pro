@@ -38,6 +38,6 @@
       "Physical-security dashboards with no credentials"
     ]
   },
-  "categories": ["technology", "people"],
+  "categories": ["security"],
   "type": "registry:block"
 }

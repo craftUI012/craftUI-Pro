@@ -38,6 +38,6 @@
       "Storage for backup codes or recovery keys"
     ]
   },
-  "categories": ["technology", "finance"],
+  "categories": ["security"],
   "type": "registry:block"
 }

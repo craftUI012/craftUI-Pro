@@ -38,6 +38,6 @@
       "Features that are switched off or not ready yet"
     ]
   },
-  "categories": ["technology"],
+  "categories": ["status"],
   "type": "registry:block"
 }

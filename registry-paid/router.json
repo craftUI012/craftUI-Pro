@@ -38,6 +38,6 @@
       "Traffic-policy or WAF rules panels"
     ]
   },
-  "categories": ["technology"],
+  "categories": ["security"],
   "type": "registry:block"
 }
