@@ -5,6 +5,7 @@ import {
   Blend,
   Blocks,
   BookOpen,
+  Box,
   Component,
   FileText,
   History,
@@ -126,6 +127,7 @@ const LIBRARY_ICONS: Record<LibraryId, typeof Component> = {
   components: Component,
   gradients: Blend,
   illustrations: Shapes,
+  isometrics: Box,
   templates: LayoutTemplate,
 };
 

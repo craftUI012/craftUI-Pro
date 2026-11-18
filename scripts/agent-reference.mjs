@@ -237,6 +237,49 @@ const browseOf = (item) => ({
   useCases: item.meta?.useCases ?? [],
 });
 
+/**
+ * `type MapPinProps = LineStateProps`: follows an alias to the shared props
+ * it names (in another of the item's files, e.g. iso-line.tsx).
+ */
+const resolveAlias = (declaration, types) => {
+  let found = declaration;
+  for (let hop = 0; hop < 3 && found; hop += 1) {
+    const named = Node.isTypeAliasDeclaration(found)
+      ? found
+          .getTypeNode()
+          ?.asKind(SyntaxKind.TypeReference)
+          ?.getTypeName()
+          .getText()
+      : undefined;
+    if (!named || !types.has(named)) {
+      break;
+    }
+    found = types.get(named);
+  }
+  return found;
+};
+
+/**
+ * An interface's members with those of the interfaces it extends that are
+ * among the item's own types (`interface TrashBinProps extends
+ * LineStateProps`), its own first, then the inherited ones it doesn't
+ * redeclare.
+ */
+const withInherited = (declaration, types) => {
+  const own = membersOf(declaration);
+  if (!Node.isInterfaceDeclaration(declaration)) {
+    return own;
+  }
+  const seen = new Set(own.map((prop) => prop.name));
+  const inherited = declaration
+    .getExtends()
+    .map((clause) => types.get(clause.getExpression().getText()))
+    .filter(Boolean)
+    .flatMap((base) => withInherited(base, types))
+    .filter((prop) => !seen.has(prop.name));
+  return [...own, ...inherited];
+};
+
 /** One item's reference, and what's missing from it. */
 const describeItem = (item) => {
   const meta = item.meta ?? {};
@@ -248,13 +291,16 @@ const describeItem = (item) => {
   const types = exportedTypes(files);
   const component = main ? readComponent(main) : null;
   const propsType = component?.propsType;
-  const propsDeclaration = propsType
-    ? (types.get(propsType) ??
-      main.getInterface(propsType) ??
-      main.getTypeAlias(propsType))
-    : null;
+  const propsDeclaration = resolveAlias(
+    propsType
+      ? (types.get(propsType) ??
+          main.getInterface(propsType) ??
+          main.getTypeAlias(propsType))
+      : null,
+    types
+  );
   const props = propsDeclaration
-    ? membersOf(propsDeclaration).map((prop) => ({
+    ? withInherited(propsDeclaration, types).map((prop) => ({
         ...prop,
         default: component.defaults.get(prop.name),
       }))

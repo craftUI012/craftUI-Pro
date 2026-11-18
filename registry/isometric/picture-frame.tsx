@@ -1,24 +1,14 @@
 "use client";
 
-import { useInView, useMotionValue, useMotionValueEvent } from "motion/react";
+import { useMotionValue, useMotionValueEvent } from "motion/react";
 import type { MotionValue } from "motion/react";
-import type { CSSProperties, ReactNode } from "react";
-import { useId, useRef, useState, useSyncExternalStore } from "react";
+import type { CSSProperties } from "react";
+import { useId, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-import {
-  EASE,
-  Extrude,
-  FacePath,
-  IsoStage,
-  Rig,
-  roundedRect,
-  sample,
-  useClock,
-} from "./iso-core";
-import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
+import { EASE, Extrude, FacePath, roundedRect, sample } from "./iso-core";
+import type { IsoTrack, Vec3 } from "./iso-core";
+import { LineState, facing, r2, useLineShell } from "./iso-line";
+import type { LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -35,18 +25,19 @@ import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
  * 1100ms   it eases back down to where it stays (200ms)
  * 1300ms   still: the sun up
  *
- * A click (or `loop`, after a 5.2s hold) sets the sun and raises it again.
- * Reduced motion (or autoPlay off): the sun up, nothing moves.
+ * One way: the resting pose is the sun up. Each play after the first
+ * (`active` turning true, or `loop` after a 5.2s hold) sets the sun
+ * (300ms), waits a moment (120ms) and raises it again.
+ * Reduced motion, or `active` false before any play: the sun up, nothing
+ * moves.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  // How long it rests before a loop starts again.
-  hold: 5200,
   // The sun eases back to its place in this long.
   rest: 200,
   // The sun climbs in this long.
   rise: 700,
-  // After a click: the sun sets in this long, then waits a moment.
+  // Before a replay: the sun sets in this long, then waits a moment.
   set: [300, 120] as const,
   // The sun starts to rise this long after the frame comes into view.
   start: 400,
@@ -85,30 +76,7 @@ const SUN = { down: 3.5, over: 0.14, r: 0.52, u: 3.95, up: 1.15 };
 const WIRE = { nail: 0.13, reach: 1.7, rise: 0.95 };
 const NAIL_Z = FRAME_TOP + WIRE.rise;
 
-/* ───────────────────────────── The view ───────────────────────────────── */
-
-/**
- * Facing the screen. The object is built facing +y, which the isometric
- * camera sees at an angle. The whole of it is turned 45° about the
- * vertical, so its front points straight at the viewer and its edges run
- * level and plumb; and it is stretched √(3/2) in height, because that
- * camera looks down from 35.26° and foreshortens heights by exactly that
- * much, so the front keeps its true proportions. It is still one exact
- * parallel projection of a solid: its thickness shows along its top edges.
- */
-const FRONT = { stretch: Math.sqrt(1.5), turn: -45 };
-const VIEW_POSE: IsoPose = {
-  axis: "z",
-  rotate: FRONT.turn,
-  scale: [1, 1, FRONT.stretch],
-};
-
-/** Where a point of the object lands once it faces the screen. */
-const facing = ([x, y, z]: Vec3): Vec3 => [
-  (x + y) * Math.SQRT1_2,
-  (y - x) * Math.SQRT1_2,
-  z * FRONT.stretch,
-];
+/* ───────────────────────────── Frame ──────────────────────────────────── */
 
 // The frame fits the picture frame and its nail.
 const EXTENT: Vec3[] = [
@@ -148,8 +116,6 @@ const AGAIN: Clip = {
   ...NEXT,
   sun: [[0, SUN.up, EASE.in], [TIMING.set[0], SUN.down, "hold"], ...NEXT.sun],
 };
-
-const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
 
@@ -235,220 +201,33 @@ const Picture = ({ sun }: { sun: number }) => {
 
 /* ───────────────────────────── Clock ──────────────────────────────────── */
 
-/** The sun's height, re-rendered only when it changes. */
+/**
+ * The sun's height, re-rendered only when it changes. Each clip starts from
+ * its own first frame: held at rest nothing was drawn, so the first play
+ * must not show a frame of a clip that never ran.
+ */
 const useSun = (clock: MotionValue<number> | undefined, clip: Clip) => {
   const idle = useMotionValue(0);
   const read = (ms: number) => r2(sample(clip.sun, ms));
-  const [value, setValue] = useState(() => read(0));
-  const last = useRef(value);
+  const [sun, setSun] = useState(() => ({ clip, value: read(0) }));
+  if (sun.clip !== clip) {
+    setSun({ clip, value: read(0) });
+  }
   useMotionValueEvent(clock ?? idle, "change", (ms) => {
     const next = read(ms);
-    if (next !== last.current) {
-      last.current = next;
-      setValue(next);
-    }
+    setSun((prev) =>
+      prev.clip === clip && prev.value === next ? prev : { clip, value: next }
+    );
   });
-  return clock ? value : SUN.up;
-};
-
-/* ───────────────────────────── Shell ──────────────────────────────────── */
-
-// Whether the visitor asked for less motion. It is read through a store
-// and not in the first render: the server cannot know it, so the first
-// render in the browser has to answer "no" as the server did, and switch
-// once the page has taken over. Reading it straight away makes the two
-// disagree, and React reports a failed hydration.
-const REDUCE = "(prefers-reduced-motion: reduce)";
-const watchReduce = (notify: () => void) => {
-  const query = window.matchMedia(REDUCE);
-  query.addEventListener("change", notify);
-  return () => query.removeEventListener("change", notify);
-};
-const useReduced = () =>
-  useSyncExternalStore(
-    watchReduce,
-    () => window.matchMedia(REDUCE).matches,
-    () => false
-  );
-
-/** In view, reduced motion, the clock and its clip, and the replay. */
-const useShell = ({
-  autoPlay,
-  loop,
-  replayOnClick,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  replayOnClick: boolean;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReduced();
-  const still = reduced || !autoPlay;
-  // Run 0 is the intro; every run after it starts from the sun up.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const clip = run === 0 ? INTRO : AGAIN;
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + TIMING.hold) {
-      again();
-    }
-  });
-  const canReplay = replayOnClick && !still;
-  const replay = () => {
-    if (canReplay && clock.get() >= clip.end) {
-      again();
-    }
-  };
-  return { canReplay, clip, clock: still ? undefined : clock, ref, replay };
-};
-
-// In ink the walls step down half as far as the house ramp (0.03 and 0.07
-// under the top, not 0.06 and 0.13): a blocked state is a quiet line
-// drawing on the page, with only a whisper of form.
-const PAPER: Record<string, string> = {
-  "--iso-surface-left-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.03) c h)",
-  "--iso-surface-right-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.07) c h)",
-};
-
-// The blueprint (`line`) drawn at this size: its outline held at the same
-// pixel weight as ink instead of a canvas-unit one, which would be three
-// times too heavy on a stage this small. Faces stay the page's colour.
-const BLUEPRINT: Record<string, string> = {
-  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
-  "--iso-vector": "non-scaling-stroke",
-};
-
-// The engine's rim highlight has no width in the outlined variants, yet it
-// still paints a pale hairline over the front outline of every extrusion
-// (seen at 4× in Chromium). Clear its colour so the outline keeps its
-// full weight.
-const NO_RIM: Record<string, string> = {
-  "--iso-accent-rim": "transparent",
-  "--iso-main-rim": "transparent",
-  "--iso-surface-rim": "transparent",
-};
-
-/**
- * Stage overrides: no hairline contour (every edge already carries the
- * outline), the paper walls in ink, the pixel outline in the blueprint,
- * and the outline on the side edges of rounded parts.
- */
-const stageStyle = (variant: IsoVariant) =>
-  ({
-    "--iso-contour-w": "0",
-    ...(variant === "ink" ? PAPER : {}),
-    ...(variant === "line" ? BLUEPRINT : {}),
-    ...(variant === "ink" || variant === "line" ? NO_RIM : {}),
-    "--iso-silhouette": "var(--iso-edge, none)",
-  }) as CSSProperties;
-
-/* ───────────────────────────── Copy ───────────────────────────────────── */
-
-// Optical padding: an icon carries its own white space, so the label's
-// side gets 2px more than the icon's side (12px and 14px) or the label
-// looks pushed against the edge. The second class wins over a Button that
-// already nudges this side itself.
-const BUTTON =
-  "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
-
-/** The arrow on the button: up, for an upload. */
-const UploadIcon = () => (
-  <svg
-    aria-hidden="true"
-    data-icon="inline-start"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 19V5M6 11l6-6 6 6" />
-  </svg>
-);
-
-/**
- * The state's own words, under the frame: the heading, a line of copy,
- * and the actions (the built-in button, or whatever is passed in).
- */
-const Copy = ({
-  heading,
-  description,
-  actionLabel,
-  onAction,
-  children,
-}: {
-  heading: string;
-  description: string;
-  actionLabel: string;
-  onAction?: () => void;
-  children?: ReactNode;
-}) => {
-  const button = actionLabel ? (
-    <Button className={BUTTON} onClick={onAction}>
-      <UploadIcon />
-      {actionLabel}
-    </Button>
-  ) : null;
-  const actions = children ?? button;
-  return (
-    <>
-      {heading ? (
-        <p className="mt-3 text-xl font-medium tracking-tight text-foreground">
-          {heading}
-        </p>
-      ) : null}
-      {description ? (
-        <p className="mt-2 text-balance text-muted-foreground">{description}</p>
-      ) : null}
-      {actions ? <div className="mt-6">{actions}</div> : null}
-    </>
-  );
+  return clock ? sun.value : SUN.up;
 };
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
-export interface PictureFrameProps {
-  /** Heading under the frame, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
-  /** Label of the button, up to about 20 characters. An empty string hides the button. */
-  actionLabel?: string;
-  /** Called when the button is clicked. */
-  onAction?: () => void;
-  /** Your own actions under the copy (a link, two buttons), in place of the built-in button. */
-  children?: ReactNode;
-  /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the sun; the rest stays neutral. */
-  tone?: IsoTone;
-  /** "ink" (default): a fine outline with a whisper of shading on the walls. "line": the outline alone, faces the colour of the page. "soft", "duotone" and "solid" are the lit, coloured looks. */
-  variant?: IsoVariant;
-  /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
-  strokeWidth?: number;
-  /** The sun rises when the frame scrolls into view. Off shows it up and nothing moving. */
-  autoPlay?: boolean;
-  /** Set the sun and raise it again every few seconds. Off plays it once, which suits a state people sit in front of. */
-  loop?: boolean;
-  /** Clicking the frame sets the sun and raises it again. */
-  replayOnClick?: boolean;
-  /** Accessible description of the illustration. Without it the frame is decorative and the copy speaks for it. */
-  title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-56`. */
-  artClassName?: string;
-  /** Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide). */
-  className?: string;
-}
+export type PictureFrameProps = LineStateProps;
+
+// The arrow on the button: up, for an upload.
+const UPLOAD = "M12 19V5M6 11l6-6 6 6";
 
 /**
  * Picture frame: a complete no-images state ("No images yet") with a line
@@ -456,91 +235,58 @@ export interface PictureFrameProps {
  * frame hung on a nail, holding the picture an empty image slot always
  * shows: two hills, and a sun that rises over the far one and settles.
  * One fine outline, near-white faces, no shadow, facing the screen; the
- * sun carries the brand, like the button under it. Click the frame to
- * play it again. Follows the shadcn theme.
+ * sun carries the brand, like the button under it. It plays when it comes
+ * into view; pass `active` (PlayOnHover, or your own state) to play it
+ * each time `active` turns true. Follows the shadcn theme.
  */
 export const PictureFrame = ({
   heading = "No images yet",
   description = "Upload your first image and it will show up here.",
   actionLabel = "Upload image",
-  onAction,
-  children,
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
-  title,
-  artClassName,
-  className,
+  onPlayEnd,
+  ...rest
 }: PictureFrameProps) => {
-  const { canReplay, clip, clock, ref, replay } = useShell({
-    autoPlay,
+  const shell = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
-  const sun = useSun(clock, clip);
-  const art = (
-    <IsoStage
-      bounds={BOUNDS}
-      shadow={false}
-      strokeWidth={strokeWidth}
-      style={stageStyle(variant)}
-      title={title}
-      tone={tone}
-      variant={variant}
-    >
-      {/* Everything hangs in one rig that turns it to face the screen. */}
-      <Rig pivot={[0, 0, 0]} {...VIEW_POSE}>
-        <Wire />
-        <Extrude
-          at={FRAME_AT}
-          convex
-          d={roundedRect(FRAME.w, FRAME.h, FRAME.r)}
-          depth={FRAME.depth}
-          palette="surface"
-          plane="left"
-        />
-        <Picture sun={sun} />
-      </Rig>
-    </IsoStage>
-  );
+  const sun = useSun(shell.clock, shell.clip);
   return (
-    <div
-      className={cn(
-        "flex w-full max-w-sm flex-col items-center text-center",
-        className
-      )}
-      data-slot="picture-frame"
+    <LineState
+      bounds={BOUNDS}
+      defaultArtClassName="w-56"
+      icon={UPLOAD}
+      props={{
+        actionLabel,
+        description,
+        heading,
+        strokeWidth,
+        tone,
+        variant,
+        ...rest,
+      }}
+      shell={shell}
+      slot="picture-frame"
     >
-      <div
-        className={cn("w-56 max-w-full", artClassName)}
-        data-slot="picture-frame-art"
-        ref={ref}
-      >
-        {canReplay ? (
-          <button
-            aria-label={`${title ?? "Illustration"}. Press to play it again.`}
-            className="block w-full cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={replay}
-            type="button"
-          >
-            {art}
-          </button>
-        ) : (
-          art
-        )}
-      </div>
-      <Copy
-        actionLabel={actionLabel}
-        description={description}
-        heading={heading}
-        onAction={onAction}
-      >
-        {children}
-      </Copy>
-    </div>
+      <Wire />
+      <Extrude
+        at={FRAME_AT}
+        convex
+        d={roundedRect(FRAME.w, FRAME.h, FRAME.r)}
+        depth={FRAME.depth}
+        palette="surface"
+        plane="left"
+      />
+      <Picture sun={sun} />
+    </LineState>
   );
 };
 

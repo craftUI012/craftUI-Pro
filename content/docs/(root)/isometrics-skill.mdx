@@ -1,0 +1,40 @@
+---
+title: Isometrics skill
+description: A free agent skill that draws and animates outline-style isometric empty states in React. Install it with one command and symlink it to every agent.
+---
+
+The **isometrics** skill teaches your coding agent (Claude Code, Cursor, Codex and others) to draw isometric objects in our outline style: one object facing the screen, a 1 px outline, one brand-coloured mark and one beat of motion. Each object ships as a complete empty state with its heading, copy and button, in your shadcn theme.
+
+It is free and open source (MIT): [github.com/craftUI012/Skills](https://github.com/craftUI012/Skills).
+
+## Install
+
+```bash
+npx skills add craftUI012/Skills --skill isometrics
+```
+
+Pick your agents and choose **Symlink** when asked. One copy goes into `.agents/skills/isometrics/` and every agent's skills folder links to it. Update it later with `npx skills update`. Add `-g` to install it for your user instead of one project.
+
+## Use
+
+Ask your agent in plain words, for example "gallery isometrics" or "an isometric empty state for our billing page". The agent:
+
+1. Reads the brief: the subject, the state (empty, blocked, nothing found) and the message.
+2. Offers three concepts, each an object, a heading and the one beat of motion, and waits for your pick.
+3. Builds the object from 3D primitives in exact isometric projection, with its copy as props.
+4. Renders it in light and dark, steps the motion frame by frame and runs strict checks: a 1 px outline, no shadow or glow, centred on the copy, still under reduced motion, settling back to rest.
+5. Looks at the frames, fixes what fails and reports what it changed.
+
+## What your project needs
+
+- React with Tailwind CSS and shadcn/ui, and the `motion` package. The skill copies its engine into `components/isometrics/` on first use.
+- For the checks: Playwright (`npm i -D playwright`).
+
+## What's inside
+
+- The isometric engine and the Line kit the objects are built with.
+- Every drawing and motion rule, each with the reason it exists.
+- Ten complete example objects: map pin, folder, gift box, mailbox, toggle switch, cloud upload, chat bubble, hourglass, stopwatch and sprout pot.
+- The render-and-screenshot checker.
+
+Want finished scenes and objects instead? Browse the [Isometrics library](/?library=isometrics).

@@ -93,8 +93,6 @@ export const STYLES = {
   "dark-mode": { label: "Dark mode" },
   flat: { label: "Flat" },
   gradient: { label: "Gradient" },
-  // Drawn in true isometric projection (Illustrations only).
-  isometric: { label: "Isometric" },
   line: { label: "Line" },
   minimal: { label: "Minimal" },
   motion: { label: "Motion" },
@@ -124,6 +122,7 @@ export type LibraryId =
   | "components"
   | "templates"
   | "blocks"
+  | "isometrics"
   | "illustrations"
   | "gradients";
 
@@ -135,10 +134,6 @@ export interface LibraryConfig {
   // once an item is published, even if the item's slug or title does. "TPL"
   // is kept for full-page templates, a separate product to come.
   idPrefix: string;
-  // Prefixes of codes given before a merge or a rename, still valid on the
-  // items that carry them (a sold code never changes). New items never get
-  // one of these.
-  legacyPrefixes?: string[];
   // The library's key in the browse page's URL (/?library=blocks).
   slug: string;
   // Nouns for the result count: "1 block", "6 blocks".
@@ -228,10 +223,23 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
     styles: [],
     types: [],
   },
-  // Every drawn item: isometric scenes and objects (the "Isometric" style)
-  // and, later, flat illustrations. Isometric was its own library until
-  // 2026-11-12; its ten items kept their ISO- codes when it merged in here.
+  // Flat illustrations: announced, nothing in it yet ("Coming soon" in the
+  // navbar, like Gradient backgrounds). Give it its categories, types and
+  // styles when the first item is added.
   illustrations: {
+    categories: [],
+    idPrefix: "ILL",
+    itemLabel: { one: "illustration", other: "illustrations" },
+    label: "Illustrations",
+    searchPlaceholder: "Search illustrations…",
+    slug: "illustrations",
+    styles: [],
+    types: [],
+  },
+  // Drawn in true isometric projection: scenes and single objects (the Line
+  // empty states). Source in registry/isometric, docs at /docs/isometrics.
+  // Split back out of Illustrations on 2026-11-17; every item is ISO-.
+  isometrics: {
     categories: [
       "technology",
       "finance",
@@ -240,13 +248,12 @@ export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
       "marketing",
       "people",
     ],
-    idPrefix: "ILL",
-    itemLabel: { one: "illustration", other: "illustrations" },
-    label: "Illustrations",
-    legacyPrefixes: ["ISO"],
-    searchPlaceholder: "Search illustrations…",
-    slug: "illustrations",
-    styles: ["isometric", "flat", "line", "gradient", "dark-mode"],
+    idPrefix: "ISO",
+    itemLabel: { one: "isometric", other: "isometrics" },
+    label: "Isometrics",
+    searchPlaceholder: "Search isometrics…",
+    slug: "isometrics",
+    styles: ["line", "flat", "gradient", "dark-mode"],
     types: ["scenes", "objects", "devices", "spot", "empty-states"],
   },
   templates: {
@@ -288,6 +295,7 @@ export const NAV_LIBRARIES: LibraryId[] = [
   "templates",
   "blocks",
   "components",
+  "isometrics",
   "illustrations",
   "gradients",
 ];

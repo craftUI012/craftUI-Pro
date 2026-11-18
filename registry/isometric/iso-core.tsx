@@ -240,19 +240,24 @@ export const Rig = ({
   children: ReactNode;
 }) => {
   const cam = useCamera();
-  const [live, setLive] = useState<IsoPose>(() => (pose ? pose(0) : {}));
+  // The pose is read from the clock as the rig renders; the state below
+  // only asks for a render when the sampled pose changes. Without a clock
+  // the plain pose props hold, so a rig that loses its clock (reduced
+  // motion turning on, an object put back at rest) never keeps the last
+  // pose it was given.
+  const [, setShown] = useState("");
   const last = useRef("");
   useMotionValueEvent(clock ?? STILL_CLOCK, "change", (ms) => {
     if (!pose) {
       return;
     }
-    const next = pose(ms);
-    const key = JSON.stringify(next);
+    const key = JSON.stringify(pose(ms));
     if (key !== last.current) {
       last.current = key;
-      setLive(next);
+      setShown(key);
     }
   });
+  const live: IsoPose = clock && pose ? pose(clock.get()) : {};
   const local = poseModel(pivot, {
     axis: live.axis ?? axis,
     offset: live.offset ?? offset,
@@ -1072,6 +1077,8 @@ const hull = (pts: P2[]): P2[] => {
  * Samples a face-coordinate path (absolute M L H V C Q Z) into points, curves
  * at 6 steps each, for shapes a scene needs as points (silhouettes).
  */
+const CURVE_SAMPLES = 24;
+
 const facePoints = (d: string): [number, number][] => {
   const tokens = d.match(/[MLHVCQZ]|-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
   const out: [number, number][] = [];
@@ -1086,8 +1093,12 @@ const facePoints = (d: string): [number, number][] => {
   };
   const curve = (ctrl: [number, number][]) => {
     const pts: [number, number][] = [[cu, cv], ...ctrl];
-    for (let s = 1; s <= 6; s += 1) {
-      const t = s / 6;
+    // 24 samples per curve: the hull of these points is the silhouette a
+    // convex extrusion strokes, and with fewer (6 were used) it was a
+    // polygon that ran as a faceted second line beside the smooth back
+    // outline of every rounded part.
+    for (let s = 1; s <= CURVE_SAMPLES; s += 1) {
+      const t = s / CURVE_SAMPLES;
       // De Casteljau: lerp the control polygon down to one point.
       const work = pts.map(([u, v]): [number, number] => [u, v]);
       for (let n = work.length - 1; n > 0; n -= 1) {

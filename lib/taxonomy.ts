@@ -131,9 +131,7 @@ const productIdError = (
       : `${at}: meta.id "${String(id)}" isn't a product code. Remove it and run \`pnpm registry:build\` locally for a new one, like "${library.idPrefix}-7K3QX9".`;
   }
   const [code, prefix] = match;
-  // A code given under an earlier prefix (before a merge) stays valid.
-  const prefixes = [library.idPrefix, ...(library.legacyPrefixes ?? [])];
-  if (!prefixes.includes(prefix)) {
+  if (prefix !== library.idPrefix) {
     return `${at}: meta.id "${code}" must start with "${library.idPrefix}-", the ${library.label} prefix.`;
   }
   if (ids.has(code)) {

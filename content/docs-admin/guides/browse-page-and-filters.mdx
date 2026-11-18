@@ -3,7 +3,7 @@ title: Browse page and filters
 description: How a registry item gets onto the home page, the taxonomy file that defines every library and filter value, and the metadata every new item needs.
 ---
 
-The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Components**, and **Illustrations** under the **UI kits** dropdown, where **Gradient backgrounds** is listed as coming soon until it has an item), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
+The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Components**, and **Isometrics** under the **UI kits** dropdown, where **Illustrations** and **Gradient backgrounds** are listed as coming soon until they have an item), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
 
 Which library an item belongs in:
 
@@ -12,6 +12,7 @@ Which library an item belongs in:
 | **Sections**   | A full-width band of a page                                 | hero, pricing, testimonials, footer                         |
 | **Blocks**     | A finished piece of product UI made of several controls     | payment scheduler, savings chart card, team invites         |
 | **Components** | A single control you build other things from, with states  | subscribe button, file picker, date picker, input, switch   |
+| **Isometrics** | A drawing in true isometric projection: a scene or one object | push-to-deploy scene, padlock empty state, bell             |
 
 Components' **Categories** are what the control does (Inputs, Actions, Navigation, Overlays, Feedback, Data display), not the kind of product it's for like the other libraries.
 
@@ -150,6 +151,7 @@ Every browse item has a product code in `meta.id`: a three-letter library prefix
 | `templates` (Sections)   | `SEC`  | `SEC-7K3QX9` |
 | `blocks`                 | `BLK`  | `BLK-2DW8MF` |
 | `components`             | `CMP`  | `CMP-4N8WQ2` |
+| `isometrics`             | `ISO`  | `ISO-Z84F1M` |
 | `illustrations`          | `ILL`  | `ILL-H6ZT3R` |
 | `gradients`              | `GRD`  | `GRD-5T2VNC` |
 
@@ -159,7 +161,7 @@ Every browse item has a product code in `meta.id`: a three-letter library prefix
 
 **Older codes:** items from before the switch keep their four-digit codes (`SEC-0001` to `SEC-0015`, `BLK-0001`, `BLK-0002`). Purchases store them, so they never change, and the build accepts both forms.
 
-**Merged libraries:** Isometric was its own library until 2026-11-12, when it merged into Illustrations. Its ten items keep their `ISO-` codes: `LIBRARIES.illustrations.legacyPrefixes` lists `ISO`, so the build still accepts them. New illustrations, isometric or not, get `ILL-` codes; tag the isometric ones with the `isometric` style so the filter finds them. Old `/docs/isometric/…` addresses redirect to `/docs/illustrations/…` (`next.config.mjs`), and an old `?library=isometric` link opens Illustrations (`browse-url.ts`).
+**Isometrics and Illustrations are two libraries.** Everything drawn in isometric projection (scenes and the Line objects) is in **Isometrics**: `meta.library: "isometrics"`, codes `ISO-`, docs at `/docs/isometrics/<name>` (`content/docs/isometrics/`), source in `registry/isometric/`. **Illustrations** is for flat, non-isometric art; it has no items yet, so the navbar shows it as coming soon, and its first item gets an `ILL-` code. On 2026-11-17, before anyone had bought one, the twelve isometric items that had `ILL-` codes were moved to `ISO-` (same six characters) and the old `/docs/illustrations/…` and `/docs/isometric/…` addresses were dropped without redirects. A library takes exactly one prefix: the build rejects any other.
 
 Rules:
 

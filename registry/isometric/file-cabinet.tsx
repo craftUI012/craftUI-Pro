@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useInView,
-  useMotionValue,
-  useMotionValueEvent,
-  useReducedMotion,
-} from "motion/react";
+import { useMotionValue, useMotionValueEvent } from "motion/react";
 import type { MotionValue } from "motion/react";
 import type { CSSProperties, ReactNode } from "react";
 import { useRef, useState } from "react";
@@ -16,7 +11,6 @@ import { cn } from "@/lib/utils";
 import {
   Box,
   EASE,
-  Extrude,
   FaceEllipse,
   FacePath,
   FloorGrid,
@@ -25,7 +19,6 @@ import {
   Rig,
   roundedRect,
   sample,
-  useClock,
   useIsoOrbit,
 } from "./iso-core";
 import type {
@@ -38,6 +31,15 @@ import type {
   IsoVariant,
   Vec3,
 } from "./iso-core";
+import {
+  ButtonIcon,
+  ICON,
+  onClock,
+  r2,
+  useLineShell,
+  useReduced,
+} from "./iso-line";
+import type { LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -54,14 +56,14 @@ import type {
  * 1000ms   the other drawer slides out a hair and back (it lags the hit)
  * 1620ms   still: open and empty
  *
- * A click (or `loop`, after a 5.2s hold) pushes the drawer shut (320ms,
- * the cabinet rocking back on its rear feet), then the roll plays again.
- * Reduced motion (or autoPlay off): open and empty, nothing moves.
+ * One way, so each later play (each time `active` turns true, or `loop`
+ * after a 5.2s hold) first pushes the drawer shut (320ms, the cabinet
+ * rocking back on its rear feet), then the roll plays again.
+ * Reduced motion, or `active` false before any play: open and empty,
+ * nothing moves. It leans with the pointer either way.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  // How long the open drawer holds before a loop pushes it shut.
-  hold: 5200,
   // How long the other drawer lags the hit.
   lag: 80,
   // The drawer starts to roll out.
@@ -101,15 +103,22 @@ export type CabinetDrawer = "bottom" | "top";
 
 // The cabinet: 5 wide (x), 5.5 deep (y), on four feet, its front facing
 // the viewer's left (+y) so the drawers roll out down-left on screen.
-const FOOT = { h: 0.5, inset: 0.25, w: 0.75 };
+// Feet stand 0.5 in from the body's sides, so their edges never run a
+// hair beside the body's own.
+const FOOT = { h: 0.5, inset: 0.5, w: 0.75 };
 const BODY = { at: [-2.5, -3, FOOT.h] as Vec3, size: [5, 5.5, 8.75] as Vec3 };
 const FRONT_Y = BODY.at[1] + BODY.size[1];
 const BODY_TOP = BODY.at[2] + BODY.size[2];
+// Every strip that shows (the top plate, the frame's rails and stiles, the
+// drawer's front, walls and lift) is at least 0.5, so it stays a clear
+// strip, not a doubled line, at the default size.
 // The top: a separate plate, flush with the body.
-const CAP = 0.25;
+const CAP = 0.5;
 
 // The front's frame around the two drawer openings.
-const FRAME = { bottom: 0.5, mid: 0.25, stile: 0.3, top: 0.5 };
+// The top rail is the lock's: deep enough that the lock sits clear of both
+// its edges.
+const FRAME = { bottom: 0.5, mid: 0.5, stile: 0.5, top: 1 };
 const OPENING = {
   h: (BODY.size[2] - FRAME.top - FRAME.mid - FRAME.bottom) / 2,
   w: BODY.size[0] - 2 * FRAME.stile,
@@ -126,49 +135,43 @@ const BAYS: CabinetDrawer[] = ["bottom", "top"];
 // box behind it, narrower than the opening by the slides' gap.
 const DRAWER = {
   // Thickness of the front.
-  front: 0.3,
-  // The slides' gap between the box and the opening, either side.
-  gap: 0.25,
+  front: 0.5,
+  // The slides' gap between the box and the opening, either side: 0.5,
+  // so the box's edges stand clear of the opening's (a narrower gap drew
+  // them as one doubled line).
+  gap: 0.5,
   // Height of the box.
   h: 2.5,
   // Length of the box behind the front.
   length: 4.25,
   // The box's underside above the opening's bottom edge.
-  lift: 0.25,
+  lift: 0.5,
   // Thickness of the box's walls and floor.
-  wall: 0.25,
+  wall: 0.5,
 };
-// Full extension: the box's back clears the frame by 0.2, so the slides
-// show bridging the gap.
-const PULL = DRAWER.front + DRAWER.length + 0.2;
+// Full extension: the box's back reaches the cabinet's front plane, so its
+// back corners sit a clear gap inside the opening's edges.
+const PULL = DRAWER.front + DRAWER.length;
 
 // The slide on the box's right side: a tall member fixed to the cabinet
-// for the first part of the travel, a slimmer one riding with the drawer.
+// for the first part of the travel, a second one riding with the drawer.
+// Both members are one height, so they meet in one seam line (a slimmer
+// inner member drew a step of doubled edges).
 const SLIDE = {
   // Height of the slide's centre above the opening's bottom edge.
-  at: 1.15,
+  at: 1.25,
   // Height of the cabinet's member, and of the drawer's.
-  h: [0.6, 0.3] as const,
+  h: [0.5, 0.5] as const,
   // Share of the pull the cabinet's member covers.
   outer: 0.45,
 };
 
 // On a drawer's front, in face units (u across, v down from its top edge):
-// the label holder with its card, and the pull under it.
-const HOLDER = { h: 1, inset: 0.2, u: 1.4, v: 0.7, w: 1.6 };
-const GRIP = {
-  // Thickness of the pull, top to bottom.
-  depth: 0.12,
-  // How far it stands proud of the front.
-  out: 0.6,
-  // Radius of its outer corners.
-  r: 0.24,
-  // Width of its bar.
-  t: 0.22,
-  u: 1.3,
-  v: 2.45,
-  w: 1.8,
-};
+// the label card, and the pull under it. The pull is a grip recessed into
+// the front, flush with it: a thin bar standing proud drew its top and
+// bottom edges as one doubled line.
+const LABEL = { h: 1, u: (OPENING.w - 1.6) / 2, v: 0.7, w: 1.6 };
+const GRIP = { h: 0.5, u: (OPENING.w - 1.8) / 2, v: 2.25, w: 1.8 };
 
 // The lock, on the frame's top rail.
 const LOCK: Vec3 = [
@@ -185,7 +188,7 @@ const REAR_FEET: Vec3 = [0, BODY.at[1] + FOOT.inset, 0];
 const boundsFor = (drawer: CabinetDrawer): Vec3[] => {
   const [x, y] = BODY.at;
   const [w, d] = BODY.size;
-  const reach = FRONT_Y + PULL + GRIP.out;
+  const reach = FRONT_Y + PULL;
   const z = BAY_Z[drawer];
   return [
     [x, y, 0],
@@ -314,8 +317,6 @@ const AGAIN: Clip = {
   tipForward: tip(REOPEN + TIMING.roll, -STOP.tip),
 };
 
-const r2 = (n: number) => Math.round(n * 100) / 100;
-
 const tipPose =
   (track: IsoTrack) =>
   (ms: number): IsoPose => ({ axis: "x", rotate: r2(sample(track, ms)) });
@@ -362,34 +363,14 @@ const Solid = ({
   );
 };
 
-/**
- * A pull seen from above, in face units: a U of bar width `t` standing
- * `out` proud of the drawer's front (v = 0), its outer corners rounded.
- */
-const pullPath = (w: number, out: number, t: number, r: number) => {
-  const ri = Math.max(0.04, r - t);
-  return [
-    "M0 0",
-    `V${r2(out - r)}`,
-    `Q0 ${out} ${r} ${out}`,
-    `H${r2(w - r)}`,
-    `Q${w} ${out} ${w} ${r2(out - r)}`,
-    "V0",
-    `H${r2(w - t)}`,
-    `V${r2(out - t - ri)}`,
-    `Q${r2(w - t)} ${r2(out - t)} ${r2(w - t - ri)} ${r2(out - t)}`,
-    `H${r2(t + ri)}`,
-    `Q${t} ${r2(out - t)} ${t} ${r2(out - t - ri)}`,
-    "V0",
-    "Z",
-  ].join(" ");
-};
-const GRIP_PATH = pullPath(GRIP.w, GRIP.out, GRIP.t, GRIP.r);
+// The recessed grip: a rounded slot in the front, its inside a shade
+// darker than the paper.
+const GRIP_PATH = roundedRect(GRIP.w, GRIP.h, GRIP.h / 2, GRIP.u, GRIP.v);
 
 /**
  * One drawer, `pull` world units out of its bay. Parts are written far to
  * near: the box's back and left walls, its floor, its right wall, the
- * slide on that wall, then the front with its label holder and pull.
+ * slide on that wall, then the front with its label card and pull.
  */
 const Drawer = ({
   bay,
@@ -415,22 +396,20 @@ const Drawer = ({
   const corner: Vec3 = [OPENING.x, face, z0 + OPENING.h];
   return (
     <>
-      <Solid x={[x0, x1]} y={[rear, rear + DRAWER.wall]} z={[zb, zt]} />
+      {/* The back sits between the side walls, so each side is one face
+          with no seam a wall's thickness from its end. */}
       <Solid
-        x={[x0, x0 + DRAWER.wall]}
-        y={[rear + DRAWER.wall, inner]}
+        x={[x0 + DRAWER.wall, x1 - DRAWER.wall]}
+        y={[rear, rear + DRAWER.wall]}
         z={[zb, zt]}
       />
+      <Solid x={[x0, x0 + DRAWER.wall]} y={[rear, inner]} z={[zb, zt]} />
       <Solid
         x={[x0 + DRAWER.wall, x1 - DRAWER.wall]}
         y={[rear + DRAWER.wall, inner]}
         z={[zb, zb + DRAWER.wall]}
       />
-      <Solid
-        x={[x1 - DRAWER.wall, x1]}
-        y={[rear + DRAWER.wall, inner]}
-        z={[zb, zt]}
-      />
+      <Solid x={[x1 - DRAWER.wall, x1]} y={[rear, inner]} z={[zb, zt]} />
       <Solid
         x={[x1, x1 + DRAWER.gap]}
         y={[FRONT_Y, Math.min(split, inner)]}
@@ -447,36 +426,24 @@ const Drawer = ({
         y={[inner, face]}
         z={[z0, z0 + OPENING.h]}
       />
-      {/* The label holder and its card. The open drawer's card is the one
-          lit thing; the other is blank, a shade off its holder. */}
+      {/* The label card, flush with the front: one outline (a holder frame
+          round it drew two outlines a hair apart). The open drawer's card is
+          the one lit thing; the other is blank, a shade off the front. */}
       <FacePath
         at={corner}
-        d={roundedRect(HOLDER.w, HOLDER.h, 0.1, HOLDER.u, HOLDER.v)}
-        plane="left"
-        style={{ ...LINE, fill: "var(--iso-surface-top)" }}
-      />
-      <FacePath
-        at={corner}
-        d={roundedRect(
-          HOLDER.w - 2 * HOLDER.inset,
-          HOLDER.h - 2 * HOLDER.inset,
-          0.05,
-          HOLDER.u + HOLDER.inset,
-          HOLDER.v + HOLDER.inset
-        )}
+        d={roundedRect(LABEL.w, LABEL.h, 0.1, LABEL.u, LABEL.v)}
         plane="left"
         style={{
           ...LINE,
-          fill: lit ? "var(--iso-main-left)" : "var(--iso-surface-left)",
+          fill: lit ? "var(--iso-main-left)" : "var(--iso-surface-top)",
         }}
       />
-      {/* The pull: a U standing proud of the front, lying level. */}
-      <Extrude
-        at={[OPENING.x + GRIP.u, face, z0 + OPENING.h - GRIP.v]}
+      {/* The pull: a grip recessed into the front. */}
+      <FacePath
+        at={corner}
         d={GRIP_PATH}
-        depth={GRIP.depth}
-        palette="surface"
-        plane="top"
+        plane="left"
+        style={{ ...LINE, fill: "var(--iso-inside-wall)" }}
       />
     </>
   );
@@ -533,13 +500,8 @@ const Shell = () => {
         palette="surface"
         size={BODY.size}
       />
+      {/* One solid dot: a ring round a hole drew two circles a hair apart. */}
       <FaceEllipse center={LOCK} fill="var(--iso-ink)" plane="left" r={0.15} />
-      <FaceEllipse
-        center={LOCK}
-        fill="var(--iso-surface-top)"
-        plane="left"
-        r={0.07}
-      />
       <Box at={[x, y, BODY_TOP]} palette="surface" size={[w, d, CAP]} />
     </>
   );
@@ -547,18 +509,21 @@ const Shell = () => {
 
 /* ───────────────────────────── Clock ──────────────────────────────────── */
 
-/** How far each drawer is out, re-rendered only when it changes. */
-const useDrawers = (
-  clock: MotionValue<number> | undefined,
-  clip: Clip,
-  still: boolean
-) => {
+// At rest: the drawer open, the other one shut.
+const OPEN = { opening: PULL, other: 0 };
+
+/**
+ * How far each drawer is out, re-rendered only when it changes. Held (no
+ * clock) the drawer is open; it starts there too when it is held at first,
+ * so the first play doesn't flash a shut drawer.
+ */
+const useDrawers = (clock: MotionValue<number> | undefined, clip: Clip) => {
   const idle = useMotionValue(0);
   const read = (ms: number) => ({
     opening: r2(sample(clip.pull, ms)),
     other: r2(sample(clip.rattle, ms)),
   });
-  const [value, setValue] = useState(() => read(0));
+  const [value, setValue] = useState(() => (clock ? read(0) : OPEN));
   const last = useRef(JSON.stringify(value));
   useMotionValueEvent(clock ?? idle, "change", (ms) => {
     const next = read(ms);
@@ -568,14 +533,8 @@ const useDrawers = (
       setValue(next);
     }
   });
-  return still ? { opening: PULL, other: 0 } : value;
+  return clock ? value : OPEN;
 };
-
-/** Rig props: animated on the clock, or at rest. */
-const rigged = (
-  clock: MotionValue<number> | undefined,
-  pose: (ms: number) => IsoPose
-) => (clock ? { clock, pose } : {});
 
 /* ───────────────────────────── Shell ──────────────────────────────────── */
 
@@ -587,90 +546,6 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
         "aria-label": `${title ?? "Illustration"}. Move the pointer or use the left and right arrow keys to turn it.`,
         role: "group",
       };
-
-interface PointerLike {
-  button: number;
-  clientX: number;
-  clientY: number;
-  currentTarget: Element;
-  pointerId: number;
-}
-interface OrbitHandlers {
-  onPointerDown?: (e: PointerLike) => void;
-  onPointerUp?: () => void;
-}
-
-/** In view, reduced motion, the clock and its clip, the camera, the pointer. */
-const useShell = ({
-  autoPlay,
-  loop,
-  orbit,
-  replayOnClick,
-  rotate,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  orbit: IsoOrbit;
-  replayOnClick: boolean;
-  rotate: IsoRotate;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReducedMotion() ?? false;
-  const still = reduced || !autoPlay;
-  // Run 0 is the intro; every run after it starts from the open drawer.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const clip = run === 0 ? INTRO : AGAIN;
-  const { camera, orbitProps } = useIsoOrbit({
-    mode: rotate,
-    orbit,
-    pivot: PIVOT,
-    reduced,
-  });
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + TIMING.hold) {
-      again();
-    }
-  });
-  // A plain click (no drag) replays, once the drawer is at rest.
-  const pressed = useRef({ x: 0, y: 0 });
-  const handlers = orbitProps as OrbitHandlers;
-  const pointer = {
-    onPointerDown: (e: PointerLike) => {
-      pressed.current = { x: e.clientX, y: e.clientY };
-      handlers.onPointerDown?.(e);
-    },
-    onPointerUp: (e: PointerLike) => {
-      handlers.onPointerUp?.();
-      const moved =
-        Math.hypot(
-          e.clientX - pressed.current.x,
-          e.clientY - pressed.current.y
-        ) > 6;
-      if (replayOnClick && !still && !moved && clock.get() >= clip.end) {
-        again();
-      }
-    },
-  };
-  return {
-    camera,
-    clip,
-    clock: still ? undefined : clock,
-    orbitProps,
-    pointer,
-    ref,
-    still,
-  };
-};
 
 // In ink the walls step down half as far as the house ramp (0.03 and 0.07
 // under the top, not 0.06 and 0.13): an empty state is a quiet line
@@ -727,21 +602,6 @@ const stageStyle = (variant: IsoVariant) =>
 const BUTTON =
   "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
 
-/** The plus on the button. */
-const PlusIcon = () => (
-  <svg
-    aria-hidden="true"
-    data-icon="inline-start"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 5v14M5 12h14" />
-  </svg>
-);
-
 /**
  * The empty state's own words, under the cabinet: the heading, a line of
  * copy, and the actions (the built-in button, or whatever is passed in).
@@ -761,7 +621,7 @@ const Copy = ({
 }) => {
   const button = actionLabel ? (
     <Button className={BUTTON} onClick={onAction}>
-      <PlusIcon />
+      <ButtonIcon d={ICON.plus} />
       {actionLabel}
     </Button>
   ) : null;
@@ -781,17 +641,7 @@ const Copy = ({
   );
 };
 
-export interface FileCabinetProps {
-  /** Heading under the cabinet, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
-  /** Label of the button, up to about 20 characters. An empty string hides the button. */
-  actionLabel?: string;
-  /** Called when the button is clicked. */
-  onAction?: () => void;
-  /** Your own actions under the copy (a link, two buttons), in place of the built-in button. */
-  children?: ReactNode;
+export interface FileCabinetProps extends LineStateProps {
   /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the open drawer's label card; the rest of the cabinet stays neutral. */
   tone?: IsoTone;
   /** Which drawer rolls open: "bottom" or "top". */
@@ -800,12 +650,10 @@ export interface FileCabinetProps {
   variant?: IsoVariant;
   /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
   strokeWidth?: number;
-  /** The drawer rolls open when the cabinet scrolls into view. Off shows it open and still. */
-  autoPlay?: boolean;
-  /** Push the drawer shut and roll it open again every few seconds. Off plays it once, which suits an empty state people sit in front of. */
+  /** Rolls the drawer open each time it turns true (hover, focus, an import finishing…), pushing it shut first. Left out, it rolls open once when the cabinet scrolls into view. Pass false to keep it open and still until you say. */
+  active?: boolean;
+  /** Push the drawer shut and roll it open again after a long hold (while `active`, or always when `active` is left out). Off (default) suits an empty state people sit in front of. */
   loop?: boolean;
-  /** Clicking the cabinet pushes the drawer shut and rolls it open again. */
-  replayOnClick?: boolean;
   /** No shadow (default), or the soft cast shadow. */
   shadow?: "soft" | "none";
   /** Dashed construction grid on the floor. */
@@ -820,7 +668,7 @@ export interface FileCabinetProps {
   orbit?: IsoOrbit;
   /** Accessible description of the illustration. Without it the cabinet is decorative and the copy speaks for it. */
   title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-60`. */
+  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`. */
   artClassName?: string;
   /** Classes for the wrapper of the whole empty state (it is a centred column, `max-w-sm` wide). */
   className?: string;
@@ -831,11 +679,12 @@ export interface FileCabinetProps {
  * ink illustration, a heading, a line of copy and a button, all props.
  * A two-drawer cabinet; one drawer rolls out on its slides, hits its stop
  * and shows there is nothing in it; the cabinet tips with the hit and the
- * other drawer rattles. Built from real parts (label holders, pulls, a
+ * other drawer rattles. Built from real parts (label cards, recessed pulls, a
  * lock, telescoping slides, feet), one even outline, no shadow; the open
- * drawer's label card carries the brand, like the button under it. Click
- * the cabinet to replay; it leans with the pointer. Follows the shadcn
- * theme.
+ * drawer's label card carries the brand, like the button under it. It
+ * plays when it comes into view, or each time `active` turns true
+ * (PlayOnHover, or your own state); it leans with the pointer. Follows the
+ * shadcn theme.
  */
 export const FileCabinet = ({
   heading = "No data yet",
@@ -847,9 +696,9 @@ export const FileCabinet = ({
   drawer = "bottom",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   shadow = "none",
   grid = false,
   rotate = "pointer",
@@ -858,14 +707,21 @@ export const FileCabinet = ({
   artClassName,
   className,
 }: FileCabinetProps) => {
-  const { camera, clip, clock, orbitProps, pointer, ref, still } = useShell({
-    autoPlay,
+  const { clip, clock, ref } = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    orbit,
-    replayOnClick,
-    rotate,
+    onPlayEnd,
   });
-  const pulls = useDrawers(clock, clip, still);
+  const reduced = useReduced();
+  const { camera, orbitProps } = useIsoOrbit({
+    mode: rotate,
+    orbit,
+    pivot: PIVOT,
+    reduced,
+  });
+  const pulls = useDrawers(clock, clip);
   const bounds = boundsFor(drawer);
   // A still cabinet has no range to turn through.
   const turn: IsoOrbit = rotate === "off" ? 0 : orbit;
@@ -880,14 +736,12 @@ export const FileCabinet = ({
       <div
         {...turnableLabel(rotate, title)}
         className={cn(
-          "w-60 max-w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "w-48 max-w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring",
           artClassName
         )}
         data-slot="file-cabinet-art"
         ref={ref}
         {...orbitProps}
-        onPointerDown={pointer.onPointerDown}
-        onPointerUp={pointer.onPointerUp}
       >
         <IsoStage
           bounds={bounds}
@@ -908,12 +762,12 @@ export const FileCabinet = ({
           <Rig
             axis="x"
             pivot={REAR_FEET}
-            {...rigged(clock, tipPose(clip.tipBack))}
+            {...onClock(clock, tipPose(clip.tipBack), clip.end)}
           >
             <Rig
               axis="x"
               pivot={FRONT_FEET}
-              {...rigged(clock, tipPose(clip.tipForward))}
+              {...onClock(clock, tipPose(clip.tipForward), clip.end)}
             >
               <Shell />
               {/* Bottom first: an open top drawer stands in front of it. */}

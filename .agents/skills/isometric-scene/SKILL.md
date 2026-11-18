@@ -1,12 +1,12 @@
 ---
 name: isometric-scene
-description: Create mathematically exact, modern isometric icons, product UI pieces and isometric scenes for craftUI's Illustrations library (the Isometric style; source in registry/isometric), at the quality bar of Stripe, Mercury, Ramp, Linear and Vercel. Use whenever the user describes a scene or object to render in isometric ("an isometric scene of a payment flow", "make an isometric cloud deploy", "draw a warehouse in isometric", "add an isometric lock icon", "isometric dashboard panel"), asks for a new isometric icon, product panel, composition, empty state or hero illustration, asks for a category of isometrics (finance, ecommerce, devtools, AI, security…), edits anything in registry/isometric (iso-core, IsoIcon, IsoStage, IsoScene, Box, Slab, Panel, Cylinder, Extrude, Face, casts), or asks about isometric projection, angles, grid, shading, shadows or the isometric docs pages.
+description: Create mathematically exact, modern isometric icons, product UI pieces and isometric scenes for craftUI's Isometrics library (source in registry/isometric), at the quality bar of Stripe, Mercury, Ramp, Linear and Vercel. Use whenever the user describes a scene or object to render in isometric ("an isometric scene of a payment flow", "make an isometric cloud deploy", "draw a warehouse in isometric", "add an isometric lock icon", "isometric dashboard panel"), asks for a new isometric icon, product panel, composition, empty state or hero illustration, asks for a category of isometrics (finance, ecommerce, devtools, AI, security…), edits anything in registry/isometric (iso-core, IsoIcon, IsoStage, IsoScene, Box, Slab, Panel, Cylinder, Extrude, Face, casts), or asks about isometric projection, angles, grid, shading, shadows or the isometric docs pages.
 ---
 
 # Isometric scene creation
 
 The user gives a reference picture or describes an object. You turn it
-into a drawn, animated item for craftUI's Illustrations library: built
+into a drawn, animated item for craftUI's Isometrics library: built
 from 3D primitives, shipped in the registry as a paid, installable React
 component that follows the buyer's shadcn theme and is customised through
 props. Every drawing is computed from 3D geometry; nothing is hand-drawn
@@ -115,7 +115,7 @@ ones):
   (in ink the walls step 0.03 and 0.07 under the top instead of 0.06 and
   0.13, set as `--iso-surface-left-c` / `-right-c` on the stage), no
   shadow, no grid, and it plays once (`loop` off): people sit in front of
-  an empty state. A click replays.
+  an empty state. `active` replays it (see "`active` drives the beat").
 - **One small brand mark**, not a brand object: the open drawer's label
   card. Everything else is neutral; the other label is blank.
 - **A part that slides out of a housing is cut, not rigged.** Painter's
@@ -157,7 +157,7 @@ ones):
   `has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5`;
   the last one wins over a Button that already nudges that side itself,
   as this site's does (by 1 px). The root is the centred column (`className`);
-  the orbit, focus ring, in-view ref and click-to-replay stay on the
+  the orbit and in-view ref stay on the
   illustration inside it (`artClassName`, `data-slot="<name>-art"`).
   Keep the copy in its own small component, or the scene function trips
   the lint complexity limit. The docs page is then just the component.
@@ -205,8 +205,8 @@ ones):
   of the notepad's pencil (cone, body, ferrule, eraser) is drawn before
   the one above it, and its top edge hides behind that one.
 - **A new Line item has no turning at all** (`notepad` is the first):
-  no orbit hook and no pointer handlers; the art sits in a real `<button>`
-  that replays on click, or in a plain `div` when replay is off.
+  no orbit hook and no pointer handlers; the art is a plain element
+  (since 2026-11-17 no Line item has a button in its art, see below).
 - **Something that starts and ends at rest needs one clip.** The badge is
   flicked from rest to rest, so a click replays the same clip; the cabinet
   and the envelope end in a different state from where they start and
@@ -285,6 +285,57 @@ ones):
   is written before the rings, once it is off after them, so it passes
   in front. Its values come from the clock as state, because the order
   it is written in depends on them.
+- **Clean lines, the right view, three tiers of detail** (2026-11-17,
+  the Files & storage batch). The user, on the first ten: "lots of line
+  is not clean this is skill issue ... archive seen is not good ... i
+  would like to have pendrive sitting on the floor rather than standing
+  printer does not looks realistic missing more intricate details". The
+  cause: every object was drawn front-on, so boxes read as stickers and
+  every thin top strip, barely-proud part and stepped ring drew as a
+  doubled line (the database's bands drew four arcs per seam). Since
+  then: boxy or deep objects use `view="isometric"` on `LineState`
+  (bounds via `viewBounds`), flat ones stay front-on; a front-view solid
+  has no depth or a clear strip (≥ ~4 px); parts are flush or ≥ 0.5
+  proud; round stacks share one radius with one seam line; every object
+  has three tiers of detail (form, recognisable parts, quiet marks). The
+  checker's "clean lines" test renders the rest pose dark at 4× and
+  fails above 6% sustained doubled outline (`lines-marked.png` marks them; tiny junction marks are ignored). The
+  shipped bell (33%) and padlock (12%), and the public skill's stopwatch
+  example (14%), also measure above it; fixing those is a separate step. Full rules in
+  the public skill's `references/line-style.md` ("Front or isometric",
+  "Clean lines", "Detail: three tiers").
+- **`active` drives the beat; no button in the art** (2026-11-17). The
+  user: "it is better to give ... animation state ... user in their code
+  will pass the variables ... whenever he wants to animate that is
+  cleaner", then "yes active, add onPlayEnd, move the older 15 too".
+  Every Line item takes `active` (left out: plays once in view; passed:
+  plays each time it turns true, never on its own, holds its rest pose
+  until the first play; a start during a beat waits until it settles)
+  and `onPlayEnd`; `autoPlay`, `replayOnClick` and the click-to-replay
+  `<button>` are gone (a button inside the art nested buttons when the
+  object sat in a link or card). The shell is the kit's `useLineShell` in
+  `registry/isometric/iso-line.tsx`, shipped with each item as a
+  `registry:lib` file next to `iso-core.tsx`; `PlayOnHover` passes
+  `active` from hover, focus and touch, and every docs preview is wrapped
+  in it. The same kit is the public skill's engine (craftUI012/Skills,
+  `isometrics/engine/iso-line.tsx`): change one, copy to the other.
+- **Parts that pop out of a container fly on arcs** (the `folder`,
+  2026-11-17: the user asked for "some documents pop out in a arc" when
+  it opens "and after the animation complete they go back again
+  swiftly"). There is no arc path: each part gets two tracks, across (x)
+  and up (z), with different eases: up is fast and lands softly
+  (`EASE.soft` to a little past its height, then `EASE.easy` down),
+  across is slower (`EASE.drop`), so the point traces a curve. A small
+  in-plane tilt (≤ 12°) rides with it. They go one after another (70 ms)
+  and come back last out, first in (40 ms apart), faster than they went
+  (180 ms, `EASE.in` on both tracks, straightening). The flap waits open
+  until the last one is in. Two things the first try got wrong: the
+  pages flew far past the frame, and once back they peeked over the
+  opened flap as a row of boxes (parts behind a face show depth/√3
+  higher, and an open flap drops), so they now sit low enough to be
+  hidden even with the flap open, and the left one's arc stays under the
+  brand label. The full recipe with code is in the public skill's
+  `references/motion.md` §6 (repo craftUI012/Skills).
 - **A real box is the `Box` primitive, front on** (from the rejected
   parcel box; the facts hold, the look did not win the user over, see
   its line under "How each item got here"). Its +y wall is the
@@ -466,6 +517,48 @@ this style yet:
 | [references/product-pieces.md](references/product-pieces.md) | Building UI for a screen, panel, card or chart, or starting a new category: orientation, copy-length budgets, UI vocabulary, category kits, brand style notes. |
 | [references/scene-recipes.md](references/scene-recipes.md) | Choosing the moment and composing a scene: scene types, layout, links, line weight, art direction, plan template, worked examples. |
 
+## Never again (kept in step with the public skill)
+
+The public skill (craftUI012/Skills, `isometrics/SKILL.md`, "Never again")
+holds the full table; every item there applies here. The short form,
+from the Files & storage batch (2026-11-17) and the work before it:
+
+1. Pick the view first: flat things front-on, boxy things isometric.
+2. Clean lines: no thin strips, parts flush or ≥ 0.5 proud, round stacks
+   at one radius with one seam line; the checker's clean-lines test (dark,
+   4×, ≤ 6% sustained doubles) must pass and you look at `lines.png`.
+3. Three tiers of detail: form, recognisable parts, quiet marks.
+4. One optical size across a set (`defaultArtClassName`).
+5. Motion stays in the frame's air; one small brand mark; no accidental
+   faces.
+6. Front view: turns toward the viewer hide (go large or move in the
+   picture plane). Isometric view: in-plane tilts shear (turn only about
+   a face's normal or an edge hinge).
+7. Clock-state parts start at rest when held and reset on a new clip.
+8. Sturdy walls have thickness; paper is a face.
+9. Review the whole batch side by side, light and dark, before reporting.
+10. When the user flags a mistake, fix the object AND add the rule to
+    both skills (this section and the public table) in the same change.
+11. Front-on curved parts (a bell body, a shackle, a dial case) are flat
+    faces or clearly deep; hands have parallel sides; contents sit inside
+    an inset wall; a door shaped like its opening shares its outline;
+    isometric doors open ~24–26°. (Line fixes, 2026-11-17: bell 33% →
+    2.8%, padlock 12% → 0%, stopwatch, hourglass, mailbox all under 4%.)
+14. From fixing the last eight (2026-11-18): meet parts on straight sides,
+    not inside a rounded corner; collars flush or ≥ 0.5 wider; a strap
+    into a hole is cut along the hole's arc; set the art width before
+    sizing strips (≥ 0.5 when drawn small); text glyphs with gaps ("!",
+    "i") fail the line check, so draw marks as shapes.
+13. Threaded parts interlace (keyring, 2026-11-18: "the ring is not inside
+    the key ring"): split the ring at each crossing and paint it behind the
+    part on one side of the hole and in front on the other; crossings
+    follow the parts' angles mid-swing. Full rule in the public
+    line-style.md.
+12. Engine: convex extrusions now sample 24 points per curve for their
+    silhouette (6 drew a faceted second line beside every round edge).
+    The clean-lines check ignores junction blobs (< 80 device px) and
+    fails above 6% sustained doubles.
+
 ## Non-negotiable rules
 
 1. **True isometric only.** Axes at 30° to horizontal, 120° apart, equal
@@ -556,7 +649,8 @@ charts must stand), content slots and props.
 - Choreograph it with the `interface-craft` storyboard pattern: the ASCII
   storyboard at the top, a `TIMING` object, config objects per element, one
   `stage` integer, one effect with all timers, `useInView` to start,
-  `useReducedMotion` to show the end state, `autoPlay` and `loop` props.
+  `useReducedMotion` to show the end state, `autoPlay` and `loop` props
+  (scenes only for now; Line objects take `active` and `onPlayEnd`).
   (Lint wants sorted keys and no comments after code: put each comment on
   the line above; the storyboard keeps the time order readable.)
 - **Motion and SVG:** `motion` treats `x`/`y` on SVG elements as
@@ -597,34 +691,35 @@ charts must stand), content slots and props.
 ### 7. Register it and see it on its docs page
 
 There is no prototype board; the docs page is where a scene is checked.
-Isometric is not a library of its own any more: on 2026-11-12 it merged
-into **Illustrations** (the user: one library, one convention; a second
-skill for flat illustrations comes later). The source stays in
-`registry/isometric/` and installs to `components/isometric/`; everything
-a visitor or the registry sees says Illustrations. The ten items from
-before the merge keep their `ISO-` codes; new ones get `ILL-`.
+Isometrics is its own library (`meta.library: "isometrics"`, codes
+`ISO-`, docs at `/docs/isometrics/<name>`). It merged into Illustrations
+on 2026-11-12 and was split back out on 2026-11-17, when the twelve items
+that had `ILL-` codes moved to `ISO-` (same six characters, no buyers
+yet) and the old addresses were dropped. Illustrations is now a separate,
+empty library for flat art (`ILL-`, coming soon). The source stays in
+`registry/isometric/` and installs to `components/isometric/`.
 Follow `content/docs-admin/guides/adding-a-component.mdx`:
 - `registry.json` entry: `type: "registry:block"`, `meta.library:
-  "illustrations"`, `categories` (e.g. `technology`), `meta.types:
-  ["scenes"]`, `meta.styles` starting with `"isometric"` (the filter that
-  finds these inside Illustrations), `meta.useCases`, `meta.publishedAt`, `dependencies`
+  "isometrics"`, `categories` (e.g. `technology`), `meta.types:
+  ["scenes"]`, `meta.styles` from the library list (`line`, `flat`,
+  `gradient`, `dark-mode`; no `isometric` style, the library says it),
+  `meta.useCases`, `meta.publishedAt`, `dependencies`
   (`motion`), and **files: the scene first, then `iso-core.tsx`** (both
   targeting `components/isometric/`, imported relatively). Shipping the core
   inside the item avoids cross-item dependencies and signed-token wiring.
-- Docs page `content/docs/illustrations/<name>.mdx` (title, `hideHeader`,
+- Docs page `content/docs/isometrics/<name>.mdx` (title, `hideHeader`,
   a ≤155-character search description, `<ComponentPreview>` with the scene
-  at `max-w-2xl`), and the name in `content/docs/illustrations/meta.json`.
+  at `max-w-2xl`), and the name in `content/docs/isometrics/meta.json`.
 - Edit `registry.json` with an editor or a careful script, then run
   `pnpm exec oxfmt registry.json` so only your entry shows in the diff.
-- `pnpm registry:build` (gives the `ILL-` code; fix any "no doc comment"
+- `pnpm registry:build` (gives the `ISO-` code; fix any "no doc comment"
   warning), then `pnpm exec oxfmt registry-paid public/r`, and keep only
   this item's built JSON.
-- Open `/docs/illustrations/<name>` on the dev server
+- Open `/docs/isometrics/<name>` on the dev server
   (`lsof -iTCP -sTCP:LISTEN -P | grep node`), watch the full loop, and
   check light and dark with the site's theme toggle (switch it back).
-- Check `/docs/illustrations/<name>.md` (props table, files) and the
-  Illustrations tab on `/` (UI kits dropdown; the Isometric style filter
-  should count it). The card screenshot is the user's step: `pnpm media`.
+- Check `/docs/isometrics/<name>.md` (props table, files) and the
+  Isometrics tab on `/` (UI kits dropdown). The card screenshot is the user's step: `pnpm media`.
 - If a card is missing right after adding a docs page, the home data is
   cached: it is keyed on the registry, the taxonomy and the media, not on
   the docs pages. Bump `HOME_DATA_VERSION` in
@@ -672,7 +767,7 @@ and `content/agent-reference.json` together, following
 - [ ] The connector is one no other shipped scene uses.
 - [ ] One real use case, one moment, 2–3 objects on one surface.
 - [ ] Every beat is caused by the one before; a calm hold before the loop.
-- [ ] Reduced motion (and `autoPlay={false}`) shows the end state.
+- [ ] Reduced motion (and `active={false}` before any play) shows the end state.
 - [ ] Starts when in view; stops and resets when out of view.
 
 **Turning**
@@ -766,18 +861,18 @@ table once did, and still described glows that had been removed).
 | `file-cabinet` | ISO-Z84F1M | line object | Line | empty states: no records, no files, first run | none |
 | `open-envelope` | ISO-CX14WM | line object | Line | inbox full, storage limit, quota reached | none |
 | `id-badge` | ISO-VJV1P7 | line object | Line | no members, empty team, invite a teammate | none |
-| `notepad` | ILL-JB9DJH | line object | Line | no notes, no drafts, first entry | none |
-| `padlock` | ILL-1FVWQJ | line object | Line | no access, permission denied, private or locked | none |
-| `plug-and-socket` | ILL-WVNAT3 | line object | Line | not connected, no integrations, offline | none |
-| `traffic-cone` | ILL-779H30 | line object | Line | page not found, maintenance, removed content | none |
-| `magnifying-glass` | ILL-RTRKJE | line object | Line | no search results, nothing matches the filters | none |
-| `bell` | ILL-Y1RA9M | line object | Line | no notifications, all caught up | none |
-| `clipboard` | ILL-TKBA1P | line object | Line | all tasks done, empty to-do list, finished checklist | none |
-| `trash-bin` | ILL-B43DMP | line object | Line | trash is empty, nothing deleted or archived | none |
-| `calendar` | ILL-0R808M | line object | Line | nothing scheduled, no events or bookings | none |
-| `shopping-bag` | ILL-6CMEMA | line object | Line | empty cart, empty wishlist, no purchases | none |
-| `delivery-truck` | ILL-PN1YXZ | line object | Line | no orders, no shipments, nothing out for delivery | none |
-| `picture-frame` | ILL-XANKZF | line object | Line | no images, empty gallery, no uploads | none |
+| `notepad` | ISO-JB9DJH | line object | Line | no notes, no drafts, first entry | none |
+| `padlock` | ISO-1FVWQJ | line object | Line | no access, permission denied, private or locked | none |
+| `plug-and-socket` | ISO-WVNAT3 | line object | Line | not connected, no integrations, offline | none |
+| `traffic-cone` | ISO-779H30 | line object | Line | page not found, maintenance, removed content | none |
+| `magnifying-glass` | ISO-RTRKJE | line object | Line | no search results, nothing matches the filters | none |
+| `bell` | ISO-Y1RA9M | line object | Line | no notifications, all caught up | none |
+| `clipboard` | ISO-TKBA1P | line object | Line | all tasks done, empty to-do list, finished checklist | none |
+| `trash-bin` | ISO-B43DMP | line object | Line | trash is empty, nothing deleted or archived | none |
+| `calendar` | ISO-0R808M | line object | Line | nothing scheduled, no events or bookings | none |
+| `shopping-bag` | ISO-6CMEMA | line object | Line | empty cart, empty wishlist, no purchases | none |
+| `delivery-truck` | ISO-PN1YXZ | line object | Line | no orders, no shipments, nothing out for delivery | none |
+| `picture-frame` | ISO-XANKZF | line object | Line | no images, empty gallery, no uploads | none |
 
 ### How each item got here
 
@@ -820,7 +915,7 @@ record; keep it, and add to an item's line rather than starting a new one.
 - `id-badge` (2026-11-12): from the user's pin
   (https://pl.pinterest.com/pin/449445237834064230/). The same two
   corrections as the envelope.
-- `notepad` (2026-11-13): the first item with an `ILL-` code, from a
+- `notepad` (2026-11-13): the first item given an `ILL-` code (now `ISO-JB9DJH`), from a
   reference image the user pasted (no link; a notepad and pencil in a
   thick rounded line with a pink accent). Asked, the user chose Playful
   and the "No notes yet" copy; the Playful build was rejected ("no

@@ -1,30 +1,14 @@
 "use client";
 
-import {
-  useInView,
-  useMotionValue,
-  useMotionValueEvent,
-  useReducedMotion,
-} from "motion/react";
+import { useMotionValue, useMotionValueEvent } from "motion/react";
 import type { MotionValue } from "motion/react";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import { useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-import {
-  EASE,
-  Extrude,
-  Face,
-  FacePath,
-  IsoStage,
-  Rig,
-  roundedRect,
-  sample,
-  useClock,
-} from "./iso-core";
-import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
+import { EASE, Extrude, Face, FacePath, Rig, sample } from "./iso-core";
+import type { IsoPose, IsoTrack, Vec3 } from "./iso-core";
+import { ICON, LineState, facing, onClock, r2, useLineShell } from "./iso-line";
+import type { LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -43,21 +27,21 @@ import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
  * 1650ms   it lifts off, a little past its resting height, and settles
  * 2300ms   still: two lines written, the pencil resting over the page
  *
- * A click (or `loop`, after a 5.2s hold) wipes the two lines, takes the
- * pencil back to the start, and plays the above again.
- * Reduced motion (or autoPlay off): the two lines written, nothing moves.
+ * One way, so each later play (each time `active` turns true, 80ms in,
+ * or `loop` after a 5.2s hold) first wipes the two lines and takes the
+ * pencil back to the start (320ms), then plays the above again.
+ * Reduced motion, or `active` false before any play: the two lines
+ * written, the pencil resting over the page, nothing moves.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  // How long it rests before a loop starts again.
-  hold: 5200,
   // How long the pencil takes to hop from one line to the next.
   hop: 250,
   // How long the lift-off takes to come to rest.
   settle: 650,
   // The pencil taps down.
   tap: 400,
-  // After a click: how long the wipe and the trip back take.
+  // On a later play: how long the wipe and the trip back take.
   wipe: 320,
   // Milliseconds to write the first and the second line.
   write: [500, 400] as const,
@@ -78,15 +62,31 @@ const MOVE = {
 /* ───────────────────────── Geometry (world units) ─────────────────────── */
 
 // The pad: a block of paper standing on its edge, built facing +y and
-// shown facing the screen. Behind it, a second sheet, lower and to the
-// left so two of its edges show.
-const PAD = { depth: 0.45, h: 6.4, r: 0.7, w: 6, x: -2.6, z: 0.9 };
+// shown facing the screen. Its top, the bound edge, is square: front-on
+// its thickness shows along the top, and round top corners tapered that
+// strip into doubled lines down the sides. Its foot is rounded. Behind
+// it, a second sheet of the same shape, lower and to the left so two of
+// its edges show: a flat face (as a thin solid its rim drew double).
+const PAD = { depth: 0.5, h: 6.4, r: 0.7, w: 6, x: -2.6, z: 0.9 };
+const SHEET_PATH = [
+  "M0 0",
+  `H${PAD.w}`,
+  `V${PAD.h - PAD.r}`,
+  `Q${PAD.w} ${PAD.h} ${PAD.w - PAD.r} ${PAD.h}`,
+  `H${PAD.r}`,
+  `Q0 ${PAD.h} 0 ${PAD.h - PAD.r}`,
+  "Z",
+].join(" ");
 const PAD_TOP = PAD.z + PAD.h;
 const PAD_AT: Vec3 = [PAD.x, 0, PAD_TOP];
-const BEHIND = { depth: 0.2, shift: 0.75 };
+// The sheet behind reaches as far left of the pad as the resting pencil
+// reaches right of it, so the drawing and the pad share a centre. (The
+// pencil crosses the pad's side mid-body: a seam of the pencil landing
+// on that crossing drew a wedge of short doubled lines.)
+const BEHIND = { shift: 1.25 };
 
 // In the front view, one unit toward the viewer shows as 1/√3 of a unit
-// down the page (see "The view"). A part standing proud of the paper is
+// down the page (see FRONT in the kit). A part standing proud of the paper is
 // raised by that much, so on screen it sits where it touches.
 const SINK = 1 / Math.sqrt(3);
 
@@ -109,17 +109,19 @@ const lineStart = (i: 0 | 1): readonly [number, number] => [
 ];
 
 // The pencil: a body with a sharpened cone, a ferrule and an eraser,
-// lying in front of the page and pointing down-left at 45°. It is drawn
-// pointing along +x with its tip at the first line's start, then a rig
-// turns it about its tip and carries it along the lines.
+// held in front of the page and pointing down-left at 45°. It is flat
+// faces (as a thin solid its cone's sides converged into doubled lines),
+// `lift` in front of the page. It is drawn pointing along +x with its
+// tip at the first line's start, then a rig turns it about its tip and
+// carries it along the lines.
 const PENCIL = {
   angle: -45,
   body: 3.2,
   cone: 1.2,
-  depth: 0.45,
   eraser: 0.9,
   ferrule: 0.45,
   lead: 0.4,
+  lift: 0.45,
   w: 0.9,
 };
 const PENCIL_LENGTH =
@@ -127,34 +129,9 @@ const PENCIL_LENGTH =
 const [X1, Z1] = lineStart(0);
 const [X2, Z2] = lineStart(1);
 // Its tip on the front face, where the rig turns it.
-const TIP: Vec3 = [X1, PENCIL.depth, Z1 + PENCIL.depth * SINK];
+const TIP: Vec3 = [X1, PENCIL.lift, Z1 + PENCIL.lift * SINK];
 // One unit along the pencil, from tip to eraser, in world x and z.
 const ALONG = Math.SQRT1_2;
-
-/* ───────────────────────────── The view ───────────────────────────────── */
-
-/**
- * Facing the screen. The object is built facing +y, which the isometric
- * camera sees at an angle. The whole of it is turned 45° about the
- * vertical, so its front points straight at the viewer and its edges run
- * level and plumb; and it is stretched √(3/2) in height, because that
- * camera looks down from 35.26° and foreshortens heights by exactly that
- * much, so the front keeps its true proportions. It is still one exact
- * parallel projection of a solid: its thickness shows along its top edges.
- */
-const FRONT = { stretch: Math.sqrt(1.5), turn: -45 };
-const VIEW_POSE: IsoPose = {
-  axis: "z",
-  rotate: FRONT.turn,
-  scale: [1, 1, FRONT.stretch],
-};
-
-/** Where a point of the object lands once it faces the screen. */
-const facing = ([x, y, z]: Vec3): Vec3 => [
-  (x + y) * Math.SQRT1_2,
-  (y - x) * Math.SQRT1_2,
-  z * FRONT.stretch,
-];
 
 // The frame is centred on the pad, not on the whole drawing: the pad is
 // the mass the eye lines up with the heading and the button under it. So
@@ -165,14 +142,12 @@ const facing = ([x, y, z]: Vec3): Vec3 => [
 const AXIS = PAD.x + PAD.w / 2;
 const HALF = AXIS - BEHIND_AT[0];
 const REST_TOP =
-  Z2 +
-  (MOVE.hover + PENCIL_LENGTH + PENCIL.w / 2) * ALONG +
-  PENCIL.depth * SINK;
+  Z2 + (MOVE.hover + PENCIL_LENGTH + PENCIL.w / 2) * ALONG + PENCIL.lift * SINK;
 const EXTENT: Vec3[] = [
   [AXIS - HALF, -PAD.depth, BEHIND_AT[2] - PAD.h],
   [AXIS + HALF, 0, PAD.z],
   [AXIS - HALF, -PAD.depth, PAD_TOP],
-  [AXIS + HALF, PENCIL.depth, REST_TOP],
+  [AXIS + HALF, PENCIL.lift, REST_TOP],
 ];
 const BOUNDS = EXTENT.map(facing);
 
@@ -270,8 +245,6 @@ const AGAIN: Clip = {
   tipZ: [[0, Z2, EASE.easy], ...NEXT.tipZ],
 };
 
-const r2 = (n: number) => Math.round(n * 100) / 100;
-
 /** The pencil: turned about its tip, carried along the lines, lifted. */
 const pencilPose =
   (clip: Clip) =>
@@ -295,7 +268,9 @@ const padPose =
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
 
 // The one outline, for marks a scene strokes itself (the lit variants
-// have no pixel edge, so they fall back to their hairline).
+// have no pixel edge, so they fall back to their hairline). Kept here, not
+// the kit's LINE: that one adds round caps, which would lengthen the open
+// strokes on the pencil.
 const LINE: CSSProperties = {
   fill: "none",
   stroke: "var(--iso-edge, var(--iso-stroke))",
@@ -304,22 +279,22 @@ const LINE: CSSProperties = {
   vectorEffect: "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
 };
 
+// The sheet behind the pad, a shade under the page's darkest wall.
+const BEHIND_FILL = "oklch(from var(--iso-surface-right-c) calc(l - 0.03) c h)";
+
 /** The pad and the sheet behind it, a shade under the page. */
 const Pad = () => (
   <>
-    <Extrude
+    <FacePath
       at={BEHIND_AT}
-      convex
-      d={roundedRect(PAD.w, PAD.h, PAD.r)}
-      depth={BEHIND.depth}
-      frontStyle={{ fill: "var(--iso-behind)" }}
-      palette="surface"
+      d={SHEET_PATH}
       plane="left"
+      style={{ ...LINE, fill: BEHIND_FILL }}
     />
     <Extrude
       at={PAD_AT}
       convex
-      d={roundedRect(PAD.w, PAD.h, PAD.r)}
+      d={SHEET_PATH}
       depth={PAD.depth}
       palette="surface"
       plane="left"
@@ -349,9 +324,8 @@ const Writing = ({ lengths }: { lengths: readonly [number, number] }) => (
 
 /**
  * The pencil, pointing along +x from its tip (u = 0), in face units with
- * v = 0 down its middle. Written tip to eraser: each part's top edge hides
- * behind the part above it once the pencil is turned up to the right. The
- * eraser is the one brand mark; everything else is paper and line.
+ * v = 0 down its middle: flat faces meeting on shared edges. The eraser
+ * is the one brand mark; everything else is paper and line.
  */
 const Pencil = () => {
   const { cone, body, ferrule, eraser, lead, w } = PENCIL;
@@ -361,46 +335,41 @@ const Pencil = () => {
   const e0 = f0 + ferrule;
   const e1 = e0 + eraser;
   const leadH = r2((h * lead) / cone);
+  const paper = { ...LINE, fill: "var(--iso-surface-left)" };
   return (
     <>
-      <Extrude
+      <FacePath
         at={TIP}
-        convex
         d={`M0 0 L${b0} ${-h} L${b0} ${h} Z`}
-        depth={PENCIL.depth}
-        palette="surface"
         plane="left"
+        style={paper}
       />
-      <Extrude
+      <FacePath
         at={TIP}
-        convex
         d={`M${b0} ${-h} H${f0} V${h} H${b0} Z`}
-        depth={PENCIL.depth}
-        palette="surface"
         plane="left"
+        style={paper}
       />
-      <Extrude
+      <FacePath
         at={TIP}
-        convex
         d={`M${f0} ${-h} H${e0} V${h} H${f0} Z`}
-        depth={PENCIL.depth}
-        palette="surface"
         plane="left"
+        style={paper}
       />
-      <Extrude
+      <FacePath
         at={TIP}
-        convex
         d={`M${e0} ${-h} H${e1 - h} Q${e1} ${-h} ${e1} 0 Q${e1} ${h} ${e1 - h} ${h} H${e0} Z`}
-        depth={PENCIL.depth}
-        palette="main"
         plane="left"
+        style={{ ...LINE, fill: "var(--iso-main-left)" }}
       />
-      {/* The lead, one flat side of the body, and the ferrule's band. */}
+      {/* The lead (graphite, the shade of the written lines; a solid ink tip
+          merged with the cone's edges into a blot), one flat side of the
+          body, and the ferrule's band. */}
       <FacePath
         at={TIP}
         d={`M0 0 L${lead} ${-leadH} L${lead} ${leadH} Z`}
         plane="left"
-        style={{ ...LINE, fill: "var(--iso-ink)" }}
+        style={{ ...LINE, fill: "var(--iso-ink)", fillOpacity: 0.45 }}
       />
       <FacePath
         at={TIP}
@@ -420,18 +389,24 @@ const Pencil = () => {
 
 /* ───────────────────────────── Clock ──────────────────────────────────── */
 
-/** How much of each line is written, re-rendered only when it changes. */
+// Both lines written: the resting pose, and where every later play starts.
+const WRITTEN: readonly [number, number] = [LINES[0].len, LINES[1].len];
+
+/**
+ * How much of each line is written, re-rendered only when it changes. Held
+ * (no clock) it shows both lines written; it starts there too when it is
+ * held at first, so the first play doesn't flash a blank pad.
+ */
 const useWriting = (
   clock: MotionValue<number> | undefined,
-  clip: Clip,
-  still: boolean
+  clip: Clip
 ): readonly [number, number] => {
   const idle = useMotionValue(0);
   const read = (ms: number): readonly [number, number] => [
     r2(sample(clip.len1, ms)),
     r2(sample(clip.len2, ms)),
   ];
-  const [value, setValue] = useState(() => read(0));
+  const [value, setValue] = useState(() => (clock ? read(0) : WRITTEN));
   const last = useRef(value.join(","));
   useMotionValueEvent(clock ?? idle, "change", (ms) => {
     const next = read(ms);
@@ -440,203 +415,12 @@ const useWriting = (
       setValue(next);
     }
   });
-  return still ? [LINES[0].len, LINES[1].len] : value;
-};
-
-/** Rig props: animated on the clock, or the pose at the beat's end held. */
-const rigged = (
-  clock: MotionValue<number> | undefined,
-  pose: (ms: number) => IsoPose
-) => (clock ? { clock, pose } : pose(INTRO.end));
-
-/* ───────────────────────────── Shell ──────────────────────────────────── */
-
-/** In view, reduced motion, the clock and its clip, and the replay. */
-const useShell = ({
-  autoPlay,
-  loop,
-  replayOnClick,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  replayOnClick: boolean;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReducedMotion() ?? false;
-  const still = reduced || !autoPlay;
-  // Run 0 is the intro; every run after it starts from the lines written.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const clip = run === 0 ? INTRO : AGAIN;
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + TIMING.hold) {
-      again();
-    }
-  });
-  const canReplay = replayOnClick && !still;
-  const replay = () => {
-    if (canReplay && clock.get() >= clip.end) {
-      again();
-    }
-  };
-  return {
-    canReplay,
-    clip,
-    clock: still ? undefined : clock,
-    ref,
-    replay,
-    still,
-  };
-};
-
-// In ink the walls step down half as far as the house ramp (0.03 and 0.07
-// under the top, not 0.06 and 0.13): an empty state is a quiet line
-// drawing on the page, with only a whisper of form.
-const PAPER: Record<string, string> = {
-  "--iso-surface-left-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.03) c h)",
-  "--iso-surface-right-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.07) c h)",
-};
-
-// The blueprint (`line`) drawn at this size: its outline held at the same
-// pixel weight as ink instead of a canvas-unit one, which would be three
-// times too heavy on a stage this small. Faces stay the page's colour.
-const BLUEPRINT: Record<string, string> = {
-  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
-  "--iso-vector": "non-scaling-stroke",
-};
-
-// The engine's rim highlight has no width in the outlined variants, yet it
-// still paints a pale hairline over the front outline of every extrusion
-// (seen at 4× in Chromium). Clear its colour so the outline keeps its
-// full weight.
-const NO_RIM: Record<string, string> = {
-  "--iso-accent-rim": "transparent",
-  "--iso-main-rim": "transparent",
-  "--iso-surface-rim": "transparent",
-};
-
-/**
- * Stage overrides: no hairline contour (every edge already carries the
- * outline), the paper walls in ink, the pixel outline in the blueprint,
- * the outline on the side edges of rounded parts, and the value of the
- * sheet behind the pad, a shade under the page.
- */
-const stageStyle = (variant: IsoVariant) =>
-  ({
-    "--iso-behind": "oklch(from var(--iso-surface-right-c) calc(l - 0.03) c h)",
-    "--iso-contour-w": "0",
-    ...(variant === "ink" ? PAPER : {}),
-    ...(variant === "line" ? BLUEPRINT : {}),
-    ...(variant === "ink" || variant === "line" ? NO_RIM : {}),
-    "--iso-silhouette": "var(--iso-edge, none)",
-  }) as CSSProperties;
-
-/* ───────────────────────────── Copy ───────────────────────────────────── */
-
-// Optical padding: an icon carries its own white space, so the label's
-// side gets 2px more than the icon's side (12px and 14px) or the label
-// looks pushed against the edge. The second class wins over a Button that
-// already nudges this side itself.
-const BUTTON =
-  "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
-
-/** The plus on the button. */
-const PlusIcon = () => (
-  <svg
-    aria-hidden="true"
-    data-icon="inline-start"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 5v14M5 12h14" />
-  </svg>
-);
-
-/**
- * The empty state's own words, under the pad: the heading, a line of
- * copy, and the actions (the built-in button, or whatever is passed in).
- */
-const Copy = ({
-  heading,
-  description,
-  actionLabel,
-  onAction,
-  children,
-}: {
-  heading: string;
-  description: string;
-  actionLabel: string;
-  onAction?: () => void;
-  children?: ReactNode;
-}) => {
-  const button = actionLabel ? (
-    <Button className={BUTTON} onClick={onAction}>
-      <PlusIcon />
-      {actionLabel}
-    </Button>
-  ) : null;
-  const actions = children ?? button;
-  return (
-    <>
-      {heading ? (
-        <p className="mt-3 text-xl font-medium tracking-tight text-foreground">
-          {heading}
-        </p>
-      ) : null}
-      {description ? (
-        <p className="mt-2 text-balance text-muted-foreground">{description}</p>
-      ) : null}
-      {actions ? <div className="mt-6">{actions}</div> : null}
-    </>
-  );
+  return clock ? value : WRITTEN;
 };
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
-export interface NotepadProps {
-  /** Heading under the pad, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
-  /** Label of the button, up to about 20 characters. An empty string hides the button. */
-  actionLabel?: string;
-  /** Called when the button is clicked. */
-  onAction?: () => void;
-  /** Your own actions under the copy (a link, two buttons), in place of the built-in button. */
-  children?: ReactNode;
-  /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the pencil's eraser; the rest stays neutral. */
-  tone?: IsoTone;
-  /** "ink" (default): a fine outline with a whisper of shading on the walls. "line": the outline alone, faces the colour of the page. "soft", "duotone" and "solid" are the lit, coloured looks. */
-  variant?: IsoVariant;
-  /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
-  strokeWidth?: number;
-  /** The pencil writes when the pad scrolls into view. Off shows the two lines written and nothing moving. */
-  autoPlay?: boolean;
-  /** Wipe the lines and write them again every few seconds. Off plays it once, which suits an empty state people sit in front of. */
-  loop?: boolean;
-  /** Clicking the pad wipes the lines and writes them again. */
-  replayOnClick?: boolean;
-  /** Accessible description of the illustration. Without it the pad is decorative and the copy speaks for it. */
-  title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-56`. */
-  artClassName?: string;
-  /** Classes for the wrapper of the whole empty state (it is a centred column, `max-w-sm` wide). */
-  className?: string;
-}
+export type NotepadProps = LineStateProps;
 
 /**
  * Notepad: a complete empty state ("No notes yet") with a line
@@ -644,88 +428,56 @@ export interface NotepadProps {
  * of paper with a second sheet showing behind it; a pencil taps down,
  * writes two lines, hops between them and lifts off. One fine outline,
  * near-white faces, no shadow, facing the screen; the eraser carries the
- * brand, like the button under it. Click the pad to play it again.
- * Follows the shadcn theme.
+ * brand, like the button under it. It plays when it comes into view, or
+ * each time `active` turns true (PlayOnHover, or your own state), wiping
+ * the lines first. Follows the shadcn theme.
  */
 export const Notepad = ({
   heading = "No notes yet",
   description = "Write your first note and it will show up here.",
   actionLabel = "New note",
-  onAction,
-  children,
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
-  title,
-  artClassName,
-  className,
+  onPlayEnd,
+  ...rest
 }: NotepadProps) => {
-  const { canReplay, clip, clock, ref, replay, still } = useShell({
-    autoPlay,
+  const shell = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
-  const lengths = useWriting(clock, clip, still);
-  const art = (
-    <IsoStage
-      bounds={BOUNDS}
-      shadow={false}
-      strokeWidth={strokeWidth}
-      style={stageStyle(variant)}
-      title={title}
-      tone={tone}
-      variant={variant}
-    >
-      {/* Everything stands in one rig that turns it to face the screen. */}
-      <Rig pivot={[0, 0, 0]} {...VIEW_POSE}>
-        <Rig pivot={[0, 0, PAD.z]} {...rigged(clock, padPose(clip))}>
-          <Pad />
-          <Writing lengths={lengths} />
-        </Rig>
-        <Rig pivot={TIP} {...rigged(clock, pencilPose(clip))}>
-          <Pencil />
-        </Rig>
-      </Rig>
-    </IsoStage>
-  );
+  const { clip, clock } = shell;
+  const lengths = useWriting(clock, clip);
   return (
-    <div
-      className={cn(
-        "flex w-full max-w-sm flex-col items-center text-center",
-        className
-      )}
-      data-slot="notepad"
+    <LineState
+      bounds={BOUNDS}
+      defaultArtClassName="w-44"
+      icon={ICON.plus}
+      props={{
+        actionLabel,
+        description,
+        heading,
+        strokeWidth,
+        tone,
+        variant,
+        ...rest,
+      }}
+      shell={shell}
+      slot="notepad"
     >
-      <div
-        className={cn("w-56 max-w-full", artClassName)}
-        data-slot="notepad-art"
-        ref={ref}
-      >
-        {canReplay ? (
-          <button
-            aria-label={`${title ?? "Illustration"}. Press to play it again.`}
-            className="block w-full cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={replay}
-            type="button"
-          >
-            {art}
-          </button>
-        ) : (
-          art
-        )}
-      </div>
-      <Copy
-        actionLabel={actionLabel}
-        description={description}
-        heading={heading}
-        onAction={onAction}
-      >
-        {children}
-      </Copy>
-    </div>
+      <Rig pivot={[0, 0, PAD.z]} {...onClock(clock, padPose(clip), clip.end)}>
+        <Pad />
+        <Writing lengths={lengths} />
+      </Rig>
+      <Rig pivot={TIP} {...onClock(clock, pencilPose(clip), clip.end)}>
+        <Pencil />
+      </Rig>
+    </LineState>
   );
 };
 
