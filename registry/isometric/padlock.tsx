@@ -1,24 +1,21 @@
 "use client";
 
-import { useInView, useMotionValue, useMotionValueEvent } from "motion/react";
+import { useMotionValue, useMotionValueEvent } from "motion/react";
 import type { MotionValue } from "motion/react";
-import type { CSSProperties, ReactNode } from "react";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
+import { EASE, Extrude, FacePath, Rig, roundedRect, sample } from "./iso-core";
+import type { IsoPose, IsoTrack, Vec3 } from "./iso-core";
 import {
-  EASE,
-  Extrude,
-  FacePath,
-  IsoStage,
-  Rig,
-  roundedRect,
-  sample,
-  useClock,
-} from "./iso-core";
-import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
+  ARC,
+  LINE,
+  LineState,
+  facing,
+  onClock,
+  r2,
+  useLineShell,
+} from "./iso-line";
+import type { LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -36,17 +33,16 @@ import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
  * 1020ms   a second, smaller pull does the same
  * 1560ms   still: locked, exactly as it started
  *
- * A click (or `loop`, after a 5.2s hold) plays the two pulls again.
- * Reduced motion (or autoPlay off): the closed padlock, nothing moves.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true (and again after a 5.2s hold with `loop`).
+ * Reduced motion, or `active` false before any play: the closed padlock.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  // After a click the first pull starts this soon.
+  // When `active` turns true the first pull starts this soon.
   again: 80,
   // The whole lock is carried up for this long once the catch bites.
   carry: 110,
-  // How long it rests before a loop starts again.
-  hold: 5200,
   // The first pull starts this long after the lock comes into view.
   start: 400,
   // From one pull to the next.
@@ -73,48 +69,25 @@ const BODY_X = -BODY.w / 2;
 const BODY_TOP = BODY.z + BODY.h;
 const BODY_AT: Vec3 = [BODY_X, 0, BODY_TOP];
 
-// The shackle: a bar bent into an arch, half as deep as the body and set
-// in the middle of its depth, so each leg goes into the body's top face.
-const SHACKLE = { bar: 0.62, depth: 0.5, rise: 2.5, w: 3.3 };
-const SHACKLE_Y = -(BODY.depth - SHACKLE.depth) / 2;
+// The shackle: a round bar bent into an arch, set in the middle of the
+// body's depth, so each leg goes into the body's top face. Seen from the
+// front a round bar shows only its silhouette, so it is one flat face with
+// one outline (a depth here drew its back arc a pixel beside the front one
+// down the steep sides of the arch).
+const SHACKLE = { bar: 0.62, rise: 2.5, w: 3.3 };
+const SHACKLE_Y = -BODY.depth / 2;
 
 // The keyhole on the body's face (u across, v down from its top edge): a
 // round hole and a slot that widens toward its foot.
 const KEYHOLE = { flare: 0.27, neck: 0.17, r: 0.43, tail: 1.2, v: 1.5 };
 
-/* ───────────────────────────── The view ───────────────────────────────── */
-
-/**
- * Facing the screen. The object is built facing +y, which the isometric
- * camera sees at an angle. The whole of it is turned 45° about the
- * vertical, so its front points straight at the viewer and its edges run
- * level and plumb; and it is stretched √(3/2) in height, because that
- * camera looks down from 35.26° and foreshortens heights by exactly that
- * much, so the front keeps its true proportions. It is still one exact
- * parallel projection of a solid: its thickness shows along its top edges.
- */
-const FRONT = { stretch: Math.sqrt(1.5), turn: -45 };
-const VIEW_POSE: IsoPose = {
-  axis: "z",
-  rotate: FRONT.turn,
-  scale: [1, 1, FRONT.stretch],
-};
-
-/** Where a point of the object lands once it faces the screen. */
-const facing = ([x, y, z]: Vec3): Vec3 => [
-  (x + y) * Math.SQRT1_2,
-  (y - x) * Math.SQRT1_2,
-  z * FRONT.stretch,
-];
-
 // The frame fits the lock at rest. The pulls lift it a little; that runs
 // into the stage's padding, which is not clipped.
-const SHACKLE_BACK = SHACKLE_Y - SHACKLE.depth;
 const EXTENT: Vec3[] = [
   [BODY_X, 0, BODY.z],
   [BODY_X + BODY.w, 0, BODY.z],
-  [BODY_X, SHACKLE_BACK, BODY_TOP + SHACKLE.rise],
-  [BODY_X + BODY.w, SHACKLE_BACK, BODY_TOP + SHACKLE.rise],
+  [BODY_X, SHACKLE_Y, BODY_TOP + SHACKLE.rise],
+  [BODY_X + BODY.w, SHACKLE_Y, BODY_TOP + SHACKLE.rise],
 ];
 const BOUNDS = EXTENT.map(facing);
 
@@ -162,11 +135,9 @@ const beat = (t0: number): Clip => {
   };
 };
 
-// The first run waits a moment after coming into view; a click does not.
+// The first run waits a moment after coming into view; `active` does not.
 const INTRO = beat(TIMING.start);
 const AGAIN = beat(TIMING.again);
-
-const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /** The whole lock, carried up by the pull and dropped back. */
 const bodyPose =
@@ -174,19 +145,6 @@ const bodyPose =
   (ms: number): IsoPose => ({ offset: [0, 0, r2(sample(clip.hop, ms))] });
 
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
-
-// The one outline, for marks a scene strokes itself (the lit variants
-// have no pixel edge, so they fall back to their hairline).
-const LINE: CSSProperties = {
-  fill: "none",
-  stroke: "var(--iso-edge, var(--iso-stroke))",
-  strokeLinejoin: "var(--iso-join, round)" as CSSProperties["strokeLinejoin"],
-  strokeWidth: "var(--iso-edge-w, calc(var(--iso-stroke-width) * 0.6))",
-  vectorEffect: "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
-};
-
-// A quarter circle as a cubic: the handle length for a unit radius.
-const ARC = 0.5523;
 
 /**
  * The shackle's outline in face units (u across from its left edge, v down
@@ -217,49 +175,15 @@ const shacklePath = (pull: number) => {
   ].join(" ");
 };
 
-// In the front view, one unit of depth shows as 1/√3 of a unit up the page
-// (see "The view").
-const SINK = 1 / Math.sqrt(3);
-
-// The far edge of the arch: the outer half ring on the shackle's back face,
-// and the two short uprights that join it to the front one. An arch is not
-// convex, so the engine cannot find this edge itself; it is the same
-// outline, on the back plane.
-const SHACKLE_RIM = (() => {
-  const { depth, w } = SHACKLE;
-  const outer = w / 2;
-  const ko = r2(outer * ARC);
-  const lip = r2(outer + depth * SINK);
-  return [
-    `M0 ${lip}`,
-    `V${outer}`,
-    `C0 ${r2(outer - ko)} ${r2(outer - ko)} 0 ${outer} 0`,
-    `C${r2(outer + ko)} 0 ${w} ${r2(outer - ko)} ${w} ${outer}`,
-    `V${lip}`,
-  ].join(" ");
-})();
-
 /** The shackle, `pull` units out of the body. */
-const Shackle = ({ pull }: { pull: number }) => {
-  const top = BODY_TOP + SHACKLE.rise + pull;
-  return (
-    <>
-      <Extrude
-        at={[-SHACKLE.w / 2, SHACKLE_Y, top]}
-        d={shacklePath(pull)}
-        depth={SHACKLE.depth}
-        palette="surface"
-        plane="left"
-      />
-      <FacePath
-        at={[-SHACKLE.w / 2, SHACKLE_BACK, top]}
-        d={SHACKLE_RIM}
-        plane="left"
-        style={LINE}
-      />
-    </>
-  );
-};
+const Shackle = ({ pull }: { pull: number }) => (
+  <FacePath
+    at={[-SHACKLE.w / 2, SHACKLE_Y, BODY_TOP + SHACKLE.rise + pull]}
+    d={shacklePath(pull)}
+    plane="left"
+    style={{ ...LINE, fill: "var(--iso-surface-left)" }}
+  />
+);
 
 // The keyhole's outline: round the hole from one side of the slot to the
 // other, then down the slot and across its foot.
@@ -313,186 +237,9 @@ const usePull = (clock: MotionValue<number> | undefined, clip: Clip) => {
   return clock ? value : 0;
 };
 
-/** Rig props: animated on the clock, or the resting pose held. */
-const rigged = (
-  clock: MotionValue<number> | undefined,
-  pose: (ms: number) => IsoPose
-) => (clock ? { clock, pose } : pose(INTRO.end));
-
-/* ───────────────────────────── Shell ──────────────────────────────────── */
-
-// Whether the visitor asked for less motion. It is read through a store
-// and not in the first render: the server cannot know it, so the first
-// render in the browser has to answer "no" as the server did, and switch
-// once the page has taken over. Reading it straight away makes the two
-// disagree, and React reports a failed hydration.
-const REDUCE = "(prefers-reduced-motion: reduce)";
-const watchReduce = (notify: () => void) => {
-  const query = window.matchMedia(REDUCE);
-  query.addEventListener("change", notify);
-  return () => query.removeEventListener("change", notify);
-};
-const useReduced = () =>
-  useSyncExternalStore(
-    watchReduce,
-    () => window.matchMedia(REDUCE).matches,
-    () => false
-  );
-
-/** In view, reduced motion, the clock and its clip, and the replay. */
-const useShell = ({
-  autoPlay,
-  loop,
-  replayOnClick,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  replayOnClick: boolean;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReduced();
-  const still = reduced || !autoPlay;
-  // Run 0 waits a moment after coming into view; later runs start at once.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const clip = run === 0 ? INTRO : AGAIN;
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + TIMING.hold) {
-      again();
-    }
-  });
-  const canReplay = replayOnClick && !still;
-  const replay = () => {
-    if (canReplay && clock.get() >= clip.end) {
-      again();
-    }
-  };
-  return { canReplay, clip, clock: still ? undefined : clock, ref, replay };
-};
-
-// In ink the walls step down half as far as the house ramp (0.03 and 0.07
-// under the top, not 0.06 and 0.13): a blocked state is a quiet line
-// drawing on the page, with only a whisper of form.
-const PAPER: Record<string, string> = {
-  "--iso-surface-left-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.03) c h)",
-  "--iso-surface-right-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.07) c h)",
-};
-
-// The blueprint (`line`) drawn at this size: its outline held at the same
-// pixel weight as ink instead of a canvas-unit one, which would be three
-// times too heavy on a stage this small. Faces stay the page's colour.
-const BLUEPRINT: Record<string, string> = {
-  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
-  "--iso-vector": "non-scaling-stroke",
-};
-
-// The engine's rim highlight has no width in the outlined variants, yet it
-// still paints a pale hairline over the front outline of every extrusion
-// (seen at 4× in Chromium). Clear its colour so the outline keeps its
-// full weight.
-const NO_RIM: Record<string, string> = {
-  "--iso-accent-rim": "transparent",
-  "--iso-main-rim": "transparent",
-  "--iso-surface-rim": "transparent",
-};
-
-/**
- * Stage overrides: no hairline contour (every edge already carries the
- * outline), the paper walls in ink, the pixel outline in the blueprint,
- * and the outline on the side edges of rounded parts.
- */
-const stageStyle = (variant: IsoVariant) =>
-  ({
-    "--iso-contour-w": "0",
-    ...(variant === "ink" ? PAPER : {}),
-    ...(variant === "line" ? BLUEPRINT : {}),
-    ...(variant === "ink" || variant === "line" ? NO_RIM : {}),
-    "--iso-silhouette": "var(--iso-edge, none)",
-  }) as CSSProperties;
-
-/* ───────────────────────────── Copy ───────────────────────────────────── */
-
-/**
- * The state's own words, under the lock: the heading, a line of copy, and
- * the actions (the built-in button, or whatever is passed in).
- */
-const Copy = ({
-  heading,
-  description,
-  actionLabel,
-  onAction,
-  children,
-}: {
-  heading: string;
-  description: string;
-  actionLabel: string;
-  onAction?: () => void;
-  children?: ReactNode;
-}) => {
-  const button = actionLabel ? (
-    <Button className="rounded-full" onClick={onAction}>
-      {actionLabel}
-    </Button>
-  ) : null;
-  const actions = children ?? button;
-  return (
-    <>
-      {heading ? (
-        <p className="mt-3 text-xl font-medium tracking-tight text-foreground">
-          {heading}
-        </p>
-      ) : null}
-      {description ? (
-        <p className="mt-2 text-balance text-muted-foreground">{description}</p>
-      ) : null}
-      {actions ? <div className="mt-6">{actions}</div> : null}
-    </>
-  );
-};
-
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
-export interface PadlockProps {
-  /** Heading under the lock, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
-  /** Label of the button, up to about 20 characters. An empty string hides the button. */
-  actionLabel?: string;
-  /** Called when the button is clicked. */
-  onAction?: () => void;
-  /** Your own actions under the copy (a link, two buttons), in place of the built-in button. */
-  children?: ReactNode;
-  /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the keyhole; the rest stays neutral. */
-  tone?: IsoTone;
-  /** "ink" (default): a fine outline with a whisper of shading on the walls. "line": the outline alone, faces the colour of the page. "soft", "duotone" and "solid" are the lit, coloured looks. */
-  variant?: IsoVariant;
-  /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
-  strokeWidth?: number;
-  /** The lock is tried when it scrolls into view. Off shows the closed lock and nothing moving. */
-  autoPlay?: boolean;
-  /** Try the lock again every few seconds. Off plays it once, which suits a state people sit in front of. */
-  loop?: boolean;
-  /** Clicking the lock tries it again. */
-  replayOnClick?: boolean;
-  /** Accessible description of the illustration. Without it the lock is decorative and the copy speaks for it. */
-  title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`. */
-  artClassName?: string;
-  /** Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide). */
-  className?: string;
-}
+export type PadlockProps = LineStateProps;
 
 /**
  * Padlock: a complete no-access state ("You don't have access") with a
@@ -500,85 +247,50 @@ export interface PadlockProps {
  * closed padlock; its shackle is pulled up twice, stops on its catch each
  * time and drops back, still locked. One fine outline, near-white faces,
  * no shadow, facing the screen; the keyhole carries the brand, like the
- * button under it. Click the lock to play it again. Follows the shadcn
- * theme.
+ * button under it. It plays when it comes into view, or each time `active`
+ * turns true (PlayOnHover, or your own state). Follows the shadcn theme.
  */
 export const Padlock = ({
   heading = "You don't have access",
   description = "Ask the owner of this workspace to let you in, or switch to another account.",
   actionLabel = "Request access",
-  onAction,
-  children,
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
-  title,
-  artClassName,
-  className,
+  onPlayEnd,
+  ...rest
 }: PadlockProps) => {
-  const { canReplay, clip, clock, ref, replay } = useShell({
-    autoPlay,
+  const shell = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
+  const { clip, clock } = shell;
   const pull = usePull(clock, clip);
-  const art = (
-    <IsoStage
-      bounds={BOUNDS}
-      shadow={false}
-      strokeWidth={strokeWidth}
-      style={stageStyle(variant)}
-      title={title}
-      tone={tone}
-      variant={variant}
-    >
-      {/* Everything stands in one rig that turns it to face the screen. */}
-      <Rig pivot={[0, 0, 0]} {...VIEW_POSE}>
-        <Rig pivot={[0, 0, BODY.z]} {...rigged(clock, bodyPose(clip))}>
-          <Body />
-          <Shackle pull={pull} />
-        </Rig>
-      </Rig>
-    </IsoStage>
-  );
   return (
-    <div
-      className={cn(
-        "flex w-full max-w-sm flex-col items-center text-center",
-        className
-      )}
-      data-slot="padlock"
+    <LineState
+      bounds={BOUNDS}
+      props={{
+        actionLabel,
+        description,
+        heading,
+        strokeWidth,
+        tone,
+        variant,
+        ...rest,
+      }}
+      shell={shell}
+      slot="padlock"
     >
-      <div
-        className={cn("w-48 max-w-full", artClassName)}
-        data-slot="padlock-art"
-        ref={ref}
-      >
-        {canReplay ? (
-          <button
-            aria-label={`${title ?? "Illustration"}. Press to play it again.`}
-            className="block w-full cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={replay}
-            type="button"
-          >
-            {art}
-          </button>
-        ) : (
-          art
-        )}
-      </div>
-      <Copy
-        actionLabel={actionLabel}
-        description={description}
-        heading={heading}
-        onAction={onAction}
-      >
-        {children}
-      </Copy>
-    </div>
+      <Rig pivot={[0, 0, BODY.z]} {...onClock(clock, bodyPose(clip), clip.end)}>
+        <Body />
+        <Shackle pull={pull} />
+      </Rig>
+    </LineState>
   );
 };
 

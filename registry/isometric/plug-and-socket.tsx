@@ -1,27 +1,23 @@
 "use client";
 
-import { useInView, useMotionValue, useMotionValueEvent } from "motion/react";
+import { useMotionValue, useMotionValueEvent } from "motion/react";
 import type { MotionValue } from "motion/react";
-import type { CSSProperties, ReactNode } from "react";
-import { useRef, useState, useSyncExternalStore } from "react";
-
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useRef, useState } from "react";
 
 import {
   EASE,
   Extrude,
   FacePath,
-  IsoStage,
   Rig,
   roundedRect,
   sample,
   scaleTrack,
   settle,
   shiftTrack,
-  useClock,
 } from "./iso-core";
-import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
+import type { IsoTrack, Vec3 } from "./iso-core";
+import { ICON, LINE, LineState, facing, r2, useLineShell } from "./iso-line";
+import type { LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -31,7 +27,7 @@ import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
  * between them with one curl in it. A fine outline, near-white faces, the plug's
  * two pins the one brand mark, facing the screen, no shadow. Under it,
  * the state's own words: a heading, a line, a button. Each value is ms
- * after it comes into view.
+ * after the art comes into view.
  *
  *    0ms   the two ends hang apart, still
  *  400ms   the plug reaches for the socket (380ms); the socket leans in
@@ -40,15 +36,15 @@ import type { IsoPose, IsoTone, IsoTrack, IsoVariant, Vec3 } from "./iso-core";
  * 1000ms   it gives up: both ends spring apart, past rest, and sway home
  * 2150ms   still: apart, exactly as it started
  *
- * A click (or `loop`, after a 5.2s hold) plays the reach again.
- * Reduced motion (or autoPlay off): the two ends apart, nothing moves.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true (or with `loop`, after a 5.2s hold).
+ * Reduced motion, or `active` false before any play: the two ends apart,
+ * nothing moves.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  // After a click the reach starts this soon.
+  // When `active` turns true the reach starts this soon.
   again: 80,
-  // How long it rests before a loop starts again.
-  hold: 5200,
   // The socket follows the plug this much later.
   lag: 60,
   // The plug travels most of the way in this long.
@@ -73,8 +69,11 @@ const MOVE = {
 
 // The two ends: a block each, built facing +y and shown facing the
 // screen, mirrored about the middle. `face` is how far each one's front
-// end is from the middle; `z` is the height of its centre line.
-const HEAD = { depth: 0.75, face: 0.95, h: 1.7, r: 0.5, w: 2.3, z: 5.4 };
+// end is from the middle; `z` is the height of its centre line. Its
+// corners are kept small so the parts that meet its ends (pins, sleeve,
+// lip) meet a straight side: a line that runs into a curve near its
+// tangent drew a second line a pixel beside the first.
+const HEAD = { depth: 0.75, face: 0.95, h: 1.7, r: 0.35, w: 2.3, z: 5.4 };
 const HEAD_TOP = HEAD.z + HEAD.h / 2;
 const HEAD_END = HEAD.face + HEAD.w;
 
@@ -83,12 +82,15 @@ const HEAD_END = HEAD.face + HEAD.w;
 const SLEEVE = { depth: 0.45, h: 0.85, r: 0.22, tuck: 0.2, w: 0.55 };
 const SLEEVE_Y = -(HEAD.depth - SLEEVE.depth) / 2;
 
-// The plug's two pins, one over the other.
-const PIN = { depth: 0.4, h: 0.24, len: 0.8, r: 0.08, spread: 0.42, tuck: 0.2 };
-const PIN_Y = -(HEAD.depth - PIN.depth) / 2;
+// The plug's two pins, one over the other: flat blades in the middle of
+// the block's depth (a blade's thin depth drew as a strip two lines a
+// pixel apart).
+const PIN = { h: 0.24, len: 0.8, r: 0.08, spread: 0.42, tuck: 0.2 };
+const PIN_Y = -HEAD.depth / 2;
 
-// The lip round the socket's mouth, a little taller than the block.
-const LIP = { h: 2, r: 0.12, w: 0.3 };
+// The lip round the socket's mouth, taller than the block by enough that
+// the block's back edge meets its straight side.
+const LIP = { h: 2.3, r: 0.12, w: 0.3 };
 
 // The grip: three ridges across each block, counted from the cable's end.
 const GRIP = { at: [0.5, 0.82, 1.14] as const, h: 0.8 };
@@ -107,7 +109,7 @@ const CABLE = {
   curl: { h: 2, lead: 1.7, round: 1.25, w: 0.95, x: -1.1 },
   foot: 0.85,
   from: HEAD_END + SLEEVE.w - 0.25,
-  half: 0.2,
+  half: 0.17,
   overlap: 2,
   reach: 2.8,
   slack: 0.42,
@@ -117,8 +119,6 @@ const CABLE_Y = -HEAD.depth / 2;
 
 type P2 = readonly [number, number];
 type Span = readonly [P2, P2, P2, P2];
-
-const r2 = (n: number) => Math.round(n * 100) / 100;
 
 // A point on a cubic curve and its direction there.
 const cubic = ([a, b, c, d]: Span, t: number): [P2, P2] => {
@@ -205,31 +205,6 @@ const cableEdges = (socket: number, plug: number): [Edges, Edges] => {
 const trace = (points: readonly P2[]) =>
   `M${points.map(([x, z]) => `${r2(x)} ${r2(-z)}`).join(" L")}`;
 
-/* ───────────────────────────── The view ───────────────────────────────── */
-
-/**
- * Facing the screen. The object is built facing +y, which the isometric
- * camera sees at an angle. The whole of it is turned 45° about the
- * vertical, so its front points straight at the viewer and its edges run
- * level and plumb; and it is stretched √(3/2) in height, because that
- * camera looks down from 35.26° and foreshortens heights by exactly that
- * much, so the front keeps its true proportions. It is still one exact
- * parallel projection of a solid: its thickness shows along its top edges.
- */
-const FRONT = { stretch: Math.sqrt(1.5), turn: -45 };
-const VIEW_POSE: IsoPose = {
-  axis: "z",
-  rotate: FRONT.turn,
-  scale: [1, 1, FRONT.stretch],
-};
-
-/** Where a point of the object lands once it faces the screen. */
-const facing = ([x, y, z]: Vec3): Vec3 => [
-  (x + y) * Math.SQRT1_2,
-  (y - x) * Math.SQRT1_2,
-  z * FRONT.stretch,
-];
-
 // The frame fits the cord at rest: as wide as the cable, from its foot to
 // the top of the socket's lip. The spring apart reaches a little wider;
 // that runs into the stage's padding, which is not clipped.
@@ -272,21 +247,12 @@ const beat = (t0: number): Clip => {
   };
 };
 
-// The first run waits a moment after coming into view; a click does not.
+// The first run waits a moment after coming into view; a play asked for by
+// `active` does not.
 const INTRO = beat(TIMING.start);
 const AGAIN = beat(TIMING.again);
 
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
-
-// The one outline, for marks a scene strokes itself (the lit variants
-// have no pixel edge, so they fall back to their hairline).
-const LINE: CSSProperties = {
-  fill: "none",
-  stroke: "var(--iso-edge, var(--iso-stroke))",
-  strokeLinejoin: "var(--iso-join, round)" as CSSProperties["strokeLinejoin"],
-  strokeWidth: "var(--iso-edge-w, calc(var(--iso-stroke-width) * 0.6))",
-  vectorEffect: "var(--iso-vector, none)" as CSSProperties["vectorEffect"],
-};
 
 /**
  * The cable, drawn as a flat tube (it is round, so it shows no top edge):
@@ -318,6 +284,21 @@ const Cable = ({ socket, plug }: { socket: number; plug: number }) => (
 );
 
 /**
+ * A rectangle `w` by `h` with its left corners rounded and its right ones
+ * square: the socket's block, whose right end is hidden behind the lip,
+ * so its top edge runs straight into the lip's side.
+ */
+const roundedLeft = (w: number, h: number, r: number) => {
+  const k = r * 0.5523;
+  return [
+    `M${r} 0 H${w} V${h} H${r}`,
+    `C${r2(r - k)} ${h} 0 ${r2(h - r + k)} 0 ${r2(h - r)}`,
+    `V${r}`,
+    `C0 ${r2(r - k)} ${r2(r - k)} 0 ${r} 0 Z`,
+  ].join(" ");
+};
+
+/**
  * One end's block with its sleeve and grip. `side` is −1 for the socket
  * (left of the middle) and 1 for the plug.
  */
@@ -344,7 +325,11 @@ const Head = ({ side }: { side: -1 | 1 }) => {
       <Extrude
         at={[x, 0, HEAD_TOP]}
         convex
-        d={roundedRect(HEAD.w, HEAD.h, HEAD.r)}
+        d={
+          side === 1
+            ? roundedRect(HEAD.w, HEAD.h, HEAD.r)
+            : roundedLeft(HEAD.w, HEAD.h, HEAD.r)
+        }
         depth={HEAD.depth}
         palette="surface"
         plane="left"
@@ -373,14 +358,12 @@ const Socket = () => (
 const Plug = () => (
   <>
     {[1, -1].map((up) => (
-      <Extrude
+      <FacePath
         at={[HEAD.face - PIN.len, PIN_Y, HEAD.z + up * PIN.spread + PIN.h / 2]}
-        convex
         d={roundedRect(PIN.len + PIN.tuck, PIN.h, PIN.r)}
-        depth={PIN.depth}
         key={up}
-        palette="main"
         plane="left"
+        style={{ ...LINE, fill: "var(--iso-main-left)" }}
       />
     ))}
     <Head side={1} />
@@ -411,203 +394,9 @@ const useReach = (
   return clock ? value : [0, 0];
 };
 
-/* ───────────────────────────── Shell ──────────────────────────────────── */
-
-// Whether the visitor asked for less motion. It is read through a store
-// and not in the first render: the server cannot know it, so the first
-// render in the browser has to answer "no" as the server did, and switch
-// once the page has taken over. Reading it straight away makes the two
-// disagree, and React reports a failed hydration.
-const REDUCE = "(prefers-reduced-motion: reduce)";
-const watchReduce = (notify: () => void) => {
-  const query = window.matchMedia(REDUCE);
-  query.addEventListener("change", notify);
-  return () => query.removeEventListener("change", notify);
-};
-const useReduced = () =>
-  useSyncExternalStore(
-    watchReduce,
-    () => window.matchMedia(REDUCE).matches,
-    () => false
-  );
-
-/** In view, reduced motion, the clock and its clip, and the replay. */
-const useShell = ({
-  autoPlay,
-  loop,
-  replayOnClick,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  replayOnClick: boolean;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReduced();
-  const still = reduced || !autoPlay;
-  // Run 0 waits a moment after coming into view; later runs start at once.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const clip = run === 0 ? INTRO : AGAIN;
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + TIMING.hold) {
-      again();
-    }
-  });
-  const canReplay = replayOnClick && !still;
-  const replay = () => {
-    if (canReplay && clock.get() >= clip.end) {
-      again();
-    }
-  };
-  return { canReplay, clip, clock: still ? undefined : clock, ref, replay };
-};
-
-// In ink the walls step down half as far as the house ramp (0.03 and 0.07
-// under the top, not 0.06 and 0.13): a blocked state is a quiet line
-// drawing on the page, with only a whisper of form.
-const PAPER: Record<string, string> = {
-  "--iso-surface-left-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.03) c h)",
-  "--iso-surface-right-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.07) c h)",
-};
-
-// The blueprint (`line`) drawn at this size: its outline held at the same
-// pixel weight as ink instead of a canvas-unit one, which would be three
-// times too heavy on a stage this small. Faces stay the page's colour.
-const BLUEPRINT: Record<string, string> = {
-  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
-  "--iso-vector": "non-scaling-stroke",
-};
-
-// The engine's rim highlight has no width in the outlined variants, yet it
-// still paints a pale hairline over the front outline of every extrusion
-// (seen at 4× in Chromium). Clear its colour so the outline keeps its
-// full weight.
-const NO_RIM: Record<string, string> = {
-  "--iso-accent-rim": "transparent",
-  "--iso-main-rim": "transparent",
-  "--iso-surface-rim": "transparent",
-};
-
-/**
- * Stage overrides: no hairline contour (every edge already carries the
- * outline), the paper walls in ink, the pixel outline in the blueprint,
- * and the outline on the side edges of rounded parts.
- */
-const stageStyle = (variant: IsoVariant) =>
-  ({
-    "--iso-contour-w": "0",
-    ...(variant === "ink" ? PAPER : {}),
-    ...(variant === "line" ? BLUEPRINT : {}),
-    ...(variant === "ink" || variant === "line" ? NO_RIM : {}),
-    "--iso-silhouette": "var(--iso-edge, none)",
-  }) as CSSProperties;
-
-/* ───────────────────────────── Copy ───────────────────────────────────── */
-
-// Optical padding: an icon carries its own white space, so the label's
-// side gets 2px more than the icon's side (12px and 14px) or the label
-// looks pushed against the edge. The second class wins over a Button that
-// already nudges this side itself.
-const BUTTON =
-  "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
-
-/** The plus on the button. */
-const PlusIcon = () => (
-  <svg
-    aria-hidden="true"
-    data-icon="inline-start"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 5v14M5 12h14" />
-  </svg>
-);
-
-/**
- * The state's own words, under the cord: the heading, a line of copy, and
- * the actions (the built-in button, or whatever is passed in).
- */
-const Copy = ({
-  heading,
-  description,
-  actionLabel,
-  onAction,
-  children,
-}: {
-  heading: string;
-  description: string;
-  actionLabel: string;
-  onAction?: () => void;
-  children?: ReactNode;
-}) => {
-  const button = actionLabel ? (
-    <Button className={BUTTON} onClick={onAction}>
-      <PlusIcon />
-      {actionLabel}
-    </Button>
-  ) : null;
-  const actions = children ?? button;
-  return (
-    <>
-      {heading ? (
-        <p className="mt-3 text-xl font-medium tracking-tight text-foreground">
-          {heading}
-        </p>
-      ) : null}
-      {description ? (
-        <p className="mt-2 text-balance text-muted-foreground">{description}</p>
-      ) : null}
-      {actions ? <div className="mt-6">{actions}</div> : null}
-    </>
-  );
-};
-
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
-export interface PlugAndSocketProps {
-  /** Heading under the cord, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
-  /** Label of the button, up to about 20 characters. An empty string hides the button. */
-  actionLabel?: string;
-  /** Called when the button is clicked. */
-  onAction?: () => void;
-  /** Your own actions under the copy (a link, two buttons), in place of the built-in button. */
-  children?: ReactNode;
-  /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the plug's two pins; the rest stays neutral. */
-  tone?: IsoTone;
-  /** "ink" (default): a fine outline with a whisper of shading on the walls. "line": the outline alone, faces the colour of the page. "soft", "duotone" and "solid" are the lit, coloured looks. */
-  variant?: IsoVariant;
-  /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
-  strokeWidth?: number;
-  /** The plug reaches for the socket when the cord scrolls into view. Off shows the two ends apart and nothing moving. */
-  autoPlay?: boolean;
-  /** Reach again every few seconds. Off plays it once, which suits a state people sit in front of. */
-  loop?: boolean;
-  /** Clicking the cord makes the plug reach again. */
-  replayOnClick?: boolean;
-  /** Accessible description of the illustration. Without it the cord is decorative and the copy speaks for it. */
-  title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-72`. */
-  artClassName?: string;
-  /** Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide). */
-  className?: string;
-}
+export type PlugAndSocketProps = LineStateProps;
 
 /**
  * Plug and socket: a complete not-connected state ("Not connected") with
@@ -616,87 +405,54 @@ export interface PlugAndSocketProps {
  * hanging in a loop between them; the plug reaches for the socket, stops
  * short and springs back. One fine outline, near-white faces, no shadow,
  * facing the screen; the plug's two pins carry the brand, like the button
- * under it. Click the cord to play it again. Follows the shadcn theme.
+ * under it. It plays when it comes into view, or each time `active` turns
+ * true (PlayOnHover, or your own state). Follows the shadcn theme.
  */
 export const PlugAndSocket = ({
   heading = "Not connected",
   description = "Connect an app to start bringing your data in here.",
   actionLabel = "Connect an app",
-  onAction,
-  children,
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
-  title,
-  artClassName,
-  className,
+  onPlayEnd,
+  ...rest
 }: PlugAndSocketProps) => {
-  const { canReplay, clip, clock, ref, replay } = useShell({
-    autoPlay,
+  const shell = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
-  const [socket, plug] = useReach(clock, clip);
-  const art = (
-    <IsoStage
-      bounds={BOUNDS}
-      shadow={false}
-      strokeWidth={strokeWidth}
-      style={stageStyle(variant)}
-      title={title}
-      tone={tone}
-      variant={variant}
-    >
-      {/* Everything hangs in one rig that turns it to face the screen. */}
-      <Rig pivot={[0, 0, 0]} {...VIEW_POSE}>
-        <Cable plug={plug} socket={socket} />
-        <Rig offset={[socket, 0, 0]} pivot={[0, 0, 0]}>
-          <Socket />
-        </Rig>
-        <Rig offset={[-plug, 0, 0]} pivot={[0, 0, 0]}>
-          <Plug />
-        </Rig>
-      </Rig>
-    </IsoStage>
-  );
+  const [socket, plug] = useReach(shell.clock, shell.clip);
   return (
-    <div
-      className={cn(
-        "flex w-full max-w-sm flex-col items-center text-center",
-        className
-      )}
-      data-slot="plug-and-socket"
+    <LineState
+      bounds={BOUNDS}
+      defaultArtClassName="w-64"
+      icon={ICON.plus}
+      props={{
+        actionLabel,
+        description,
+        heading,
+        strokeWidth,
+        tone,
+        variant,
+        ...rest,
+      }}
+      shell={shell}
+      slot="plug-and-socket"
     >
-      <div
-        className={cn("w-72 max-w-full", artClassName)}
-        data-slot="plug-and-socket-art"
-        ref={ref}
-      >
-        {canReplay ? (
-          <button
-            aria-label={`${title ?? "Illustration"}. Press to play it again.`}
-            className="block w-full cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={replay}
-            type="button"
-          >
-            {art}
-          </button>
-        ) : (
-          art
-        )}
-      </div>
-      <Copy
-        actionLabel={actionLabel}
-        description={description}
-        heading={heading}
-        onAction={onAction}
-      >
-        {children}
-      </Copy>
-    </div>
+      <Cable plug={plug} socket={socket} />
+      <Rig offset={[socket, 0, 0]} pivot={[0, 0, 0]}>
+        <Socket />
+      </Rig>
+      <Rig offset={[-plug, 0, 0]} pivot={[0, 0, 0]}>
+        <Plug />
+      </Rig>
+    </LineState>
   );
 };
 

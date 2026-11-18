@@ -1,4 +1,7 @@
 {
   "title": "Get Started",
-  "pages": ["[Installation](/docs/installation)"]
+  "pages": [
+    "[Installation](/docs/installation)",
+    "[Isometrics skill](/skills/isometrics)"
+  ]
 }

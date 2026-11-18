@@ -1,16 +1,12 @@
 "use client";
 
-import { useInView, useMotionValueEvent, useReducedMotion } from "motion/react";
-import type { MotionValue } from "motion/react";
 import type { CSSProperties, ReactNode } from "react";
-import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import {
   EASE,
-  Extrude,
   Face,
   FacePath,
   FloorGrid,
@@ -19,7 +15,6 @@ import {
   roundedRect,
   sample,
   shiftTrack,
-  useClock,
   useIsoOrbit,
 } from "./iso-core";
 import type {
@@ -32,6 +27,17 @@ import type {
   IsoVariant,
   Vec3,
 } from "./iso-core";
+import {
+  ButtonIcon,
+  FRONT_POSE,
+  ICON,
+  facing,
+  onClock,
+  r2,
+  useLineShell,
+  useReduced,
+} from "./iso-line";
+import type { LineClip, LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -49,23 +55,23 @@ import type {
  * 1500ms   as it comes to rest, the plus on the photo pulses once
  * 2100ms   still
  *
- * A click (or `loop`, after a 5.2s hold) flicks it again.
- * Reduced motion (or autoPlay off): hanging still, nothing moves.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true (and again after a 5.2s hold with `loop`).
+ * Reduced motion, or `active` false before any play: hanging still. It
+ * leans with the pointer either way.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  // The flick.
+  // When `active` turns true the flick comes this soon.
+  again: 80,
+  // The flick, after the badge comes into view.
   flick: 400,
   // Milliseconds of one half swing of the strap.
   half: 230,
-  // How long it hangs still before a loop flicks it again.
-  hold: 5200,
   // How long the card lags the strap.
   lag: 90,
-  // The plus pulses.
-  pulse: 1500,
-  // Everything is at rest.
-  rest: 2100,
+  // The plus pulses, this long after the flick.
+  pulse: 1100,
 };
 
 /* The flick: the first swing of each part, in degrees. Small on purpose:
@@ -89,25 +95,31 @@ const PULSE = 0.3;
 
 // The card: a rounded panel facing the viewer's left (+y), hanging clear
 // of the floor. Behind its top edge, the clip's plate with the eyelet.
-const CARD = { depth: 0.3, h: 6.6, r: 0.5, w: 5.4, z: 1.2 };
+// Every part is a flat face on one plane, one outline each: a card, plate
+// and strap with thickness drew strips that tapered into doubled smudges
+// round their rounded corners. Paint order alone puts one over another.
+const CARD = { h: 6.6, r: 0.5, w: 5.4, z: 1.2 };
 const CARD_TOP = CARD.z + CARD.h;
-const FRONT_Y = CARD.depth / 2;
+const FRONT_Y = 0;
 // The card's front face, top-left corner: the origin of its details.
 const CARD_AT: Vec3 = [-CARD.w / 2, FRONT_Y, CARD_TOP];
 
 // The clip's plate: mostly above the card, its foot hidden behind it.
-const PLATE = { above: 0.85, depth: 0.2, foot: 0.5, r: 0.3, w: 1.8 };
-const PLATE_Y = FRONT_Y - 0.1;
+const PLATE = { above: 0.85, foot: 0.5, r: 0.3, w: 1.8 };
+const PLATE_Y = FRONT_Y;
 const PLATE_AT: Vec3 = [-PLATE.w / 2, PLATE_Y, CARD_TOP + PLATE.above];
 // The eyelet in the plate, where the strap passes through and the card
-// turns.
-const EYELET = { hole: 0.13, r: 0.3, v: 0.44 };
+// turns: one hole, a clear margin inside the plate's top edge.
+const EYELET = { hole: 0.22, v: 0.44 };
 const EYELET_AT: Vec3 = [0, PLATE_Y, CARD_TOP + PLATE.above - EYELET.v];
 
 // The strap: a slim rounded bar rising from the eyelet to where it hangs.
-const STRAP = { depth: 0.1, h: 1.75, w: 0.34 };
+// Its foot is cut along the hole's top, so it runs into the hole and
+// shares its outline there (a rounded end over the hole drew a second
+// circle a hair inside it).
+const STRAP = { h: 1.75, w: 0.34 };
 const ANCHOR: Vec3 = [0, PLATE_Y, EYELET_AT[2] + STRAP.h - STRAP.w / 2];
-const STRAP_AT: Vec3 = [-STRAP.w / 2, PLATE_Y + STRAP.depth, ANCHOR[2]];
+const STRAP_AT: Vec3 = [-STRAP.w / 2, PLATE_Y, ANCHOR[2]];
 
 // On the card's face (u across, v down from its top edge): the photo
 // window with a placeholder figure, two lines for a name and a role, and
@@ -158,27 +170,14 @@ const PIVOT: readonly [number, number] = [0, 0];
 type View = "front" | "isometric";
 
 /**
- * Facing the screen. The object is built facing +y, which the isometric
- * camera sees at an angle. In the front view the whole object is turned
- * 45° about the vertical, so its front points straight at the viewer and
- * its edges run level and plumb on the screen; and it is stretched
- * √(3/2) in height, because that camera looks down from 35.26° and
- * foreshortens heights by exactly that much, so the front keeps its true
- * proportions. It is still one exact parallel projection of a solid: its
- * thickness shows along its top edge, and down a side as it turns.
+ * Facing the screen (the kit's front view: turned 45° about the vertical,
+ * stretched √(3/2) in height, its thickness along its top edge and down a
+ * side as it turns), or left at the isometric three-quarter angle.
  */
-const FRONT = { stretch: Math.sqrt(1.5), turn: -45 };
 const VIEW_POSE: Record<View, IsoPose> = {
-  front: { axis: "z", rotate: FRONT.turn, scale: [1, 1, FRONT.stretch] },
+  front: FRONT_POSE,
   isometric: {},
 };
-
-/** Where a point of the object lands once it faces the screen. */
-const facing = ([x, y, z]: Vec3): Vec3 => [
-  (x + y) * Math.SQRT1_2,
-  (y - x) * Math.SQRT1_2,
-  z * FRONT.stretch,
-];
 const boundsFor = (view: View) =>
   view === "front" ? BOUNDS.map(facing) : BOUNDS;
 
@@ -206,35 +205,56 @@ const swing = (amp: number, start: number, half: number): IsoTrack => {
   return keys;
 };
 
-const STRAP_SWING = swing(FLICK.strap, TIMING.flick, TIMING.half);
-// The card answers late and a little slower; the twist slower again.
-const CARD_SWING = shiftTrack(
-  swing(FLICK.card, TIMING.flick, TIMING.half + 20),
-  TIMING.lag
-);
-const TWIST = swing(FLICK.twist, TIMING.flick, TIMING.half + 45);
-const PLUS_PULSE: IsoTrack = [
-  [TIMING.pulse, 0, EASE.soft],
-  [TIMING.pulse + 160, PULSE, EASE.easy],
-  [TIMING.pulse + 520, 0],
-];
+/** One run of the clock: what each part does, and when it is at rest. */
+interface Clip extends LineClip {
+  card: IsoTrack;
+  plus: IsoTrack;
+  strap: IsoTrack;
+  twist: IsoTrack;
+}
 
-const r2 = (n: number) => Math.round(n * 100) / 100;
+// The beat itself, the flick `t0` ms into a run.
+const beat = (t0: number): Clip => {
+  const pulse = t0 + TIMING.pulse;
+  const tracks = {
+    // The card answers late and a little slower; the twist slower again.
+    card: shiftTrack(swing(FLICK.card, t0, TIMING.half + 20), TIMING.lag),
+    plus: [
+      [pulse, 0, EASE.soft],
+      [pulse + 160, PULSE, EASE.easy],
+      [pulse + 520, 0],
+    ] as IsoTrack,
+    strap: swing(FLICK.strap, t0, TIMING.half),
+    twist: swing(FLICK.twist, t0, TIMING.half + 45),
+  };
+  // At rest once the slowest part (the twist's last small swing) is.
+  const end = Math.max(
+    ...Object.values(tracks).map((track) => track.at(-1)?.[0] ?? 0)
+  );
+  return { ...tracks, end };
+};
 
-const strapPose = (ms: number): IsoPose => ({
-  axis: "y",
-  rotate: r2(sample(STRAP_SWING, ms)),
-});
-const cardPose = (ms: number): IsoPose => ({
-  axis: "y",
-  rotate: r2(sample(CARD_SWING, ms)),
-});
-const twistPose = (ms: number): IsoPose => ({
-  axis: "z",
-  rotate: r2(sample(TWIST, ms)),
-});
-const plusPose = (ms: number): IsoPose => ({
-  scale: r2(1 + sample(PLUS_PULSE, ms)),
+// The first run waits a moment after coming into view; `active` does not.
+const INTRO = beat(TIMING.flick);
+const AGAIN = beat(TIMING.again);
+
+/** The poses of one clip. */
+const posesOf = (clip: Clip) => ({
+  card: (ms: number): IsoPose => ({
+    axis: "y",
+    rotate: r2(sample(clip.card, ms)),
+  }),
+  plus: (ms: number): IsoPose => ({
+    scale: r2(1 + sample(clip.plus, ms)),
+  }),
+  strap: (ms: number): IsoPose => ({
+    axis: "y",
+    rotate: r2(sample(clip.strap, ms)),
+  }),
+  twist: (ms: number): IsoPose => ({
+    axis: "z",
+    rotate: r2(sample(clip.twist, ms)),
+  }),
 });
 
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
@@ -252,22 +272,14 @@ const LINE: CSSProperties = {
 const circlePath = (u: number, v: number, r: number) =>
   roundedRect(2 * r, 2 * r, r, u - r, v - r);
 
-/** The clip's plate and its eyelet: a ring with the hole through it. */
+/** The clip's plate and its eyelet: the hole through it. */
 const Clip = () => (
   <>
-    <Extrude
-      at={PLATE_AT}
-      convex
-      d={roundedRect(PLATE.w, PLATE.above + PLATE.foot, PLATE.r)}
-      depth={PLATE.depth}
-      palette="surface"
-      plane="left"
-    />
     <FacePath
       at={PLATE_AT}
-      d={circlePath(PLATE.w / 2, EYELET.v, EYELET.r)}
+      d={roundedRect(PLATE.w, PLATE.above + PLATE.foot, PLATE.r)}
       plane="left"
-      style={{ ...LINE, fill: "var(--iso-surface-top)" }}
+      style={{ ...LINE, fill: "var(--iso-surface-left)" }}
     />
     <FacePath
       at={PLATE_AT}
@@ -285,13 +297,11 @@ const Card = () => {
   const top = PHOTO.v + FIGURE.shouldersV;
   return (
     <>
-      <Extrude
+      <FacePath
         at={CARD_AT}
-        convex
         d={roundedRect(CARD.w, CARD.h, CARD.r)}
-        depth={CARD.depth}
-        palette="surface"
         plane="left"
+        style={{ ...LINE, fill: "var(--iso-surface-left)" }}
       />
       <FacePath
         at={CARD_AT}
@@ -351,23 +361,39 @@ const Plus = () => (
   </>
 );
 
+/**
+ * The strap, in face units (u across, v down from its top): a slim bar
+ * with a rounded top, its foot cut along the top of the eyelet's hole
+ * (centred at the strap's foot less half its width). The cut is the hole's
+ * arc as one quadratic through its top.
+ */
+const strapPath = () => {
+  const { w, h } = STRAP;
+  const r = w / 2;
+  const k = r * 0.5523;
+  const centre = h - r;
+  const meet = r2(centre - Math.sqrt(EYELET.hole ** 2 - r ** 2));
+  const apex = centre - EYELET.hole;
+  return [
+    `M0 ${r}`,
+    `C0 ${r2(r - k)} ${r2(r - k)} 0 ${r} 0`,
+    `C${r2(r + k)} 0 ${w} ${r2(r - k)} ${w} ${r}`,
+    `V${meet}`,
+    `Q${r} ${r2(2 * apex - meet)} 0 ${meet}`,
+    "Z",
+  ].join(" ");
+};
+const STRAP_PATH = strapPath();
+
 /** The strap: a slim bar from the eyelet up to where the badge hangs. */
 const Strap = () => (
-  <Extrude
+  <FacePath
     at={STRAP_AT}
-    convex
-    d={roundedRect(STRAP.w, STRAP.h, STRAP.w / 2)}
-    depth={STRAP.depth}
-    palette="surface"
+    d={STRAP_PATH}
     plane="left"
+    style={{ ...LINE, fill: "var(--iso-surface-left)" }}
   />
 );
-
-/** Rig props: animated on the clock, or at rest. */
-const rigged = (
-  clock: MotionValue<number> | undefined,
-  pose: (ms: number) => IsoPose
-) => (clock ? { clock, pose } : {});
 
 /* ───────────────────────────── Shell ──────────────────────────────────── */
 
@@ -379,81 +405,6 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
         "aria-label": `${title ?? "Illustration"}. Move the pointer or use the left and right arrow keys to turn it.`,
         role: "group",
       };
-
-interface PointerLike {
-  button: number;
-  clientX: number;
-  clientY: number;
-  currentTarget: Element;
-  pointerId: number;
-}
-interface OrbitHandlers {
-  onPointerDown?: (e: PointerLike) => void;
-  onPointerUp?: () => void;
-}
-
-/** In view, reduced motion, the clock, the camera and the pointer. */
-const useShell = ({
-  autoPlay,
-  loop,
-  orbit,
-  replayOnClick,
-  rotate,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  orbit: IsoOrbit;
-  replayOnClick: boolean;
-  rotate: IsoRotate;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReducedMotion() ?? false;
-  const still = reduced || !autoPlay;
-  // Each run is one flick, from rest to rest.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const { camera, orbitProps } = useIsoOrbit({
-    mode: rotate,
-    orbit,
-    pivot: PIVOT,
-    reduced,
-  });
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= TIMING.rest + TIMING.hold) {
-      again();
-    }
-  });
-  // A plain click (no drag) flicks it again, once it hangs still.
-  const pressed = useRef({ x: 0, y: 0 });
-  const handlers = orbitProps as OrbitHandlers;
-  const pointer = {
-    onPointerDown: (e: PointerLike) => {
-      pressed.current = { x: e.clientX, y: e.clientY };
-      handlers.onPointerDown?.(e);
-    },
-    onPointerUp: (e: PointerLike) => {
-      handlers.onPointerUp?.();
-      const moved =
-        Math.hypot(
-          e.clientX - pressed.current.x,
-          e.clientY - pressed.current.y
-        ) > 6;
-      if (replayOnClick && !still && !moved && clock.get() >= TIMING.rest) {
-        again();
-      }
-    },
-  };
-  return { camera, clock: still ? undefined : clock, orbitProps, pointer, ref };
-};
 
 // In ink the walls step down half as far as the house ramp (0.03 and 0.07
 // under the top, not 0.06 and 0.13): an empty state is a quiet line
@@ -508,21 +459,6 @@ const stageStyle = (variant: IsoVariant) =>
 const BUTTON =
   "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
 
-/** The plus on the button. */
-const PlusIcon = () => (
-  <svg
-    aria-hidden="true"
-    data-icon="inline-start"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 5v14M5 12h14" />
-  </svg>
-);
-
 /**
  * The empty state's own words, under the badge: the heading, a line of
  * copy, and the actions (the built-in button, or whatever is passed in).
@@ -542,7 +478,7 @@ const Copy = ({
 }) => {
   const button = actionLabel ? (
     <Button className={BUTTON} onClick={onAction}>
-      <PlusIcon />
+      <ButtonIcon d={ICON.plus} />
       {actionLabel}
     </Button>
   ) : null;
@@ -564,30 +500,18 @@ const Copy = ({
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
-export interface IdBadgeProps {
-  /** Heading under the badge, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
-  /** Label of the button, up to about 20 characters. An empty string hides the button. */
-  actionLabel?: string;
-  /** Called when the button is clicked. */
-  onAction?: () => void;
-  /** Your own actions under the copy (a link, two buttons), in place of the built-in button. */
-  children?: ReactNode;
+export interface IdBadgeProps extends LineStateProps {
   /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the plus at the photo's corner; the rest of the badge stays neutral. */
   tone?: IsoTone;
   /** "ink" (default): a fine outline with a whisper of shading on the walls. "line": the outline alone, faces the colour of the page. "soft", "duotone" and "solid" are the lit, coloured looks. */
   variant?: IsoVariant;
   /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
   strokeWidth?: number;
-  /** The badge is flicked and swings to rest when it scrolls into view. Off shows it hanging still. */
-  autoPlay?: boolean;
-  /** Flick it again every few seconds. Off plays it once, which suits an empty state people sit in front of. */
+  /** Flicks the badge each time it turns true (hover, focus, an invite going out…). Left out, it is flicked once when the badge scrolls into view. Pass false to keep it hanging still until you say. */
+  active?: boolean;
+  /** Flick it again after a long hold (while `active`, or always when `active` is left out). Off (default) suits an empty state people sit in front of. */
   loop?: boolean;
-  /** Clicking the badge flicks it again. */
-  replayOnClick?: boolean;
-  /** How it faces: "front" (default) turns it square to the screen, level and plumb, its thickness along the top edge; "isometric" shows it at the isometric three-quarter angle. */
+  /** How it faces: "front" (default) turns it square to the screen, level and plumb; "isometric" shows it at the isometric three-quarter angle. */
   view?: "front" | "isometric";
   /** Dashed construction grid on the floor. */
   grid?: boolean;
@@ -614,8 +538,9 @@ export interface IdBadgeProps {
  * photo window with a placeholder figure, two lines for a name and a
  * role. It is flicked once, swings and twists to rest, and the plus on
  * the photo's corner (the one brand mark, like the button under it)
- * pulses. One even outline, no shadow. Click the badge to flick it
- * again; it leans with the pointer. Follows the shadcn theme.
+ * pulses. One even outline, no shadow. It plays when it comes into view,
+ * or each time `active` turns true (PlayOnHover, or your own state); it
+ * leans with the pointer. Follows the shadcn theme.
  */
 export const IdBadge = ({
   heading = "No members yet",
@@ -626,9 +551,9 @@ export const IdBadge = ({
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   view = "front",
   grid = false,
   rotate = "pointer",
@@ -638,13 +563,21 @@ export const IdBadge = ({
   className,
 }: IdBadgeProps) => {
   const turn = orbit ?? ORBITS[view];
-  const { camera, clock, orbitProps, pointer, ref } = useShell({
-    autoPlay,
+  const { clip, clock, ref } = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    orbit: turn,
-    replayOnClick,
-    rotate,
+    onPlayEnd,
   });
+  const reduced = useReduced();
+  const { camera, orbitProps } = useIsoOrbit({
+    mode: rotate,
+    orbit: turn,
+    pivot: PIVOT,
+    reduced,
+  });
+  const poses = posesOf(clip);
   return (
     <div
       className={cn(
@@ -662,8 +595,6 @@ export const IdBadge = ({
         data-slot="id-badge-art"
         ref={ref}
         {...orbitProps}
-        onPointerDown={pointer.onPointerDown}
-        onPointerUp={pointer.onPointerUp}
       >
         <IsoStage
           bounds={boundsFor(view)}
@@ -683,16 +614,27 @@ export const IdBadge = ({
             {/* The strap swings about where it hangs; the badge twists on
               it; the card turns on its eyelet. All three come to rest
               straight: plumb and square. */}
-            <Rig axis="y" pivot={ANCHOR} {...rigged(clock, strapPose)}>
+            <Rig
+              axis="y"
+              pivot={ANCHOR}
+              {...onClock(clock, poses.strap, clip.end)}
+            >
               <Rig
                 axis="z"
                 pivot={[0, PLATE_Y, 0]}
-                {...rigged(clock, twistPose)}
+                {...onClock(clock, poses.twist, clip.end)}
               >
-                <Rig axis="y" pivot={EYELET_AT} {...rigged(clock, cardPose)}>
+                <Rig
+                  axis="y"
+                  pivot={EYELET_AT}
+                  {...onClock(clock, poses.card, clip.end)}
+                >
                   <Clip />
                   <Card />
-                  <Rig pivot={PLUS_AT} {...rigged(clock, plusPose)}>
+                  <Rig
+                    pivot={PLUS_AT}
+                    {...onClock(clock, poses.plus, clip.end)}
+                  >
                     <Plus />
                   </Rig>
                 </Rig>

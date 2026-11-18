@@ -1,21 +1,15 @@
 "use client";
 
-import {
-  useInView,
-  useMotionValue,
-  useMotionValueEvent,
-  useReducedMotion,
-} from "motion/react";
+import { useMotionValue, useMotionValueEvent } from "motion/react";
 import type { MotionValue } from "motion/react";
 import type { CSSProperties, ReactNode } from "react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import {
   EASE,
-  Extrude,
   Face,
   FacePath,
   FloorGrid,
@@ -25,7 +19,6 @@ import {
   roundedRect,
   sample,
   shiftTrack,
-  useClock,
   useIsoOrbit,
 } from "./iso-core";
 import type {
@@ -37,6 +30,15 @@ import type {
   IsoVariant,
   Vec3,
 } from "./iso-core";
+import {
+  FRONT_POSE,
+  facing,
+  onClock,
+  r2,
+  useLineShell,
+  useReduced,
+} from "./iso-line";
+import type { LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -56,17 +58,17 @@ import type {
  * 1050ms   the alert badge pops at the corner (scale) and rocks to rest
  * 1700ms   still
  *
- * A click (or `loop`, after a 5.2s hold): the badge shrinks away, the
- * sheets drop back in (300ms, the envelope taking the thud), then the
- * above plays again.
- * Reduced motion (or autoPlay off): the document out, the badge up.
+ * One way, so each later play (each time `active` turns true, or `loop`
+ * after a 5.2s hold) first undoes it: the badge shrinks away, the sheets
+ * drop back in (300ms, the envelope taking the thud), then the above
+ * plays again.
+ * Reduced motion, or `active` false before any play: the document out,
+ * the badge up. It leans with the pointer either way.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
   // The alert badge pops.
   alert: 1050,
-  // How long it holds before a loop tucks the document back in.
-  hold: 5200,
   // How long the sheet behind lags the document.
   lag: 90,
   // After the sheets drop back in, the pause before they come out again.
@@ -97,10 +99,11 @@ const RISE = {
 /* ───────────────────────── Geometry (world units) ─────────────────────── */
 
 // The envelope: 8 wide (x), 5 tall, standing on its long edge and facing
-// the viewer's left (+y). Its body is behind y = 0; the pocket's front
-// leaf is one sheet of paper on y = 0, its top edge dipping to a V. The
-// sheets stand between the two.
-const ENV = { depth: 0.4, h: 5, r: 0.45, w: 8 };
+// the viewer's left (+y). Paper, so every part is a flat face on y = 0,
+// one outline each (a back with thickness drew a strip that tapered into
+// a doubled smudge round its rounded corners): the open flap, the back,
+// the sheets, and the pocket's front leaf, its top edge dipping to a V.
+const ENV = { h: 5, r: 0.45, w: 8 };
 const X0 = -ENV.w / 2;
 const POCKET = {
   // How far the front leaf's top edge dips at the centre.
@@ -108,9 +111,11 @@ const POCKET = {
   // Half the width of the V's rounded point.
   tip: 0.55,
 };
-// The open flap: a triangle standing straight up on the back's top edge.
-const FLAP = { depth: 0.2, h: 3.2, inset: 0.3, tip: 0.5 };
-const HINGE: Vec3 = [0, -ENV.depth + FLAP.depth / 2, ENV.h];
+// The open flap: a triangle standing straight up on the back's top edge,
+// its foot on the straight run of that edge (clear of the rounded corners),
+// so the two share one line.
+const FLAP = { h: 3.2, inset: 0.5, tip: 0.5 };
+const HINGE: Vec3 = [0, 0, ENV.h];
 
 // The sheets: thin paper, the document in front with a folded corner.
 const SHEET = {
@@ -137,34 +142,33 @@ const TEXT: { u: number; v: number; w: number; strong?: boolean }[] = [
 ];
 const TEXT_H = 0.17;
 
-// The alert badge: a pill standing off the envelope's top right corner,
-// clear of the document.
-const BADGE = { depth: 0.3, h: 1.6, w: 2.3, x: 3.9, y: 0.7, z: 6.9 };
-const BADGE_AT: Vec3 = [BADGE.x, BADGE.y, BADGE.z + BADGE.h];
-const BADGE_CENTRE: Vec3 = [
-  BADGE.x + BADGE.w / 2,
-  BADGE.y - BADGE.depth / 2,
-  BADGE.z + BADGE.h / 2,
-];
+// The alert badge: a flat disc above the envelope's top right corner, its
+// right edge on the envelope's, clear of the sheets. Inside the envelope's
+// width, the whole drawing stays centred over the copy.
+const BADGE = { h: 2.4, w: 2.4, x: 1.6, z: 7.5 };
+// Its exclamation mark, drawn (in face units, v down from the disc's top):
+// a rounded bar and a dot a clear 0.5 below it. A typed "!" set its dot a
+// hairline under the bar, which drew as a doubled line.
+const BANG = { bar: 0.9, dot: 0.4, gap: 0.5, top: 0.3, w: 0.4 };
+const BADGE_AT: Vec3 = [BADGE.x, 0, BADGE.z + BADGE.h];
+const BADGE_CENTRE: Vec3 = [BADGE.x + BADGE.w / 2, 0, BADGE.z + BADGE.h / 2];
 
 // The frame: the envelope, the flap at its furthest back, the document at
 // the top of its overshoot, and the badge at the top of its pop.
 const BOUNDS: Vec3[] = [
   [X0, 0, 0],
   [-X0, 0, 0],
-  [X0, -ENV.depth, 0],
-  [-X0, -ENV.depth, 0],
   [X0, 0, ENV.h],
-  [-X0, -ENV.depth, ENV.h],
-  [0, -ENV.depth, ENV.h + FLAP.h],
+  [-X0, 0, ENV.h],
+  [0, 0, ENV.h + FLAP.h],
   [
     -SHEET.w / 2 + SHEET.shift,
     0,
     SHEET.base + SHEET.step + SHEET.h + RISE.travel * 1.14,
   ],
   [SHEET.w / 2, 0, SHEET.base + SHEET.h + RISE.travel * 1.14],
-  [BADGE.x + BADGE.w + 0.3, BADGE.y, BADGE.z - 0.2],
-  [BADGE.x + BADGE.w + 0.3, BADGE.y, BADGE.z + BADGE.h + 0.2],
+  [BADGE.x + BADGE.w + 0.3, 0, BADGE.z - 0.2],
+  [BADGE.x + BADGE.w + 0.3, 0, BADGE.z + BADGE.h + 0.2],
 ];
 
 const GRID = { at: [-6, -6] as const, size: [12, 12] as const };
@@ -174,37 +178,23 @@ const PIVOT: readonly [number, number] = [0, 0];
 type View = "front" | "isometric";
 
 /**
- * Facing the screen. The object is built facing +y, which the isometric
- * camera sees at an angle. In the front view the whole object is turned
- * 45° about the vertical, so its front points straight at the viewer and
- * its edges run level and plumb on the screen; and it is stretched
- * √(3/2) in height, because that camera looks down from 35.26° and
- * foreshortens heights by exactly that much, so the front keeps its true
- * proportions. It is still one exact parallel projection of a solid: its
- * thickness shows along its top edge, and down a side as it turns.
+ * Facing the screen (the kit's front view: turned 45° about the vertical,
+ * stretched √(3/2) in height, its thickness along its top edge and down a
+ * side as it turns), or left at the isometric three-quarter angle.
  */
-const FRONT = { stretch: Math.sqrt(1.5), turn: -45 };
 const VIEW_POSE: Record<View, IsoPose> = {
-  front: { axis: "z", rotate: FRONT.turn, scale: [1, 1, FRONT.stretch] },
+  front: FRONT_POSE,
   isometric: {},
 };
-
-/** Where a point of the object lands once it faces the screen. */
-const facing = ([x, y, z]: Vec3): Vec3 => [
-  (x + y) * Math.SQRT1_2,
-  (y - x) * Math.SQRT1_2,
-  z * FRONT.stretch,
-];
 // Facing the screen, the frame is made even either side of the envelope's
-// middle (x = 0), so the envelope, not the envelope plus its badge, sits
-// centred over the heading and the buttons. The badge only hangs off one
-// side; its mirror image is added to the frame so it stays inside it.
+// middle (x = 0), so the envelope sits centred over the heading and the
+// buttons. The badge's pop runs a little past the envelope's right edge;
+// its mirror image is added to the frame so it stays inside it.
 const mirrored = ([x, y, z]: Vec3): Vec3 => [-x, y, z];
 const boundsFor = (view: View) =>
   view === "front" ? [...BOUNDS, ...BOUNDS.map(mirrored)].map(facing) : BOUNDS;
-// The frame is wider for that, so the art is too, and the envelope keeps
-// its size.
-const ART_WIDTH: Record<View, string> = { front: "w-72", isometric: "w-60" };
+// Facing the screen it is sized to the set's optical size.
+const ART_WIDTH: Record<View, string> = { front: "w-50", isometric: "w-60" };
 
 // How far it turns by default: evenly either way from the front; at the
 // isometric angle, further toward its face than away from it.
@@ -306,8 +296,6 @@ const AGAIN: Clip = {
   wobble: NEXT.wobble,
 };
 
-const r2 = (n: number) => Math.round(n * 100) / 100;
-
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
 
 // The one outline, for marks a scene strokes itself (the lit variants
@@ -321,22 +309,22 @@ const LINE: CSSProperties = {
 
 /**
  * The pocket's front leaf, in face units (u across, v down from the
- * envelope's top edge): the top edge dips from each corner to a rounded
- * point at the centre; the bottom corners are rounded like the back's.
+ * envelope's top edge): it shares the back's outline at every corner (top
+ * corners included, so no second curve runs beside the back's), and its
+ * top edge dips from each top corner to a rounded point at the centre.
  */
 const pocketPath = () => {
   const { w, h, r } = ENV;
   const k = r * 0.5523;
-  const slope = POCKET.dip / (w / 2);
-  const tipV = r2(slope * (w / 2 - POCKET.tip));
-  const cornerV = r2(slope * 0.5);
+  const slope = POCKET.dip / (w / 2 - r);
+  const tipV = r2(slope * (w / 2 - r - POCKET.tip));
   return [
-    "M0 0.45",
-    `Q0 0 0.5 ${cornerV}`,
+    `M0 ${r}`,
+    `C0 ${r2(r - k)} ${r2(r - k)} 0 ${r} 0`,
     `L${w / 2 - POCKET.tip} ${tipV}`,
     `Q${w / 2} ${POCKET.dip} ${w / 2 + POCKET.tip} ${tipV}`,
-    `L${w - 0.5} ${cornerV}`,
-    `Q${w} 0 ${w} 0.45`,
+    `L${w - r} 0`,
+    `C${r2(w - r + k)} 0 ${w} ${r2(r - k)} ${w} ${r}`,
     `V${h - r}`,
     `C${w} ${r2(h - r + k)} ${r2(w - r + k)} ${h} ${w - r} ${h}`,
     `H${r}`,
@@ -362,11 +350,7 @@ const flapPath = () => {
   ].join(" ");
 };
 const FLAP_PATH = flapPath();
-const FLAP_AT: Vec3 = [
-  X0 + FLAP.inset,
-  -ENV.depth + FLAP.depth,
-  ENV.h + FLAP.h,
-];
+const FLAP_AT: Vec3 = [X0 + FLAP.inset, 0, ENV.h + FLAP.h];
 
 /** A sheet of paper standing in the pocket; `fold` cuts and turns a corner. */
 const Sheet = ({ at, fold = false }: { at: Vec3; fold?: boolean }) => {
@@ -422,57 +406,71 @@ const Print = ({ at }: { at: Vec3 }) => (
   </Face>
 );
 
-/** The alert badge: a pill in the brand, the one lit thing. */
+/**
+ * The alert badge: a flat disc in the brand, the one lit thing (a pill
+ * with thickness drew a strip tapering round its ends). "!" is drawn as a
+ * bar and a dot; any other mark (a count) is printed.
+ */
 const Badge = ({ mark }: { mark: string }) => (
-  <Extrude
-    at={BADGE_AT}
-    convex
-    d={roundedRect(BADGE.w, BADGE.h, BADGE.h / 2)}
-    depth={BADGE.depth}
-    palette="main"
-    plane="left"
-  >
+  <>
+    <FacePath
+      at={BADGE_AT}
+      d={roundedRect(BADGE.w, BADGE.h, BADGE.h / 2)}
+      plane="left"
+      style={{ ...LINE, fill: "var(--iso-main-left)" }}
+    />
     <Face at={BADGE_AT} plane="left">
-      <text
-        fill="var(--iso-on-main)"
-        fontSize={0.95}
-        fontWeight={800}
-        letterSpacing={0.04}
-        textAnchor="middle"
-        x={BADGE.w / 2}
-        y={BADGE.h / 2 + 0.33}
-      >
-        {mark}
-      </text>
+      {mark === "!" ? (
+        <g fill="var(--iso-on-main)">
+          <rect
+            height={BANG.bar}
+            rx={BANG.w / 2}
+            width={BANG.w}
+            x={(BADGE.w - BANG.w) / 2}
+            y={BANG.top}
+          />
+          <circle
+            cx={BADGE.w / 2}
+            cy={BANG.top + BANG.bar + BANG.gap + BANG.dot / 2}
+            r={BANG.dot / 2}
+          />
+        </g>
+      ) : (
+        <text
+          fill="var(--iso-on-main)"
+          fontSize={0.95}
+          fontWeight={800}
+          letterSpacing={0.2}
+          textAnchor="middle"
+          x={BADGE.w / 2}
+          y={BADGE.h / 2 + 0.33}
+        >
+          {mark}
+        </text>
+      )}
     </Face>
-  </Extrude>
+  </>
 );
 
 /* ───────────────────────────── Clock ──────────────────────────────────── */
 
-/** Whether the badge is up, re-rendered only when it changes. */
-const useBadgeShown = (
-  clock: MotionValue<number> | undefined,
-  clip: Clip,
-  still: boolean
-) => {
+/**
+ * Whether the badge is up, re-rendered only when it changes. Held (no
+ * clock) it is up; it starts up too when it is held at first, so the first
+ * play doesn't flash it away.
+ */
+const useBadgeShown = (clock: MotionValue<number> | undefined, clip: Clip) => {
   const idle = useMotionValue(0);
   const read = (ms: number) => sample(clip.badge, ms) > 0.02;
-  const [shown, setShown] = useState(() => read(0));
+  const [shown, setShown] = useState(() => (clock ? read(0) : true));
   useMotionValueEvent(clock ?? idle, "change", (ms) => {
     const next = read(ms);
     if (next !== shown) {
       setShown(next);
     }
   });
-  return still || shown;
+  return clock ? shown : true;
 };
-
-/** Rig props: animated on the clock, or the pose at the clip's end held. */
-const rigged = (
-  clock: MotionValue<number> | undefined,
-  pose: (ms: number) => IsoPose
-) => (clock ? { clock, pose } : pose(INTRO.end));
 
 /** The poses of one clip. */
 const posesOf = (clip: Clip) => ({
@@ -510,90 +508,6 @@ const turnableLabel = (rotate: IsoRotate, title?: string) =>
         "aria-label": `${title ?? "Illustration"}. Move the pointer or use the left and right arrow keys to turn it.`,
         role: "group",
       };
-
-interface PointerLike {
-  button: number;
-  clientX: number;
-  clientY: number;
-  currentTarget: Element;
-  pointerId: number;
-}
-interface OrbitHandlers {
-  onPointerDown?: (e: PointerLike) => void;
-  onPointerUp?: () => void;
-}
-
-/** In view, reduced motion, the clock and its clip, the camera, the pointer. */
-const useShell = ({
-  autoPlay,
-  loop,
-  orbit,
-  replayOnClick,
-  rotate,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  orbit: IsoOrbit;
-  replayOnClick: boolean;
-  rotate: IsoRotate;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReducedMotion() ?? false;
-  const still = reduced || !autoPlay;
-  // Run 0 is the intro; every run after it starts from the document out.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const clip = run === 0 ? INTRO : AGAIN;
-  const { camera, orbitProps } = useIsoOrbit({
-    mode: rotate,
-    orbit,
-    pivot: PIVOT,
-    reduced,
-  });
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + TIMING.hold) {
-      again();
-    }
-  });
-  // A plain click (no drag) replays, once everything is at rest.
-  const pressed = useRef({ x: 0, y: 0 });
-  const handlers = orbitProps as OrbitHandlers;
-  const pointer = {
-    onPointerDown: (e: PointerLike) => {
-      pressed.current = { x: e.clientX, y: e.clientY };
-      handlers.onPointerDown?.(e);
-    },
-    onPointerUp: (e: PointerLike) => {
-      handlers.onPointerUp?.();
-      const moved =
-        Math.hypot(
-          e.clientX - pressed.current.x,
-          e.clientY - pressed.current.y
-        ) > 6;
-      if (replayOnClick && !still && !moved && clock.get() >= clip.end) {
-        again();
-      }
-    },
-  };
-  return {
-    camera,
-    clip,
-    clock: still ? undefined : clock,
-    orbitProps,
-    pointer,
-    ref,
-    still,
-  };
-};
 
 // In ink the walls step down half as far as the house ramp (0.03 and 0.07
 // under the top, not 0.06 and 0.13): this is a quiet line drawing on the
@@ -729,11 +643,7 @@ const Copy = ({
 
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
-export interface OpenEnvelopeProps {
-  /** Heading under the envelope, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
+export interface OpenEnvelopeProps extends LineStateProps {
   /** Label of the main button, up to about 18 characters. An empty string hides it. */
   actionLabel?: string;
   /** Called when the main button is clicked. */
@@ -744,7 +654,7 @@ export interface OpenEnvelopeProps {
   onSecondary?: () => void;
   /** Your own actions under the copy, in place of the two built-in buttons. */
   children?: ReactNode;
-  /** Mark on the alert badge, up to three characters. An empty string leaves the badge out. */
+  /** Mark on the alert badge: "!" (default) is a drawn exclamation mark; any other short mark, up to three characters (a count), is printed. An empty string leaves the badge out. */
   alert?: string;
   /** Brand colour: a theme token name (primary, destructive, chart-2…) or any CSS colour. It shows on the alert badge; the envelope and the document stay neutral. */
   tone?: IsoTone;
@@ -752,13 +662,11 @@ export interface OpenEnvelopeProps {
   variant?: IsoVariant;
   /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
   strokeWidth?: number;
-  /** The document is pushed out when the envelope scrolls into view. Off shows it out and still. */
-  autoPlay?: boolean;
-  /** Tuck the document back in and push it out again every few seconds. Off plays it once, which suits a state people sit in front of. */
+  /** Pushes the document out each time it turns true (hover, focus, new mail…), tucking it back in first. Left out, it is pushed out once when the envelope scrolls into view. Pass false to keep it out and still until you say. */
+  active?: boolean;
+  /** Tuck the document back in and push it out again after a long hold (while `active`, or always when `active` is left out). Off (default) suits a state people sit in front of. */
   loop?: boolean;
-  /** Clicking the envelope tucks the document back in and pushes it out again. */
-  replayOnClick?: boolean;
-  /** How it faces: "front" (default) turns it square to the screen, level and plumb, its thickness along the top edge; "isometric" shows it at the isometric three-quarter angle. */
+  /** How it faces: "front" (default) turns it square to the screen, level and plumb; "isometric" shows it at the isometric three-quarter angle. */
   view?: "front" | "isometric";
   /** Dashed construction grid on the floor. */
   grid?: boolean;
@@ -772,7 +680,7 @@ export interface OpenEnvelopeProps {
   orbit?: IsoOrbit;
   /** Accessible description of the illustration. Without it the envelope is decorative and the copy speaks for it. */
   title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-72` in the front view, `w-60` in the isometric one. */
+  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-50` in the front view, `w-60` in the isometric one. */
   artClassName?: string;
   /** Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide). */
   className?: string;
@@ -784,9 +692,10 @@ export interface OpenEnvelopeProps {
  * An open envelope stands facing the screen, its flap straight up; it
  * swells, a document with a folded corner rises straight out of the
  * pocket, a second sheet following behind it, and an alert badge (the
- * one brand mark) pops at its corner. One even outline, no shadow. Click
- * the envelope to replay; it leans with the pointer. Follows the shadcn
- * theme.
+ * one brand mark) pops at its corner. One even outline, no shadow. It
+ * plays when it comes into view, or each time `active` turns true
+ * (PlayOnHover, or your own state); it leans with the pointer. Follows the
+ * shadcn theme.
  */
 export const OpenEnvelope = ({
   heading = "Your mail is full",
@@ -796,13 +705,13 @@ export const OpenEnvelope = ({
   secondaryLabel = "Clear space",
   onSecondary,
   children,
-  alert = "!!!",
+  alert = "!",
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
+  onPlayEnd,
   view = "front",
   grid = false,
   rotate = "pointer",
@@ -812,14 +721,21 @@ export const OpenEnvelope = ({
   className,
 }: OpenEnvelopeProps) => {
   const turn = orbit ?? ORBITS[view];
-  const { camera, clip, clock, orbitProps, pointer, ref, still } = useShell({
-    autoPlay,
+  const { clip, clock, ref } = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    orbit: turn,
-    replayOnClick,
-    rotate,
+    onPlayEnd,
   });
-  const badgeShown = useBadgeShown(clock, clip, still);
+  const reduced = useReduced();
+  const { camera, orbitProps } = useIsoOrbit({
+    mode: rotate,
+    orbit: turn,
+    pivot: PIVOT,
+    reduced,
+  });
+  const badgeShown = useBadgeShown(clock, clip);
   const poses = posesOf(clip);
   const documentAt: Vec3 = [-SHEET.w / 2, 0, SHEET.base + SHEET.h];
   const behindAt: Vec3 = [
@@ -845,8 +761,6 @@ export const OpenEnvelope = ({
         data-slot="open-envelope-art"
         ref={ref}
         {...orbitProps}
-        onPointerDown={pointer.onPointerDown}
-        onPointerUp={pointer.onPointerUp}
       >
         <IsoStage
           bounds={boundsFor(view)}
@@ -865,32 +779,38 @@ export const OpenEnvelope = ({
             {grid ? <FloorGrid at={GRID.at} size={GRID.size} step={2} /> : null}
             {/* Far to near: the flap, the envelope's back, the sheets, the
               pocket's front leaf. The envelope squashes about its foot. */}
-            <Rig pivot={[0, 0, 0]} {...rigged(clock, poses.envelope)}>
-              <Rig axis="x" pivot={HINGE} {...rigged(clock, poses.flap)}>
-                <Extrude
+            <Rig
+              pivot={[0, 0, 0]}
+              {...onClock(clock, poses.envelope, clip.end)}
+            >
+              <Rig
+                axis="x"
+                pivot={HINGE}
+                {...onClock(clock, poses.flap, clip.end)}
+              >
+                <FacePath
                   at={FLAP_AT}
                   d={FLAP_PATH}
-                  depth={FLAP.depth}
-                  palette="surface"
                   plane="left"
+                  style={{ ...LINE, fill: "var(--iso-surface-left)" }}
                 />
               </Rig>
-              <Extrude
+              <FacePath
                 at={[X0, 0, ENV.h]}
-                convex
                 d={roundedRect(ENV.w, ENV.h, ENV.r)}
-                depth={ENV.depth}
-                frontStyle={{ fill: "var(--iso-inside)" }}
-                palette="surface"
                 plane="left"
+                style={{ ...LINE, fill: "var(--iso-inside)" }}
               />
               <Rig
                 pivot={[SHEET.shift, 0, SHEET.base + SHEET.step]}
-                {...rigged(clock, poses.behind)}
+                {...onClock(clock, poses.behind, clip.end)}
               >
                 <Sheet at={behindAt} />
               </Rig>
-              <Rig pivot={[0, 0, SHEET.base]} {...rigged(clock, poses.sheet)}>
+              <Rig
+                pivot={[0, 0, SHEET.base]}
+                {...onClock(clock, poses.sheet, clip.end)}
+              >
                 <Sheet at={documentAt} fold />
                 <Print at={documentAt} />
               </Rig>
@@ -902,7 +822,10 @@ export const OpenEnvelope = ({
               />
             </Rig>
             {alert && badgeShown ? (
-              <Rig pivot={BADGE_CENTRE} {...rigged(clock, poses.badge)}>
+              <Rig
+                pivot={BADGE_CENTRE}
+                {...onClock(clock, poses.badge, clip.end)}
+              >
                 <Badge mark={alert} />
               </Rig>
             ) : null}

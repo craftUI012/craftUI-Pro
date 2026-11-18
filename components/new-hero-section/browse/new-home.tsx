@@ -7,6 +7,7 @@ import { BrowseIndex } from "@/components/new-hero-section/browse/browse-index";
 import { BrowsePanels } from "@/components/new-hero-section/browse/browse-panels";
 import type { RailData } from "@/components/new-hero-section/browse/browse-rail";
 import { BrowseShell } from "@/components/new-hero-section/browse/browse-shell";
+import { IsometricsSkillBanner } from "@/components/new-hero-section/browse/isometrics-skill-banner";
 import { buildDocsMenu } from "@/components/new-hero-section/data/docs-menu";
 import {
   feedOrders,
@@ -77,6 +78,7 @@ const LibraryPanel = ({
   return (
     <BrowseLibraryScope library={library.id}>
       <BrowseIndex groups={library.index} />
+      {library.id === "isometrics" ? <IsometricsSkillBanner /> : null}
       <BrowseFeed
         feeds={feeds}
         itemLabel={library.itemLabel}

@@ -42,6 +42,9 @@ export const ROUTES = {
   RSS: "/rss.xml",
   SEO_ADMIN: "/seo-admin",
   SITEMAP: "/sitemap.xml",
+  // The free isometrics agent skill: what it does, how to install it and
+  // how to prompt it (app/(app)/skills/isometrics).
+  SKILLS_ISOMETRICS: "/skills/isometrics",
   SPONSOR: "/sponsor",
   TEMPLATE_PREVIEW: "/template-preview",
 } as const;

@@ -1,31 +1,13 @@
 "use client";
 
-import { useInView, useMotionValueEvent } from "motion/react";
-import type { MotionValue } from "motion/react";
-import type { CSSProperties, ReactNode } from "react";
-import { useRef, useState, useSyncExternalStore } from "react";
+import type { CSSProperties } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
-import {
-  EASE,
-  IsoStage,
-  Rig,
-  Slab,
-  project,
-  sample,
-  useClock,
-  useRigged,
-} from "./iso-core";
-import type {
-  IsoKey,
-  IsoPose,
-  IsoTone,
-  IsoTrack,
-  IsoVariant,
-  Vec3,
-} from "./iso-core";
+import { EASE, Rig, Slab, project, sample, useRigged } from "./iso-core";
+import type { IsoKey, IsoPose, IsoTrack, Vec3 } from "./iso-core";
+import { LineState, facing, onClock, r2, useLineShell } from "./iso-line";
+import type { LineStateProps } from "./iso-line";
 
 /* ─────────────────────────────────────────────────────────
  * ANIMATION STORYBOARD
@@ -34,7 +16,7 @@ import type {
  * square foot, knocked and rocking back to rest. A fine outline,
  * near-white faces, the cone's one band the brand mark, facing the
  * screen, no shadow. Under it, the state's own words: a heading, a line,
- * a button. Each value is ms after it comes into view.
+ * a button. Each value is ms after the art comes into view.
  *
  *    0ms   the cone stands still
  *  400ms   it is knocked: it tips onto its right edge, 9° (230ms)
@@ -43,15 +25,15 @@ import type {
  * 1360ms   1.8° right, 0.6° left
  * 1470ms   still: upright, exactly as it started
  *
- * A click (or `loop`, after a 5.2s hold) knocks it again.
- * Reduced motion (or autoPlay off): the cone upright, nothing moves.
+ * Rest to rest, so one clip built twice: 400ms wait in view, 80ms when
+ * `active` turns true (or with `loop`, after a 5.2s hold).
+ * Reduced motion, or `active` false before any play: the cone upright,
+ * nothing moves.
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  // After a click the knock lands this soon.
+  // When `active` turns true the knock lands this soon.
   again: 80,
-  // How long it rests before a loop starts again.
-  hold: 5200,
   // The knock lands this long after the cone comes into view.
   start: 400,
 };
@@ -98,30 +80,6 @@ const ring = (r: number, z: number): Vec3[] =>
 const coneRing = (t: number) =>
   ring(CONE.foot + (CONE.top - CONE.foot) * t, COLLAR_TOP + CONE.h * t);
 
-/* ───────────────────────────── The view ───────────────────────────────── */
-
-/**
- * Facing the screen. The isometric camera sees a square foot corner on;
- * the whole object is turned 45° about the vertical, so the foot's front
- * edge runs level across the page, and it is stretched √(3/2) in height,
- * because that camera looks down from 35.26° and foreshortens heights by
- * exactly that much. The result is the cone seen from the front and 30°
- * above: one exact parallel projection of a solid.
- */
-const FRONT = { stretch: Math.sqrt(1.5), turn: -45 };
-const VIEW_POSE: IsoPose = {
-  axis: "z",
-  rotate: FRONT.turn,
-  scale: [1, 1, FRONT.stretch],
-};
-
-/** Where a point of the object lands once it faces the screen. */
-const facing = ([x, y, z]: Vec3): Vec3 => [
-  (x + y) * Math.SQRT1_2,
-  (y - x) * Math.SQRT1_2,
-  z * FRONT.stretch,
-];
-
 // The frame fits the cone at rest: the plate's width, from its front edge
 // to the back of the cone's top. Rocking lifts one edge; that runs into
 // the stage's padding, which is not clipped.
@@ -162,11 +120,10 @@ const beat = (t0: number): Clip => {
   return { end: t, left, right };
 };
 
-// The first run waits a moment after coming into view; a click does not.
+// The first run waits a moment after coming into view; a play asked for by
+// `active` does not.
 const INTRO = beat(TIMING.start);
 const AGAIN = beat(TIMING.again);
-
-const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
  * A lean about one edge of the foot. Turning about the depth axis by a
@@ -183,8 +140,8 @@ const leanPose =
 
 /* ───────────────────────────── Pieces ─────────────────────────────────── */
 
-// The one outline, for marks a scene strokes itself (the lit variants
-// have no pixel edge, so they fall back to their hairline).
+// The cone's own outline, always joined round (the kit's LINE follows
+// ink's miter joins), so its 72-point rings draw exactly as before.
 const LINE: CSSProperties = {
   fill: "none",
   stroke: "var(--iso-edge, var(--iso-stroke))",
@@ -268,122 +225,12 @@ const Cone = () => {
   );
 };
 
-/* ───────────────────────────── Clock ──────────────────────────────────── */
-
-/** Rig props: animated on the clock, or the resting pose held. */
-const rigged = (
-  clock: MotionValue<number> | undefined,
-  pose: (ms: number) => IsoPose
-) => (clock ? { clock, pose } : pose(INTRO.end));
-
-/* ───────────────────────────── Shell ──────────────────────────────────── */
-
-// Whether the visitor asked for less motion. It is read through a store
-// and not in the first render: the server cannot know it, so the first
-// render in the browser has to answer "no" as the server did, and switch
-// once the page has taken over. Reading it straight away makes the two
-// disagree, and React reports a failed hydration.
-const REDUCE = "(prefers-reduced-motion: reduce)";
-const watchReduce = (notify: () => void) => {
-  const query = window.matchMedia(REDUCE);
-  query.addEventListener("change", notify);
-  return () => query.removeEventListener("change", notify);
-};
-const useReduced = () =>
-  useSyncExternalStore(
-    watchReduce,
-    () => window.matchMedia(REDUCE).matches,
-    () => false
-  );
-
-/** In view, reduced motion, the clock and its clip, and the replay. */
-const useShell = ({
-  autoPlay,
-  loop,
-  replayOnClick,
-}: {
-  autoPlay: boolean;
-  loop: boolean;
-  replayOnClick: boolean;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduced = useReduced();
-  const still = reduced || !autoPlay;
-  // Run 0 waits a moment after coming into view; later runs start at once.
-  const [run, setRun] = useState(0);
-  const clock = useClock(inView && !still, run);
-  const clip = run === 0 ? INTRO : AGAIN;
-  // One new run per finished run, however many frames or clicks ask.
-  const asked = useRef(-1);
-  const again = () => {
-    if (asked.current !== run) {
-      asked.current = run;
-      setRun((n) => n + 1);
-    }
-  };
-  useMotionValueEvent(clock, "change", (ms) => {
-    if (loop && !still && ms >= clip.end + TIMING.hold) {
-      again();
-    }
-  });
-  const canReplay = replayOnClick && !still;
-  const replay = () => {
-    if (canReplay && clock.get() >= clip.end) {
-      again();
-    }
-  };
-  return { canReplay, clip, clock: still ? undefined : clock, ref, replay };
-};
-
-// In ink the walls step down half as far as the house ramp (0.03 and 0.07
-// under the top, not 0.06 and 0.13): a blocked state is a quiet line
-// drawing on the page, with only a whisper of form.
-const PAPER: Record<string, string> = {
-  "--iso-surface-left-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.03) c h)",
-  "--iso-surface-right-c":
-    "oklch(from var(--iso-surface-base) calc(max(l, 0.33) - 0.07) c h)",
-};
-
-// The blueprint (`line`) drawn at this size: its outline held at the same
-// pixel weight as ink instead of a canvas-unit one, which would be three
-// times too heavy on a stage this small. Faces stay the page's colour.
-const BLUEPRINT: Record<string, string> = {
-  "--iso-edge-w": "calc(var(--iso-stroke-width) * 4.33px)",
-  "--iso-vector": "non-scaling-stroke",
-};
-
-// The engine's rim highlight has no width in the outlined variants, yet it
-// still paints a pale hairline over the front outline of every extrusion
-// (seen at 4× in Chromium). Clear its colour so the outline keeps its
-// full weight.
-const NO_RIM: Record<string, string> = {
-  "--iso-accent-rim": "transparent",
-  "--iso-main-rim": "transparent",
-  "--iso-surface-rim": "transparent",
-};
-
-/**
- * Stage overrides: no hairline contour (every edge already carries the
- * outline), the paper walls in ink, the pixel outline in the blueprint,
- * and the outline on the side edges of rounded parts.
- */
-const stageStyle = (variant: IsoVariant) =>
-  ({
-    "--iso-contour-w": "0",
-    ...(variant === "ink" ? PAPER : {}),
-    ...(variant === "line" ? BLUEPRINT : {}),
-    ...(variant === "ink" || variant === "line" ? NO_RIM : {}),
-    "--iso-silhouette": "var(--iso-edge, none)",
-  }) as CSSProperties;
-
 /* ───────────────────────────── Copy ───────────────────────────────────── */
 
-// Optical padding: an icon carries its own white space, so the label's
-// side gets 2px more than the icon's side (12px and 14px) or the label
-// looks pushed against the edge. The second class wins over a Button that
-// already nudges this side itself.
+// The button is built here, not by LineState: its arrow turns round in
+// right-to-left layouts, which the kit's icon does not. Same classes as
+// the kit's button. Optical padding: an icon carries its own white space,
+// so the label's side gets 2px more than the icon's (12px and 14px).
 const BUTTON =
   "rounded-full has-[>svg]:pl-3 has-[>svg]:pr-3.5 has-data-[icon=inline-start]:pr-3.5";
 
@@ -404,77 +251,9 @@ const BackIcon = () => (
   </svg>
 );
 
-/**
- * The state's own words, under the cone: the heading, a line of copy, and
- * the actions (the built-in button, or whatever is passed in).
- */
-const Copy = ({
-  heading,
-  description,
-  actionLabel,
-  onAction,
-  children,
-}: {
-  heading: string;
-  description: string;
-  actionLabel: string;
-  onAction?: () => void;
-  children?: ReactNode;
-}) => {
-  const button = actionLabel ? (
-    <Button className={BUTTON} onClick={onAction}>
-      <BackIcon />
-      {actionLabel}
-    </Button>
-  ) : null;
-  const actions = children ?? button;
-  return (
-    <>
-      {heading ? (
-        <p className="mt-3 text-xl font-medium tracking-tight text-foreground">
-          {heading}
-        </p>
-      ) : null}
-      {description ? (
-        <p className="mt-2 text-balance text-muted-foreground">{description}</p>
-      ) : null}
-      {actions ? <div className="mt-6">{actions}</div> : null}
-    </>
-  );
-};
-
 /* ───────────────────────────── Scene ──────────────────────────────────── */
 
-export interface TrafficConeProps {
-  /** Heading under the cone, up to about 28 characters. An empty string hides it. */
-  heading?: string;
-  /** The line under the heading: one or two short sentences. An empty string hides it. */
-  description?: string;
-  /** Label of the button, up to about 20 characters. An empty string hides the button. */
-  actionLabel?: string;
-  /** Called when the button is clicked. */
-  onAction?: () => void;
-  /** Your own actions under the copy (a link, two buttons), in place of the built-in button. */
-  children?: ReactNode;
-  /** Brand colour: a theme token name (primary, chart-2…) or any CSS colour. It shows on the cone's band; the rest stays neutral. */
-  tone?: IsoTone;
-  /** "ink" (default): a fine outline with a whisper of shading on the walls. "line": the outline alone, faces the colour of the page. "soft", "duotone" and "solid" are the lit, coloured looks. */
-  variant?: IsoVariant;
-  /** Line weight: in `ink` and `line` the default 0.23 is a 1 px outline at any size (0.3 is the 1.3 px of the larger scenes). */
-  strokeWidth?: number;
-  /** The cone is knocked and rocks to rest when it scrolls into view. Off shows it upright and nothing moving. */
-  autoPlay?: boolean;
-  /** Knock it again every few seconds. Off plays it once, which suits a state people sit in front of. */
-  loop?: boolean;
-  /** Clicking the cone knocks it again. */
-  replayOnClick?: boolean;
-  /** Accessible description of the illustration. Without it the cone is decorative and the copy speaks for it. */
-  title?: string;
-  /** Classes for the illustration alone; size it with width (it keeps its aspect ratio). Default `w-48`. */
-  artClassName?: string;
-  /** Classes for the wrapper of the whole state (it is a centred column, `max-w-sm` wide). */
-  className?: string;
-}
+export type TrafficConeProps = LineStateProps;
 
 /**
  * Traffic cone: a complete page-not-found state ("Page not found") with a
@@ -483,91 +262,70 @@ export interface TrafficConeProps {
  * knocked, rocks from one edge of its foot to the other, each swing
  * smaller, and stands still. One fine outline, near-white faces, no
  * shadow; the cone's band carries the brand, like the button under it.
- * Click the cone to knock it again. Follows the shadcn theme.
+ * It plays when it comes into view, or each time `active` turns true
+ * (PlayOnHover, or your own state). Follows the shadcn theme.
  */
 export const TrafficCone = ({
   heading = "Page not found",
   description = "The page you are looking for was moved, renamed or never existed.",
   actionLabel = "Back to home",
-  onAction,
-  children,
   tone = "primary",
   variant = "ink",
   strokeWidth = 0.23,
-  autoPlay = true,
+  active,
   loop = false,
-  replayOnClick = true,
-  title,
-  artClassName,
-  className,
+  onPlayEnd,
+  ...rest
 }: TrafficConeProps) => {
-  const { canReplay, clip, clock, ref, replay } = useShell({
-    autoPlay,
+  const shell = useLineShell({
+    active,
+    again: AGAIN,
+    intro: INTRO,
     loop,
-    replayOnClick,
+    onPlayEnd,
   });
-  const art = (
-    <IsoStage
+  const { clip, clock } = shell;
+  const back = actionLabel ? (
+    <Button className={BUTTON} onClick={rest.onAction}>
+      <BackIcon />
+      {actionLabel}
+    </Button>
+  ) : null;
+  return (
+    <LineState
       bounds={BOUNDS}
-      shadow={false}
-      strokeWidth={strokeWidth}
-      style={stageStyle(variant)}
-      title={title}
-      tone={tone}
-      variant={variant}
+      props={{
+        actionLabel,
+        description,
+        heading,
+        strokeWidth,
+        tone,
+        variant,
+        ...rest,
+        children: rest.children ?? back,
+      }}
+      shell={shell}
+      slot="traffic-cone"
     >
-      {/* Everything stands in one rig that turns it to face the screen. */}
-      <Rig pivot={[0, 0, 0]} {...VIEW_POSE}>
-        {/* Two leans, one about each edge of the foot; only one is ever off zero. */}
-        <Rig pivot={[-HALF, 0, 0]} {...rigged(clock, leanPose(clip.left, -1))}>
-          <Rig pivot={[HALF, 0, 0]} {...rigged(clock, leanPose(clip.right, 1))}>
-            <Slab
-              at={[-HALF, -HALF, 0]}
-              palette="surface"
-              radius={PLATE.r}
-              size={[PLATE.w, PLATE.w, PLATE.h]}
-            />
-            <Cone />
-          </Rig>
+      {/* Two leans, one about each edge of the foot; only one is ever off zero. */}
+      <Rig
+        pivot={[-HALF, 0, 0]}
+        {...onClock(clock, leanPose(clip.left, -1), clip.end)}
+      >
+        <Rig
+          pivot={[HALF, 0, 0]}
+          {...onClock(clock, leanPose(clip.right, 1), clip.end)}
+        >
+          <Slab
+            at={[-HALF, -HALF, 0]}
+            palette="surface"
+            radius={PLATE.r}
+            size={[PLATE.w, PLATE.w, PLATE.h]}
+          />
+          <Cone />
         </Rig>
       </Rig>
-    </IsoStage>
-  );
-  return (
-    <div
-      className={cn(
-        "flex w-full max-w-sm flex-col items-center text-center",
-        className
-      )}
-      data-slot="traffic-cone"
-    >
-      <div
-        className={cn("w-48 max-w-full", artClassName)}
-        data-slot="traffic-cone-art"
-        ref={ref}
-      >
-        {canReplay ? (
-          <button
-            aria-label={`${title ?? "Illustration"}. Press to play it again.`}
-            className="block w-full cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={replay}
-            type="button"
-          >
-            {art}
-          </button>
-        ) : (
-          art
-        )}
-      </div>
-      <Copy
-        actionLabel={actionLabel}
-        description={description}
-        heading={heading}
-        onAction={onAction}
-      >
-        {children}
-      </Copy>
-    </div>
+    </LineState>
   );
 };
 

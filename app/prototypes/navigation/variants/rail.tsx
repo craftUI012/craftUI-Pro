@@ -3,6 +3,7 @@
 import {
   Blend,
   Blocks,
+  Box,
   Component,
   LayoutTemplate,
   Menu,
@@ -32,6 +33,7 @@ const LIBRARY_ICONS: Record<LibraryId, typeof Component> = {
   components: Component,
   gradients: Blend,
   illustrations: Shapes,
+  isometrics: Box,
   templates: LayoutTemplate,
 };
 

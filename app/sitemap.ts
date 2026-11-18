@@ -30,6 +30,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       changeFrequency: "monthly",
       priority: 0.6,
+      url: `${SITE.URL}${ROUTES.SKILLS_ISOMETRICS}`,
+    },
+    {
+      changeFrequency: "monthly",
+      priority: 0.6,
       url: `${SITE.URL}${ROUTES.BUILD_LANDING_PAGES}`,
     },
     {

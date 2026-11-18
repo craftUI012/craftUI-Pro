@@ -1,4 +1,5 @@
 import {
+  Caveat,
   Geist_Mono as FontMono,
   Geist as FontSans,
   Inter,
@@ -22,8 +23,17 @@ const fontInter = Inter({
   variable: "--font-inter",
 });
 
+// Handwriting, for annotations only (margin notes beside arrows on marketing
+// pages, e.g. /skills/isometrics). Never for UI text or body copy.
+const fontHand = Caveat({
+  subsets: ["latin"],
+  variable: "--font-hand",
+  weight: ["500", "600"],
+});
+
 export const fontVariables = cn(
   fontSans.variable,
   fontMono.variable,
-  fontInter.variable
+  fontInter.variable,
+  fontHand.variable
 );

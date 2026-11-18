@@ -131,9 +131,7 @@ const productIdError = (
       : `${at}: meta.id "${String(id)}" isn't a product code. Remove it and run \`pnpm registry:build\` locally for a new one, like "${library.idPrefix}-7K3QX9".`;
   }
   const [code, prefix] = match;
-  // A code given under an earlier prefix (before a merge) stays valid.
-  const prefixes = [library.idPrefix, ...(library.legacyPrefixes ?? [])];
-  if (!prefixes.includes(prefix)) {
+  if (prefix !== library.idPrefix) {
     return `${at}: meta.id "${code}" must start with "${library.idPrefix}-", the ${library.label} prefix.`;
   }
   if (ids.has(code)) {
@@ -196,6 +194,15 @@ export const validateRegistryTaxonomy = (
       const slugs = values[group.id];
       if (REQUIRED_GROUPS.has(group.id) && slugs.length === 0) {
         errors.push(`${at}: ${fieldOf[group.id]} needs at least one value.`);
+      }
+      if (
+        group.id === "categories" &&
+        library.singleCategory &&
+        slugs.length > 1
+      ) {
+        errors.push(
+          `${at}: ${library.label} items take exactly one category (has ${slugs.join(", ")}). Pick the one the object is about.`
+        );
       }
       const listed: readonly string[] = library[group.id];
       for (const slug of slugs) {

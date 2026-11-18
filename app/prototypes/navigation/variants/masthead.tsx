@@ -20,7 +20,8 @@ const LEADS: Record<LibraryId, string> = {
     "Whole sections, from pricing tables to dashboards, ready to drop in.",
   components: "The primitives, each shipped with the tokens it's built from.",
   gradients: "Gradient backgrounds, tuned to your theme.",
-  illustrations: "Drawn scenes and spot art, themed with your tokens.",
+  illustrations: "Flat drawings and spot art, themed with your tokens.",
+  isometrics: "Isometric scenes and line objects, themed with your tokens.",
   templates: "Complete sites with every page designed, not just the landing.",
 };
 
