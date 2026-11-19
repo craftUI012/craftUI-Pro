@@ -1,6 +1,7 @@
 import type {
   HomeData,
   IndexGroup,
+  IndexLink,
   LibraryId,
   ShowcaseItem,
 } from "@/components/new-hero-section/data/home-types";
@@ -14,7 +15,13 @@ import {
 import type { FilterGroupId } from "@/constants/taxonomy";
 import { getCardMedia, getCardVideo } from "@/lib/media";
 import { source } from "@/lib/source";
-import { assertRegistryTaxonomy, itemFilterValues } from "@/lib/taxonomy";
+import {
+  assertRegistryTaxonomy,
+  itemFilterValues,
+  libraryFilterGroups,
+  parentCategory,
+  withParentCategories,
+} from "@/lib/taxonomy";
 import type { TaxonomyRegistryItem } from "@/lib/taxonomy";
 import aiHero01 from "@/public/images/AIHero01.png";
 import registry from "@/registry.json";
@@ -25,7 +32,8 @@ import registry from "@/registry.json";
 // everything else in the registry (libs, helpers, dependencies like
 // avatar-grid) stays out. Per item:
 //
-//   categories         → the "Categories" group (one or more)
+//   categories         → the "Categories" group (one or more); a child
+//                        category (settings-profile) also matches its parent
 //   meta.library       → which library (a LibraryId; templates = "Sections")
 //   meta.types         → the "Type" group (one or more)
 //   meta.styles        → the "Styles" group (zero or more)
@@ -67,37 +75,73 @@ const PLACEHOLDER = {
 const labelOf = (group: FilterGroupId, slug: string) =>
   POOLS[group][slug]?.label ?? slug;
 
-// The index for one library: each filter group with the values the library
-// lists (in its order), each counted over the library's items. Groups the
-// library lists nothing for are dropped.
+// An item's slugs per filter group, with each category's parent added
+// (Profile → Settings & account), so picking a parent matches its children.
+const filterValues = (item: RegistryItem) => {
+  const values = itemFilterValues(item);
+  return { ...values, categories: withParentCategories(values.categories) };
+};
+
+const countOf = (items: RegistryItem[], group: FilterGroupId, slug: string) =>
+  items.filter((item) => filterValues(item)[group].includes(slug)).length;
+
+const linkOf = (
+  items: RegistryItem[],
+  group: FilterGroupId,
+  slug: string
+): IndexLink => ({
+  count: countOf(items, group, slug),
+  id: slug,
+  label: labelOf(group, slug),
+});
+
+// The index for one library: each filter group it shows, with the values the
+// library lists (in its order), each counted over the library's items.
+// Groups the library lists nothing for are dropped. Categories with a parent
+// (settings-profile) leave the Categories column for a column of their own,
+// one per parent, headed by the parent (which is a filter too).
 const libraryIndex = (
   library: LibraryId,
   items: RegistryItem[]
 ): IndexGroup[] => {
   const config = LIBRARIES[library];
 
-  return FILTER_GROUPS.flatMap((group) => {
+  return libraryFilterGroups(config).flatMap((group) => {
     const listed: readonly string[] = config[group.id];
-    if (listed.length === 0) {
-      return [];
-    }
-    return [
-      {
-        columns: listed.length > ONE_COLUMN_MAX ? 2 : 1,
+    const topLevel =
+      group.id === "categories"
+        ? listed.filter((slug) => !parentCategory(slug))
+        : listed;
+    const parents = [
+      ...new Set(listed.flatMap((slug) => parentCategory(slug) ?? [])),
+    ];
+
+    const groups: IndexGroup[] = [];
+    if (topLevel.length > 0) {
+      groups.push({
+        columns: topLevel.length > ONE_COLUMN_MAX ? 2 : 1,
         id: group.id,
+        key: group.id,
         label:
           group.id === "types"
             ? (config.typeLabel ?? group.label)
             : group.label,
-        links: listed.map((slug) => ({
-          count: items.filter((item) =>
-            itemFilterValues(item)[group.id].includes(slug)
-          ).length,
-          id: slug,
-          label: labelOf(group.id, slug),
-        })),
-      },
-    ];
+        links: topLevel.map((slug) => linkOf(items, group.id, slug)),
+      });
+    }
+    for (const parent of parents) {
+      groups.push({
+        columns: 1,
+        id: group.id,
+        key: `${group.id}-${parent}`,
+        label: labelOf(group.id, parent),
+        links: listed
+          .filter((slug) => parentCategory(slug) === parent)
+          .map((slug) => linkOf(items, group.id, slug)),
+        parent: linkOf(items, group.id, parent),
+      });
+    }
+    return groups;
   });
 };
 
@@ -130,7 +174,7 @@ const toShowcaseItem = (
   const href = `${ROUTES.DOCS}/${library}/${page}${
     page === item.name ? "" : `#${item.name}`
   }`;
-  const values = itemFilterValues(item);
+  const values = filterValues(item);
 
   return {
     href,

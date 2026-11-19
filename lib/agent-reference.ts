@@ -1,7 +1,7 @@
 import { ROUTES } from "@/constants/routes";
 import { SITE } from "@/constants/site";
 import { CATEGORIES, STYLES, TYPES } from "@/constants/taxonomy";
-import type { TaxonomyValue } from "@/constants/taxonomy";
+import type { CategoryValue, TaxonomyValue } from "@/constants/taxonomy";
 import reference from "@/content/agent-reference.json";
 import { previewImagePath } from "@/lib/agent-discovery/preview-image";
 import { getCardVideo } from "@/lib/media";
@@ -47,6 +47,20 @@ const items = Object.values(reference as Record<string, ItemReference>);
 export const referenceFor = (url: string) =>
   items.find((item) => item.docs === url);
 
+// A child category reads with its parent ("Settings & account › Profile"),
+// so the label still says what it is out of the filter's context.
+const categoryLabels = (slugs: string[]) =>
+  slugs
+    .map((slug) => {
+      const value = (CATEGORIES as Record<string, CategoryValue>)[slug];
+      const parent = value?.parent
+        ? (CATEGORIES as Record<string, CategoryValue>)[value.parent]
+        : undefined;
+      const label = value?.label ?? slug;
+      return parent ? `${parent.label} › ${label}` : label;
+    })
+    .join(", ");
+
 const labels = (pool: Record<string, TaxonomyValue>, slugs: string[]) =>
   slugs.map((slug) => pool[slug]?.label ?? slug).join(", ");
 
@@ -54,7 +68,7 @@ const labels = (pool: Record<string, TaxonomyValue>, slugs: string[]) =>
 const tagLine = (item: ItemReference, bold: boolean) =>
   (
     [
-      ["Category", labels(CATEGORIES, item.tags.categories)],
+      ["Category", categoryLabels(item.tags.categories)],
       ["Type", labels(TYPES, item.tags.types)],
       ["Style", labels(STYLES, item.tags.styles)],
     ] as const

@@ -3,7 +3,7 @@ title: Browse page and filters
 description: How a registry item gets onto the home page, the taxonomy file that defines every library and filter value, and the metadata every new item needs.
 ---
 
-The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Components**, and **Isometrics** under the **UI kits** dropdown, where **Illustrations** and **Gradient backgrounds** are listed as coming soon until they have an item), filter with the index above the grid (**Categories**, **Type** and **Styles**), and open a card to reach its docs page.
+The home page (`/`) is a browse page: pick a library in the navbar (**Sections**, **Blocks**, **Components**, and **Isometrics** under the **UI kits** dropdown, where **Illustrations** and **Gradient backgrounds** are listed as coming soon until they have an item), filter with the index above the grid (**Categories**, **Type** and **Styles**; Blocks shows Categories only), and open a card to reach its docs page.
 
 Which library an item belongs in:
 
@@ -13,6 +13,8 @@ Which library an item belongs in:
 | **Blocks**     | A finished piece of product UI made of several controls     | payment scheduler, savings chart card, team invites         |
 | **Components** | A single control you build other things from, with states  | subscribe button, file picker, date picker, input, switch   |
 | **Isometrics** | A drawing in true isometric projection: a scene or one object | push-to-deploy scene, padlock empty state, bell             |
+
+Blocks' **Categories** are the job the block does in a product, and they are the only filter Blocks shows (`filterGroups: ["categories"]` on the library; items still tag types and styles, which their docs pages and the AI-agent Markdown use). Most are **nested**: a child category names its parent (`"settings-profile": { label: "Profile", parent: "settings" }`), and in the index each parent is a column of its own, headed by its label: **Settings & account** (Profile, Security, Notifications, Preferences, Team & members, API keys, Danger zone), **Authentication** (Sign in, Sign up, Verification, Password reset) and **Billing & payments** (Plans, Checkout, Payment methods, Invoices, Usage). Marketing, AI and Dashboard & analytics have no children and sit in the first column. An item tags the **child** (`"categories": ["settings-profile"]`); the build rejects a parent tagged directly. The parent is added from the child, so clicking a column's heading shows every item under it: `/?library=blocks&category=settings`. Agents read a child with its parent: "Settings & account › Profile".
 
 Components' **Categories** are what the control does (Inputs, Actions, Navigation, Overlays, Feedback, Data display), not the kind of product it's for like the other libraries.
 

@@ -20,6 +20,7 @@ import type {
   Library,
 } from "@/components/new-hero-section/data/home-types";
 import { ROUTES } from "@/constants/routes";
+import type { FilterGroupId } from "@/constants/taxonomy";
 import { getActiveSale, toSaleInfo } from "@/lib/billing/sale";
 import { showDesignAdmin, showDocsAdmin, showSeoAdmin } from "@/lib/flags";
 
@@ -57,6 +58,22 @@ const toRailData = (data: HomeData, docs = buildDocsMenu()): RailData => ({
 });
 
 // Server component, one library's panel: the index (a filter), then the feed.
+// Every pickable value per filter group (those with items), for reading a
+// URL's picks. Several index columns can share a group (one per category
+// parent, with the parent itself pickable), so they're merged.
+const pickableValues = (index: Library["index"]) => {
+  const filters: Partial<Record<FilterGroupId, string[]>> = {};
+  for (const group of index) {
+    const values = (filters[group.id] ??= []);
+    for (const link of [group.parent, ...group.links]) {
+      if (link && link.count > 0) {
+        values.push(link.id);
+      }
+    }
+  }
+  return filters;
+};
+
 // Both sit in one BrowseLibraryScope, so picking an index value filters this
 // library's grid (the selections themselves live in the shell, which keeps
 // them in the URL). Cards are rendered here and handed to the client feed
@@ -140,14 +157,7 @@ export const NewHomeShell = async ({
       devLinks={devLinks}
       libraries={data.libraries.map(
         ({ id, index, items, label, searchPlaceholder, slug }) => ({
-          filters: Object.fromEntries(
-            index.map((group) => [
-              group.id,
-              group.links
-                .filter((link) => link.count > 0)
-                .map((link) => link.id),
-            ])
-          ),
+          filters: pickableValues(index),
           id,
           itemCount: items.length,
           label,

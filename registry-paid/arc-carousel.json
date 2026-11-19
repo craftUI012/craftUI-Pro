@@ -62,6 +62,6 @@
       ]
     }
   },
-  "categories": ["portfolio", "marketing"],
+  "categories": ["marketing"],
   "type": "registry:block"
 }

@@ -3,7 +3,11 @@ import BloomMenuPreview from "@/components/previews/bloom-menu-preview";
 import EditorialSectionPreview from "@/components/previews/editorial-section-preview";
 import MosaicCardPreview from "@/components/previews/mosaic-card-preview";
 import MrrMovementsPreview from "@/components/previews/mrr-movements-preview";
+import ProfileSettings02Preview from "@/components/previews/profile-settings-02-preview";
+import ProfileSettings03Preview from "@/components/previews/profile-settings-03-preview";
+import ProfileSettingsPreview from "@/components/previews/profile-settings-preview";
 import PromptComposerPreview from "@/components/previews/prompt-composer-preview";
+import SecuritySettingsPreview from "@/components/previews/security-settings-preview";
 import StatementSectionPreview from "@/components/previews/statement-section-preview";
 import SwapGridPreview from "@/components/previews/swap-grid-preview";
 import VoiceMembranePreview from "@/components/previews/voice-membrane-preview";
@@ -58,7 +62,11 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "image-sphere": ImageSphere,
     "mosaic-card": MosaicCardPreview,
     "mrr-movements": MrrMovementsPreview,
+    "profile-settings": ProfileSettingsPreview,
+    "profile-settings-02": ProfileSettings02Preview,
+    "profile-settings-03": ProfileSettings03Preview,
     "prompt-composer": PromptComposerPreview,
+    "security-settings": SecuritySettingsPreview,
     "statement-section": StatementSectionPreview,
     "swap-grid": SwapGridPreview,
     "tables-section": TablesSection,

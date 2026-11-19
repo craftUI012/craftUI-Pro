@@ -1,5 +1,11 @@
-import { FILTER_GROUPS, LIBRARIES, POOLS } from "@/constants/taxonomy";
+import {
+  CATEGORIES,
+  FILTER_GROUPS,
+  LIBRARIES,
+  POOLS,
+} from "@/constants/taxonomy";
 import type {
+  CategoryValue,
   FilterGroupId,
   LibraryConfig,
   LibraryId,
@@ -110,10 +116,58 @@ export const itemFilterValues = (
   types: item.meta?.types ?? [],
 });
 
+/** A category's parent slug (settings-profile → settings), if it has one. */
+export const parentCategory = (slug: string) =>
+  (CATEGORIES as Record<string, CategoryValue>)[slug]?.parent;
+
+/** Categories plus their parents, once each: what an item matches in the
+ * filter (tagging Profile also matches Settings & account). */
+export const withParentCategories = (slugs: string[]) => [
+  ...new Set(
+    slugs.flatMap((slug) => {
+      const parent = parentCategory(slug);
+      return parent ? [slug, parent] : [slug];
+    })
+  ),
+];
+
+/** The filter groups a library's index shows. */
+export const libraryFilterGroups = (library: LibraryConfig) =>
+  FILTER_GROUPS.filter(
+    (group) => !library.filterGroups || library.filterGroups.includes(group.id)
+  );
+
+const isParentCategory = (slug: string) =>
+  Object.values(CATEGORIES as Record<string, CategoryValue>).some(
+    (value) => value.parent === slug
+  );
+
 const fieldOf: Record<FilterGroupId, string> = {
   categories: "categories",
   styles: "meta.styles",
   types: "meta.types",
+};
+
+/** What's wrong with one of an item's slugs, if anything: a category
+ * parent tagged directly, not in its pool, or not listed for the library. */
+const slugError = (
+  at: string,
+  group: FilterGroupId,
+  slug: string,
+  libraryId: LibraryId
+) => {
+  const library = LIBRARIES[libraryId];
+  const listed: readonly string[] = library[group];
+  if (group === "categories" && isParentCategory(slug)) {
+    return `${at}: categories "${slug}" is a parent: tag one of its children instead (e.g. "${slug}-…"); the parent is added from it.`;
+  }
+  if (!Object.hasOwn(POOLS[group], slug)) {
+    return `${at}: ${fieldOf[group]} "${slug}" isn't defined. Add it to the ${group.toUpperCase()} pool in constants/taxonomy.ts, or fix the slug.`;
+  }
+  if (!listed.includes(slug)) {
+    return `${at}: ${fieldOf[group]} "${slug}" isn't listed for the ${library.label} library. Add it to LIBRARIES.${libraryId}.${group} in constants/taxonomy.ts.`;
+  }
+  return null;
 };
 
 /** What's wrong with an item's product code, if anything: missing, not a
@@ -204,16 +258,10 @@ export const validateRegistryTaxonomy = (
           `${at}: ${library.label} items take exactly one category (has ${slugs.join(", ")}). Pick the one the object is about.`
         );
       }
-      const listed: readonly string[] = library[group.id];
       for (const slug of slugs) {
-        if (!Object.hasOwn(POOLS[group.id], slug)) {
-          errors.push(
-            `${at}: ${fieldOf[group.id]} "${slug}" isn't defined. Add it to the ${group.id.toUpperCase()} pool in constants/taxonomy.ts, or fix the slug.`
-          );
-        } else if (!listed.includes(slug)) {
-          errors.push(
-            `${at}: ${fieldOf[group.id]} "${slug}" isn't listed for the ${library.label} library. Add it to LIBRARIES.${meta.library}.${group.id} in constants/taxonomy.ts.`
-          );
+        const error = slugError(at, group.id, slug, meta.library);
+        if (error) {
+          errors.push(error);
         }
       }
     }
