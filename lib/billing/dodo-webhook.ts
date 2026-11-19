@@ -15,6 +15,7 @@ import { getRegistryItem } from "@/lib/registry";
 // app/api/webhooks/dodo/route.ts, only checks the signature):
 //
 //   payment.succeeded   → a lifetime (or single-item) purchase, by email
+//   payment.failed      → "payment_failed" in PostHog only (no access change)
 //   subscription.*      → the yearly plan: created, renewed (new period
 //                         end), cancelled, on hold, expired…
 //   refund.succeeded    → a full refund ends that purchase's access
@@ -46,6 +47,38 @@ const planOf = (metadata: Metadata, productId?: string | null) => {
   return null;
 };
 
+// The visitor's PostHog ID that /api/checkout passed on, so server events
+// join their browsing; else their account, else an anonymous hash.
+const distinctIdOf = async (metadata: Metadata, email: string) =>
+  metaString(metadata, "posthogDistinctId") ??
+  metaString(metadata, "userId") ??
+  (await anonymousId(email));
+
+// "payment_failed" in PostHog: a buyer reached Dodo's payment step and the
+// payment was declined or errored. Dodo's reason comes along, so a real
+// payment problem (one card network, one country) shows up as a pattern
+// instead of a silent drop-off. Access doesn't change; nothing is stored.
+const trackFailedPayment = async (payment: Payment) => {
+  await captureServerEvent({
+    distinctId: await distinctIdOf(
+      payment.metadata,
+      payment.customer.email.toLowerCase()
+    ),
+    event: "payment_failed",
+    properties: {
+      amount_cents: payment.total_amount,
+      currency: payment.currency,
+      discount_code: metaString(payment.metadata, "discountCode"),
+      error_code: payment.error_code ?? null,
+      error_message: payment.error_message ?? null,
+      payment_id: payment.payment_id,
+      payment_method: payment.payment_method ?? null,
+      plan: metaString(payment.metadata, "kind"),
+      provider: "dodo",
+    },
+  });
+};
+
 // "purchase_completed" in PostHog, the last step of the buying funnel,
 // joined to the visitor's browsing through the ID /api/checkout passed on.
 const trackPurchase = async ({
@@ -63,12 +96,8 @@ const trackPurchase = async ({
   kind: PurchaseKind;
   metadata: Metadata;
 }) => {
-  const distinctId =
-    metaString(metadata, "posthogDistinctId") ??
-    metaString(metadata, "userId") ??
-    (await anonymousId(email));
   await captureServerEvent({
-    distinctId,
+    distinctId: await distinctIdOf(metadata, email),
     event: "purchase_completed",
     properties: {
       amount_cents: amountCents,
@@ -237,6 +266,10 @@ export const handleDodoEvent = async (event: UnwrapWebhookEvent) => {
   switch (event.type) {
     case "payment.succeeded": {
       await recordPayment(event.data);
+      break;
+    }
+    case "payment.failed": {
+      await trackFailedPayment(event.data);
       break;
     }
     case "subscription.active":

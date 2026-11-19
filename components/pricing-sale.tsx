@@ -24,9 +24,8 @@ import { cn } from "@/lib/utils";
 //   SaleStrip           a slim primary bar under the navbar on every page
 //                       (components/new-hero-section/browse/browse-shell.tsx)
 //   SaleCoupon          the pricing page's ticket under its heading
-//   SaleCheckoutButton  the sale plan's button, which copies the code on
-//                       the same click so the buyer lands on Dodo's
-//                       checkout with it ready to paste
+//   SaleCheckoutButton  the sale plan's button; /api/checkout applies the
+//                       code, so Dodo opens at the sale price
 // Each shows the code to copy; the strip and coupon count down and hide
 // themselves when the sale ends.
 
@@ -369,7 +368,7 @@ export const SaleCoupon = ({ sale }: { sale: SaleInfo }) => {
           {copied ? "Copied" : "Copy code"}
         </Button>
         <span className={cn(TYPE.cardCaption, "text-muted-foreground")}>
-          Paste it at checkout.
+          Applied for you at checkout.
         </span>
         <CopiedAnnouncer code={sale.code} copied={copied} />
       </motion.div>
@@ -379,9 +378,8 @@ export const SaleCoupon = ({ sale }: { sale: SaleInfo }) => {
 
 /* ── Checkout ─────────────────────────────────────────── */
 
-// The sale plan's button: copies the code, then starts checkout. Capture
-// phase, so the clipboard write happens inside the click, before the
-// redirect starts.
+// The sale plan's button. Nothing to copy: /api/checkout puts the code on
+// the checkout, so the price on the button is the price Dodo shows.
 export const SaleCheckoutButton = ({
   salePriceCents,
   sale,
@@ -390,22 +388,14 @@ export const SaleCheckoutButton = ({
   salePriceCents: number;
   sale: SaleInfo;
   variant?: "default" | "secondary";
-}) => {
-  const { copied, copy } = useCopyCode(sale.code, "plan_card");
-  return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: the button inside handles the keyboard; this only adds the copy
-    // biome-ignore lint/a11y/useKeyWithClickEvents: as above
-    <div className="w-full" onClickCapture={copy}>
-      <CheckoutButton
-        label={`Copy code & get ${sale.planName} for ${sale.salePriceLabel}`}
-        plan={sale.plan}
-        priceCents={salePriceCents}
-        variant={variant}
-      />
-      <CopiedAnnouncer code={sale.code} copied={copied} />
-    </div>
-  );
-};
+}) => (
+  <CheckoutButton
+    label={`Get ${sale.planName} for ${sale.salePriceLabel}`}
+    plan={sale.plan}
+    priceCents={salePriceCents}
+    variant={variant}
+  />
+);
 
 /* ── Strip ────────────────────────────────────────────── */
 

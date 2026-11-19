@@ -1,10 +1,12 @@
 import { getSessionCookie } from "better-auth/cookies";
+import { APIError } from "dodopayments";
 import { headers } from "next/headers";
 import { z } from "zod";
 
 import { ROUTES } from "@/constants/routes";
 import { auth } from "@/lib/auth";
 import { LIFETIME_PLAN, YEARLY_PLAN } from "@/lib/billing/plans";
+import { getActiveSale } from "@/lib/billing/sale";
 import { getDodo, isDodoConfigured } from "@/lib/dodo";
 
 const siteUrl = () =>
@@ -70,15 +72,24 @@ export const POST = async (request: Request) => {
   const email = session?.user.email.toLowerCase();
   const sessionMs = performance.now() - started;
 
-  try {
-    const checkout = await getDodo().checkoutSessions.create({
+  // A running sale (lib/billing/sale.ts) on this plan: its code goes onto
+  // the checkout, so Dodo opens at the price the pricing page showed. No
+  // sale, or another plan: no code, full price. Nothing here changes per
+  // sale; set or clear SALE instead.
+  const sale = getActiveSale();
+  const saleCode = sale?.plan.kind === plan ? sale.code : null;
+
+  const createCheckout = (discountCode: string | null) =>
+    getDodo().checkoutSessions.create({
       ...(email
         ? { customer: { email, name: session?.user.name || undefined } }
         : {}),
+      ...(discountCode ? { discount_codes: [discountCode] } : {}),
       // Read back by the webhook. Values must be strings, and empty ones
       // are left out.
       metadata: {
         kind: plan,
+        ...(discountCode ? { discountCode } : {}),
         ...(distinctId ? { posthogDistinctId: distinctId } : {}),
         ...(session ? { userId: session.user.id } : {}),
       },
@@ -86,6 +97,33 @@ export const POST = async (request: Request) => {
       // Dodo adds ?status=…&email=… (and payment_id or subscription_id).
       return_url: `${siteUrl()}${ROUTES.CHECKOUT_SUCCESS}`,
     });
+
+  try {
+    let checkout: Awaited<ReturnType<typeof createCheckout>>;
+    try {
+      checkout = await createCheckout(saleCode);
+    } catch (error) {
+      // Dodo refused the code (used up, expired or deleted in the
+      // dashboard before SALE was cleared): still open the checkout, at
+      // full price, rather than no checkout at all. Timeouts and server
+      // errors aren't retried; they'd only fail twice.
+      if (
+        !(
+          saleCode &&
+          error instanceof APIError &&
+          error.status !== undefined &&
+          error.status >= 400 &&
+          error.status < 500
+        )
+      ) {
+        throw error;
+      }
+      console.warn(
+        `[checkout] Dodo refused sale code ${saleCode}; opening at full price`,
+        error.message
+      );
+      checkout = await createCheckout(null);
+    }
 
     if (!checkout.checkout_url) {
       throw new Error("Dodo returned no checkout URL.");
