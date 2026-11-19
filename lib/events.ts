@@ -28,6 +28,10 @@ const eventSchema = z.object({
     "paywall_viewed",
     "checkout_started",
     "discount_code_copied",
+    // Pricing exit survey (components/pricing-survey.tsx).
+    "survey_shown",
+    "survey_dismissed",
+    "survey_submitted",
     // Docs preview accessibility tools.
     "preview_motion_toggled",
     "preview_keyboard_toggled",

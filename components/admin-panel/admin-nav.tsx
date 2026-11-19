@@ -14,6 +14,7 @@ const LINKS = [
   { href: `${ROUTES.ADMIN_PANEL}/resources`, label: "Resources" },
   { href: `${ROUTES.ADMIN_PANEL}/collections`, label: "Collections" },
   { href: `${ROUTES.ADMIN_PANEL}/emails`, label: "Emails" },
+  { href: `${ROUTES.ADMIN_PANEL}/feedback`, label: "Feedback" },
   { href: `${ROUTES.ADMIN_PANEL}/studio`, label: "Studio" },
 ];
 

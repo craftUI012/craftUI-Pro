@@ -6,7 +6,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LIFETIME_PLAN, YEARLY_PLAN } from "@/lib/billing/plans";
 import { trackEvent } from "@/lib/events";
+import { CHECKOUT_BUSY_EVENT, CHECKOUT_LEFT_KEY } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
+
+// Tells the pricing survey a checkout is under way (lib/feedback.ts).
+const signalBusy = (busy: boolean) =>
+  window.dispatchEvent(new CustomEvent(CHECKOUT_BUSY_EVENT, { detail: busy }));
 
 const PLAN_PRICE_CENTS = {
   lifetime: LIFETIME_PLAN.priceCents,
@@ -65,6 +70,7 @@ export const CheckoutButton = ({
       if (event.persisted) {
         setState("idle");
         setFailure(null);
+        signalBusy(false);
       }
     };
     window.addEventListener("pageshow", reset);
@@ -81,6 +87,7 @@ export const CheckoutButton = ({
   const handleClick = async () => {
     setState("loading");
     setFailure(null);
+    signalBusy(true);
     // The price with the plan: prices change, and reports need the one the
     // visitor actually saw.
     trackEvent({
@@ -106,9 +113,17 @@ export const CheckoutButton = ({
       if (!response.ok || !data.url) {
         throw new Error(data.error ?? "Checkout failed.");
       }
+      // Coming back here from Dodo unpaid opens the pricing survey
+      // (components/pricing-survey.tsx); paying lands on the success page.
+      try {
+        sessionStorage.setItem(CHECKOUT_LEFT_KEY, String(Date.now()));
+      } catch {
+        // Storage blocked: the survey just won't know.
+      }
       window.location.href = data.url;
     } catch (error) {
       setState("error");
+      signalBusy(false);
       if (error instanceof DOMException && error.name === "TimeoutError") {
         setFailure("Checkout is taking too long. Please try again.");
         return;

@@ -1,7 +1,12 @@
 import { MongoClient } from "mongodb";
 import type { IndexDescription } from "mongodb";
 
-import type { EmailTemplateDoc, PurchaseDoc, ResourceDoc } from "./schema";
+import type {
+  EmailTemplateDoc,
+  FeedbackDoc,
+  PurchaseDoc,
+  ResourceDoc,
+} from "./schema";
 
 // One MongoDB client per server process, reused by every request: opening
 // a connection per request would be slow and exhaust Atlas's connection
@@ -33,6 +38,12 @@ export const db = client.db();
 // stop two accounts for one email, or two sessions sharing a token.
 const INDEXES: Record<string, IndexDescription[]> = {
   account: [{ key: { userId: 1 }, name: "account_user_id" }],
+  // The Feedback page lists newest first; the survey API counts one
+  // visitor's answers in the last hour (rate limit).
+  feedback: [
+    { key: { createdAt: -1 }, name: "feedback_created_at" },
+    { key: { clientHash: 1, createdAt: -1 }, name: "feedback_client_created" },
+  ],
   purchase: [
     { key: { email: 1 }, name: "purchase_email" },
     { key: { userId: 1 }, name: "purchase_user_id" },
@@ -94,6 +105,12 @@ export const purchases = async () => {
 export const resources = async () => {
   await ensureIndexes();
   return db.collection<ResourceDoc>("resource");
+};
+
+// The pricing exit survey's answers (app/api/feedback).
+export const feedbackResponses = async () => {
+  await ensureIndexes();
+  return db.collection<FeedbackDoc>("feedback");
 };
 
 // No indexes beyond _id: one document per email, read by its id.
