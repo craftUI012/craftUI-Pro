@@ -1128,7 +1128,7 @@
       }
     ],
     "tags": {
-      "categories": ["marketing", "portfolio"],
+      "categories": ["marketing"],
       "styles": ["motion", "dark-mode"],
       "types": ["gallery"]
     },
@@ -2900,7 +2900,7 @@
       }
     ],
     "tags": {
-      "categories": ["portfolio", "marketing"],
+      "categories": ["marketing"],
       "styles": ["motion", "minimal", "dark-mode"],
       "types": ["gallery"]
     },
@@ -3208,7 +3208,7 @@
       }
     ],
     "tags": {
-      "categories": ["ecommerce", "portfolio"],
+      "categories": ["marketing"],
       "styles": ["motion", "minimal", "dark-mode"],
       "types": ["gallery"]
     },
@@ -3499,7 +3499,7 @@
       }
     ],
     "tags": {
-      "categories": ["finance", "data"],
+      "categories": ["dashboard"],
       "styles": ["motion", "minimal", "dark-mode"],
       "types": ["charts"]
     },
@@ -3508,6 +3508,1772 @@
       "Founder and investor updates on monthly recurring revenue",
       "Subscription analytics on Stripe or Paddle events",
       "Admin panels that explain why revenue moved this month"
+    ]
+  },
+  "profile-settings": {
+    "component": "ProfileSettings",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "motion"
+    ],
+    "description": "A settings page for the signed-in person: photo, name, a username checked as you type and a bio behind one save bar, then emails, passkeys and connected accounts.",
+    "docs": "/docs/blocks/profile-settings",
+    "extends": null,
+    "files": [
+      "components/blocks/profile-settings/profile-settings.tsx",
+      "components/blocks/profile-settings/settings-nav.tsx",
+      "components/blocks/profile-settings/profile-fields.tsx",
+      "components/blocks/profile-settings/email-field.tsx",
+      "components/blocks/profile-settings/sign-in-methods.tsx",
+      "components/blocks/profile-settings/save-bar.tsx",
+      "components/blocks/profile-settings/motion.tsx",
+      "components/blocks/profile-settings/status-button.tsx",
+      "components/blocks/profile-settings/surface.ts"
+    ],
+    "id": "BLK-WKGE5B",
+    "import": "@/components/blocks/profile-settings/profile-settings",
+    "library": "blocks",
+    "name": "profile-settings",
+    "paid": true,
+    "props": [
+      {
+        "description": "The profile as it's saved now. Defaults to a demo profile (Sam Davies).",
+        "name": "defaultValues",
+        "optional": true,
+        "type": "ProfileValues",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Saves the changed profile. Resolve once it's stored; reject to keep the changes and show \"Changes not saved\". Defaults to a 0.9s demo save.",
+        "name": "onSave",
+        "optional": true,
+        "type": "(values: ProfileValues) => Promise<void>",
+        "default": "async () => { await wait(900); }"
+      },
+      {
+        "description": "Resolves `true` when a username is free. Called 450ms after typing stops. Defaults to a demo where admin, acme, root, sam and support are taken.",
+        "name": "checkUsername",
+        "optional": true,
+        "type": "(username: string) => Promise<boolean>",
+        "default": "async (username: string) => { await wait(300); return !DEMO_TAKEN.has(username)…"
+      },
+      {
+        "description": "Uploads a picked photo and resolves to its URL, which goes into the profile on Save. Defaults to a local preview URL (nothing is uploaded).",
+        "name": "uploadAvatar",
+        "optional": true,
+        "type": "(file: File) => Promise<string>",
+        "default": null
+      },
+      {
+        "description": "The primary and secondary email, and what to call when they change. Defaults to a demo.",
+        "name": "emails",
+        "optional": true,
+        "type": "EmailSettings",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Passkeys and sign-in providers, and what to call when they change. Defaults to a demo.",
+        "name": "signIn",
+        "optional": true,
+        "type": "SignInSettings",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Your product's name, used in the descriptions (\"across Acme\"). Defaults to \"Acme\".",
+        "name": "productName",
+        "optional": true,
+        "type": "string",
+        "default": "\"Acme\""
+      },
+      {
+        "description": "Shown before the username: your profile URL. Defaults to \"acme.com/\".",
+        "name": "usernamePrefix",
+        "optional": true,
+        "type": "string",
+        "default": "\"acme.com/\""
+      },
+      {
+        "description": "Longest bio, in characters. Defaults to 160.",
+        "name": "bioMaxLength",
+        "optional": true,
+        "type": "number",
+        "default": "160"
+      },
+      {
+        "description": "Largest photo, in megabytes. Defaults to 2.",
+        "name": "avatarMaxMb",
+        "optional": true,
+        "type": "number",
+        "default": "2"
+      },
+      {
+        "description": "The settings nav, in groups. Defaults to Account and Workspace.",
+        "name": "nav",
+        "optional": true,
+        "type": "SettingsNavGroup[]",
+        "default": "DEFAULT_SETTINGS_NAV"
+      },
+      {
+        "description": "Id of the current nav item. Defaults to \"profile\".",
+        "name": "activeItem",
+        "optional": true,
+        "type": "string",
+        "default": "\"profile\""
+      },
+      {
+        "description": "Runs before a nav link is followed: route with your router here. While there are unsaved changes the block stays and nudges the save bar.",
+        "name": "onNavigate",
+        "optional": true,
+        "type": "SettingsNavigateHandler",
+        "default": null
+      },
+      {
+        "description": "Extra classes for the root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [
+      "avatar",
+      "button",
+      "dropdown-menu",
+      "input",
+      "kbd",
+      "textarea"
+    ],
+    "title": "Profile settings",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Photo URL, or `null` to show initials.",
+            "name": "avatar",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "description": "Full name, e.g. \"Sam Davies\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Username without the prefix, e.g. \"samdavies\": 3–20 lowercase letters, numbers or _.",
+            "name": "username",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A line or two about the person.",
+            "name": "bio",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ProfileValues"
+      },
+      {
+        "fields": [
+          {
+            "description": "The address the person signs in with.",
+            "name": "primary",
+            "optional": false,
+            "type": "EmailAddress"
+          },
+          {
+            "description": "An optional second address, for account recovery. `null` for none.",
+            "name": "secondary",
+            "optional": false,
+            "type": "EmailAddress | null"
+          },
+          {
+            "description": "Sends a confirmation link to a new primary or secondary address.",
+            "name": "onSendLink",
+            "optional": false,
+            "type": "(kind: EmailKind, address: string) => Promise<void>"
+          },
+          {
+            "description": "Sends the confirmation link again to an unverified address.",
+            "name": "onResendLink",
+            "optional": false,
+            "type": "(address: string) => Promise<void>"
+          },
+          {
+            "description": "Removes the secondary address.",
+            "name": "onRemoveSecondary",
+            "optional": false,
+            "type": "() => Promise<void> | void"
+          }
+        ],
+        "name": "EmailSettings"
+      },
+      {
+        "fields": [
+          {
+            "description": "Every provider you offer; the connected ones have an `account`.",
+            "name": "providers",
+            "optional": false,
+            "type": "SignInProvider[]"
+          },
+          {
+            "description": "The passkeys registered on the account.",
+            "name": "passkeys",
+            "optional": false,
+            "type": "Passkey[]"
+          },
+          {
+            "description": "Connects a provider (open its sign-in window); resolves to the account it connected.",
+            "name": "onConnect",
+            "optional": false,
+            "type": "(id: string) => Promise<string>"
+          },
+          {
+            "description": "Disconnects a provider.",
+            "name": "onDisconnect",
+            "optional": false,
+            "type": "(id: string) => Promise<void> | void"
+          },
+          {
+            "description": "Registers a new passkey (run the browser's WebAuthn prompt); resolves to it.",
+            "name": "onAddPasskey",
+            "optional": false,
+            "type": "() => Promise<Passkey>"
+          },
+          {
+            "description": "Removes a passkey.",
+            "name": "onRemovePasskey",
+            "optional": false,
+            "type": "(id: string) => Promise<void> | void"
+          }
+        ],
+        "name": "SignInSettings"
+      },
+      {
+        "fields": [
+          {
+            "description": "Small heading above the group, e.g. \"Workspace\". Leave out for none.",
+            "name": "label",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The links in the group, in order.",
+            "name": "items",
+            "optional": false,
+            "type": "SettingsNavItem[]"
+          }
+        ],
+        "name": "SettingsNavGroup"
+      },
+      {
+        "fields": [
+          {
+            "description": "The address, e.g. \"sam@acme.com\".",
+            "name": "address",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Whether the person has confirmed it from the link sent to it.",
+            "name": "verified",
+            "optional": false,
+            "type": "boolean"
+          }
+        ],
+        "name": "EmailAddress"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id, e.g. \"google\". \"google\", \"github\", \"apple\", \"microsoft\" and \"gitlab\" get their logo built in.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Name shown in the list, e.g. \"Google\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The account it's connected to, e.g. \"sam@gmail.com\". Leave out when not connected.",
+            "name": "account",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Day it last signed the person in, as YYYY-MM-DD. `null` when connected but not used yet.",
+            "name": "lastUsed",
+            "optional": true,
+            "type": "string | null"
+          },
+          {
+            "description": "Your own logo (about 20px), for a provider without a built-in one.",
+            "name": "logo",
+            "optional": true,
+            "type": "React.ReactNode"
+          }
+        ],
+        "name": "SignInProvider"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The device or password manager it lives in, e.g. \"MacBook Pro\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Day it was added, as YYYY-MM-DD.",
+            "name": "added",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Day it last signed the person in, as YYYY-MM-DD, or `null` if never.",
+            "name": "lastUsed",
+            "optional": false,
+            "type": "string | null"
+          }
+        ],
+        "name": "Passkey"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id; matched against `activeItem` to mark the current page.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Text shown in the nav, e.g. \"Security\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A Hugeicons icon from `@hugeicons/core-free-icons`, e.g. `UserIcon`.",
+            "name": "icon",
+            "optional": false,
+            "type": "typeof UserIcon"
+          },
+          {
+            "description": "Where the link goes, e.g. \"/settings/security\".",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "SettingsNavItem"
+      }
+    ],
+    "tags": {
+      "categories": ["settings-profile"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["settings", "forms"]
+    },
+    "useCases": [
+      "Account settings in SaaS apps",
+      "Profile pages for team workspaces",
+      "Apps with social and passkey sign-in",
+      "Admin and user dashboards"
+    ]
+  },
+  "profile-settings-02": {
+    "component": "ProfileSettings02",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "motion"
+    ],
+    "description": "A full settings screen inside an app: a sidebar with folding groups, a workspace switcher and usage, settings tabs, and a personal details card with a country-code phone field.",
+    "docs": "/docs/blocks/profile-settings-02",
+    "extends": null,
+    "files": [
+      "components/blocks/profile-settings-02/profile-settings-02.tsx",
+      "components/blocks/profile-settings-02/app-shell.tsx",
+      "components/blocks/profile-settings-02/settings-tabs.tsx",
+      "components/blocks/profile-settings-02/phone-field.tsx",
+      "components/blocks/profile-settings-02/surface.ts",
+      "components/blocks/profile-settings-02/motion.tsx",
+      "components/blocks/profile-settings-02/status-button.tsx"
+    ],
+    "id": "BLK-AR88JJ",
+    "import": "@/components/blocks/profile-settings-02/profile-settings-02",
+    "library": "blocks",
+    "name": "profile-settings-02",
+    "paid": true,
+    "props": [
+      {
+        "description": "The profile as it's saved now. Defaults to a demo profile (Sam Davies).",
+        "name": "defaultValues",
+        "optional": true,
+        "type": "ProfileCardValues",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Saves the changed profile. Resolve once it's stored; reject to keep the changes and show \"Changes not saved\". Defaults to a 0.9s demo save.",
+        "name": "onSave",
+        "optional": true,
+        "type": "(values: ProfileCardValues) => Promise<void>",
+        "default": "async () => { await wait(900); }"
+      },
+      {
+        "description": "Uploads a picked photo and resolves to its URL, saved with the rest. Defaults to a local preview URL (nothing is uploaded).",
+        "name": "uploadAvatar",
+        "optional": true,
+        "type": "(file: File) => Promise<string>",
+        "default": null
+      },
+      {
+        "description": "Page title above the tabs. Defaults to \"Settings\".",
+        "name": "title",
+        "optional": true,
+        "type": "string",
+        "default": "\"Settings\""
+      },
+      {
+        "description": "Line under the title. Defaults to \"Manage your profile, security and notifications.\"",
+        "name": "description",
+        "optional": true,
+        "type": "string",
+        "default": "\"Manage your profile, security and notifications.\""
+      },
+      {
+        "description": "The settings pages shown as tabs. Defaults to General, Personal details, Password & security, Notifications and Billing.",
+        "name": "tabs",
+        "optional": true,
+        "type": "SettingsTab[]",
+        "default": "DEFAULT_SETTINGS_TABS"
+      },
+      {
+        "description": "Id of the current tab. Defaults to \"profile\".",
+        "name": "activeTab",
+        "optional": true,
+        "type": "string",
+        "default": "\"profile\""
+      },
+      {
+        "description": "Runs before a tab link is followed: route with your router here. With unsaved changes the block stays and asks to save or cancel first.",
+        "name": "onNavigate",
+        "optional": true,
+        "type": "SettingsTabNavigateHandler",
+        "default": null
+      },
+      {
+        "description": "Largest photo, in megabytes. Defaults to 2.",
+        "name": "avatarMaxMb",
+        "optional": true,
+        "type": "number",
+        "default": "2"
+      },
+      {
+        "description": "Longest overview, in characters. Defaults to 280.",
+        "name": "overviewMaxLength",
+        "optional": true,
+        "type": "number",
+        "default": "280"
+      },
+      {
+        "description": "Countries in the phone code list, in order. Defaults to 44 common ones.",
+        "name": "phoneCountries",
+        "optional": true,
+        "type": "PhoneCountry[]",
+        "default": "DEFAULT_PHONE_COUNTRIES"
+      },
+      {
+        "description": "Wraps the page in an app (sidebar + top bar), the full picture. Set `false` to render only the settings page inside your own layout. Defaults to `true`.",
+        "name": "shell",
+        "optional": true,
+        "type": "boolean",
+        "default": "true"
+      },
+      {
+        "description": "The app's sidebar and top bar. Defaults to a demo workspace (Acme).",
+        "name": "app",
+        "optional": true,
+        "type": "AppShellSettings",
+        "default": "DEMO_APP_SHELL"
+      },
+      {
+        "description": "Extra classes for the root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [
+      "avatar",
+      "button",
+      "command",
+      "dropdown-menu",
+      "input",
+      "kbd",
+      "popover",
+      "sheet",
+      "textarea"
+    ],
+    "title": "Personal details settings",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Photo URL, or `null` to show initials.",
+            "name": "avatar",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "description": "Full name, e.g. \"Sam Davies\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The email shown on the profile, e.g. \"sam@acme.com\".",
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Job title, e.g. \"Head of Automation\".",
+            "name": "jobTitle",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Company or team name.",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A few lines about the person, shown on their profile.",
+            "name": "overview",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The email of the connected Google account. Empty for none.",
+            "name": "connectedEmail",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Two-letter country code of the phone number, e.g. \"IN\" for +91.",
+            "name": "phoneCountry",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Phone number without the country code, e.g. \"98765 43210\".",
+            "name": "phone",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ProfileCardValues"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id; matched against `activeTab` to mark the current page.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Text on the tab, e.g. \"Notifications\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where the tab goes, e.g. \"/settings/notifications\".",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "SettingsTab"
+      },
+      {
+        "fields": [
+          {
+            "description": "ISO 3166 two-letter code, e.g. \"IN\". Also gives the flag and name.",
+            "name": "code",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "International dialling code, e.g. \"+91\".",
+            "name": "dial",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "PhoneCountry"
+      },
+      {
+        "fields": [
+          {
+            "description": "Product name next to the logo, e.g. \"Acme\".",
+            "name": "brandName",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Your logo, about 24px. Defaults to a monogram of `brandName`.",
+            "name": "logo",
+            "optional": true,
+            "type": "React.ReactNode"
+          },
+          {
+            "description": "Workspaces in the brand menu at the top of the sidebar; the current one is `brandName`. Leave out for a plain brand row.",
+            "name": "workspaces",
+            "optional": true,
+            "type": "ShellWorkspace[]"
+          },
+          {
+            "description": "Switches to another workspace.",
+            "name": "onSwitchWorkspace",
+            "optional": true,
+            "type": "(id: string) => void"
+          },
+          {
+            "description": "Opens your invite flow.",
+            "name": "onInvite",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "description": "Starts creating a workspace.",
+            "name": "onNewWorkspace",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "description": "The sidebar's link groups.",
+            "name": "groups",
+            "optional": false,
+            "type": "ShellNavGroup[]"
+          },
+          {
+            "description": "Id of the current sidebar link.",
+            "name": "activeItem",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Recent runs listed under the links; empty hides the list.",
+            "name": "runs",
+            "optional": false,
+            "type": "ShellRun[]"
+          },
+          {
+            "description": "A usage meter above the account, e.g. 891 of 1000 runs. Leave out to hide.",
+            "name": "usage",
+            "optional": true,
+            "type": "{ used: number; limit: number; note: string }"
+          },
+          {
+            "description": "The signed-in person.",
+            "name": "user",
+            "optional": false,
+            "type": "{ name: string; email: string; avatar: string | null }"
+          },
+          {
+            "description": "Unread notifications; above 0 puts a dot on the bell.",
+            "name": "unread",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "Runs before a sidebar link is followed: route with your router here.",
+            "name": "onNavigate",
+            "optional": true,
+            "type": "(event: React.MouseEvent<HTMLAnchorElement>) => void"
+          },
+          {
+            "description": "Opens your assistant.",
+            "name": "onAskAi",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "description": "Opens the upgrade flow.",
+            "name": "onUpgrade",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "description": "Signs the person out.",
+            "name": "onSignOut",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "description": "Starts a new run.",
+            "name": "onNewRun",
+            "optional": true,
+            "type": "() => void"
+          }
+        ],
+        "name": "AppShellSettings"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Its name, e.g. \"Globex\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Its logo, about 24px. Defaults to a monogram of `name`.",
+            "name": "logo",
+            "optional": true,
+            "type": "React.ReactNode"
+          }
+        ],
+        "name": "ShellWorkspace"
+      },
+      {
+        "fields": [
+          {
+            "description": "Small heading above the group.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The links in the group, in order.",
+            "name": "items",
+            "optional": false,
+            "type": "ShellNavItem[]"
+          }
+        ],
+        "name": "ShellNavGroup"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The run's name, e.g. \"Lead scoring pipeline\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where it opens.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Its icon's background colour, any CSS colour, e.g. \"#F59E0B\".",
+            "name": "color",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Whether it's starred.",
+            "name": "starred",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "ShellRun"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id; matched against `activeItem` to mark the current page.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Text in the sidebar, e.g. \"Dashboard\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A Hugeicons icon from `@hugeicons/core-free-icons`.",
+            "name": "icon",
+            "optional": false,
+            "type": "typeof DashboardSquare01Icon"
+          },
+          {
+            "description": "Where the link goes.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A short count at the right, e.g. \"28\" or \"35+\".",
+            "name": "badge",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The badge's colour: \"info\" (blue) or \"success\" (green). Defaults to \"info\".",
+            "name": "badgeTone",
+            "optional": true,
+            "type": "\"info\" | \"success\""
+          },
+          {
+            "description": "Marks a busy or trending page with a small flame.",
+            "name": "hot",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "ShellNavItem"
+      }
+    ],
+    "tags": {
+      "categories": ["settings-profile"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["settings", "forms"]
+    },
+    "useCases": [
+      "Settings pages for SaaS and AI apps",
+      "Workspace apps with a sidebar and team plans",
+      "Account pages with contact and phone details",
+      "Admin dashboards and internal tools"
+    ]
+  },
+  "profile-settings-03": {
+    "component": "ProfileSettings03",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "motion"
+    ],
+    "description": "A creator-style profile page: handle, bio, social links, cover and accent colour, privacy switches, and email and phone changed in place with a 6-digit code.",
+    "docs": "/docs/blocks/profile-settings-03",
+    "extends": null,
+    "files": [
+      "components/blocks/profile-settings-03/profile-settings-03.tsx",
+      "components/blocks/profile-settings-03/settings-rail.tsx",
+      "components/blocks/profile-settings-03/handle-field.tsx",
+      "components/blocks/profile-settings-03/verify-popover.tsx",
+      "components/blocks/profile-settings-03/code-input.tsx",
+      "components/blocks/profile-settings-03/phone-field.tsx",
+      "components/blocks/profile-settings-03/social-links.tsx",
+      "components/blocks/profile-settings-03/profile-extras.tsx",
+      "components/blocks/profile-settings-03/motion.tsx",
+      "components/blocks/profile-settings-03/status-button.tsx",
+      "components/blocks/profile-settings-03/surface.ts"
+    ],
+    "id": "BLK-YQKQY9",
+    "import": "@/components/blocks/profile-settings-03/profile-settings-03",
+    "library": "blocks",
+    "name": "profile-settings-03",
+    "paid": true,
+    "props": [
+      {
+        "description": "The details as they're saved now. Defaults to a demo person (Sam Davies).",
+        "name": "defaultValues",
+        "optional": true,
+        "type": "PersonalInfo"
+      },
+      {
+        "description": "Saves a changed name. Reject to keep it and show \"Name not saved\". Defaults to a 0.7s demo save.",
+        "name": "onSaveName",
+        "optional": true,
+        "type": "(firstName: string, lastName: string) => Promise<void>"
+      },
+      {
+        "description": "Stores a picked photo and resolves to its URL; `null` removes it. The photo saves straight away. Defaults to a local preview (nothing is uploaded).",
+        "name": "onPhotoChange",
+        "optional": true,
+        "type": "(file: File | null) => Promise<string | null>"
+      },
+      {
+        "description": "Sends and checks codes for a new email. Defaults to a demo: any code works except 000000.",
+        "name": "emailFlow",
+        "optional": true,
+        "type": "CodeFlow"
+      },
+      {
+        "description": "The same for a new phone number. Defaults to the same demo.",
+        "name": "phoneFlow",
+        "optional": true,
+        "type": "CodeFlow"
+      },
+      {
+        "description": "Saves a new handle. Defaults to a 0.7s demo save.",
+        "name": "onSaveHandle",
+        "optional": true,
+        "type": "(handle: string) => Promise<void>"
+      },
+      {
+        "description": "Resolves `true` when a handle is free (called 400ms after typing stops). Defaults to a demo where admin, acme, sam and support are taken.",
+        "name": "checkHandle",
+        "optional": true,
+        "type": "(handle: string) => Promise<boolean>"
+      },
+      {
+        "description": "Handles offered in the chooser. Defaults to two made from the name.",
+        "name": "handleSuggestions",
+        "optional": true,
+        "type": "string[]"
+      },
+      {
+        "description": "Saves the bio. Defaults to a 0.7s demo save.",
+        "name": "onSaveBio",
+        "optional": true,
+        "type": "(bio: string) => Promise<void>"
+      },
+      {
+        "description": "Longest bio, in characters. Defaults to 160.",
+        "name": "bioMaxLength",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "description": "The networks in Social links, in order. Defaults to X, Instagram, LinkedIn, GitHub, YouTube, TikTok, Bluesky and Website.",
+        "name": "socialNetworks",
+        "optional": true,
+        "type": "SocialNetwork[]"
+      },
+      {
+        "description": "Saves one social link (empty removes it). Defaults to a 0.6s demo save.",
+        "name": "onSaveSocial",
+        "optional": true,
+        "type": "(networkId: string, value: string) => Promise<void>"
+      },
+      {
+        "description": "Accent colours offered. Defaults to nine.",
+        "name": "accents",
+        "optional": true,
+        "type": "AccentColor[]"
+      },
+      {
+        "description": "Saves the cover and accent colour. Defaults to a 0.7s demo save.",
+        "name": "onSaveLook",
+        "optional": true,
+        "type": "(look: ProfileLook) => Promise<void>"
+      },
+      {
+        "description": "Uploads a picked cover image and resolves to its URL. Defaults to a local preview (nothing is uploaded).",
+        "name": "uploadCover",
+        "optional": true,
+        "type": "(file: File) => Promise<string>"
+      },
+      {
+        "description": "The switches under Privacy. Defaults to likes, subscriber badge and subscriptions.",
+        "name": "privacyOptions",
+        "optional": true,
+        "type": "PrivacyOption[]"
+      },
+      {
+        "description": "Saves one privacy switch as soon as it's flipped; reject to flip it back. Defaults to a 0.4s demo save.",
+        "name": "onPrivacyChange",
+        "optional": true,
+        "type": "(optionId: string, value: boolean) => Promise<void>"
+      },
+      {
+        "description": "Countries in the phone code list. Defaults to 44 common ones.",
+        "name": "phoneCountries",
+        "optional": true,
+        "type": "PhoneCountry[]"
+      },
+      {
+        "description": "The page title. Defaults to \"General settings\".",
+        "name": "title",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "description": "The tabs under the title. Defaults to Personal information, Defaults and Appearance.",
+        "name": "tabs",
+        "optional": true,
+        "type": "PageTab[]"
+      },
+      {
+        "description": "Id of the current tab. Defaults to \"personal\".",
+        "name": "activeTab",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "description": "Shows the top bar and the settings rail around the page. Set `false` to render only the page inside your own layout. Defaults to `true`.",
+        "name": "shell",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "description": "The settings rail's groups. Defaults to General, Schedules, Billing and more.",
+        "name": "rail",
+        "optional": true,
+        "type": "RailGroup[]"
+      },
+      {
+        "description": "Id of the current rail page. Defaults to \"personal\".",
+        "name": "activeRailItem",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "description": "Runs before a rail link or tab is followed: route with your router here.",
+        "name": "onNavigate",
+        "optional": true,
+        "type": "RailNavigateHandler"
+      },
+      {
+        "description": "Unread notifications; above 0 puts a dot on the bell. Defaults to 2.",
+        "name": "unread",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "description": "Largest photo, in megabytes. Defaults to 2.",
+        "name": "avatarMaxMb",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "description": "Extra classes for the root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "registryDependencies": [
+      "avatar",
+      "button",
+      "command",
+      "dropdown-menu",
+      "input",
+      "popover",
+      "radio-group",
+      "switch",
+      "textarea"
+    ],
+    "title": "Verified profile settings",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Photo URL, or `null` to show initials.",
+            "name": "avatar",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "description": "First name, e.g. \"Sam\".",
+            "name": "firstName",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Last name, e.g. \"Davies\".",
+            "name": "lastName",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The verified email they sign in with.",
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The verified phone number, with its country code, e.g. \"+91 98765 42121\".",
+            "name": "phone",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Handle without the",
+            "name": "handle",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A line or two about the person.",
+            "name": "bio",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Usernames (or a web address for \"website\") by network id, e.g. { x: \"samdavies\" }.",
+            "name": "socials",
+            "optional": false,
+            "type": "Record<string, string>"
+          },
+          {
+            "description": "The profile's cover image and accent colour.",
+            "name": "look",
+            "optional": false,
+            "type": "ProfileLook"
+          },
+          {
+            "description": "What the profile shows, by option id, e.g. { likes: false }.",
+            "name": "privacy",
+            "optional": false,
+            "type": "Record<string, boolean>"
+          }
+        ],
+        "name": "PersonalInfo"
+      },
+      {
+        "fields": [
+          {
+            "description": "Sends a code to the new email or number. Reject to show \"Code not sent\".",
+            "name": "onSendCode",
+            "optional": false,
+            "type": "(value: string) => Promise<void>"
+          },
+          {
+            "description": "Checks the code for the new value; resolve `false` for a wrong code.",
+            "name": "onVerifyCode",
+            "optional": false,
+            "type": "(value: string, code: string) => Promise<boolean>"
+          }
+        ],
+        "name": "CodeFlow"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id, also the key in the saved values, e.g. \"instagram\".",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Name shown above the field, e.g. \"Instagram\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A Hugeicons icon from `@hugeicons/core-free-icons`.",
+            "name": "icon",
+            "optional": false,
+            "type": "typeof InstagramIcon"
+          },
+          {
+            "description": "The address before the username, shown in the field, e.g. \"instagram.com/\". Leave out for a free web address (Website).",
+            "name": "prefix",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Example shown in the empty field, e.g. \"username\".",
+            "name": "placeholder",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "SocialNetwork"
+      },
+      {
+        "fields": [
+          {
+            "description": "Name read out and shown on hover, e.g. \"Teal\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The colour, any CSS colour, e.g. \"#0D9488\".",
+            "name": "value",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "AccentColor"
+      },
+      {
+        "fields": [
+          {
+            "description": "Cover image URL, or `null` for a wash of the accent colour.",
+            "name": "cover",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "description": "The accent colour's value, e.g. \"#4F46E5\".",
+            "name": "accent",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "ProfileLook"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id, also the key in the saved values, e.g. \"likes\".",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What it shows, stated as the ON state, e.g. \"Show your likes\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One line on what people will see.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A Hugeicons icon from `@hugeicons/core-free-icons`.",
+            "name": "icon",
+            "optional": false,
+            "type": "typeof FavouriteIcon"
+          }
+        ],
+        "name": "PrivacyOption"
+      },
+      {
+        "fields": [
+          {
+            "description": "ISO 3166 two-letter code, e.g. \"IN\". Also gives the flag and name.",
+            "name": "code",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "International dialling code, e.g. \"+91\".",
+            "name": "dial",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "PhoneCountry"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id; matched against `activeTab`.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Text on the tab.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where the tab goes.",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "PageTab"
+      },
+      {
+        "fields": [
+          {
+            "description": "Small heading above the group.",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The pages in the group, in order.",
+            "name": "items",
+            "optional": false,
+            "type": "RailItem[]"
+          }
+        ],
+        "name": "RailGroup"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id; matched against `active` to mark the current page.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Text in the rail, e.g. \"Two-factor authentication\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where it goes, e.g. \"/settings/security\".",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "RailItem"
+      }
+    ],
+    "tags": {
+      "categories": ["settings-profile"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["settings", "forms"]
+    },
+    "useCases": [
+      "Account settings for newsletters and creator apps",
+      "Profile pages with social links and handles",
+      "Apps that verify email and phone changes",
+      "SaaS settings pages with a settings sidebar"
+    ]
+  },
+  "security-settings": {
+    "component": "SecuritySettings",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "motion",
+      "qrcode.react"
+    ],
+    "description": "A security page: a checkup with Done, Recommended and At risk badges, password, two-factor with QR setup, passkeys, sessions and alerts.",
+    "docs": "/docs/blocks/security-settings",
+    "extends": null,
+    "files": [
+      "components/blocks/security-settings/security-settings.tsx",
+      "components/blocks/security-settings/security-checkup.tsx",
+      "components/blocks/security-settings/sign-in-methods.tsx",
+      "components/blocks/security-settings/password-field.tsx",
+      "components/blocks/security-settings/two-factor.tsx",
+      "components/blocks/security-settings/passkeys.tsx",
+      "components/blocks/security-settings/sessions.tsx",
+      "components/blocks/security-settings/security-alerts.tsx",
+      "components/blocks/security-settings/confirm-dialog.tsx",
+      "components/blocks/security-settings/status-button.tsx",
+      "components/blocks/security-settings/settings-nav.tsx",
+      "components/blocks/security-settings/code-input.tsx",
+      "components/blocks/security-settings/phone-field.tsx",
+      "components/blocks/security-settings/motion.tsx",
+      "components/blocks/security-settings/surface.ts"
+    ],
+    "id": "BLK-GKB8JN",
+    "import": "@/components/blocks/security-settings/security-settings",
+    "library": "blocks",
+    "name": "security-settings",
+    "paid": true,
+    "props": [
+      {
+        "description": "The account's security as it is now. Defaults to a demo account.",
+        "name": "defaultState",
+        "optional": true,
+        "type": "SecurityState"
+      },
+      {
+        "description": "Everything two-factor needs: the `otpauth://` link and secret for the QR code, and the calls that check codes, text codes, make recovery codes and turn a method off. Defaults to a demo where any code works except 000000.",
+        "name": "twoFactor",
+        "optional": true,
+        "type": "TwoFactorFlow"
+      },
+      {
+        "description": "Changes the password. Reject with an Error whose message is shown, e.g. \"That isn't your current password.\" Defaults to a 0.8s demo.",
+        "name": "onChangePassword",
+        "optional": true,
+        "type": "( current: string, next: string, signOutOthers: boolean ) => Promise<void>"
+      },
+      {
+        "description": "Registers a passkey (run the browser's WebAuthn prompt) and resolves to it. Defaults to a demo.",
+        "name": "onAddPasskey",
+        "optional": true,
+        "type": "() => Promise<Passkey>"
+      },
+      {
+        "description": "Removes a passkey. Defaults to a demo.",
+        "name": "onRemovePasskey",
+        "optional": true,
+        "type": "(id: string) => Promise<void>"
+      },
+      {
+        "description": "Signs one session out. Defaults to a demo.",
+        "name": "onSignOutSession",
+        "optional": true,
+        "type": "(id: string) => Promise<void>"
+      },
+      {
+        "description": "Signs out every session except this one. Defaults to a demo.",
+        "name": "onSignOutOtherSessions",
+        "optional": true,
+        "type": "() => Promise<void>"
+      },
+      {
+        "description": "The email alerts offered. Defaults to new sign-ins, account changes and two-factor changes.",
+        "name": "alerts",
+        "optional": true,
+        "type": "SecurityAlert[]"
+      },
+      {
+        "description": "Saves one alert as soon as it's flipped; reject to flip it back. Defaults to a demo.",
+        "name": "onAlertChange",
+        "optional": true,
+        "type": "(id: string, value: boolean) => Promise<void>"
+      },
+      {
+        "description": "How many recovery codes a fresh set has. Defaults to 10.",
+        "name": "recoveryCodesTotal",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "description": "The signed-in person; a new password may not contain their name or email. Defaults to the demo person.",
+        "name": "user",
+        "optional": true,
+        "type": "{ name: string; email: string }"
+      },
+      {
+        "description": "Your product's name, used in the copy and the recovery-codes file. Defaults to \"Acme\".",
+        "name": "productName",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "description": "Countries for the text-message phone number. Defaults to 44 common ones.",
+        "name": "phoneCountries",
+        "optional": true,
+        "type": "PhoneCountry[]"
+      },
+      {
+        "description": "The settings nav, in groups. Defaults to Account and Workspace.",
+        "name": "nav",
+        "optional": true,
+        "type": "SettingsNavGroup[]"
+      },
+      {
+        "description": "Id of the current nav item. Defaults to \"security\".",
+        "name": "activeItem",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "description": "Runs before a nav link is followed: route with your router here.",
+        "name": "onNavigate",
+        "optional": true,
+        "type": "SettingsNavigateHandler"
+      },
+      {
+        "description": "Extra classes for the root element.",
+        "name": "className",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "registryDependencies": [
+      "button",
+      "checkbox",
+      "command",
+      "dialog",
+      "input",
+      "popover",
+      "switch"
+    ],
+    "title": "Security settings",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "When the password last changed, as an ISO date.",
+            "name": "passwordChangedAt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Whether the authenticator app is set up.",
+            "name": "authenticatorApp",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "description": "The phone that gets text-message codes, or `null` when that's off.",
+            "name": "smsPhone",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "description": "Recovery codes still unused.",
+            "name": "recoveryCodesLeft",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "The passkeys registered.",
+            "name": "passkeys",
+            "optional": false,
+            "type": "Passkey[]"
+          },
+          {
+            "description": "Everywhere the account is signed in.",
+            "name": "sessions",
+            "optional": false,
+            "type": "Session[]"
+          },
+          {
+            "description": "Which email alerts are on, by alert id.",
+            "name": "alerts",
+            "optional": false,
+            "type": "Record<string, boolean>"
+          }
+        ],
+        "name": "SecurityState"
+      },
+      {
+        "fields": [
+          {
+            "description": "The `otpauth://` link the QR code encodes, made by your server for this account.",
+            "name": "otpauthUrl",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The same secret, for typing in by hand (shown in groups of four).",
+            "name": "secret",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Checks a code from the authenticator app; resolve `false` for a wrong one.",
+            "name": "verifyApp",
+            "optional": false,
+            "type": "(code: string) => Promise<boolean>"
+          },
+          {
+            "description": "Texts a code to a phone number (with its country code).",
+            "name": "sendSms",
+            "optional": false,
+            "type": "(phone: string) => Promise<void>"
+          },
+          {
+            "description": "Checks a texted code; resolve `false` for a wrong one.",
+            "name": "verifySms",
+            "optional": false,
+            "type": "(phone: string, code: string) => Promise<boolean>"
+          },
+          {
+            "description": "Makes a new set of recovery codes (the old ones stop working).",
+            "name": "generateCodes",
+            "optional": false,
+            "type": "() => Promise<string[]>"
+          },
+          {
+            "description": "Turns a method off.",
+            "name": "turnOff",
+            "optional": false,
+            "type": "(method: TwoFactorMethod) => Promise<void>"
+          }
+        ],
+        "name": "TwoFactorFlow"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The device or password manager it lives in, e.g. \"MacBook Pro\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "When it was added, already formatted, e.g. \"Sep 2\".",
+            "name": "added",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "Passkey"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id, also the key in the saved values.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What it does when on, e.g. \"Email me about new sign-ins\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One line on when it's sent.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "SecurityAlert"
+      },
+      {
+        "fields": [
+          {
+            "description": "ISO 3166 two-letter code, e.g. \"IN\". Also gives the flag and name.",
+            "name": "code",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "International dialling code, e.g. \"+91\".",
+            "name": "dial",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "PhoneCountry"
+      },
+      {
+        "fields": [
+          {
+            "description": "Small heading above the group, e.g. \"Workspace\". Leave out for none.",
+            "name": "label",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The links in the group, in order.",
+            "name": "items",
+            "optional": false,
+            "type": "SettingsNavItem[]"
+          }
+        ],
+        "name": "SettingsNavGroup"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The kind of device, for its icon.",
+            "name": "device",
+            "optional": false,
+            "type": "\"desktop\" | \"phone\" | \"tablet\""
+          },
+          {
+            "description": "Browser or app, e.g. \"Chrome\".",
+            "name": "browser",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Operating system, e.g. \"macOS\".",
+            "name": "os",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where it signed in from, e.g. \"Bengaluru, India\".",
+            "name": "location",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "IP address.",
+            "name": "ip",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Last activity, as an ISO date-time.",
+            "name": "lastActive",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "True for the session this page is open in.",
+            "name": "current",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "description": "Marks a sign-in the person may not recognise (new country, new device).",
+            "name": "unrecognized",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "Session"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id; matched against `activeItem` to mark the current page.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Text shown in the nav, e.g. \"Security\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A Hugeicons icon from `@hugeicons/core-free-icons`, e.g. `UserIcon`.",
+            "name": "icon",
+            "optional": false,
+            "type": "typeof UserIcon"
+          },
+          {
+            "description": "Where the link goes, e.g. \"/settings/security\".",
+            "name": "href",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "SettingsNavItem"
+      }
+    ],
+    "tags": {
+      "categories": ["settings-security"],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["settings", "forms"]
+    },
+    "useCases": [
+      "Account security pages for SaaS and fintech apps",
+      "Two-factor setup with an authenticator app or text",
+      "Reviewing and signing out sessions and devices",
+      "Security checkups that nudge people to finish setup"
     ]
   },
   "voice-orb": {

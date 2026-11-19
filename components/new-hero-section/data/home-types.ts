@@ -33,11 +33,17 @@ export interface IndexLink {
 
 // One column group of the index. `columns: 2` splits the links over two grid
 // columns, as Mobbin's "Sections" does.
+//
+// A category parent (Settings & account) gets a column of its own: `parent`
+// is then the parent's own value, picked by clicking the column's heading,
+// and `links` are its children. `key` tells the columns of one group apart.
 export interface IndexGroup {
   id: FilterGroupId;
+  key: string;
   label: string;
   columns: 1 | 2;
   links: IndexLink[];
+  parent?: IndexLink;
 }
 
 // The screenshot inside a card. From Cloudflare R2 when the item has an

@@ -40,6 +40,7 @@ const group = (
 ): IndexGroup => ({
   columns,
   id: groupId(label),
+  key: groupId(label),
   label,
   links: links.map((link) => ({ count: 1, id: slug(link), label: link })),
 });

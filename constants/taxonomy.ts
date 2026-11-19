@@ -28,16 +28,38 @@ export interface TaxonomyValue {
   label: string;
 }
 
+// A category can sit under another (Settings & account → Profile, Security,
+// …). Items tag the child; the parent is worked out from it, so picking the
+// parent in the filter shows every child's items. A parent is never tagged
+// directly. In the index each parent is its own column, headed by its label.
+export interface CategoryValue extends TaxonomyValue {
+  parent?: string;
+}
+
 export const CATEGORIES = {
   // Components group by what the control does (Inputs, Overlays, …);
   // Isometrics by what the object is about (Security, Files & storage, …:
-  // one category per Hugeicons-style batch); the other libraries by the
-  // kind of product they're for (Finance, AI, …).
+  // one category per Hugeicons-style batch); Sections by the kind of
+  // product they're for (Finance, AI, …); Blocks by the job they do in a
+  // product (Settings & account → Profile, Authentication → Sign in, …:
+  // see `parent`).
   actions: { label: "Actions" },
   ai: { label: "AI" },
+  auth: { label: "Authentication" },
+  "auth-password-reset": { label: "Password reset", parent: "auth" },
+  "auth-sign-in": { label: "Sign in", parent: "auth" },
+  "auth-sign-up": { label: "Sign up", parent: "auth" },
+  "auth-verification": { label: "Verification", parent: "auth" },
+  billing: { label: "Billing & payments" },
+  "billing-checkout": { label: "Checkout", parent: "billing" },
+  "billing-invoices": { label: "Invoices", parent: "billing" },
+  "billing-payment-methods": { label: "Payment methods", parent: "billing" },
+  "billing-plans": { label: "Plans", parent: "billing" },
+  "billing-usage": { label: "Usage", parent: "billing" },
   commerce: { label: "Commerce" },
   communication: { label: "Communication" },
   company: { label: "Company" },
+  dashboard: { label: "Dashboard & analytics" },
   data: { label: "Data" },
   "data-display": { label: "Data display" },
   developer: { label: "Developer" },
@@ -52,11 +74,19 @@ export const CATEGORIES = {
   people: { label: "People" },
   portfolio: { label: "Portfolio" },
   security: { label: "Security" },
+  settings: { label: "Settings & account" },
+  "settings-api-keys": { label: "API keys", parent: "settings" },
+  "settings-danger-zone": { label: "Danger zone", parent: "settings" },
+  "settings-notifications": { label: "Notifications", parent: "settings" },
+  "settings-preferences": { label: "Preferences", parent: "settings" },
+  "settings-profile": { label: "Profile", parent: "settings" },
+  "settings-security": { label: "Security", parent: "settings" },
+  "settings-team": { label: "Team & members", parent: "settings" },
   status: { label: "Status" },
   technology: { label: "Technology" },
   time: { label: "Time" },
   work: { label: "Work" },
-} as const satisfies Record<string, TaxonomyValue>;
+} as const satisfies Record<string, CategoryValue>;
 
 export const TYPES = {
   // One pool for every library; which ones a library lists (and in what
@@ -122,7 +152,7 @@ export const FILTER_GROUPS = [
 
 export type FilterGroupId = (typeof FILTER_GROUPS)[number]["id"];
 
-export const POOLS: Record<FilterGroupId, Record<string, TaxonomyValue>> = {
+export const POOLS: Record<FilterGroupId, Record<string, CategoryValue>> = {
   categories: CATEGORIES,
   styles: STYLES,
   types: TYPES,
@@ -153,6 +183,10 @@ export interface LibraryConfig {
   typeLabel?: string;
   // Each item takes exactly one category (the build rejects more).
   singleCategory?: boolean;
+  // The filter groups its index shows, when not all three. Items still tag
+  // types and styles (docs pages and AI agents read them); they just aren't
+  // filters here.
+  filterGroups?: FilterGroupId[];
   // The values its filter index lists, in display order.
   categories: CategoryId[];
   types: TypeId[];
@@ -160,16 +194,32 @@ export interface LibraryConfig {
 }
 
 export const LIBRARIES: Record<LibraryId, LibraryConfig> = {
+  // Composed pieces of a product, found by the job they do: a settings
+  // page, a sign-in screen, a billing screen. One filter, the use case: a
+  // child category (settings-profile) lists under its parent's column.
   blocks: {
     categories: [
       "marketing",
-      "ecommerce",
-      "data",
-      "finance",
-      "people",
-      "portfolio",
       "ai",
+      "dashboard",
+      "settings-profile",
+      "settings-security",
+      "settings-notifications",
+      "settings-preferences",
+      "settings-team",
+      "settings-api-keys",
+      "settings-danger-zone",
+      "auth-sign-in",
+      "auth-sign-up",
+      "auth-verification",
+      "auth-password-reset",
+      "billing-plans",
+      "billing-checkout",
+      "billing-payment-methods",
+      "billing-invoices",
+      "billing-usage",
     ],
+    filterGroups: ["categories"],
     idPrefix: "BLK",
     itemLabel: { one: "block", other: "blocks" },
     label: "Blocks",
