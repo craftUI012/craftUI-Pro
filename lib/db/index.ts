@@ -32,6 +32,31 @@ if (process.env.NODE_ENV !== "production") {
 
 export const db = client.db();
 
+// Connects once per process, and again after a failure. Every query path
+// waits on this (ensureIndexes below; better-auth through its before hook
+// in lib/auth.ts) instead of relying on the driver's lazy first connect,
+// which has a trap: if that first connect fails (Atlas unreachable for a
+// moment), the driver closes the client's topology but keeps it, so every
+// later query throws MongoTopologyClosedError until the server restarts. A
+// warm Vercel instance then fails every sign-in. Calling client.connect()
+// again replaces a closed topology with a fresh one, so a failure here is
+// forgotten and the next request retries.
+let connection: Promise<MongoClient> | undefined;
+
+const connect = async () => {
+  try {
+    return await client.connect();
+  } catch (error) {
+    connection = undefined;
+    throw error;
+  }
+};
+
+export const connectDb = () => {
+  connection ??= connect();
+  return connection;
+};
+
 // Every collection's indexes, created once per process on first use
 // (createIndex is a no-op when the index exists): ours, and better-auth's,
 // whose MongoDB adapter doesn't create them itself. The unique ones are what
@@ -70,6 +95,7 @@ let indexes: Promise<unknown> | undefined;
 
 const createIndexes = async () => {
   try {
+    await connectDb();
     return await Promise.all(
       Object.entries(INDEXES).map(([name, specs]) =>
         db.collection(name).createIndexes(specs)

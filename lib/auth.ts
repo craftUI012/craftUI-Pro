@@ -1,12 +1,12 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { magicLink } from "better-auth/plugins";
 
 import { isAdminEmail } from "./admin/emails";
 import { hasActivePurchaseForEmail } from "./billing/entitlements";
-import { client, db, prepareIndexes } from "./db";
+import { client, connectDb, db, prepareIndexes } from "./db";
 import { sendMagicLinkEmail } from "./email";
 import { MAGIC_LINK_EXPIRES_IN_SECONDS } from "./emails/magic-link";
 
@@ -25,6 +25,14 @@ export const auth = betterAuth({
   database: mongodbAdapter(db, { client }),
   emailAndPassword: {
     enabled: false,
+  },
+  // Runs before every auth endpoint, over HTTP or auth.api.* on the server:
+  // makes sure the MongoDB client is connected, reconnecting it if an
+  // earlier connect failed (see connectDb in lib/db).
+  hooks: {
+    before: createAuthMiddleware(async () => {
+      await connectDb();
+    }),
   },
   plugins: [
     magicLink({
