@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PricingPlans } from "@/components/pricing-plans";
+import { PricingSurvey } from "@/components/pricing-survey";
 import { ROUTES } from "@/constants/routes";
 import { createPageMetadata } from "@/seo/metadata";
 
@@ -24,6 +25,8 @@ const PricingPage = () => (
     <div className="container max-w-5xl px-4 pt-16 pb-12 md:pt-20">
       <PricingPlans />
     </div>
+    {/* Signed-out visitors only, once: see the component. */}
+    <PricingSurvey />
   </section>
 );
 

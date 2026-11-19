@@ -5,8 +5,14 @@ import type { Document, Filter } from "mongodb";
 import type { ResourceCategory } from "@/lib/admin/constants";
 import { isGranting, summarizeAccess } from "@/lib/billing/entitlements";
 import type { Entitlements } from "@/lib/billing/entitlements";
-import { db, ensureIndexes, purchases, resources } from "@/lib/db";
-import type { PurchaseDoc, ResourceDoc } from "@/lib/db/schema";
+import {
+  db,
+  ensureIndexes,
+  feedbackResponses,
+  purchases,
+  resources,
+} from "@/lib/db";
+import type { FeedbackDoc, PurchaseDoc, ResourceDoc } from "@/lib/db/schema";
 import registry from "@/registry.json";
 
 // Everything the admin panel (app/admin-panel-craft) reads. Pages call these
@@ -64,6 +70,7 @@ export const COLLECTIONS = [
   "purchase",
   "resource",
   "email_template",
+  "feedback",
 ] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 
@@ -425,5 +432,42 @@ export const listResources = async ({
       count: entry.count,
       tag: entry._id,
     })),
+  };
+};
+
+const toCounts = (entries: { _id: string; count: number }[]) =>
+  Object.fromEntries(entries.map((entry) => [entry._id, entry.count]));
+
+// The Feedback page: the pricing survey's latest answers (newest first),
+// how many answers there are, and how often each option was picked.
+export const listFeedback = async () => {
+  const collection = await feedbackResponses();
+  const [rows, total, wantCounts, opinionCounts] = await Promise.all([
+    collection
+      .find(
+        {},
+        { limit: 500, projection: { clientHash: 0 }, sort: { createdAt: -1 } }
+      )
+      .toArray() as Promise<Omit<FeedbackDoc, "clientHash">[]>,
+    collection.countDocuments(),
+    collection
+      .aggregate<{ _id: string; count: number }>([
+        { $unwind: "$wantMore" },
+        { $group: { _id: "$wantMore", count: { $sum: 1 } } },
+      ])
+      .toArray(),
+    collection
+      .aggregate<{ _id: string; count: number }>([
+        { $unwind: "$opinion" },
+        { $group: { _id: "$opinion", count: { $sum: 1 } } },
+      ])
+      .toArray(),
+  ]);
+  return {
+    opinionCounts: toCounts(opinionCounts),
+    rows,
+    total,
+    wantCounts: toCounts(wantCounts),
+    withEmail: rows.filter((row) => row.email).length,
   };
 };

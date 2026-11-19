@@ -9,6 +9,7 @@
 import type { ResourceCategory } from "../admin/constants";
 import type { PurchaseKind } from "../billing/plans";
 import type { EmailContent, EmailId } from "../emails/compose";
+import type { Opinion, SurveyTrigger, WantMore } from "../feedback";
 
 // One document per order or subscription. What it unlocks:
 //   kind "lifetime" | "yearly" → everything (all-access)
@@ -70,6 +71,30 @@ export interface ResourceDoc {
   updatedAt: Date;
   // http(s) only.
   url: string;
+}
+
+// One answer to the pricing page's exit survey
+// (components/pricing-survey.tsx), stored by app/api/feedback and listed on
+// the admin panel's Feedback page. Only signed-out visitors see the survey,
+// so there's no user to link; `email` is what they chose to share.
+export interface FeedbackDoc {
+  // "fb_<uuid>".
+  _id: string;
+  // Which survey; room for others later.
+  kind: "pricing_exit";
+  wantMore: WantMore[];
+  opinion: Opinion[];
+  // Lowercased, or null when left empty. Only for telling them when what
+  // they asked for ships.
+  email: string | null;
+  trigger: SurveyTrigger;
+  // Their PostHog ID, to find their visit in PostHog.
+  distinctId: string | null;
+  // anonymousId(ip, user agent): rate limiting only, never shown.
+  clientHash: string;
+  // Two-letter code from Vercel's geo header.
+  country: string | null;
+  createdAt: Date;
 }
 
 // An email's edited words from the admin panel's Emails page
