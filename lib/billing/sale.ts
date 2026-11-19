@@ -4,9 +4,11 @@ import { LIFETIME_PLAN, formatPrice } from "@/lib/billing/plans";
 // A time-limited discount code, shown in a strip under the navbar on every
 // page, and on the pricing page (a coupon under the heading, and the sale
 // price in the plan's card). The code itself
-// lives in the Dodo dashboard (Sales → Discounts), which applies it at
-// checkout and limits it to the plan's product: nothing here changes what
-// Dodo charges. Keep percentOff and endsAt in step with the dashboard.
+// lives in the Dodo dashboard (Sales → Discounts), which limits it to the
+// plan's product. /api/checkout puts it on every checkout of that plan
+// while the sale runs, so Dodo opens at the sale price; if Dodo refuses the
+// code, the checkout opens at full price. Keep code, percentOff and endsAt
+// in step with the dashboard.
 //
 // To end a sale early, set SALE to null. To run the next one, fill it in
 // again. Once endsAt passes the pricing page drops the sale within its
@@ -15,7 +17,7 @@ import { LIFETIME_PLAN, formatPrice } from "@/lib/billing/plans";
 // statically built pages stop sending it at all.
 
 export interface Sale {
-  // The code buyers paste at Dodo's checkout.
+  // The Dodo discount code, applied to the plan's checkouts for you.
   code: string;
   // Short name for the badge, e.g. "Black Friday".
   name: string;
