@@ -50,7 +50,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { Reveal } from "./motion";
-import { FLOAT, PHOTO_INSET, RING, RING_BUTTON } from "./surface";
+import { FLOAT, LIFT, PHOTO_INSET, RING_BUTTON } from "./surface";
 
 /* ─────────────────────────────────────────────────────────
  * APP SHELL: the app around the settings page, so the block shows the
@@ -498,7 +498,7 @@ const UsageCard = ({
 }) => {
   const share = Math.min(1, usage.used / usage.limit);
   return (
-    <div className={cn(RING, "bg-card flex flex-col gap-2 rounded-xl p-3")}>
+    <div className={cn(LIFT, "bg-card flex flex-col gap-2 rounded-xl p-3")}>
       <div className="flex items-center gap-1.5 text-sm font-medium tabular-nums">
         <HugeiconsIcon
           icon={FlashIcon}

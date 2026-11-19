@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 import { DoneNote, EASE_OUT, Reveal } from "./motion";
 import { RollingLabel, StatusButton } from "./status-button";
-import { CARD, RING, RING_BUTTON } from "./surface";
+import { CARD, LIFT, RING, RING_BUTTON } from "./surface";
 
 /* ─────────────────────────────────────────────────────────
  * PROFILE EXTRAS: bio, the profile's look, and what it shows.
@@ -310,7 +310,7 @@ export const LookField = ({
         // border too, so it doesn't repeat its first colour along the
         // right and bottom edges.
         className={cn(
-          RING,
+          LIFT,
           "relative aspect-[3/1] overflow-hidden rounded-xl bg-origin-border"
         )}
         style={{

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { EASE_OUT, Reveal } from "./motion";
-import { RING } from "./surface";
+import { LIFT } from "./surface";
 
 /* ─────────────────────────────────────────────────────────
  * SECURITY CHECKUP: how many protections are on, and what's left.
@@ -259,7 +259,7 @@ export const SecurityCheckup = ({
     <section
       aria-label="Security checkup"
       className={cn(
-        RING,
+        LIFT,
         "bg-card flex flex-col gap-4 rounded-xl p-4 sm:p-5",
         className
       )}

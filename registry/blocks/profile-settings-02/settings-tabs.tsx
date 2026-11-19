@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { RING } from "./surface";
+import { LIFT } from "./surface";
 
 /* ─────────────────────────────────────────────────────────
  * SETTINGS TABS: the settings pages as a row of tabs in a muted track.
@@ -79,7 +79,7 @@ export const SettingsTabs = ({
               className={cn(
                 "focus-visible:ring-ring/50 flex h-8 shrink-0 items-center rounded-lg px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-[3px]",
                 current
-                  ? cn(RING, "bg-background text-foreground")
+                  ? cn(LIFT, "bg-background text-foreground")
                   : "text-muted-foreground hover:text-foreground border border-transparent"
               )}
             >

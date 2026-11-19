@@ -37,7 +37,7 @@ import { EASE_OUT, EASE_OUT_QUAD, Reveal } from "./motion";
 import { PhoneField } from "./phone-field";
 import type { PhoneCountry } from "./phone-field";
 import { RollingLabel, StatusButton } from "./status-button";
-import { CARD, FLOAT, RING, RING_BUTTON } from "./surface";
+import { CARD, FLOAT, LIFT, RING, RING_BUTTON } from "./surface";
 
 /* ─────────────────────────────────────────────────────────
  * TWO-FACTOR: the second step at sign-in.
@@ -146,7 +146,7 @@ export const RecoveryCodes = ({
       <ul
         aria-label="Recovery codes"
         className={cn(
-          RING,
+          // A tinted box, no ring: the tint is its edge.
           "bg-muted/40 grid grid-cols-2 gap-x-6 gap-y-1.5 rounded-lg p-4 font-mono text-sm tabular-nums"
         )}
       >
@@ -192,7 +192,7 @@ const ScanStep = ({ flow }: { flow: TwoFactorFlow }) => {
   return (
     <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
       {/* The QR stays black on white in both themes, so every app reads it. */}
-      <div className={cn(RING, "shrink-0 rounded-lg bg-white p-3")}>
+      <div className={cn(LIFT, "shrink-0 rounded-lg bg-white p-3")}>
         <QRCodeSVG
           value={flow.otpauthUrl}
           size={136}

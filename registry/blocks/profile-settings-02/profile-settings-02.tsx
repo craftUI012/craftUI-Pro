@@ -31,7 +31,7 @@ import { DEFAULT_SETTINGS_TABS, SettingsTabs } from "./settings-tabs";
 import type { SettingsTab, SettingsTabNavigateHandler } from "./settings-tabs";
 import { StatusButton, useButtonState } from "./status-button";
 import type { ButtonState } from "./status-button";
-import { PHOTO_INSET, RING, RING_BUTTON } from "./surface";
+import { LIFT, PHOTO_INSET, RING, RING_BUTTON } from "./surface";
 
 /* ─────────────────────────────────────────────────────────
  * PROFILE SETTINGS 02: a settings page with tabs on top and the profile
@@ -786,7 +786,7 @@ export const ProfileSettings02 = ({
       </header>
 
       {/* The tabs ride in their own white strip, above the card. */}
-      <div className={cn(RING, "bg-card rounded-2xl p-1.5")}>
+      <div className={cn(LIFT, "bg-card rounded-2xl p-1.5")}>
         <SettingsTabs
           tabs={tabs}
           active={activeTab}
@@ -805,7 +805,7 @@ export const ProfileSettings02 = ({
           form.save();
         }}
         className={cn(
-          RING,
+          LIFT,
           "bg-card text-card-foreground mx-auto flex w-full max-w-[36rem] flex-col gap-8 rounded-2xl p-4 sm:p-6"
         )}
       >
@@ -963,7 +963,7 @@ export const ProfileSettings02 = ({
   return (
     <div
       data-slot="profile-settings-02"
-      className={cn("overflow-hidden rounded-2xl", RING, className)}
+      className={cn("overflow-hidden rounded-2xl", LIFT, className)}
     >
       <AppShell
         title={title}

@@ -28,7 +28,7 @@ import type { RailGroup, RailNavigateHandler } from "./settings-rail";
 import { DEFAULT_SOCIAL_NETWORKS, SocialLinks } from "./social-links";
 import type { SocialNetwork } from "./social-links";
 import { StatusButton } from "./status-button";
-import { PHOTO_INSET, RING, RING_BUTTON } from "./surface";
+import { LIFT, PHOTO_INSET, RING, RING_BUTTON } from "./surface";
 import { ChangeWithCode } from "./verify-popover";
 import type { CodeFlow } from "./verify-popover";
 
@@ -910,7 +910,7 @@ export const ProfileSettings03 = (props: ProfileSettings03Props) => {
     <div
       data-slot="profile-settings-03"
       className={cn(
-        RING,
+        LIFT,
         "bg-background flex min-h-[52rem] flex-col overflow-hidden rounded-2xl",
         className
       )}
