@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDownIcon } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 import { CopyButton } from "@/components/copy-button";
 import {
@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Popover,
-  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
@@ -164,6 +163,7 @@ export const DocsCopyPage = ({
   markdownUrl: string;
   url: string;
 }) => {
+  const groupRef = useRef<HTMLDivElement>(null);
   const copyValue = useCallback(async () => {
     const response = await fetch(markdownUrl);
     return response.text();
@@ -181,8 +181,10 @@ export const DocsCopyPage = ({
 
   return (
     <Popover sounds>
-      <div className="group/buttons relative flex gap-1 rounded-lg bg-secondary *:data-[slot=button]:focus-visible:relative *:data-[slot=button]:focus-visible:z-10">
-        <PopoverAnchor />
+      <div
+        ref={groupRef}
+        className="group/buttons relative flex gap-1 rounded-lg bg-secondary *:data-[slot=button]:focus-visible:relative *:data-[slot=button]:focus-visible:z-10"
+      >
         <CopyButton
           value={copyValue}
           showTooltip={false}
@@ -211,11 +213,11 @@ export const DocsCopyPage = ({
           orientation="vertical"
           className="absolute top-1 right-9 z-0 h-6! bg-foreground/5! peer-focus-visible:opacity-0 sm:right-8 sm:h-5!"
         />
-        <PopoverTrigger asChild className="flex sm:hidden">
-          {trigger}
-        </PopoverTrigger>
+        <PopoverTrigger className="flex sm:hidden" render={trigger} />
         <PopoverContent
           className="w-52 origin-center! rounded-lg bg-background/70 p-1 shadow-none backdrop-blur-sm dark:bg-background/60"
+          // Opens under the whole button group, not just the chevron.
+          anchor={groupRef}
           align="start"
         >
           {MENU_ITEMS.map(([key, render]) => (

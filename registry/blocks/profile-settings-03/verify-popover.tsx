@@ -32,7 +32,7 @@ import { FLOAT, RING, RING_BUTTON } from "./surface";
  *                a wrong code shakes the boxes and says what to do
  *
  * Origin-aware: the popover grows out of the "Change …" link that opened
- * it (--radix-popover-content-transform-origin), scale 0.95 → 1 + fade,
+ * it (--transform-origin), scale 0.95 → 1 + fade,
  * 150ms ease-out; it closes in 100ms. Between the steps the content
  * crossfades (out 100ms, in 150ms) and the popover's height eases to the
  * new step's: 200ms on a quadratic ease-out (0.5, 1, 0.89, 1), which
@@ -384,18 +384,20 @@ export const ChangeWithCode = ({
         setOpen(value);
       }}
     >
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex w-fit items-center gap-2 rounded-sm text-sm outline-none focus-visible:ring-[3px]"
-        >
-          <HugeiconsIcon
-            icon={PencilEdit02Icon}
-            strokeWidth={1.75}
-            className="size-4"
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex w-fit items-center gap-2 rounded-sm text-sm outline-none focus-visible:ring-[3px]"
           />
-          Change {noun}
-        </button>
+        }
+      >
+        <HugeiconsIcon
+          icon={PencilEdit02Icon}
+          strokeWidth={1.75}
+          className="size-4"
+        />
+        Change {noun}
       </PopoverTrigger>
       <PopoverContent
         side={side}

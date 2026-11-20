@@ -212,18 +212,20 @@ export const HandleField = ({
         open={open}
         onOpenChange={(value) => (value ? openFresh() : close())}
       >
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex w-fit items-center gap-2 rounded-sm text-sm outline-none focus-visible:ring-[3px]"
-          >
-            <HugeiconsIcon
-              icon={PencilEdit02Icon}
-              strokeWidth={1.75}
-              className="size-4"
+        <PopoverTrigger
+          render={
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex w-fit items-center gap-2 rounded-sm text-sm outline-none focus-visible:ring-[3px]"
             />
-            Edit handle
-          </button>
+          }
+        >
+          <HugeiconsIcon
+            icon={PencilEdit02Icon}
+            strokeWidth={1.75}
+            className="size-4"
+          />
+          Edit handle
         </PopoverTrigger>
         <PopoverContent
           side={side}

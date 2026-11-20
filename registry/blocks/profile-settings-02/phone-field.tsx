@@ -28,8 +28,8 @@ import { FLOAT, RING } from "./surface";
  *   [🇮🇳 +91 ⌄ | 98765 43210]
  *
  * The code opens a searchable list. It is origin-aware: the list grows
- * out of the code button that opened it (transform-origin follows Radix's
- * --radix-popover-content-transform-origin), never from its own centre.
+ * out of the code button that opened it (transform-origin follows Base UI's
+ * --transform-origin), never from its own centre.
  *
  *   open    scale 0.95 → 1 + fade, 150ms ease-out (0.23, 1, 0.32, 1)
  *   close   scale 1 → 0.95 + fade, 100ms (exits faster than entrances)
@@ -110,10 +110,10 @@ const flagOf = (code: string) =>
 
 // Origin-aware entrance and exit (see the header). The shadow is the
 // block's float, so the list matches its other menus. The reduced-motion
-// overrides carry the same data-[state] as shadcn's zoom and slide, so
+// overrides carry the same data-open/closed as shadcn's zoom and slide, so
 // they're as specific and win.
 const LIST_MOTION =
-  "origin-(--radix-popover-content-transform-origin) ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:duration-150 data-[state=closed]:duration-100 motion-reduce:data-[state=open]:[--tw-enter-scale:1] motion-reduce:data-[state=closed]:[--tw-exit-scale:1] motion-reduce:data-[state=open]:[--tw-enter-translate-y:0] motion-reduce:data-[state=closed]:[--tw-exit-translate-y:0]";
+  "origin-(--transform-origin) ease-[cubic-bezier(0.23,1,0.32,1)] data-open:duration-150 data-closed:duration-100 motion-reduce:data-open:[--tw-enter-scale:1] motion-reduce:data-closed:[--tw-exit-scale:1] motion-reduce:data-open:[--tw-enter-translate-y:0] motion-reduce:data-closed:[--tw-exit-translate-y:0]";
 
 export const PhoneField = ({
   countries,
@@ -148,23 +148,25 @@ export const PhoneField = ({
       )}
     >
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Country code: ${nameOf(current.code)} (${current.dial})`}
-            // No divider: a light tint marks the country code as its own button.
-            className="bg-muted/60 hover:bg-accent focus-visible:bg-accent flex h-full shrink-0 items-center gap-1.5 rounded-l-[calc(var(--radius-md)-1px)] pr-2 pl-3 text-sm outline-none"
-          >
-            <span aria-hidden className="text-base leading-none">
-              {flagOf(current.code)}
-            </span>
-            <span className="tabular-nums">{current.dial}</span>
-            <HugeiconsIcon
-              icon={ArrowDown01Icon}
-              strokeWidth={1.75}
-              className="text-muted-foreground size-3.5"
+        <PopoverTrigger
+          render={
+            <button
+              type="button"
+              aria-label={`Country code: ${nameOf(current.code)} (${current.dial})`}
+              // No divider: a light tint marks the country code as its own button.
+              className="bg-muted/60 hover:bg-accent focus-visible:bg-accent flex h-full shrink-0 items-center gap-1.5 rounded-l-[calc(var(--radius-md)-1px)] pr-2 pl-3 text-sm outline-none"
             />
-          </button>
+          }
+        >
+          <span aria-hidden className="text-base leading-none">
+            {flagOf(current.code)}
+          </span>
+          <span className="tabular-nums">{current.dial}</span>
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            strokeWidth={1.75}
+            className="text-muted-foreground size-3.5"
+          />
         </PopoverTrigger>
         <PopoverContent
           align="start"
