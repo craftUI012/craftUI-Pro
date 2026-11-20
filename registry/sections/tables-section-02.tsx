@@ -88,6 +88,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
+// The time the first render (server and client alike) uses; the clock
+// takes over after mount.
+const FIRST_RENDER_NOW = Date.UTC(2026, 10, 20, 12);
+
 // ─── Menus ───────────────────────────────────────────────────────────────────
 // This block runs on either shadcn style. Radix closes a menu after a radio
 // pick on its own; Base UI keeps it open. So every menu here owns its open
@@ -2634,9 +2638,9 @@ export default function TablesSection02({
   className,
 }: TicketsSectionProps = {}) {
   const [tickets, setTickets] = React.useState<TicketRow[]>(
-    () => initialTickets ?? buildMockTickets(Date.now())
+    () => initialTickets ?? buildMockTickets(FIRST_RENDER_NOW)
   );
-  const [now, setNow] = React.useState(() => Date.now());
+  const [now, setNow] = React.useState(FIRST_RENDER_NOW);
   const [view, setView] = React.useState<ViewId>("all");
   const [query, setQuery] = React.useState("");
   const [filters, setFilters] = React.useState<Filters>(NO_FILTERS);
@@ -2661,9 +2665,19 @@ export default function TablesSection02({
   const refreshTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // SLA timers and "updated" times tick along.
+  // Never read the clock while rendering (Next 16 cacheComponents rejects
+  // it): the first render uses a fixed time, then the real clock takes over
+  // and the demo rows are rebuilt around it.
   React.useEffect(() => {
+    const start = Date.now();
+    setNow(start);
+    if (!initialTickets) {
+      setTickets(buildMockTickets(start));
+    }
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
+    // Mount only: later changes to the initial rows are the caller's.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(
