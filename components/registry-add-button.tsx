@@ -79,7 +79,9 @@ export const RegistryAddButton = ({
     [registryName]
   );
 
-  const handleTriggerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleTriggerClick: React.ComponentProps<typeof Button>["onClick"] = (
+    e
+  ) => {
     trackEvent({
       name: "click_registry_add_button",
       properties: {

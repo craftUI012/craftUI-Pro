@@ -413,15 +413,19 @@ export const BrowseTopBar = ({
                 {devLinks.map((link) => (
                   <Button
                     key={link.href}
-                    asChild
                     variant="ghost"
                     size="sm"
                     sound="click"
                     className={cn(NAV_TYPE, "text-muted-foreground")}
+                    nativeButton={false}
+                    render={
+                      <Link
+                        href={link.href}
+                        transitionTypes={["nav-forward"]}
+                      />
+                    }
                   >
-                    <Link href={link.href} transitionTypes={["nav-forward"]}>
-                      {link.label}
-                    </Link>
+                    {link.label}
                   </Button>
                 ))}
               </nav>
@@ -433,19 +437,19 @@ export const BrowseTopBar = ({
           )}
           {isAdmin && (
             <Button
-              asChild
               variant="ghost"
               size="sm"
               sound="click"
               className={NAV_TYPE}
+              nativeButton={false}
+              render={<Link href={ROUTES.ADMIN_PANEL} />}
             >
-              <Link href={ROUTES.ADMIN_PANEL}>Admin panel</Link>
+              Admin panel
             </Button>
           )}
           <ModeSwitcher />
           {/* Filled like an active library tab while on the pricing page. */}
           <Button
-            asChild
             variant="ghost"
             size="sm"
             sound="click"
@@ -453,23 +457,26 @@ export const BrowseTopBar = ({
               NAV_TYPE,
               onPricing && "bg-accent text-accent-foreground"
             )}
+            nativeButton={false}
+            render={
+              <Link
+                href={ROUTES.PRICING}
+                aria-current={onPricing ? "page" : undefined}
+              />
+            }
           >
-            <Link
-              href={ROUTES.PRICING}
-              aria-current={onPricing ? "page" : undefined}
-            >
-              Pricing
-            </Link>
+            Pricing
           </Button>
+          {/* No transition type: pricing, sign-in and the dashboard open in
+              place, without the page you leave sliding away. */}
           <Button
-            asChild
             size="sm"
             sound="click"
             className={cn(NAV_TYPE, "ml-1")}
+            nativeButton={false}
+            render={<Link href={account.href} />}
           >
-            {/* No transition type: pricing, sign-in and the dashboard open in
-                place, without the page you leave sliding away. */}
-            <Link href={account.href}>{account.label}</Link>
+            {account.label}
           </Button>
         </div>
       </div>

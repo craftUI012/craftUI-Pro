@@ -81,13 +81,18 @@ const AdminEmailsPage = async () => {
                     : "—"}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button asChild size="sm" variant="outline">
-                    <Link
-                      href={`${ROUTES.ADMIN_PANEL}/emails/${template.id}`}
-                      aria-label={`Edit ${template.name.toLowerCase()}`}
-                    >
-                      Edit
-                    </Link>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    nativeButton={false}
+                    render={
+                      <Link
+                        href={`${ROUTES.ADMIN_PANEL}/emails/${template.id}`}
+                        aria-label={`Edit ${template.name.toLowerCase()}`}
+                      />
+                    }
+                  >
+                    Edit
                   </Button>
                 </TableCell>
               </TableRow>

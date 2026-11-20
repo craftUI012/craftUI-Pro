@@ -40,7 +40,7 @@ Help me understand how to use it. Be ready to explain concepts, give examples, o
 
 // Also used by the preview cards' "Copy for AI" menu (preview-copy-for-ai.tsx),
 // minus "markdown".
-export const MENU_ITEMS: [string, (url: string) => React.ReactNode][] = [
+export const MENU_ITEMS: [string, (url: string) => React.ReactElement][] = [
   [
     "markdown",
     (url) => (
@@ -222,13 +222,12 @@ export const DocsCopyPage = ({
             <Button
               variant="ghost"
               size="lg"
-              asChild
               key={key}
               sound="click"
               className="w-full justify-start text-base font-normal *:[svg]:text-muted-foreground"
-            >
-              {render(url)}
-            </Button>
+              nativeButton={false}
+              render={render(url)}
+            />
           ))}
         </PopoverContent>
       </div>

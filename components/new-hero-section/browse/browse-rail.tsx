@@ -388,21 +388,22 @@ const BrowseMenu = ({
           line; gap-2 puts its text on the label line. */}
       <div className="px-1.5 pt-2 pb-4">
         <Button
-          asChild
           variant="outline"
           size="sm"
           sound="click"
           data-icon="inline-start"
           className="gap-2 border border-transparent"
+          nativeButton={false}
+          render={
+            <Link
+              href={ROUTES.CHANGELOG}
+              transitionTypes={["nav-forward"]}
+              onClick={onNavigate}
+            />
+          }
         >
-          <Link
-            href={ROUTES.CHANGELOG}
-            transitionTypes={["nav-forward"]}
-            onClick={onNavigate}
-          >
-            <History aria-hidden />
-            Changelog
-          </Link>
+          <History aria-hidden />
+          Changelog
         </Button>
       </div>
 

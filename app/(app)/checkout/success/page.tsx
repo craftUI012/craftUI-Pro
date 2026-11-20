@@ -42,8 +42,11 @@ const CheckoutSuccessPage = async ({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild>
-              <Link href={ROUTES.PRICING}>Back to pricing</Link>
+            <Button
+              nativeButton={false}
+              render={<Link href={ROUTES.PRICING} />}
+            >
+              Back to pricing
             </Button>
           </CardContent>
         </Card>
@@ -74,11 +77,15 @@ const CheckoutSuccessPage = async ({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-3">
-          <Button asChild>
-            <Link href={loginHref}>Sign in to unlock</Link>
+          <Button nativeButton={false} render={<Link href={loginHref} />}>
+            Sign in to unlock
           </Button>
-          <Button asChild variant="outline">
-            <Link href={ROUTES.PRICING}>Back to pricing</Link>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={ROUTES.PRICING} />}
+          >
+            Back to pricing
           </Button>
         </CardContent>
       </Card>

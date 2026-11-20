@@ -24,16 +24,20 @@ const GetStartedButton = () => {
 
   return (
     <Button
-      asChild
       sound="click"
       className="px-4"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      nativeButton={false}
+      render={
+        <Link
+          href={ROUTES.DOCS_INSTALLATION}
+          transitionTypes={["nav-forward"]}
+        />
+      }
     >
-      <Link href={ROUTES.DOCS_INSTALLATION} transitionTypes={["nav-forward"]}>
-        Get Started
-        <ArrowRightIcon ref={arrowRightRef} />
-      </Link>
+      Get Started
+      <ArrowRightIcon ref={arrowRightRef} />
     </Button>
   );
 };
@@ -51,17 +55,18 @@ const BrowseComponentsButton = () => {
 
   return (
     <Button
-      asChild
       variant="outline"
       sound="click"
       className="px-4"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      nativeButton={false}
+      render={
+        <Link href={ROUTES.DOCS_COMPONENTS} transitionTypes={["nav-forward"]} />
+      }
     >
-      <Link href={ROUTES.DOCS_COMPONENTS} transitionTypes={["nav-forward"]}>
-        <ComponentIcon ref={componentIconRef} size={22} />
-        Browse Components
-      </Link>
+      <ComponentIcon ref={componentIconRef} size={22} />
+      Browse Components
     </Button>
   );
 };

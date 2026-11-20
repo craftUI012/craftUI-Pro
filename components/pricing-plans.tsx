@@ -92,8 +92,13 @@ const PlanButton = ({
     );
   }
   return (
-    <Button asChild className="w-full" variant={variant}>
-      <Link href={plan.cta.action.href}>{plan.cta.label}</Link>
+    <Button
+      className="w-full"
+      variant={variant}
+      nativeButton={false}
+      render={<Link href={plan.cta.action.href} />}
+    >
+      {plan.cta.label}
     </Button>
   );
 };

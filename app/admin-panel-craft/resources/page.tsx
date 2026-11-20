@@ -122,17 +122,21 @@ const AdminResourcesPage = async ({
           return (
             <Button
               key={tab.label}
-              asChild
               size="sm"
               variant="outline"
               className={cn(active && "bg-accent text-accent-foreground")}
+              nativeButton={false}
+              render={
+                <Link
+                  href={tab.href}
+                  aria-current={active ? "page" : undefined}
+                />
+              }
             >
-              <Link href={tab.href} aria-current={active ? "page" : undefined}>
-                {tab.label}
-                <span className="text-muted-foreground tabular-nums">
-                  {tab.count}
-                </span>
-              </Link>
+              {tab.label}
+              <span className="text-muted-foreground tabular-nums">
+                {tab.count}
+              </span>
             </Button>
           );
         })}
@@ -153,8 +157,13 @@ const AdminResourcesPage = async ({
           Search
         </Button>
         {filtered && (
-          <Button asChild variant="ghost" size="sm">
-            <Link href={hrefFor({ category })}>Clear filters</Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            render={<Link href={hrefFor({ category })} />}
+          >
+            Clear filters
           </Button>
         )}
       </form>

@@ -588,14 +588,13 @@ export const BrandsSection = ({
             </p>
             {cta ? (
               <Button
-                asChild
                 className="h-auto gap-1.5 p-0 text-sm font-normal text-foreground underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground has-[>svg]:px-0"
                 variant="link"
+                nativeButton={false}
+                render={<a href={cta.href} />}
               >
-                <a href={cta.href}>
-                  {cta.label}
-                  <ArrowIcon />
-                </a>
+                {cta.label}
+                <ArrowIcon />
               </Button>
             ) : null}
           </div>

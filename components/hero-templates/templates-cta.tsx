@@ -9,10 +9,12 @@ import { ROUTES } from "@/constants/routes";
 // Client island, like the other section CTAs: a `Link` with `transitionTypes`
 // rendered from a server component hydrates with a mismatch.
 export const TemplatesCta = ({ className }: { className?: string }) => (
-  <Button asChild className={className}>
-    <Link href={ROUTES.PRICING}>
-      Get craftUI
-      <ArrowRight data-icon="inline-end" />
-    </Link>
+  <Button
+    className={className}
+    nativeButton={false}
+    render={<Link href={ROUTES.PRICING} />}
+  >
+    Get craftUI
+    <ArrowRight data-icon="inline-end" />
   </Button>
 );

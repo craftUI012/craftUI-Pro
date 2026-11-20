@@ -344,34 +344,35 @@ const FeatureDetails = ({
     </div>
     {feature.href ? (
       <Button
-        asChild
         className={cn(
           "group/link h-11 gap-4 self-start rounded-none py-0 pr-0 pl-5",
           FOCUS
         )}
         size="lg"
         variant="default"
+        nativeButton={false}
+        render={
+          <a
+            href={feature.href}
+            {...(isExternal(feature.href)
+              ? { rel: "noreferrer", target: "_blank" }
+              : {})}
+          />
+        }
       >
-        <a
-          href={feature.href}
-          {...(isExternal(feature.href)
-            ? { rel: "noreferrer", target: "_blank" }
-            : {})}
+        {linkLabel}
+        {/* The arrow on its own square tile, flush with the button's end. */}
+        <span
+          aria-hidden
+          className="grid size-11 place-items-center bg-black/20"
         >
-          {linkLabel}
-          {/* The arrow on its own square tile, flush with the button's end. */}
-          <span
-            aria-hidden
-            className="grid size-11 place-items-center bg-black/20"
-          >
-            <ArrowIcon className="size-3.5 transition-transform duration-200 ease-out group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 motion-reduce:group-hover/link:translate-0" />
-          </span>
-          <span className="sr-only">
-            {isExternal(feature.href)
-              ? `(${feature.publication}, opens in a new tab)`
-              : `(${feature.publication})`}
-          </span>
-        </a>
+          <ArrowIcon className="size-3.5 transition-transform duration-200 ease-out group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 motion-reduce:group-hover/link:translate-0" />
+        </span>
+        <span className="sr-only">
+          {isExternal(feature.href)
+            ? `(${feature.publication}, opens in a new tab)`
+            : `(${feature.publication})`}
+        </span>
       </Button>
     ) : null}
   </motion.div>

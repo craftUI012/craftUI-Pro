@@ -1,8 +1,10 @@
 "use client";
 
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { cva } from "class-variance-authority";
 import type { VariantProps } from "class-variance-authority";
-import { Slot } from "radix-ui";
 
 import type { FeedbackType } from "@/hooks/use-feedback";
 import { useFeedback } from "@/hooks/use-feedback";
@@ -51,8 +53,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ComponentProps<"button">, VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+  extends ButtonPrimitive.Props, VariantProps<typeof buttonVariants> {
   sound?: FeedbackType;
   haptic?: boolean;
   // Skip the press scale, where motion would distract (dense toolbars).
@@ -63,33 +64,59 @@ const Button = ({
   className,
   variant,
   size,
-  asChild = false,
   sound,
   haptic,
   static: isStatic = false,
   onClick,
+  render,
+  nativeButton,
   ...props
 }: ButtonProps) => {
   const play = useFeedback({ haptic, sound });
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick: ButtonPrimitive.Props["onClick"] = (e) => {
     play();
     onClick?.(e);
   };
 
-  const Comp = asChild ? Slot.Root : "button";
+  const shared = {
+    className: cn(
+      buttonVariants({ size, variant }),
+      isStatic && "active:scale-100",
+      className
+    ),
+    "data-size": size,
+    "data-slot": "button",
+    "data-variant": variant,
+  };
+
+  // A link styled as a button (render={<Link />} nativeButton={false}) stays
+  // a link: Base UI's Button would give it role="button" and button key
+  // handling, so links are rendered with useRender instead. Real buttons
+  // use the Button primitive.
+  const isLink = nativeButton === false && render !== undefined;
+  const link = useRender({
+    defaultTagName: "a",
+    enabled: isLink,
+    props: mergeProps<"a">(shared as React.ComponentProps<"a">, {
+      ...(props as React.ComponentProps<"a">),
+      onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+        play();
+        (onClick as ((e: typeof event) => void) | undefined)?.(event);
+      },
+    }),
+    render: render as useRender.RenderProp,
+  });
+  if (isLink) {
+    return link;
+  }
 
   return (
-    <Comp
-      data-slot="button"
-      data-size={size}
-      data-variant={variant}
-      className={cn(
-        buttonVariants({ size, variant }),
-        isStatic && "active:scale-100",
-        className
-      )}
+    <ButtonPrimitive
+      {...shared}
       onClick={handleClick}
+      render={render}
+      nativeButton={nativeButton}
       {...props}
     />
   );

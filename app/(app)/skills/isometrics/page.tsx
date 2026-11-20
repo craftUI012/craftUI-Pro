@@ -142,11 +142,14 @@ const SkillPage = () => (
           </p>
           <div className="flex flex-col items-start gap-3">
             <InstallChip />
-            <Button asChild className="shrink-0" variant="outline">
-              <Link href={LIBRARY}>
-                See what it makes
-                <Icon icon={ArrowRight01Icon} />
-              </Link>
+            <Button
+              className="shrink-0"
+              variant="outline"
+              nativeButton={false}
+              render={<Link href={LIBRARY} />}
+            >
+              See what it makes
+              <Icon icon={ArrowRight01Icon} />
             </Button>
           </div>
         </div>
@@ -168,11 +171,13 @@ const SkillPage = () => (
     >
       <ProductStrip
         action={
-          <Button asChild variant="outline">
-            <Link href={LIBRARY}>
-              See all isometrics
-              <Icon icon={ArrowRight01Icon} />
-            </Link>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={LIBRARY} />}
+          >
+            See all isometrics
+            <Icon icon={ArrowRight01Icon} />
           </Button>
         }
         head={
@@ -394,14 +399,16 @@ const SkillPage = () => (
             Your next empty state is one sentence away
           </h2>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild>
-              <a href="#install">
-                Install the skill
-                <Icon icon={ArrowRight01Icon} />
-              </a>
+            <Button nativeButton={false} render={<a href="#install" />}>
+              Install the skill
+              <Icon icon={ArrowRight01Icon} />
             </Button>
-            <Button asChild variant="outline">
-              <Link href={LIBRARY}>See what it makes</Link>
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href={LIBRARY} />}
+            >
+              See what it makes
             </Button>
           </div>
         </div>
