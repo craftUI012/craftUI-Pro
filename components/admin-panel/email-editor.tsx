@@ -324,11 +324,10 @@ export const EmailEditor = ({
               <TabsTrigger value="text">Plain text</TabsTrigger>
             </TabsList>
             <ToggleGroup
-              type="single"
               size="sm"
               variant="outline"
-              value={width}
-              onValueChange={(value) => {
+              value={[width]}
+              onValueChange={([value = ""]) => {
                 if (value) {
                   setWidth(value as PreviewWidth);
                 }

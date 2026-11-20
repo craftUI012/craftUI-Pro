@@ -279,10 +279,9 @@ export const DevicePreview = () => {
         {/* Section picker (what to preview) and device switcher (where). */}
         <div className="flex w-full flex-col items-center gap-3 md:flex-row md:justify-between">
           <ToggleGroup
-            type="single"
             variant="outline"
-            value={slug}
-            onValueChange={(value) =>
+            value={[slug]}
+            onValueChange={([value = ""]) =>
               value && selectTemplate(value as TemplateSlug)
             }
             aria-label="Template section"
@@ -302,10 +301,9 @@ export const DevicePreview = () => {
             ))}
           </ToggleGroup>
           <ToggleGroup
-            type="single"
             variant="outline"
-            value={deviceId}
-            onValueChange={(value) => value && select(value as DeviceId)}
+            value={[deviceId]}
+            onValueChange={([value = ""]) => value && select(value as DeviceId)}
             aria-label="Preview the template on"
           >
             {DEVICES.map((item) => {

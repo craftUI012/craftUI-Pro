@@ -818,10 +818,9 @@ const ThemeVisual = () => {
       )}
     >
       <ToggleGroup
-        type="single"
         variant="outline"
-        value={mode}
-        onValueChange={(value) => value && setMode(value as Mode)}
+        value={[mode]}
+        onValueChange={([value = ""]) => value && setMode(value as Mode)}
         aria-label="Theme of this preview"
       >
         <ToggleGroupItem value="light" className="gap-2 px-3">
@@ -976,10 +975,9 @@ const DeviceVisual = () => {
   return (
     <div className="flex size-full flex-col items-center justify-center gap-4 p-5">
       <ToggleGroup
-        type="single"
         variant="outline"
-        value={active}
-        onValueChange={(value) => value && setActive(value as DeviceId)}
+        value={[active]}
+        onValueChange={([value = ""]) => value && setActive(value as DeviceId)}
         aria-label="Show the card on"
       >
         {SCREEN_ORDER.map((id) => {

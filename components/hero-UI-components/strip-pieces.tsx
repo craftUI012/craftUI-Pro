@@ -88,8 +88,7 @@ const SliderPiece = () => (
 
 const ToggleGroupPiece = () => (
   <ToggleGroup
-    type="single"
-    defaultValue="week"
+    defaultValue={["week"]}
     variant="outline"
     size="sm"
     aria-label="Date range"
