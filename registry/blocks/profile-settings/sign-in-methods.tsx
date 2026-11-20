@@ -507,24 +507,26 @@ export const SignInMethods = ({ settings }: { settings: SignInSettings }) => {
                         : "Connected just now"}
                     </span>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`More actions for ${provider.name}`}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <HugeiconsIcon
-                            icon={MoreHorizontalIcon}
-                            strokeWidth={1.75}
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`More actions for ${provider.name}`}
+                            className="text-muted-foreground hover:text-foreground"
                           />
-                        </Button>
+                        }
+                      >
+                        <HugeiconsIcon
+                          icon={MoreHorizontalIcon}
+                          strokeWidth={1.75}
+                        />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className={FLOAT}>
                         <DropdownMenuItem
                           variant="destructive"
-                          onSelect={() => disconnect(provider.id)}
+                          onClick={() => disconnect(provider.id)}
                         >
                           Disconnect {provider.name}
                         </DropdownMenuItem>

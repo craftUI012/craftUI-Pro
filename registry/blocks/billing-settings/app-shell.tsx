@@ -210,20 +210,22 @@ export const AppShell = (props: AppShellProps) => {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-12 shrink-0 items-center gap-2 px-3 lg:px-4">
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Open menu"
-                className="size-8 lg:hidden"
-              >
-                <HugeiconsIcon
-                  icon={Menu01Icon}
-                  strokeWidth={1.75}
-                  className="size-4"
+            <SheetTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Open menu"
+                  className="size-8 lg:hidden"
                 />
-              </Button>
+              }
+            >
+              <HugeiconsIcon
+                icon={Menu01Icon}
+                strokeWidth={1.75}
+                className="size-4"
+              />
             </SheetTrigger>
             <SheetContent side="left" className="w-64 border-0 p-0">
               <SheetTitle className="sr-only">Menu</SheetTitle>

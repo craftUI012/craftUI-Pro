@@ -100,11 +100,11 @@ export const PreviewInstallCommand = ({
         </CopyButton>
       )}
       <DropdownMenu sounds>
-        <DropdownMenuTrigger asChild>
-          <Button className="size-7" size="icon" variant="secondary">
-            <ChevronDownIcon className="size-3.5" />
-            <span className="sr-only">Choose package manager</span>
-          </Button>
+        <DropdownMenuTrigger
+          render={<Button className="size-7" size="icon" variant="secondary" />}
+        >
+          <ChevronDownIcon className="size-3.5" />
+          <span className="sr-only">Choose package manager</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {PACKAGE_MANAGERS.map((item) => (

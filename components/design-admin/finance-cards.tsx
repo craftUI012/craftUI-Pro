@@ -219,7 +219,9 @@ const PayoutThresholdCard = () => {
           </div>
           <Slider
             value={amount}
-            onValueChange={setAmount}
+            onValueChange={(next) =>
+              setAmount(Array.isArray(next) ? [...next] : [next as number])
+            }
             min={50}
             max={10_000}
             step={50}
@@ -357,12 +359,7 @@ const KitchenIslandCard = () => (
     action={<Switch defaultChecked aria-label="Kitchen Island power" />}
   >
     <div className="flex flex-col gap-3">
-      <ToggleGroup
-        type="single"
-        defaultValue="cooking"
-        variant="outline"
-        size="sm"
-      >
+      <ToggleGroup defaultValue={["cooking"]} variant="outline" size="sm">
         <ToggleGroupItem value="cooking">Cooking</ToggleGroupItem>
         <ToggleGroupItem value="dining">Dining</ToggleGroupItem>
         <ToggleGroupItem value="nightlight">Nightlight</ToggleGroupItem>
@@ -610,7 +607,7 @@ const FaqCard = () => (
           <TabsTrigger value="goals">Goals</TabsTrigger>
         </TabsList>
       </Tabs>
-      <Accordion type="single" collapsible defaultValue="security">
+      <Accordion defaultValue={["security"]}>
         <AccordionItem value="security">
           <AccordionTrigger>
             How secure is my financial data with Ledger?
@@ -684,7 +681,7 @@ const HoldingsCard = () => (
           <Input placeholder="Search holdings or tickers…" className="pl-8" />
         </div>
         <ToggleGroup
-          type="multiple"
+          multiple
           variant="outline"
           size="sm"
           defaultValue={["etfs"]}
@@ -1014,7 +1011,7 @@ const ReceivingMethodCard = () => (
             <Label
               key={option.value}
               htmlFor={`rm-${option.value}`}
-              className="has-data-[state=checked]:shadow-border-hover has-data-[state=checked]:bg-accent/50 flex cursor-pointer items-start gap-2 rounded-lg p-3 font-normal shadow-border transition-[background-color,box-shadow]"
+              className="has-data-checked:shadow-border-hover has-data-checked:bg-accent/50 flex cursor-pointer items-start gap-2 rounded-lg p-3 font-normal shadow-border transition-[background-color,box-shadow]"
             >
               <RadioGroupItem
                 id={`rm-${option.value}`}
@@ -1099,12 +1096,7 @@ const LivingRoomCard = () => (
     title="Living Room"
     description="Roller Shades"
     footer={
-      <ToggleGroup
-        type="single"
-        defaultValue="half"
-        variant="outline"
-        className="w-full"
-      >
+      <ToggleGroup defaultValue={["half"]} variant="outline" className="w-full">
         <ToggleGroupItem value="open" className="flex-1">
           Open
         </ToggleGroupItem>
@@ -1300,7 +1292,8 @@ const NotificationsCard = () => {
         <div className="flex items-center gap-2">
           <Checkbox
             id="notify-all"
-            checked={selectAll}
+            checked={selectAll === true}
+            indeterminate={selectAll === "indeterminate"}
             onCheckedChange={(value) =>
               setChecked(
                 Object.fromEntries(

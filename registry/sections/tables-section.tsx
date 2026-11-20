@@ -67,6 +67,10 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
+// The time the first render (server and client alike) uses; the clock
+// takes over after mount.
+const FIRST_RENDER_NOW = Date.UTC(2026, 10, 20, 12);
+
 // ─── Menus ───────────────────────────────────────────────────────────────────
 // This block runs on either shadcn style. Radix closes a menu after a radio
 // pick on its own; Base UI keeps it open. So every menu here owns its open
@@ -487,9 +491,13 @@ const KeysToolbar = ({
               onStatusFilterChange(value as "all" | ApiKeyStatus)
             }
           >
-            <DropdownMenuRadioItem value="all">All keys</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="active">Active</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="disabled">
+            <DropdownMenuRadioItem closeOnClick value="all">
+              All keys
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem closeOnClick value="active">
+              Active
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem closeOnClick value="disabled">
               Disabled
             </DropdownMenuRadioItem>
           </MenuRadioGroup>
@@ -514,9 +522,11 @@ const KeysToolbar = ({
           <DropdownMenuLabel>Filter by user</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <MenuRadioGroup value={userFilter} onValueChange={onUserFilterChange}>
-            <DropdownMenuRadioItem value="all">All users</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem closeOnClick value="all">
+              All users
+            </DropdownMenuRadioItem>
             {users.map((user) => (
-              <DropdownMenuRadioItem key={user} value={user}>
+              <DropdownMenuRadioItem closeOnClick key={user} value={user}>
                 {user}
               </DropdownMenuRadioItem>
             ))}
@@ -544,7 +554,6 @@ const KeysToolbar = ({
                 onCheckedChange={() => onToggleColumn(col.id)}
                 // Radix closes the menu on a toggle; keep it open, as Base UI
                 // does, so several columns can be switched in one go.
-                onSelect={(event) => event.preventDefault()}
               >
                 {col.label}
               </DropdownMenuCheckboxItem>
@@ -987,7 +996,11 @@ const KeysFooter = ({
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
               {PAGE_SIZES.map((size) => (
-                <DropdownMenuRadioItem key={size} value={String(size)}>
+                <DropdownMenuRadioItem
+                  closeOnClick
+                  key={size}
+                  value={String(size)}
+                >
                   {size}
                 </DropdownMenuRadioItem>
               ))}
@@ -1434,9 +1447,9 @@ export default function TablesSection({
   className,
 }: ApiKeysSectionProps = {}) {
   const [keys, setKeys] = React.useState<ApiKeyRow[]>(
-    () => initialKeys ?? buildMockKeys(Date.now())
+    () => initialKeys ?? buildMockKeys(FIRST_RENDER_NOW)
   );
-  const [now, setNow] = React.useState(() => Date.now());
+  const [now, setNow] = React.useState(FIRST_RENDER_NOW);
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | ApiKeyStatus>(
     "all"
@@ -1475,9 +1488,19 @@ export default function TablesSection({
   const refreshTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const copyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Never read the clock while rendering (Next 16 cacheComponents rejects
+  // it): the first render uses a fixed time, then the real clock takes over
+  // and the demo rows are rebuilt around it.
   React.useEffect(() => {
+    const start = Date.now();
+    setNow(start);
+    if (!initialKeys) {
+      setKeys(buildMockKeys(start));
+    }
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
+    // Mount only: later changes to the initial rows are the caller's.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(

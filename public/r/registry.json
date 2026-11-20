@@ -2235,7 +2235,7 @@
         "@hugeicons/core-free-icons",
         "@hugeicons/react",
         "motion",
-        "radix-ui",
+        "@base-ui/react",
         "react-use-measure"
       ],
       "registryDependencies": [

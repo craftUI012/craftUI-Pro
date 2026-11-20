@@ -147,7 +147,7 @@ export const CommandMenu = ({
   navItems,
   tree,
   ...props
-}: React.ComponentProps<typeof Dialog> & {
+}: Omit<React.ComponentProps<typeof Button>, "children"> & {
   blocks?: { name: string; description: string; categories: string[] }[];
   navItems: { href: string; label: string }[];
   tree: PageTreeRoot;
@@ -315,22 +315,24 @@ export const CommandMenu = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen} sounds>
-      <DialogTrigger asChild>
-        <Button
-          variant="secondary"
-          className={cn(
-            "bg-surface text-surface-foreground/60 dark:bg-card relative h-8 w-full justify-start pl-2.5 font-normal shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64"
-          )}
-          onClick={handleOpenClick}
-          {...props}
-        >
-          <span className="hidden lg:inline-flex">Search documentation...</span>
-          <span className="inline-flex lg:hidden">Search...</span>
-          <div className="absolute top-1.5 right-1.5 hidden gap-1 sm:flex">
-            <Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-            <Kbd className="aspect-square">K</Kbd>
-          </div>
-        </Button>
+      <DialogTrigger
+        render={
+          <Button
+            variant="secondary"
+            className={cn(
+              "bg-surface text-surface-foreground/60 dark:bg-card relative h-8 w-full justify-start pl-2.5 font-normal shadow-none sm:pr-12 md:w-40 lg:w-56 xl:w-64"
+            )}
+            onClick={handleOpenClick}
+            {...props}
+          />
+        }
+      >
+        <span className="hidden lg:inline-flex">Search documentation...</span>
+        <span className="inline-flex lg:hidden">Search...</span>
+        <div className="absolute top-1.5 right-1.5 hidden gap-1 sm:flex">
+          <Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+          <Kbd className="aspect-square">K</Kbd>
+        </div>
       </DialogTrigger>
       <DialogContent
         showCloseButton={false}

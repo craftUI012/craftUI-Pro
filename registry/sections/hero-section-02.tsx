@@ -353,7 +353,7 @@ const LogoMarquee = ({
   </div>
 );
 
-/* Plain links styled with the theme's tokens rather than <Button asChild>:
+/* Plain links styled with the theme's tokens rather than <Button render={<a />}>:
  * they're server-rendered, and need no client code to be links. */
 /* Both actions: 44px tall on phones and 48px from @lg (over the 40px hit
  * area either way), and a 0.96 press so a click feels physical.

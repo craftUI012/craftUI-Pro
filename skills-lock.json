@@ -1,23 +1,30 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "launch-shadcn-registry": {
       "source": "shadcn-labs/skills",
       "sourceType": "github",
       "skillPath": "skills/launch-shadcn-registry/SKILL.md",
-      "computedHash": "17a0c8751bac286ce315bcfdec7c9a6b500883d048e40bc61ae75844491f7783"
+      "computedHash": "0fc078536e0a1c83a18aa863efe17eababc86ac8e8e9233d811ecd53d32a615a"
     },
     "libraries-dev": {
       "source": "Jakubantalik/Libraries.dev",
       "sourceType": "github",
       "skillPath": "skills/libraries-dev/SKILL.md",
-      "computedHash": "8bf023fbbfdc9051c0a945c15dd6082e350214a203761e6ccabd9aa241c05f75"
+      "computedHash": "6acc8162bec1b519fa63ee778b92a0e7b70f5e67fc9912d2ef5815d635370337"
+    },
+    "migrate-radix-to-base": {
+      "source": "shadcn-ui/ui",
+      "commit": "f50887ae68d0fdcbfbe86b57be08af94a4c88a68",
+      "sourceType": "github",
+      "skillPath": "skills/migrate-radix-to-base/SKILL.md",
+      "computedHash": "7644de21e9aa533904def58c30f809ae6574c3cabc6396ab8b03dee751e8ffbe"
     },
     "stageshow": {
       "source": "benjitaylor/skills",
       "sourceType": "github",
       "skillPath": "stageshow/SKILL.md",
-      "computedHash": "a3c332b76583e2ed7048c8f24eaa9cb3694c8cba2adb43d8a3c0b2f15f84c7c2"
+      "computedHash": ""
     }
   }
 }

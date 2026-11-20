@@ -9,10 +9,15 @@ import { Button } from "@/components/ui/button";
 // A client component so the Button and its <a> render together: built in a
 // server component, the asChild link hydrated as a mismatch.
 export const InvoiceDownloadButton = ({ paymentId }: { paymentId: string }) => (
-  <Button asChild size="sm" variant="outline">
-    <a href={`/api/invoices/${encodeURIComponent(paymentId)}`} download>
-      <DownloadIcon aria-hidden />
-      Invoice
-    </a>
+  <Button
+    size="sm"
+    variant="outline"
+    nativeButton={false}
+    render={
+      <a href={`/api/invoices/${encodeURIComponent(paymentId)}`} download />
+    }
+  >
+    <DownloadIcon aria-hidden />
+    Invoice
   </Button>
 );

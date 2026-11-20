@@ -36,6 +36,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -545,37 +546,41 @@ const Account = ({
   user: AppShellSettings["user"];
 }) => (
   <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <button
-        type="button"
-        className="hover:bg-accent/60 focus-visible:ring-ring/50 flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left outline-none focus-visible:ring-[3px]"
-      >
-        <Avatar className="relative size-8">
-          {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
-          <AvatarFallback className="text-xs">
-            {initialsOf(user.name)}
-          </AvatarFallback>
-          <span aria-hidden className={PHOTO_INSET} />
-        </Avatar>
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-medium">{user.name}</span>
-          <span className="text-muted-foreground truncate text-xs">
-            {user.email}
-          </span>
-        </span>
-        <HugeiconsIcon
-          icon={UnfoldMoreIcon}
-          strokeWidth={1.75}
-          className="text-muted-foreground size-4"
+    <DropdownMenuTrigger
+      render={
+        <button
+          type="button"
+          className="hover:bg-accent/60 focus-visible:ring-ring/50 flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left outline-none focus-visible:ring-[3px]"
         />
-      </button>
+      }
+    >
+      <Avatar className="relative size-8">
+        {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
+        <AvatarFallback className="text-xs">
+          {initialsOf(user.name)}
+        </AvatarFallback>
+        <span aria-hidden className={PHOTO_INSET} />
+      </Avatar>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-sm font-medium">{user.name}</span>
+        <span className="text-muted-foreground truncate text-xs">
+          {user.email}
+        </span>
+      </span>
+      <HugeiconsIcon
+        icon={UnfoldMoreIcon}
+        strokeWidth={1.75}
+        className="text-muted-foreground size-4"
+      />
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" side="top" className={cn(FLOAT, "w-56")}>
-      <DropdownMenuLabel className="text-muted-foreground text-xs font-normal">
-        Signed in as {user.email}
-      </DropdownMenuLabel>
+      <DropdownMenuGroup>
+        <DropdownMenuLabel className="text-muted-foreground text-xs font-normal">
+          Signed in as {user.email}
+        </DropdownMenuLabel>
+      </DropdownMenuGroup>
       <DropdownMenuSeparator className="bg-transparent" />
-      <DropdownMenuItem onSelect={onSignOut}>
+      <DropdownMenuItem onClick={onSignOut}>
         <HugeiconsIcon icon={Logout01Icon} strokeWidth={1.75} />
         Sign out
       </DropdownMenuItem>
@@ -617,45 +622,49 @@ const WorkspaceSwitcher = ({ app }: { app: AppShellSettings }) => {
   }
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label={`Workspace: ${current}. Switch workspace`}
-          className="hover:bg-accent/60 focus-visible:ring-ring/50 flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-1 outline-none focus-visible:ring-[3px]"
-        >
-          {brand}
-          <HugeiconsIcon
-            icon={UnfoldMoreIcon}
-            strokeWidth={1.75}
-            className="text-muted-foreground size-4 shrink-0"
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            aria-label={`Workspace: ${current}. Switch workspace`}
+            className="hover:bg-accent/60 focus-visible:ring-ring/50 flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-1 outline-none focus-visible:ring-[3px]"
           />
-        </button>
+        }
+      >
+        {brand}
+        <HugeiconsIcon
+          icon={UnfoldMoreIcon}
+          strokeWidth={1.75}
+          className="text-muted-foreground size-4 shrink-0"
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className={cn(FLOAT, "w-56")}>
-        <DropdownMenuLabel className="text-muted-foreground text-xs font-normal">
-          Workspaces
-        </DropdownMenuLabel>
-        {workspaces.map((space) => (
-          <DropdownMenuItem
-            key={space.id}
-            onSelect={() => {
-              setCurrent(space.name);
-              app.onSwitchWorkspace?.(space.id);
-            }}
-          >
-            {space.logo ?? <Monogram name={space.name} />}
-            <span className="flex-1 truncate">{space.name}</span>
-            {space.name === current ? (
-              <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
-            ) : null}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-muted-foreground text-xs font-normal">
+            Workspaces
+          </DropdownMenuLabel>
+          {workspaces.map((space) => (
+            <DropdownMenuItem
+              key={space.id}
+              onClick={() => {
+                setCurrent(space.name);
+                app.onSwitchWorkspace?.(space.id);
+              }}
+            >
+              {space.logo ?? <Monogram name={space.name} />}
+              <span className="flex-1 truncate">{space.name}</span>
+              {space.name === current ? (
+                <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+              ) : null}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
         <DropdownMenuSeparator className="bg-transparent" />
-        <DropdownMenuItem onSelect={app.onInvite}>
+        <DropdownMenuItem onClick={app.onInvite}>
           <HugeiconsIcon icon={UserAdd01Icon} strokeWidth={1.75} />
           Invite people
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={app.onNewWorkspace}>
+        <DropdownMenuItem onClick={app.onNewWorkspace}>
           <HugeiconsIcon icon={PlusSignIcon} strokeWidth={1.75} />
           New workspace
         </DropdownMenuItem>
@@ -775,16 +784,18 @@ export const AppShell = ({
         <header className="flex h-14 shrink-0 items-center gap-2 px-3 sm:px-4">
           {/* Phones and tablets: the sidebar opens as a sheet. */}
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Open sidebar"
-                className="text-muted-foreground hover:text-foreground lg:hidden"
-              >
-                <HugeiconsIcon icon={Menu01Icon} strokeWidth={1.75} />
-              </Button>
+            <SheetTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Open sidebar"
+                  className="text-muted-foreground hover:text-foreground lg:hidden"
+                />
+              }
+            >
+              <HugeiconsIcon icon={Menu01Icon} strokeWidth={1.75} />
             </SheetTrigger>
             {/* Override: no edge rule; the sheet's own shadow lifts it. */}
             <SheetContent

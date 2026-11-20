@@ -1,8 +1,8 @@
 "use client";
 
+import { Accordion } from "@base-ui/react/accordion";
 import { Check } from "lucide-react";
 import { AnimatePresence, LazyMotion, MotionConfig, m } from "motion/react";
-import { Accordion } from "radix-ui";
 import * as React from "react";
 
 import { FEATURE_VISUALS } from "@/components/hero-features/feature-visuals";
@@ -75,10 +75,9 @@ export const FeaturesShowcase = () => {
       <MotionConfig reducedMotion="user">
         <div className="grid grid-cols-1 items-center gap-major-sm lg:grid-cols-2 lg:gap-major-lg">
           <Accordion.Root
-            type="single"
-            value={open}
+            value={[open]}
             // Keep one open: ignore the "collapse the open item" change.
-            onValueChange={(value) => value && setOpen(value as FeatureId)}
+            onValueChange={([value]) => value && setOpen(value as FeatureId)}
             className="flex flex-col"
           >
             {FEATURES.map((feature) => {
@@ -118,7 +117,7 @@ export const FeaturesShowcase = () => {
                       </span>
                     </Accordion.Trigger>
                   </Accordion.Header>
-                  <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden motion-reduce:animate-none">
+                  <Accordion.Panel className="h-(--accordion-panel-height) overflow-hidden transition-[height] duration-200 ease-out data-starting-style:h-0 data-ending-style:h-0 motion-reduce:transition-none">
                     <div
                       className={cn("flex flex-col pb-5 pl-6", RHYTHM.minor)}
                     >
@@ -151,7 +150,7 @@ export const FeaturesShowcase = () => {
                         <VisualPanel id={feature.id} className="mt-2" />
                       )}
                     </div>
-                  </Accordion.Content>
+                  </Accordion.Panel>
                 </Accordion.Item>
               );
             })}

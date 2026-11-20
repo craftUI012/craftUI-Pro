@@ -28,12 +28,12 @@ export const EASE_IN_OUT = [0.645, 0.045, 0.355, 1] as const;
 // For tall reveals, where ease-in-out's slow start reads as a second step.
 export const EASE_OUT_QUAD = [0.5, 1, 0.89, 1] as const;
 
-// Popovers grow out of the control that opened them (Radix's transform
+// Popovers grow out of the control that opened them (Base UI's transform
 // origin), scale 0.95 → 1 + fade, 150ms ease-out; close in 100ms. The
-// reduced-motion overrides carry the same data-[state] as shadcn's zoom
+// reduced-motion overrides carry the same data-open/closed as shadcn's zoom
 // and slide classes, so they're as specific and win.
 export const POPOVER_MOTION =
-  "origin-(--radix-popover-content-transform-origin) ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:duration-150 data-[state=closed]:duration-100 motion-reduce:data-[state=open]:[--tw-enter-scale:1] motion-reduce:data-[state=closed]:[--tw-exit-scale:1] motion-reduce:data-[state=open]:[--tw-enter-translate-x:0] motion-reduce:data-[state=closed]:[--tw-exit-translate-x:0] motion-reduce:data-[state=open]:[--tw-enter-translate-y:0] motion-reduce:data-[state=closed]:[--tw-exit-translate-y:0]";
+  "origin-(--transform-origin) ease-[cubic-bezier(0.23,1,0.32,1)] data-open:duration-150 data-closed:duration-100 motion-reduce:data-open:[--tw-enter-scale:1] motion-reduce:data-closed:[--tw-exit-scale:1] motion-reduce:data-open:[--tw-enter-translate-x:0] motion-reduce:data-closed:[--tw-exit-translate-x:0] motion-reduce:data-open:[--tw-enter-translate-y:0] motion-reduce:data-closed:[--tw-exit-translate-y:0]";
 
 /** Resolves after `ms`: the demo's stand-in for a network call. */
 export const wait = (ms: number) =>

@@ -77,8 +77,13 @@ const AdminPurchasesPage = async ({
           Filter
         </Button>
         {(q || kind || status) && (
-          <Button asChild variant="ghost" size="sm">
-            <Link href={`${ROUTES.ADMIN_PANEL}/purchases`}>Clear</Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            render={<Link href={`${ROUTES.ADMIN_PANEL}/purchases`} />}
+          >
+            Clear
           </Button>
         )}
       </form>

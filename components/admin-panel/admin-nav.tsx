@@ -33,17 +33,21 @@ export const AdminNav = () => {
         return (
           <Button
             key={link.href}
-            asChild
             size="sm"
             variant="ghost"
             className={cn(
               "text-muted-foreground",
               active && "bg-accent text-accent-foreground"
             )}
+            nativeButton={false}
+            render={
+              <Link
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+              />
+            }
           >
-            <Link href={link.href} aria-current={active ? "page" : undefined}>
-              {link.label}
-            </Link>
+            {link.label}
           </Button>
         );
       })}

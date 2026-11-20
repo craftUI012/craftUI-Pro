@@ -34,12 +34,12 @@ export const TruncatedText = ({
     <Tooltip
       open={open}
       onOpenChange={(next) => setOpen(next && isTruncated())}
-      delayDuration={DELAY_MS}
     >
-      <TooltipTrigger asChild>
-        <span ref={ref} className={cn("truncate", className)}>
-          {text}
-        </span>
+      <TooltipTrigger
+        delay={DELAY_MS}
+        render={<span ref={ref} className={cn("truncate", className)} />}
+      >
+        {text}
       </TooltipTrigger>
       <TooltipContent
         side="bottom"

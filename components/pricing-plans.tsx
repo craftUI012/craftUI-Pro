@@ -92,8 +92,13 @@ const PlanButton = ({
     );
   }
   return (
-    <Button asChild className="w-full" variant={variant}>
-      <Link href={plan.cta.action.href}>{plan.cta.label}</Link>
+    <Button
+      className="w-full"
+      variant={variant}
+      nativeButton={false}
+      render={<Link href={plan.cta.action.href} />}
+    >
+      {plan.cta.label}
     </Button>
   );
 };
@@ -276,7 +281,7 @@ export const PricingPlans = () => {
           >
             {PRICING.faq.heading}
           </h2>
-          <Accordion type="multiple">
+          <Accordion multiple>
             {PRICING.faq.items.map((item) => (
               <AccordionItem key={item.question} value={item.question}>
                 <AccordionTrigger>{item.question}</AccordionTrigger>

@@ -29,8 +29,8 @@ export const BrowsePanels = ({
       <TabsContent
         key={id}
         value={id}
-        forceMount
-        className="flex flex-col gap-16 data-[state=inactive]:hidden md:gap-24"
+        keepMounted
+        className="flex flex-col gap-16 data-hidden:hidden md:gap-24"
       >
         {panels[id]}
       </TabsContent>

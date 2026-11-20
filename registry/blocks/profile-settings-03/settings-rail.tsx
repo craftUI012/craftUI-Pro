@@ -169,30 +169,32 @@ export const SettingsRail = ({
       {/* Below lg: the current page as a menu of every page. */}
       <div className="lg:hidden">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                RING,
-                "bg-background focus-visible:ring-ring/50 flex h-9 w-full items-center justify-between gap-2 rounded-md px-3 text-sm outline-none focus-visible:ring-[3px] sm:w-72"
-              )}
-            >
-              <span className="truncate">
-                <span className="text-muted-foreground">Settings / </span>
-                {current?.label}
-              </span>
-              <HugeiconsIcon
-                icon={ArrowDown01Icon}
-                strokeWidth={1.75}
-                className="text-muted-foreground size-4 shrink-0"
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                className={cn(
+                  RING,
+                  "bg-background focus-visible:ring-ring/50 flex h-9 w-full items-center justify-between gap-2 rounded-md px-3 text-sm outline-none focus-visible:ring-[3px] sm:w-72"
+                )}
               />
-            </button>
+            }
+          >
+            <span className="truncate">
+              <span className="text-muted-foreground">Settings / </span>
+              {current?.label}
+            </span>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              strokeWidth={1.75}
+              className="text-muted-foreground size-4 shrink-0"
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
             className={cn(
               FLOAT,
-              "max-h-[70vh] w-(--radix-dropdown-menu-trigger-width) overscroll-contain"
+              "max-h-[70vh] w-(--anchor-width) overscroll-contain"
             )}
           >
             {groups.map((group, index) => (
@@ -206,16 +208,19 @@ export const SettingsRail = ({
                   {group.label}
                 </DropdownMenuLabel>
                 {group.items.map((item) => (
-                  <DropdownMenuItem key={item.id} asChild>
-                    <a
-                      href={item.href}
-                      onClick={(event) => onNavigate?.(event, item)}
-                    >
-                      <span className="flex-1">{item.label}</span>
-                      {item.id === active ? (
-                        <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
-                      ) : null}
-                    </a>
+                  <DropdownMenuItem
+                    key={item.id}
+                    render={
+                      <a
+                        href={item.href}
+                        onClick={(event) => onNavigate?.(event, item)}
+                      />
+                    }
+                  >
+                    <span className="flex-1">{item.label}</span>
+                    {item.id === active ? (
+                      <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+                    ) : null}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuGroup>

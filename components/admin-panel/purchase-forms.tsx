@@ -124,7 +124,7 @@ export const PurchaseDialog = ({
   purchase?: PurchaseDoc;
   // The button that opens it: "Add purchase" (filled) or "Edit" (ghost,
   // in a table row). Built here, not passed in: a server page can't hand an
-  // element to the trigger's asChild without breaking hydration.
+  // element to the trigger's render prop without breaking hydration.
   trigger?: "add" | "edit";
 }) => {
   const [open, setOpen] = useState(false);
@@ -157,15 +157,17 @@ export const PurchaseDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger === "edit" ? (
-          <Button size="sm" variant="ghost">
-            Edit
-          </Button>
-        ) : (
-          <Button size="sm">Add purchase</Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          trigger === "edit" ? (
+            <Button size="sm" variant="ghost">
+              Edit
+            </Button>
+          ) : (
+            <Button size="sm">Add purchase</Button>
+          )
+        }
+      />
       <DialogContent>
         <form className="grid gap-4" onSubmit={submit}>
           <DialogHeader>
@@ -205,10 +207,8 @@ export const PurchaseDialog = ({
             </NativeSelect>
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
+            <DialogClose render={<Button type="button" variant="outline" />}>
+              Cancel
             </DialogClose>
             <Button type="submit" disabled={pending}>
               {pending ? "Saving…" : "Save"}
@@ -230,10 +230,12 @@ export const DeletePurchaseButton = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="text-destructive">
-          Delete
-        </Button>
+      <DialogTrigger
+        render={
+          <Button size="sm" variant="ghost" className="text-destructive" />
+        }
+      >
+        Delete
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -246,8 +248,8 @@ export const DeletePurchaseButton = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+          <DialogClose render={<Button variant="outline" />}>
+            Cancel
           </DialogClose>
           <Button
             variant="destructive"

@@ -138,29 +138,29 @@ export const SettingsNav = ({
               return (
                 <Button
                   key={item.id}
-                  asChild
                   variant="ghost"
                   size="sm"
-                  // Overrides: left-aligned rows, the active one filled.
                   className={cn(
                     "h-8 justify-start gap-2.5 px-2.5 font-normal",
                     current
                       ? "bg-accent text-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   )}
-                >
-                  <a
-                    href={item.href}
-                    aria-current={current ? "page" : undefined}
-                    onClick={(event) => onNavigate?.(event, item)}
-                  >
-                    <HugeiconsIcon
-                      icon={item.icon}
-                      strokeWidth={1.75}
-                      className="size-4"
+                  nativeButton={false}
+                  render={
+                    <a
+                      href={item.href}
+                      aria-current={current ? "page" : undefined}
+                      onClick={(event) => onNavigate?.(event, item)}
                     />
-                    {item.label}
-                  </a>
+                  }
+                >
+                  <HugeiconsIcon
+                    icon={item.icon}
+                    strokeWidth={1.75}
+                    className="size-4"
+                  />
+                  {item.label}
                 </Button>
               );
             })}
@@ -178,26 +178,27 @@ export const SettingsNav = ({
             return (
               <Button
                 key={item.id}
-                asChild
                 variant={current ? "secondary" : "ghost"}
                 size="sm"
                 className={cn(
                   "h-8 shrink-0 gap-2 rounded-full px-3 font-normal",
                   !current && "text-muted-foreground"
                 )}
-              >
-                <a
-                  href={item.href}
-                  aria-current={current ? "page" : undefined}
-                  onClick={(event) => onNavigate?.(event, item)}
-                >
-                  <HugeiconsIcon
-                    icon={item.icon}
-                    strokeWidth={1.75}
-                    className="size-4"
+                nativeButton={false}
+                render={
+                  <a
+                    href={item.href}
+                    aria-current={current ? "page" : undefined}
+                    onClick={(event) => onNavigate?.(event, item)}
                   />
-                  {item.label}
-                </a>
+                }
+              >
+                <HugeiconsIcon
+                  icon={item.icon}
+                  strokeWidth={1.75}
+                  className="size-4"
+                />
+                {item.label}
               </Button>
             );
           })}

@@ -88,6 +88,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
+// The time the first render (server and client alike) uses; the clock
+// takes over after mount.
+const FIRST_RENDER_NOW = Date.UTC(2026, 10, 20, 12);
+
 // ─── Menus ───────────────────────────────────────────────────────────────────
 // This block runs on either shadcn style. Radix closes a menu after a radio
 // pick on its own; Base UI keeps it open. So every menu here owns its open
@@ -982,13 +986,13 @@ const CellMenuTrigger = ({
   children: React.ReactNode;
 }) => (
   <DropdownMenuTrigger
-    className="group/cell hover:bg-muted focus-visible:ring-ring/50 data-[state=open]:bg-muted data-popup-open:bg-muted -mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 outline-none focus-visible:ring-[3px]"
+    className="group/cell hover:bg-muted focus-visible:ring-ring/50 data-popup-open:bg-muted -mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 outline-none focus-visible:ring-[3px]"
     aria-label={label}
   >
     {children}
     <ChevronDown
       aria-hidden
-      className="text-muted-foreground size-3 opacity-0 transition-opacity group-hover/cell:opacity-100 group-data-[state=open]/cell:opacity-100 group-data-popup-open/cell:opacity-100"
+      className="text-muted-foreground size-3 opacity-0 transition-opacity group-hover/cell:opacity-100 group-data-popup-open/cell:opacity-100"
     />
   </DropdownMenuTrigger>
 );
@@ -1005,7 +1009,7 @@ const StatusItems = ({
     onValueChange={(next) => onChange(next as TicketStatus)}
   >
     {STATUSES.map((status) => (
-      <DropdownMenuRadioItem key={status.id} value={status.id}>
+      <DropdownMenuRadioItem closeOnClick key={status.id} value={status.id}>
         <StatusIcon status={status.id} />
         {status.label}
       </DropdownMenuRadioItem>
@@ -1025,7 +1029,7 @@ const PriorityItems = ({
     onValueChange={(next) => onChange(next as TicketPriority)}
   >
     {PRIORITIES.map((priority) => (
-      <DropdownMenuRadioItem key={priority.id} value={priority.id}>
+      <DropdownMenuRadioItem closeOnClick key={priority.id} value={priority.id}>
         <PriorityIcon priority={priority.id} />
         {priority.label}
       </DropdownMenuRadioItem>
@@ -1048,9 +1052,11 @@ const AssigneeItems = ({
     value={value ?? UNASSIGNED}
     onValueChange={(next) => onChange(next === UNASSIGNED ? null : next)}
   >
-    <DropdownMenuRadioItem value={UNASSIGNED}>Unassigned</DropdownMenuRadioItem>
+    <DropdownMenuRadioItem closeOnClick value={UNASSIGNED}>
+      Unassigned
+    </DropdownMenuRadioItem>
     {agents.map((agent) => (
-      <DropdownMenuRadioItem key={agent} value={agent}>
+      <DropdownMenuRadioItem closeOnClick key={agent} value={agent}>
         {agent}
       </DropdownMenuRadioItem>
     ))}
@@ -1118,6 +1124,7 @@ const ViewTabs = ({
         width (flex-none overrides the shadcn trigger's flex-1), so nothing
         stretches or wraps; the scrollbar is hidden. */}
     <TabsList
+      activateOnFocus
       aria-label="Ticket views"
       className="w-full justify-start overflow-x-auto [scrollbar-width:none] sm:w-fit [&::-webkit-scrollbar]:hidden"
     >
@@ -1219,7 +1226,6 @@ const FilterMenu = ({
                     status: toggleIn(filters.status, status.id),
                   })
                 }
-                onSelect={(event) => event.preventDefault()}
               >
                 <StatusIcon status={status.id} />
                 <span className="flex-1">{status.label}</span>
@@ -1246,7 +1252,6 @@ const FilterMenu = ({
                     priority: toggleIn(filters.priority, priority.id),
                   })
                 }
-                onSelect={(event) => event.preventDefault()}
               >
                 <PriorityIcon priority={priority.id} />
                 <span className="flex-1">{priority.label}</span>
@@ -1267,12 +1272,14 @@ const FilterMenu = ({
               value={filters.assignee}
               onValueChange={(assignee) => onChange({ ...filters, assignee })}
             >
-              <DropdownMenuRadioItem value="all">Anyone</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value={UNASSIGNED}>
+              <DropdownMenuRadioItem closeOnClick value="all">
+                Anyone
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem closeOnClick value={UNASSIGNED}>
                 Unassigned
               </DropdownMenuRadioItem>
               {agents.map((agent) => (
-                <DropdownMenuRadioItem key={agent} value={agent}>
+                <DropdownMenuRadioItem closeOnClick key={agent} value={agent}>
                   {agent}
                 </DropdownMenuRadioItem>
               ))}
@@ -1447,7 +1454,7 @@ const ViewMenu = ({
           onValueChange={(column) => onSortColumn(column as SortColumn)}
         >
           {SORTS.map((item) => (
-            <DropdownMenuRadioItem key={item.id} value={item.id}>
+            <DropdownMenuRadioItem closeOnClick key={item.id} value={item.id}>
               {item.label}
             </DropdownMenuRadioItem>
           ))}
@@ -1461,7 +1468,6 @@ const ViewMenu = ({
             key={col.id}
             checked={visible[col.id]}
             onCheckedChange={() => onToggleColumn(col.id)}
-            onSelect={(event) => event.preventDefault()}
           >
             {col.label}
           </DropdownMenuCheckboxItem>
@@ -1544,7 +1550,7 @@ const RowMenu = ({
       className={cn(
         buttonVariants({
           className:
-            "text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 data-popup-open:opacity-100",
+            "text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-popup-open:opacity-100",
           size: "icon-sm",
           variant: "ghost",
         })
@@ -2093,7 +2099,11 @@ const TicketsFooter = ({
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
               {PAGE_SIZES.map((size) => (
-                <DropdownMenuRadioItem key={size} value={String(size)}>
+                <DropdownMenuRadioItem
+                  closeOnClick
+                  key={size}
+                  value={String(size)}
+                >
                   {size}
                 </DropdownMenuRadioItem>
               ))}
@@ -2452,7 +2462,7 @@ const TicketSheet = ({
       {/* With reduced motion the sheet fades in and out instead of
           sliding: the translate is zeroed (important, to beat the
           primitive's state selectors) and a fade takes its place. */}
-      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md motion-reduce:[--tw-enter-translate-x:0]! motion-reduce:[--tw-exit-translate-x:0]! motion-reduce:data-[state=closed]:fade-out-0 motion-reduce:data-[state=open]:fade-in-0">
+      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md motion-reduce:[--tw-enter-translate-x:0]! motion-reduce:[--tw-exit-translate-x:0]! motion-reduce:data-closed:fade-out-0 motion-reduce:data-open:fade-in-0">
         {row && (
           <>
             <SheetHeader className="border-b">
@@ -2637,9 +2647,9 @@ export default function TablesSection02({
   className,
 }: TicketsSectionProps = {}) {
   const [tickets, setTickets] = React.useState<TicketRow[]>(
-    () => initialTickets ?? buildMockTickets(Date.now())
+    () => initialTickets ?? buildMockTickets(FIRST_RENDER_NOW)
   );
-  const [now, setNow] = React.useState(() => Date.now());
+  const [now, setNow] = React.useState(FIRST_RENDER_NOW);
   const [view, setView] = React.useState<ViewId>("all");
   const [query, setQuery] = React.useState("");
   const [filters, setFilters] = React.useState<Filters>(NO_FILTERS);
@@ -2664,9 +2674,19 @@ export default function TablesSection02({
   const refreshTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // SLA timers and "updated" times tick along.
+  // Never read the clock while rendering (Next 16 cacheComponents rejects
+  // it): the first render uses a fixed time, then the real clock takes over
+  // and the demo rows are rebuilt around it.
   React.useEffect(() => {
+    const start = Date.now();
+    setNow(start);
+    if (!initialTickets) {
+      setTickets(buildMockTickets(start));
+    }
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
+    // Mount only: later changes to the initial rows are the caller's.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(

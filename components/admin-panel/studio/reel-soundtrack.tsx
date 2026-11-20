@@ -353,9 +353,9 @@ const MixSlider = ({
       id={id}
       max={100}
       min={0}
-      onValueChange={([next]) => onChange(next / 100)}
+      onValueChange={(next) => typeof next === "number" && onChange(next / 100)}
       step={1}
-      value={[Math.round(value * 100)]}
+      value={Math.round(value * 100)}
     />
     <span className="text-muted-foreground w-8 text-right text-xs tabular-nums">
       {Math.round(value * 100)}

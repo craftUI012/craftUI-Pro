@@ -484,8 +484,7 @@ const BookAppointmentCard = () => (
     <div className="flex flex-col gap-3">
       <span className={TYPE.cardLabel}>Available on March 18, 2026</span>
       <ToggleGroup
-        type="single"
-        defaultValue="9:00"
+        defaultValue={["9:00"]}
         variant="outline"
         size="sm"
         className="w-full"
@@ -679,12 +678,7 @@ const LiveAudioCard = () => (
     title="Live Audio Waveform"
     description="Real-time microphone input visualization with audio reactivity"
     footer={
-      <ToggleGroup
-        type="single"
-        defaultValue="processing"
-        variant="outline"
-        size="sm"
-      >
+      <ToggleGroup defaultValue={["processing"]} variant="outline" size="sm">
         <ToggleGroupItem value="listening">Start Listening</ToggleGroupItem>
         <ToggleGroupItem value="processing">Stop Processing</ToggleGroupItem>
         <ToggleGroupItem value="static">Static</ToggleGroupItem>

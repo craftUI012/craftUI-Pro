@@ -96,8 +96,13 @@ const LoginPage = () => {
               />
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               {needsPlan ? (
-                <Button asChild className="w-full" variant="outline">
-                  <Link href={ROUTES.PRICING}>Get access first</Link>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href={ROUTES.PRICING} />}
+                >
+                  Get access first
                 </Button>
               ) : null}
               <Button

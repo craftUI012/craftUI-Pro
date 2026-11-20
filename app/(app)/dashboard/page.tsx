@@ -162,10 +162,15 @@ const DashboardPage = async () => {
               <Badge variant={hasAccess ? "default" : "outline"}>{badge}</Badge>
             }
             footer={
-              <Button asChild size="sm" variant="outline">
-                <Link href={hasAccess ? ROUTES.HOME : ROUTES.PRICING}>
-                  {hasAccess ? "Browse the library" : "See plans"}
-                </Link>
+              <Button
+                size="sm"
+                variant="outline"
+                nativeButton={false}
+                render={
+                  <Link href={hasAccess ? ROUTES.HOME : ROUTES.PRICING} />
+                }
+              >
+                {hasAccess ? "Browse the library" : "See plans"}
               </Button>
             }
           >

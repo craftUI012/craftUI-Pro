@@ -603,19 +603,12 @@ export const SetupDialog = ({
     >
       <DialogContent
         className={cn(FLOAT, "gap-0 overflow-hidden p-0 sm:max-w-lg")}
-        // Radix returns focus to the button that opened the dialog; once
-        // the method is on, that button (Set up / Turn on) is gone, so
-        // focus lands on the sign-in card instead of the page body.
-        onCloseAutoFocus={(event) => {
-          if (opener.current?.isConnected) {
-            return;
-          }
-          const target = fallbackFocus?.();
-          if (target) {
-            event.preventDefault();
-            target.focus();
-          }
-        }}
+        // Focus returns to the button that opened the dialog; once the
+        // method is on, that button (Set up / Turn on) is gone, so focus
+        // lands on the sign-in card instead of the page body.
+        finalFocus={() =>
+          opener.current?.isConnected ? true : (fallbackFocus?.() ?? true)
+        }
       >
         <motion.div
           animate={{ height }}

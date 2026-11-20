@@ -210,27 +210,27 @@ const Sources = ({
     {sources.map((source, i) => (
       <Badge
         key={source.name}
-        asChild
         className={cn(CHIP, RISE, stage < STAGE.sources && HIDDEN)}
         variant="secondary"
+        render={
+          <li
+            style={{
+              transitionDelay:
+                stage === STAGE.sources ? `${i * STAGGER}ms` : undefined,
+            }}
+          />
+        }
       >
-        <li
-          style={{
-            transitionDelay:
-              stage === STAGE.sources ? `${i * STAGGER}ms` : undefined,
-          }}
-        >
-          <span className={TILE}>
-            <HugeiconsIcon
-              absoluteStrokeWidth
-              aria-hidden
-              icon={source.icon}
-              size={12}
-              strokeWidth={1}
-            />
-          </span>
-          {source.name}
-        </li>
+        <span className={TILE}>
+          <HugeiconsIcon
+            absoluteStrokeWidth
+            aria-hidden
+            icon={source.icon}
+            size={12}
+            strokeWidth={1}
+          />
+        </span>
+        {source.name}
       </Badge>
     ))}
   </ul>

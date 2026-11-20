@@ -1,5 +1,6 @@
 "use client";
 
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import {
   Cancel01Icon,
   CreditCardIcon,
@@ -7,7 +8,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Dialog as DialogPrimitive } from "radix-ui";
 import { useLayoutEffect, useRef, useState } from "react";
 import useMeasure from "react-use-measure";
 
@@ -69,11 +69,11 @@ export type { CardBook } from "./use-card-draft";
 const SLOTS = 4;
 
 const OVERLAY_MOTION =
-  "bg-black/40 dark:bg-black/60 ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:duration-[250ms] data-[state=closed]:duration-[150ms]";
+  "bg-black/40 dark:bg-black/60 ease-[cubic-bezier(0.23,1,0.32,1)] data-open:duration-[250ms] data-closed:duration-[150ms]";
 
 const PANEL_MOTION = [
-  "data-[state=open]:animate-in data-[state=closed]:animate-out fade-in-0 fade-out-0",
-  "ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:duration-[250ms] data-[state=closed]:duration-[150ms]",
+  "data-open:animate-in data-closed:animate-out fade-in-0 fade-out-0",
+  "ease-[cubic-bezier(0.23,1,0.32,1)] data-open:duration-[250ms] data-closed:duration-[150ms]",
   "[--tw-enter-scale:0.95] [--tw-enter-translate-y:8px] [--tw-exit-scale:0.98]",
   "motion-reduce:[--tw-enter-scale:1] motion-reduce:[--tw-enter-translate-y:0] motion-reduce:[--tw-exit-scale:1]",
 ].join(" ");
@@ -118,10 +118,10 @@ const removalDetail = (wasBackup: boolean) =>
 const TILE = [
   "relative h-14 flex-1 flex-col gap-1 rounded-xl border-transparent px-2 text-xs font-normal",
   "transition-[color,background-color,box-shadow] duration-150 ease-out",
-  "data-[state=inactive]:bg-muted/60 data-[state=inactive]:text-muted-foreground dark:data-[state=inactive]:bg-muted/30",
-  "data-[state=inactive]:hover:bg-muted data-[state=inactive]:hover:text-foreground",
-  "data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:bg-muted dark:data-[state=active]:border-transparent",
-  "data-[state=active]:shadow-[0_1px_2px_0_oklch(0_0_0/0.05),0_2px_8px_-2px_oklch(0_0_0/0.08),0_8px_24px_-8px_oklch(0_0_0/0.08)] dark:data-[state=active]:shadow-none",
+  "not-data-active:bg-muted/60 not-data-active:text-muted-foreground dark:not-data-active:bg-muted/30",
+  "not-data-active:hover:bg-muted not-data-active:hover:text-foreground",
+  "data-active:bg-background data-active:text-foreground dark:data-active:bg-muted dark:data-active:border-transparent",
+  "data-active:shadow-[0_1px_2px_0_oklch(0_0_0/0.05),0_2px_8px_-2px_oklch(0_0_0/0.08),0_8px_24px_-8px_oklch(0_0_0/0.08)] dark:data-active:shadow-none",
 ].join(" ");
 
 const MethodTabs = ({
@@ -131,7 +131,10 @@ const MethodTabs = ({
   cardCount: number;
   wallets: WalletState;
 }) => (
-  <TabsList className="grid h-auto w-full grid-cols-4 gap-2 bg-transparent p-0">
+  <TabsList
+    activateOnFocus
+    className="grid h-auto w-full grid-cols-4 gap-2 bg-transparent p-0"
+  >
     {METHODS.map((each) => (
       <TabsTrigger key={each} value={each} className={TILE}>
         {each === "cards" ? (
@@ -192,6 +195,7 @@ export const PaymentMethodsDialog = ({
   // opening scale (0.95 → 1) doesn't shrink the first measure.
   const [ref, bounds] = useMeasure({ offsetSize: true });
   const opener = useRef<HTMLElement | null>(null);
+  const popup = useRef<HTMLDivElement>(null);
   const latest = useRef(saved);
   latest.current = saved;
 
@@ -370,31 +374,28 @@ export const PaymentMethodsDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay className={OVERLAY_MOTION} />
-        <DialogPrimitive.Content
-          onOpenAutoFocus={(event) => {
-            // Start on the method switcher: pick what to work on first.
-            event.preventDefault();
-            (event.currentTarget as HTMLElement)
-              .querySelector<HTMLElement>("[role=tab][data-state=active]")
-              ?.focus();
-          }}
+        <DialogPrimitive.Popup
+          ref={popup}
+          // Start on the method switcher: pick what to work on first.
+          initialFocus={() =>
+            popup.current?.querySelector<HTMLElement>(
+              "[role=tab][data-active]"
+            ) ?? true
+          }
           onAnimationEnd={(event) => {
             // Only the panel's own opening animation, not its children's.
             if (event.target === event.currentTarget && open) {
               setOpened(true);
             }
           }}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault();
-            opener.current?.focus();
-          }}
+          finalFocus={opener}
           className={cn(
             FLOAT,
             PANEL_MOTION,
             "bg-background dark:bg-card fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-5 overflow-y-auto overscroll-contain rounded-2xl p-5 outline-none sm:max-w-3xl"
           )}
         >
-          <TooltipProvider delayDuration={200}>
+          <TooltipProvider delay={200}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <DialogTitle className="text-lg font-medium">
@@ -404,20 +405,22 @@ export const PaymentMethodsDialog = ({
                   Choose how you pay: a saved card or a wallet.
                 </DialogDescription>
               </div>
-              <DialogPrimitive.Close asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Close"
-                  className="-mt-1 -mr-1 size-8"
-                >
-                  <HugeiconsIcon
-                    icon={Cancel01Icon}
-                    strokeWidth={1.75}
-                    className="size-4"
+              <DialogPrimitive.Close
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Close"
+                    className="-mt-1 -mr-1 size-8"
                   />
-                </Button>
+                }
+              >
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  strokeWidth={1.75}
+                  className="size-4"
+                />
               </DialogPrimitive.Close>
             </div>
 
@@ -441,8 +444,14 @@ export const PaymentMethodsDialog = ({
               >
                 <div ref={ref} className="relative p-3">
                   <AnimatePresence initial={false} mode="popLayout">
-                    <TabsContent key={method} value={method} forceMount asChild>
-                      <motion.div {...swapStep}>
+                    <motion.div key={method} {...swapStep}>
+                      {/* keepMounted + hidden={false}: the leaving panel stays
+                          visible while it fades out (Base UI would hide it). */}
+                      <TabsContent
+                        value={method}
+                        keepMounted
+                        render={(props) => <div {...props} hidden={false} />}
+                      >
                         {method === "cards" ? (
                           cardsPanel
                         ) : (
@@ -457,8 +466,8 @@ export const PaymentMethodsDialog = ({
                             }
                           />
                         )}
-                      </motion.div>
-                    </TabsContent>
+                      </TabsContent>
+                    </motion.div>
                   </AnimatePresence>
                 </div>
               </motion.div>
@@ -481,10 +490,10 @@ export const PaymentMethodsDialog = ({
                 </AnimatePresence>
               </div>
               <div className="flex justify-end gap-2">
-                <DialogPrimitive.Close asChild>
-                  <Button type="button" variant="ghost" size="sm">
-                    Cancel
-                  </Button>
+                <DialogPrimitive.Close
+                  render={<Button type="button" variant="ghost" size="sm" />}
+                >
+                  Cancel
                 </DialogPrimitive.Close>
                 <StatusButton
                   type="button"
@@ -501,7 +510,7 @@ export const PaymentMethodsDialog = ({
               </div>
             </div>
           </TooltipProvider>
-        </DialogPrimitive.Content>
+        </DialogPrimitive.Popup>
       </DialogPortal>
     </Dialog>
   );

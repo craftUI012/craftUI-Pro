@@ -53,19 +53,20 @@ const AdminCollectionsPage = async ({
         {COLLECTIONS.map((collection) => (
           <Button
             key={collection}
-            asChild
             size="sm"
             variant="outline"
             className={cn(
               collection === name && "bg-accent text-accent-foreground"
             )}
+            nativeButton={false}
+            render={
+              <Link
+                href={`${BASE}?name=${collection}`}
+                aria-current={collection === name ? "page" : undefined}
+              />
+            }
           >
-            <Link
-              href={`${BASE}?name=${collection}`}
-              aria-current={collection === name ? "page" : undefined}
-            >
-              {collection}
-            </Link>
+            {collection}
           </Button>
         ))}
       </nav>
@@ -93,19 +94,26 @@ const AdminCollectionsPage = async ({
 
       {pageCount > 1 && (
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm" disabled={page <= 1}>
-            <Link href={pageHref(Math.max(1, page - 1))}>Previous</Link>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            nativeButton={false}
+            render={<Link href={pageHref(Math.max(1, page - 1))} />}
+          >
+            Previous
           </Button>
           <span className="text-muted-foreground text-sm">
             Page {page} of {pageCount}
           </span>
           <Button
-            asChild
             variant="outline"
             size="sm"
             disabled={page >= pageCount}
+            nativeButton={false}
+            render={<Link href={pageHref(Math.min(pageCount, page + 1))} />}
           >
-            <Link href={pageHref(Math.min(pageCount, page + 1))}>Next</Link>
+            Next
           </Button>
         </div>
       )}

@@ -15,4 +15,11 @@ export default defineConfig({
     ".web-kits/**",
     "audio/**",
   ],
+  rules: {
+    // Base UI composes by `render`: <Button render={<a href="…" />}>Label</Button>.
+    // The <a> gets the button's children at runtime, so the rule sees an
+    // empty link that isn't one. Accessible names are still checked on the
+    // rendered page (Accessibility view, axe).
+    "jsx-a11y/anchor-has-content": "off",
+  },
 });

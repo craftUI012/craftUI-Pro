@@ -317,7 +317,7 @@ const Hint = ({
   </div>
 );
 
-/* Plain links styled with the theme's tokens rather than <Button asChild>:
+/* Plain links styled with the theme's tokens rather than <Button render={<a />}>:
  * the section is server-rendered and its actions need no client code to be
  * links. Pills at least 48px tall, full width on phones, 12px apart; the
  * same 1.75rem inline padding on both (a pill's round ends eat into its

@@ -121,7 +121,7 @@ const Chip = ({
 }) => (
   <ToggleGroupItem
     value={value}
-    className="rounded-full px-3 active:scale-[0.97] motion-reduce:active:scale-100 data-[state=on]:bg-accent"
+    className="rounded-full px-3 active:scale-[0.97] motion-reduce:active:scale-100 data-pressed:bg-accent"
   >
     {on ? <Icon icon={Tick02Icon} /> : null}
     {label}
@@ -256,7 +256,7 @@ export const PricingSurvey = () => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="gap-6 data-[state=closed]:duration-150 sm:max-w-[26rem]"
+        className="gap-6 data-closed:duration-150 sm:max-w-[26rem]"
       >
         {status === "sent" ? (
           <DialogHeader>
@@ -279,7 +279,7 @@ export const PricingSurvey = () => {
 
             <Question legend="What do you want more of?">
               <ToggleGroup
-                type="multiple"
+                multiple
                 variant="outline"
                 size="sm"
                 spacing={2}
@@ -300,7 +300,7 @@ export const PricingSurvey = () => {
 
             <Question legend="What do you think of the library?">
               <ToggleGroup
-                type="multiple"
+                multiple
                 variant="outline"
                 size="sm"
                 spacing={2}

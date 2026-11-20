@@ -142,7 +142,7 @@ export const SiteSettings = () => {
         </Drawer>
       ) : (
         <Popover open={isOpen} onOpenChange={setIsOpen} sounds>
-          <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+          <PopoverTrigger render={trigger} />
           <PopoverContent className="p-1 w-fit">{content}</PopoverContent>
         </Popover>
       )}

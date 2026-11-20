@@ -665,9 +665,11 @@ export const ReelTransport = ({
         disabled={disabled}
         max={Math.max(1, durationInFrames - 1)}
         min={0}
-        onValueChange={([value]) => playerRef.current?.seekTo(value)}
+        onValueChange={(value) =>
+          typeof value === "number" && playerRef.current?.seekTo(value)
+        }
         step={1}
-        value={[Math.min(frame, durationInFrames - 1)]}
+        value={Math.min(frame, durationInFrames - 1)}
       />
       <span className="text-muted-foreground w-20 shrink-0 text-right text-xs tabular-nums">
         {formatTime(frame / fps)} / {formatTime(durationInFrames / fps)}

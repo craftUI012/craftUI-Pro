@@ -1,6 +1,6 @@
 "use client";
 
-import { Popover as PopoverPrimitive } from "radix-ui";
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { useCallback, useEffect, useRef } from "react";
 
 import { dropdownClose, dropdownOpen } from "@/audio/core";
@@ -11,7 +11,7 @@ const Popover = ({
   onOpenChange,
   sounds = false,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Root> & {
+}: PopoverPrimitive.Root.Props & {
   sounds?: boolean;
 }) => {
   const playOpen = useFeedback({ soundDef: dropdownOpen });
@@ -44,10 +44,12 @@ const Popover = ({
     playStateSound(props.open ?? false);
   }, [isControlled, playStateSound, props.open]);
 
-  const handleOpenChange = useCallback(
-    (open: boolean) => {
+  const handleOpenChange = useCallback<
+    NonNullable<PopoverPrimitive.Root.Props["onOpenChange"]>
+  >(
+    (open, details) => {
       playStateSound(open);
-      onOpenChange?.(open);
+      onOpenChange?.(open, details);
     },
     [onOpenChange, playStateSound]
   );
@@ -71,36 +73,45 @@ const Popover = ({
   );
 };
 
-const PopoverTrigger = ({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) => (
+const PopoverTrigger = ({ ...props }: PopoverPrimitive.Trigger.Props) => (
   <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
 );
 
+// Positioning props belong to the Positioner: declared, destructured and
+// forwarded, so they never fall through onto the Popup. `anchor` replaces
+// Radix's PopoverAnchor part (pass a ref or element to position against).
 const PopoverContent = ({
   className,
   align = "center",
+  alignOffset = 0,
+  side = "bottom",
   sideOffset = 4,
+  anchor,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) => (
+}: PopoverPrimitive.Popup.Props &
+  Pick<
+    PopoverPrimitive.Positioner.Props,
+    "align" | "alignOffset" | "anchor" | "side" | "sideOffset"
+  >) => (
   <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      data-slot="popover-content"
+    <PopoverPrimitive.Positioner
       align={align}
+      alignOffset={alignOffset}
+      anchor={anchor}
+      side={side}
       sideOffset={sideOffset}
-      className={cn(
-        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 ease-out-strong data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md p-4 shadow-elevated outline-hidden",
-        className
-      )}
-      {...props}
-    />
+      className="isolate z-50"
+    >
+      <PopoverPrimitive.Popup
+        data-slot="popover-content"
+        className={cn(
+          "bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ease-out-strong data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--transform-origin) rounded-md p-4 shadow-elevated outline-hidden",
+          className
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Positioner>
   </PopoverPrimitive.Portal>
 );
 
-const PopoverAnchor = ({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) => (
-  <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
-);
-
-export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };
+export { Popover, PopoverContent, PopoverTrigger };

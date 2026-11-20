@@ -66,7 +66,7 @@ const NAV_TYPE = TYPE.cardLabel;
 // trigger, so the dropdown reads as one more tab.
 const TAB_CLASS = cn(
   NAV_TYPE,
-  "text-muted-foreground hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground dark:data-[state=active]:bg-accent dark:data-[state=active]:text-accent-foreground dark:text-muted-foreground h-8 flex-none px-3 transition-[color,background-color,box-shadow] duration-150 ease-out data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+  "text-muted-foreground hover:text-foreground data-active:bg-accent data-active:text-accent-foreground dark:data-active:bg-accent dark:data-active:text-accent-foreground dark:text-muted-foreground h-8 flex-none px-3 transition-[color,background-color,box-shadow] duration-150 ease-out data-active:shadow-none dark:data-active:border-transparent"
 );
 
 // Libraries that share one navbar dropdown instead of a tab each, in menu
@@ -127,8 +127,8 @@ const ArtMenu = ({
 
   return (
     <DropdownMenu sounds>
-      {/* Radix owns this trigger's data-state (open/closed), so the active
-          fill is a class here rather than TAB_CLASS's data-[state=active]. */}
+      {/* The menu owns this trigger's open state (data-popup-open), so the
+          active fill is a class here rather than TAB_CLASS's data-active. */}
       <DropdownMenuTrigger
         onPointerDown={() => {
           openedByPointer.current = true;
@@ -139,7 +139,7 @@ const ArtMenu = ({
         className={cn(
           TAB_CLASS,
           // The tab's base look (TabsTrigger), minus the tab-only parts.
-          "focus-visible:ring-ring/50 data-[state=open]:text-foreground inline-flex items-center gap-1 rounded-md border border-transparent py-1 font-medium whitespace-nowrap outline-none focus-visible:ring-[3px]",
+          "focus-visible:ring-ring/50 data-popup-open:text-foreground inline-flex items-center gap-1 rounded-md border border-transparent py-1 font-medium whitespace-nowrap outline-none focus-visible:ring-[3px]",
           active &&
             "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground hover:text-accent-foreground"
         )}
@@ -147,7 +147,7 @@ const ArtMenu = ({
         {ART_MENU.label}
         <ChevronDown
           aria-hidden
-          className="size-3.5 opacity-60 transition-transform duration-150 ease-out in-data-[state=open]:rotate-180"
+          className="size-3.5 opacity-60 transition-transform duration-150 ease-out in-data-popup-open:rotate-180"
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -155,11 +155,7 @@ const ArtMenu = ({
         className="min-w-56"
         // Focus goes back to the trigger on close. After a mouse pick that
         // leaves a focus ring on the tab, so only keyboard users get it back.
-        onCloseAutoFocus={(event) => {
-          if (openedByPointer.current) {
-            event.preventDefault();
-          }
-        }}
+        finalFocus={() => !openedByPointer.current}
       >
         {items.map((library) => {
           const comingSoon = library.itemCount === 0;
@@ -169,12 +165,12 @@ const ArtMenu = ({
               sound="click"
               disabled={comingSoon}
               aria-current={library.id === activeTab ? "page" : undefined}
-              onSelect={() => onTabChange(library.id)}
+              onClick={() => onTabChange(library.id)}
               className={cn(
                 NAV_TYPE,
                 "aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground justify-between gap-4",
                 // Disabled dims the label only, so the wave keeps its colour.
-                comingSoon && "data-[disabled]:opacity-100"
+                comingSoon && "data-disabled:opacity-100"
               )}
             >
               <span className={cn(comingSoon && "text-muted-foreground")}>
@@ -413,15 +409,19 @@ export const BrowseTopBar = ({
                 {devLinks.map((link) => (
                   <Button
                     key={link.href}
-                    asChild
                     variant="ghost"
                     size="sm"
                     sound="click"
                     className={cn(NAV_TYPE, "text-muted-foreground")}
+                    nativeButton={false}
+                    render={
+                      <Link
+                        href={link.href}
+                        transitionTypes={["nav-forward"]}
+                      />
+                    }
                   >
-                    <Link href={link.href} transitionTypes={["nav-forward"]}>
-                      {link.label}
-                    </Link>
+                    {link.label}
                   </Button>
                 ))}
               </nav>
@@ -433,19 +433,19 @@ export const BrowseTopBar = ({
           )}
           {isAdmin && (
             <Button
-              asChild
               variant="ghost"
               size="sm"
               sound="click"
               className={NAV_TYPE}
+              nativeButton={false}
+              render={<Link href={ROUTES.ADMIN_PANEL} />}
             >
-              <Link href={ROUTES.ADMIN_PANEL}>Admin panel</Link>
+              Admin panel
             </Button>
           )}
           <ModeSwitcher />
           {/* Filled like an active library tab while on the pricing page. */}
           <Button
-            asChild
             variant="ghost"
             size="sm"
             sound="click"
@@ -453,23 +453,26 @@ export const BrowseTopBar = ({
               NAV_TYPE,
               onPricing && "bg-accent text-accent-foreground"
             )}
+            nativeButton={false}
+            render={
+              <Link
+                href={ROUTES.PRICING}
+                aria-current={onPricing ? "page" : undefined}
+              />
+            }
           >
-            <Link
-              href={ROUTES.PRICING}
-              aria-current={onPricing ? "page" : undefined}
-            >
-              Pricing
-            </Link>
+            Pricing
           </Button>
+          {/* No transition type: pricing, sign-in and the dashboard open in
+              place, without the page you leave sliding away. */}
           <Button
-            asChild
             size="sm"
             sound="click"
             className={cn(NAV_TYPE, "ml-1")}
+            nativeButton={false}
+            render={<Link href={account.href} />}
           >
-            {/* No transition type: pricing, sign-in and the dashboard open in
-                place, without the page you leave sliding away. */}
-            <Link href={account.href}>{account.label}</Link>
+            {account.label}
           </Button>
         </div>
       </div>

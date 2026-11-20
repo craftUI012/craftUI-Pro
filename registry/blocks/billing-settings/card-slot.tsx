@@ -193,16 +193,18 @@ const EditActions = ({
     {isDefault ? (
       // The default card can't go: say why instead of hiding the button.
       <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Remove ${describe(card)}`}
-            aria-disabled
-            aria-describedby={`why-${card.id}`}
-            className={ICON_BUTTON}
-          >
-            <TrashIcon />
-          </button>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              aria-label={`Remove ${describe(card)}`}
+              aria-disabled
+              aria-describedby={`why-${card.id}`}
+              className={ICON_BUTTON}
+            />
+          }
+        >
+          <TrashIcon />
         </TooltipTrigger>
         <TooltipContent id={`why-${card.id}`}>
           Choose another default card first

@@ -37,11 +37,13 @@ export const IsometricsSkillBanner = () => (
         motion, in your theme. Works with Claude Code, Cursor and Codex.
       </p>
       <div className="mt-2">
-        <Button asChild variant="secondary">
-          <Link href={ROUTES.SKILLS_ISOMETRICS}>
-            Get the skill
-            <Icon icon={ArrowRight01Icon} />
-          </Link>
+        <Button
+          variant="secondary"
+          nativeButton={false}
+          render={<Link href={ROUTES.SKILLS_ISOMETRICS} />}
+        >
+          Get the skill
+          <Icon icon={ArrowRight01Icon} />
         </Button>
       </div>
     </div>

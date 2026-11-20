@@ -330,20 +330,19 @@ const TextEditor = ({
         id="text-size"
         max={160}
         min={20}
-        onValueChange={([size]) => onChange({ size })}
+        onValueChange={(size) => typeof size === "number" && onChange({ size })}
         step={1}
-        value={[item.size]}
+        value={item.size}
       />
     </div>
     <ToggleGroup
       aria-label="Weight"
       className="w-full"
-      onValueChange={(value) =>
+      onValueChange={([value = ""]) =>
         value && onChange({ weight: Number(value) as ReelText["weight"] })
       }
       size="sm"
-      type="single"
-      value={String(item.weight)}
+      value={[String(item.weight)]}
       variant="outline"
     >
       <ToggleGroupItem className="flex-1" value="400">
@@ -538,12 +537,11 @@ const BackdropPicker = ({
       <ToggleGroup
         aria-label="Image fit"
         className="w-full"
-        onValueChange={(value) =>
+        onValueChange={([value = ""]) =>
           (value === "cover" || value === "contain") && onFit(value)
         }
         size="sm"
-        type="single"
-        value={fit}
+        value={[fit]}
         variant="outline"
       >
         <ToggleGroupItem className="flex-1" value="cover">
@@ -566,9 +564,11 @@ const BackdropPicker = ({
           id="backdrop-dim"
           max={80}
           min={0}
-          onValueChange={([value]) => onDim(value / 100)}
+          onValueChange={(value) =>
+            typeof value === "number" && onDim(value / 100)
+          }
           step={1}
-          value={[Math.round(dim * 100)]}
+          value={Math.round(dim * 100)}
         />
       </div>
     </div>
@@ -593,7 +593,7 @@ const DevicePicker = ({
         aria-label="Device"
         className="w-full"
         disabled={disabled}
-        onValueChange={(next) => {
+        onValueChange={([next = ""]) => {
           const kind = DEVICE_KINDS.find((entry) => entry.kind === next);
           if (next === "none") {
             onChange(null);
@@ -602,8 +602,7 @@ const DevicePicker = ({
           }
         }}
         size="sm"
-        type="single"
-        value={current?.kind ?? "none"}
+        value={[current?.kind ?? "none"]}
         variant="outline"
       >
         <ToggleGroupItem className="flex-1" value="none">
@@ -624,10 +623,9 @@ const DevicePicker = ({
           aria-label="View"
           className="w-full"
           disabled={disabled}
-          onValueChange={(next) => isDeviceId(next) && onChange(next)}
+          onValueChange={([next = ""]) => isDeviceId(next) && onChange(next)}
           size="sm"
-          type="single"
-          value={value ?? undefined}
+          value={value ? [value] : []}
           variant="outline"
         >
           {current.views.map((view) => (
@@ -676,12 +674,11 @@ const ScreenSource = ({
       aria-label="Screen"
       className="w-full"
       disabled={disabled}
-      onValueChange={(value) =>
+      onValueChange={([value = ""]) =>
         (value === "video" || value === "component") && onScreen(value)
       }
       size="sm"
-      type="single"
-      value={screen}
+      value={[screen]}
       variant="outline"
     >
       <ToggleGroupItem className="flex-1" value="video">
@@ -723,10 +720,11 @@ const ScreenSource = ({
           aria-label="Component theme"
           className="w-full"
           disabled={disabled}
-          onValueChange={(value) => isComponentTheme(value) && onTheme(value)}
+          onValueChange={([value = ""]) =>
+            isComponentTheme(value) && onTheme(value)
+          }
           size="sm"
-          type="single"
-          value={theme}
+          value={[theme]}
           variant="outline"
         >
           <ToggleGroupItem className="flex-1" value="light">
@@ -939,10 +937,9 @@ const FrameToggle = ({
       <ToggleGroup
         aria-label="Frame"
         disabled={disabled}
-        onValueChange={(value) => isReelFormat(value) && onFormat(value)}
+        onValueChange={([value = ""]) => isReelFormat(value) && onFormat(value)}
         size="sm"
-        type="single"
-        value={format}
+        value={[format]}
         variant="outline"
       >
         {(["9:16", "16:9"] as const).map((value) => (
@@ -974,12 +971,11 @@ const LayoutToggle = ({
   <ToggleGroup
     aria-label="Layout"
     disabled={disabled}
-    onValueChange={(value) =>
+    onValueChange={([value = ""]) =>
       (value === "single" || value === "grid") && onLayout(value)
     }
     size="sm"
-    type="single"
-    value={layout}
+    value={[layout]}
     variant="outline"
   >
     <ToggleGroupItem
@@ -1198,10 +1194,9 @@ const ExportBar = ({
     <ToggleGroup
       aria-label="Frame rate"
       disabled={exporting !== null}
-      onValueChange={(value) => value && onFps(Number(value) as Fps)}
+      onValueChange={([value = ""]) => value && onFps(Number(value) as Fps)}
       size="sm"
-      type="single"
-      value={String(fps)}
+      value={[String(fps)]}
       variant="outline"
     >
       <ToggleGroupItem value="30">30 fps</ToggleGroupItem>
@@ -2056,9 +2051,11 @@ export const ReelStudio = ({
                       id="reel-radius"
                       max={120}
                       min={0}
-                      onValueChange={([radius]) => setLook({ radius })}
+                      onValueChange={(radius) =>
+                        typeof radius === "number" && setLook({ radius })
+                      }
                       step={1}
-                      value={[look.radius]}
+                      value={look.radius}
                     />
                   </div>
                   <SwitchRow

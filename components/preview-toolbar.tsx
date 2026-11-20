@@ -48,21 +48,23 @@ const ToolbarButton = ({
   children: React.ReactNode;
 }) => (
   <Tooltip>
-    <TooltipTrigger asChild>
-      <Button
-        aria-pressed={active}
-        className={cn(
-          "group/toggle extend-touch-target size-8",
-          active && "bg-accent text-accent-foreground"
-        )}
-        onClick={onClick}
-        size="icon"
-        type="button"
-        variant="ghost"
-      >
-        {children}
-        <span className="sr-only">{label}</span>
-      </Button>
+    <TooltipTrigger
+      render={
+        <Button
+          aria-pressed={active}
+          className={cn(
+            "group/toggle extend-touch-target size-8",
+            active && "bg-accent text-accent-foreground"
+          )}
+          onClick={onClick}
+          size="icon"
+          type="button"
+          variant="ghost"
+        />
+      }
+    >
+      {children}
+      <span className="sr-only">{label}</span>
     </TooltipTrigger>
     <TooltipContent className="pr-2 pl-3">
       <div className="flex items-center gap-3">

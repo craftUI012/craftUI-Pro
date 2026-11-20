@@ -5282,7 +5282,7 @@
       "@hugeicons/core-free-icons",
       "@hugeicons/react",
       "motion",
-      "radix-ui",
+      "@base-ui/react",
       "react-use-measure"
     ],
     "description": "A SaaS billing page inside the app: the plan, the card on file with its health, billing details edited in place, an invoice table, and a payment methods dialog with card slots, a backup card, add and edit in the slot, undo, and wallets.",

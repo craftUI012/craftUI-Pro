@@ -13,6 +13,7 @@
 
 import { spawnSync } from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -111,6 +112,46 @@ if (taxonomyErrors.length > 0) {
     "registry.json browse metadata doesn't match constants/taxonomy.ts:"
   );
   for (const line of taxonomyErrors) {
+    console.error(`  - ${line}`);
+  }
+  process.exit(1);
+}
+
+// Base UI only (migrated 2026-11-20): items ship to projects on a base-*
+// shadcn style, so Radix imports, asChild and Radix state selectors would
+// break for buyers. Fails before building.
+const RADIX_ONLY = [
+  [/from ["'](radix-ui|@radix-ui\/[^"']+)["']/, "imports Radix"],
+  [/\basChild\b/, "uses asChild (Base UI: render)"],
+  // Radix's own state values only; an item may use data-state for itself.
+  [
+    /data-\[state=(open|closed|active|inactive|checked|unchecked|indeterminate|on|off|delayed-open|instant-open)\]|\[data-state=["']?(open|closed|active|inactive|checked|unchecked|on|off)\b/,
+    "uses Radix data-state selectors",
+  ],
+  [/--radix-/, "uses a --radix-* CSS variable"],
+];
+const radixErrors = [];
+for (const item of registry.items) {
+  for (const file of item.files ?? []) {
+    if (!existsSync(file.path)) {
+      continue;
+    }
+    const source = readFileSync(file.path, "utf-8");
+    for (const [pattern, why] of RADIX_ONLY) {
+      if (pattern.test(source)) {
+        radixErrors.push(`${item.name}: ${file.path} ${why}`);
+      }
+    }
+  }
+  for (const dep of item.dependencies ?? []) {
+    if (dep === "radix-ui" || dep.startsWith("@radix-ui/")) {
+      radixErrors.push(`${item.name}: depends on ${dep}`);
+    }
+  }
+}
+if (radixErrors.length > 0) {
+  console.error("Registry items must use Base UI, not Radix:");
+  for (const line of radixErrors) {
     console.error(`  - ${line}`);
   }
   process.exit(1);

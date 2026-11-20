@@ -123,17 +123,17 @@ export const PreviewCopyForAi = ({
       </CopyButton>
       {url && (
         <DropdownMenu sounds>
-          <DropdownMenuTrigger asChild>
-            <Button className="size-7" size="icon" variant="secondary">
-              <ChevronDownIcon className="size-3.5" />
-              <span className="sr-only">Open in an AI tool</span>
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button className="size-7" size="icon" variant="secondary" />
+            }
+          >
+            <ChevronDownIcon className="size-3.5" />
+            <span className="sr-only">Open in an AI tool</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-lg">
             {AI_MENU_ITEMS.map(([key, render]) => (
-              <DropdownMenuItem asChild key={key} sound="click">
-                {render(url)}
-              </DropdownMenuItem>
+              <DropdownMenuItem key={key} sound="click" render={render(url)} />
             ))}
           </DropdownMenuContent>
         </DropdownMenu>

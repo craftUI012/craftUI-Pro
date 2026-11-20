@@ -46,28 +46,25 @@ export const DocsNavLink = ({
       variant="secondary"
       size={size}
       className={cn("shadow-none", className)}
-      asChild
       sound="click"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       {...props}
+      nativeButton={false}
+      render={<Link href={href} transitionTypes={transitionTypes} />}
     >
-      <Link href={href} transitionTypes={transitionTypes}>
-        {transitionTypes?.includes("nav-back") && (
-          <ArrowLeftIcon ref={iconRef} />
-        )}
-        {children}
-        {transitionTypes?.includes("nav-forward") && (
-          <ArrowRightIcon ref={iconRef} />
-        )}
-      </Link>
+      {transitionTypes?.includes("nav-back") && <ArrowLeftIcon ref={iconRef} />}
+      {children}
+      {transitionTypes?.includes("nav-forward") && (
+        <ArrowRightIcon ref={iconRef} />
+      )}
     </Button>
   );
 
   if (tooltip) {
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipTrigger render={link} />
         <TooltipContent className="pr-2 pl-3">
           <div className="flex items-center gap-3">
             {tooltip.title}
