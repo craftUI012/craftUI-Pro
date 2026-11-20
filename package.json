@@ -55,6 +55,7 @@
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.5",
     "react-hotkeys-hook": "^5.2.4",
+    "react-use-measure": "2.1.7",
     "recharts": "3.8.0",
     "rehype-pretty-code": "^0.14.3",
     "reloop-email": "^2.1.0",

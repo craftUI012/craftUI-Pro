@@ -1,4 +1,5 @@
 import AgentRunPreview from "@/components/previews/agent-run-preview";
+import BillingSettingsPreview from "@/components/previews/billing-settings-preview";
 import BloomMenuPreview from "@/components/previews/bloom-menu-preview";
 import EditorialSectionPreview from "@/components/previews/editorial-section-preview";
 import MosaicCardPreview from "@/components/previews/mosaic-card-preview";
@@ -45,6 +46,7 @@ export const LIVE_PREVIEW_COMPONENTS: Record<LivePreview, React.ComponentType> =
     "agent-run": AgentRunPreview,
     "arc-carousel": ArcCarousel,
     "benchmarks-section": BenchmarksSection,
+    "billing-settings": BillingSettingsPreview,
     "bloom-menu": BloomMenuPreview,
     "brands-section": BrandsSection,
     "editorial-section": EditorialSectionPreview,

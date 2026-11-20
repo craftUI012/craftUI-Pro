@@ -5276,6 +5276,548 @@
       "Security checkups that nudge people to finish setup"
     ]
   },
+  "billing-settings": {
+    "component": "BillingSettings",
+    "dependencies": [
+      "@hugeicons/core-free-icons",
+      "@hugeicons/react",
+      "motion",
+      "radix-ui",
+      "react-use-measure"
+    ],
+    "description": "A SaaS billing page inside the app: the plan, the card on file with its health, billing details edited in place, an invoice table, and a payment methods dialog with card slots, a backup card, add and edit in the slot, undo, and wallets.",
+    "docs": "/docs/blocks/billing-settings",
+    "extends": null,
+    "files": [
+      "components/blocks/billing-settings/billing-settings.tsx",
+      "components/blocks/billing-settings/app-shell.tsx",
+      "components/blocks/billing-settings/payment-methods-dialog.tsx",
+      "components/blocks/billing-settings/card-slot.tsx",
+      "components/blocks/billing-settings/card-editor.tsx",
+      "components/blocks/billing-settings/add-card-form.tsx",
+      "components/blocks/billing-settings/wallets.tsx",
+      "components/blocks/billing-settings/billing-details.tsx",
+      "components/blocks/billing-settings/undo-toast.tsx",
+      "components/blocks/billing-settings/brand-marks.tsx",
+      "components/blocks/billing-settings/status-button.tsx",
+      "components/blocks/billing-settings/odometer.tsx",
+      "components/blocks/billing-settings/ui.tsx",
+      "components/blocks/billing-settings/actions.tsx",
+      "components/blocks/billing-settings/use-card-draft.ts",
+      "components/blocks/billing-settings/card-data.ts",
+      "components/blocks/billing-settings/billing-motion.ts",
+      "components/blocks/billing-settings/surface.ts"
+    ],
+    "id": "BLK-SGBAYA",
+    "import": "@/components/blocks/billing-settings/billing-settings",
+    "library": "blocks",
+    "name": "billing-settings",
+    "paid": true,
+    "props": [
+      {
+        "description": "The app around the page: brand, sidebar links, the person.",
+        "name": "shell",
+        "optional": true,
+        "type": "Partial<Omit<AppShellProps, \"children\">>",
+        "default": null
+      },
+      {
+        "description": "The current plan and its next invoice.",
+        "name": "plan",
+        "optional": true,
+        "type": "BillingPlan",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Saved cards, the default one and the backup.",
+        "name": "cards",
+        "optional": true,
+        "type": "CardBook",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "Wallets already connected (the account), or null.",
+        "name": "wallets",
+        "optional": true,
+        "type": "WalletState",
+        "default": "built-in demo value"
+      },
+      {
+        "description": "What prints on every invoice.",
+        "name": "billing",
+        "optional": true,
+        "type": "BillingInfo",
+        "default": "DEMO_BILLING"
+      },
+      {
+        "description": "Recent invoices, newest first.",
+        "name": "invoices",
+        "optional": true,
+        "type": "Invoice[]",
+        "default": "built-in demo content"
+      },
+      {
+        "description": "Your server calls; anything left out uses the demo.",
+        "name": "actions",
+        "optional": true,
+        "type": "Partial<BillingActions>",
+        "default": null
+      },
+      {
+        "description": "Opens your plan picker.",
+        "name": "onChangePlan",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Opens your full invoice list.",
+        "name": "onViewAllInvoices",
+        "optional": true,
+        "type": "() => void",
+        "default": null
+      },
+      {
+        "description": "Height and placement of the app, e.g. \"h-dvh\" or \"h-[46rem]\".",
+        "name": "className",
+        "optional": true,
+        "type": "string",
+        "default": null
+      }
+    ],
+    "registryDependencies": [
+      "button",
+      "dialog",
+      "input",
+      "label",
+      "sheet",
+      "switch",
+      "tabs",
+      "tooltip"
+    ],
+    "title": "Billing settings",
+    "types": [
+      {
+        "fields": [
+          {
+            "description": "Product name next to the monogram, e.g. \"Acme\".",
+            "name": "brand",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Background of the brand monogram, any CSS colour.",
+            "name": "brandColor",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The sidebar's link groups.",
+            "name": "groups",
+            "optional": false,
+            "type": "ShellGroup[]"
+          },
+          {
+            "description": "Id of the current sidebar link.",
+            "name": "active",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Where the page sits, e.g. [\"Settings\", \"Billing\"].",
+            "name": "trail",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "description": "The page heading, e.g. \"Billing\".",
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "One line under the heading.",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Buttons at the right of the page header.",
+            "name": "actions",
+            "optional": true,
+            "type": "React.ReactNode"
+          },
+          {
+            "description": "The signed-in person, shown at the foot of the sidebar.",
+            "name": "user",
+            "optional": false,
+            "type": "{ name: string; email: string }"
+          },
+          {
+            "description": "The page itself.",
+            "name": "children",
+            "optional": false,
+            "type": "React.ReactNode"
+          },
+          {
+            "description": "Height and placement, e.g. \"h-dvh\" (the default) or \"h-[46rem]\".",
+            "name": "className",
+            "optional": true,
+            "type": "string"
+          }
+        ],
+        "name": "AppShellProps"
+      },
+      {
+        "fields": [
+          {
+            "description": "Plan name, e.g. \"Pro\".",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Price per interval, in dollars.",
+            "name": "price",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "Billed each month or each year.",
+            "name": "interval",
+            "optional": false,
+            "type": "\"month\" | \"year\""
+          },
+          {
+            "description": "Seats on the plan.",
+            "name": "seats",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "When it renews, as you want it shown, e.g. \"Dec 1, 2026\".",
+            "name": "renewsOn",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The next invoice's total, in dollars.",
+            "name": "nextInvoice",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "\"active\" shows a green pill; \"past_due\" an amber one.",
+            "name": "status",
+            "optional": false,
+            "type": "\"active\" | \"past_due\" | \"canceled\""
+          }
+        ],
+        "name": "BillingPlan"
+      },
+      {
+        "fields": [
+          {
+            "description": "Up to four saved cards, in the order they show.",
+            "name": "cards",
+            "optional": false,
+            "type": "SavedCard[]"
+          },
+          {
+            "description": "Id of the card that's charged.",
+            "name": "defaultId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Id of the card tried when the default fails, or null.",
+            "name": "backupId",
+            "optional": false,
+            "type": "string | null"
+          }
+        ],
+        "name": "CardBook"
+      },
+      {
+        "fields": [
+          {
+            "description": "Where receipts go.",
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Company name printed on invoices.",
+            "name": "company",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Street address.",
+            "name": "street",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "City and postcode, e.g. \"San Francisco, CA 94105\".",
+            "name": "city",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Country name.",
+            "name": "country",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "VAT or tax number; empty shows \"None added\".",
+            "name": "taxId",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "BillingInfo"
+      },
+      {
+        "fields": [
+          {
+            "description": "Shown as the invoice number, e.g. \"#1042\".",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "As you want it shown, e.g. \"Nov 1, 2026\".",
+            "name": "date",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "What it was for, e.g. \"Pro, 10 seats\".",
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "In dollars.",
+            "name": "amount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "description": "Shown as a pill: Paid, Open, Failed or Refunded.",
+            "name": "status",
+            "optional": false,
+            "type": "\"paid\" | \"open\" | \"failed\" | \"refunded\""
+          }
+        ],
+        "name": "Invoice"
+      },
+      {
+        "fields": [
+          {
+            "description": "Save the cards, the default and the backup (the dialog's Save).",
+            "name": "saveCards",
+            "optional": false,
+            "type": "(book: CardBook) => Promise<void>"
+          },
+          {
+            "description": "Check a new card with the bank (3-D Secure) and save it. Reject to decline.",
+            "name": "verifyCard",
+            "optional": false,
+            "type": "(card: NewCard) => Promise<void>"
+          },
+          {
+            "description": "Retry a declined card. Return new details if the bank sent any, or {}.",
+            "name": "retryCard",
+            "optional": false,
+            "type": "(card: SavedCard) => Promise<Partial<SavedCard>>"
+          },
+          {
+            "description": "Save the billing details printed on invoices.",
+            "name": "saveBilling",
+            "optional": false,
+            "type": "(info: BillingInfo) => Promise<void>"
+          },
+          {
+            "description": "Download one invoice.",
+            "name": "downloadInvoice",
+            "optional": false,
+            "type": "(id: string) => Promise<void>"
+          },
+          {
+            "description": "Connect a wallet; resolve with the account it connected as.",
+            "name": "connectWallet",
+            "optional": false,
+            "type": "(id: WalletId) => Promise<string>"
+          },
+          {
+            "description": "Disconnect a wallet.",
+            "name": "disconnectWallet",
+            "optional": false,
+            "type": "(id: WalletId) => Promise<void>"
+          }
+        ],
+        "name": "BillingActions"
+      },
+      {
+        "fields": [
+          {
+            "description": "Small heading above the group; leave out for none.",
+            "name": "label",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The links in the group, in order.",
+            "name": "items",
+            "optional": false,
+            "type": "ShellLink[]"
+          }
+        ],
+        "name": "ShellGroup"
+      },
+      {
+        "fields": [
+          {
+            "description": "Your id for the card (e.g. the payment provider's).",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "\"visa\", \"mastercard\" or \"amex\": picks the logo.",
+            "name": "brand",
+            "optional": false,
+            "type": "CardBrand"
+          },
+          {
+            "description": "The last four digits.",
+            "name": "last4",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "MM/YY",
+            "name": "expires",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Name on the card.",
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A label you give it, e.g. \"Company card\".",
+            "name": "nickname",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "Who added it, shown in the card editor.",
+            "name": "addedBy",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "When it was added, as you want it shown.",
+            "name": "addedOn",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The last charge failed on this date.",
+            "name": "declinedOn",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "description": "The bank sent new details (card account updater).",
+            "name": "updatedByBank",
+            "optional": true,
+            "type": "boolean"
+          }
+        ],
+        "name": "SavedCard"
+      },
+      {
+        "fields": [
+          {
+            "description": "Detected from the first digits.",
+            "name": "brand",
+            "optional": false,
+            "type": "CardBrand"
+          },
+          {
+            "description": "All digits, no spaces. Send it to your payment provider, not your server.",
+            "name": "number",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "MM/YY",
+            "name": "expires",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "The 3 or 4 digit security code.",
+            "name": "cvc",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Billing postcode.",
+            "name": "postcode",
+            "optional": false,
+            "type": "string"
+          }
+        ],
+        "name": "NewCard"
+      },
+      {
+        "fields": [
+          {
+            "description": "Unique id; matched against `active` to mark the current page.",
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "Text in the sidebar, e.g. \"Billing\".",
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "description": "A Hugeicons icon from `@hugeicons/core-free-icons`.",
+            "name": "icon",
+            "optional": false,
+            "type": "IconSvgElement"
+          }
+        ],
+        "name": "ShellLink"
+      }
+    ],
+    "tags": {
+      "categories": [
+        "billing-payment-methods",
+        "billing-invoices",
+        "billing-plans"
+      ],
+      "styles": ["motion", "minimal", "dark-mode"],
+      "types": ["settings", "forms", "tables"]
+    },
+    "useCases": [
+      "Billing pages for SaaS and AI apps on a subscription",
+      "Managing saved cards, a backup card and wallets in one place",
+      "Account pages with invoices and billing details",
+      "Admin dashboards with a sidebar and a settings area"
+    ]
+  },
   "voice-orb": {
     "component": "VoiceOrb",
     "dependencies": ["motion", "torph"],
