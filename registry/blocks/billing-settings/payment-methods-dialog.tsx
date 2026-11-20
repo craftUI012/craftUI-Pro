@@ -394,7 +394,7 @@ export const PaymentMethodsDialog = ({
             "bg-background dark:bg-card fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-5 overflow-y-auto overscroll-contain rounded-2xl p-5 outline-none sm:max-w-3xl"
           )}
         >
-          <TooltipProvider delayDuration={200}>
+          <TooltipProvider delay={200}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <DialogTitle className="text-lg font-medium">

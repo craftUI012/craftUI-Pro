@@ -64,7 +64,7 @@ export const DocsNavLink = ({
   if (tooltip) {
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipTrigger render={link} />
         <TooltipContent className="pr-2 pl-3">
           <div className="flex items-center gap-3">
             {tooltip.title}
