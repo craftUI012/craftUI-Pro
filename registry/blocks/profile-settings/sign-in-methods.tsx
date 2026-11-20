@@ -8,7 +8,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence } from "motion/react";
 import type * as React from "react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -426,7 +426,13 @@ export const SignInMethods = ({ settings }: { settings: SignInSettings }) => {
   const moreId = useId();
   const headingId = useId();
   // The day dates are written against ("today", or a year for older ones).
-  const [today] = useState(() => new Date().toISOString().slice(0, 10));
+  // Read after mount, never while rendering: server rendering (and Next's
+  // cacheComponents prerender) can't depend on the current time. Until
+  // then dates show with their year.
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
 
   const connected = providers
     .filter((provider) => provider.account)
