@@ -12,6 +12,7 @@ export const LIVE_PREVIEWS = [
   "agent-run",
   "arc-carousel",
   "benchmarks-section",
+  "billing-settings",
   "bloom-menu",
   "brands-section",
   "editorial-section",
