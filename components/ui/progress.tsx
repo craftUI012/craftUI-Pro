@@ -1,28 +1,25 @@
 "use client";
 
-import { Progress as ProgressPrimitive } from "radix-ui";
-import * as React from "react";
+import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
 
 import { cn } from "@/lib/utils";
 
-const Progress = ({
-  className,
-  value,
-  ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) => (
-  <ProgressPrimitive.Root
-    data-slot="progress"
-    className={cn(
-      "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
-      className
-    )}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      data-slot="progress-indicator"
-      className="h-full w-full flex-1 bg-primary transition-all"
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
+// Base UI computes the fill itself (the Indicator's width), so there is no
+// manual translate. `className` styles the bar (the Track), as it did before.
+const Progress = ({ className, ...props }: ProgressPrimitive.Root.Props) => (
+  <ProgressPrimitive.Root data-slot="progress" className="w-full" {...props}>
+    <ProgressPrimitive.Track
+      data-slot="progress-track"
+      className={cn(
+        "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
+        className
+      )}
+    >
+      <ProgressPrimitive.Indicator
+        data-slot="progress-indicator"
+        className="h-full bg-primary transition-[width]"
+      />
+    </ProgressPrimitive.Track>
   </ProgressPrimitive.Root>
 );
 

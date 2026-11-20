@@ -145,12 +145,12 @@ export const SWITCH_MOTION = [
   "[&_[data-slot=switch-thumb]]:transition-[translate,width,background-color]",
   "[&_[data-slot=switch-thumb]]:duration-200",
   "[&_[data-slot=switch-thumb]]:ease-[cubic-bezier(0.23,1,0.32,1)]",
-  "[&_[data-slot=switch-thumb][data-state=checked]]:translate-x-[14px]",
+  "[&_[data-slot=switch-thumb][data-checked]]:translate-x-[14px]",
   "active:[&_[data-slot=switch-thumb]]:w-5",
-  "active:[&_[data-slot=switch-thumb][data-state=checked]]:translate-x-[10px]",
+  "active:[&_[data-slot=switch-thumb][data-checked]]:translate-x-[10px]",
   "motion-reduce:[&_[data-slot=switch-thumb]]:transition-none",
   "motion-reduce:active:[&_[data-slot=switch-thumb]]:w-4",
-  "motion-reduce:active:[&_[data-slot=switch-thumb][data-state=checked]]:translate-x-[14px]",
+  "motion-reduce:active:[&_[data-slot=switch-thumb][data-checked]]:translate-x-[14px]",
 ].join(" ");
 
 /** Demo action: resolves after 0.9s. */
