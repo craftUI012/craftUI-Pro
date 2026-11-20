@@ -1,11 +1,21 @@
-"use client";
+import type * as React from "react";
 
-import { AspectRatio as AspectRatioPrimitive } from "radix-ui";
+import { cn } from "@/lib/utils";
 
+// Base UI has no AspectRatio: the CSS property does it. `relative` keeps
+// fill-images (next/image `fill`) inside the box.
 const AspectRatio = ({
+  ratio = 1,
+  className,
+  style,
   ...props
-}: React.ComponentProps<typeof AspectRatioPrimitive.Root>) => (
-  <AspectRatioPrimitive.Root data-slot="aspect-ratio" {...props} />
+}: React.ComponentProps<"div"> & { ratio?: number }) => (
+  <div
+    data-slot="aspect-ratio"
+    className={cn("relative w-full", className)}
+    style={{ aspectRatio: ratio, ...style }}
+    {...props}
+  />
 );
 
 export { AspectRatio };
