@@ -607,7 +607,7 @@ const FaqCard = () => (
           <TabsTrigger value="goals">Goals</TabsTrigger>
         </TabsList>
       </Tabs>
-      <Accordion type="single" collapsible defaultValue="security">
+      <Accordion defaultValue={["security"]}>
         <AccordionItem value="security">
           <AccordionTrigger>
             How secure is my financial data with Ledger?

@@ -281,7 +281,7 @@ export const PricingPlans = () => {
           >
             {PRICING.faq.heading}
           </h2>
-          <Accordion type="multiple">
+          <Accordion multiple>
             {PRICING.faq.items.map((item) => (
               <AccordionItem key={item.question} value={item.question}>
                 <AccordionTrigger>{item.question}</AccordionTrigger>

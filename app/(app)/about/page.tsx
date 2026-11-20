@@ -168,7 +168,7 @@ const AboutPage = () => (
           >
             FAQ
           </h2>
-          <Accordion type="multiple">
+          <Accordion multiple>
             {FAQ.map((item) => (
               <AccordionItem key={item.question} value={item.question}>
                 <AccordionTrigger className={TYPE.cardHeader}>

@@ -369,7 +369,7 @@ const SkillPage = () => (
           <h2 className={cn(TYPE.headingPanel, "font-semibold tracking-tight")}>
             Questions
           </h2>
-          <Accordion type="multiple">
+          <Accordion multiple>
             {FAQ.map((item) => (
               <AccordionItem key={item.q} value={item.q}>
                 <AccordionTrigger className={TYPE.cardHeader}>
