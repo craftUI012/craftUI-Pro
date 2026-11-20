@@ -544,7 +544,6 @@ const KeysToolbar = ({
                 onCheckedChange={() => onToggleColumn(col.id)}
                 // Radix closes the menu on a toggle; keep it open, as Base UI
                 // does, so several columns can be switched in one go.
-                onSelect={(event) => event.preventDefault()}
               >
                 {col.label}
               </DropdownMenuCheckboxItem>

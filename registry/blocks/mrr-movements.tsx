@@ -1424,37 +1424,39 @@ const MonthPicker = ({
   onPick: (month: number) => void;
 }) => (
   <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      {/* Pulled out by its padding (0.5rem) plus the chevron's own inset
-          to its stroke's tip (0.175rem), so the tip sits on the card's
-          content edge. */}
-      <Button
-        aria-label={`Month: ${format.month(current)}`}
-        className="-me-[0.675rem] shrink-0 gap-1.5 px-2 font-normal"
-        size="sm"
-        variant="ghost"
-      >
-        <span className="grid justify-items-end overflow-hidden">
-          <AnimatePresence custom={direction} initial={false}>
-            <motion.span
-              key={current}
-              animate="shown"
-              className="col-start-1 row-start-1 whitespace-nowrap"
-              custom={direction}
-              exit="leave"
-              initial="enter"
-              variants={LABEL}
-            >
-              {/* Phones get the short name, so the title keeps room. */}
-              <span className="sm:hidden">{format.monthShort(current)}</span>
-              <span className="max-sm:hidden">{format.month(current)}</span>
-            </motion.span>
-          </AnimatePresence>
-        </span>
-        <span className="text-muted-foreground">
-          <Chevron />
-        </span>
-      </Button>
+    {/* Pulled out by its padding (0.5rem) plus the chevron's own inset
+        to its stroke's tip (0.175rem), so the tip sits on the card's
+        content edge. */}
+    <DropdownMenuTrigger
+      render={
+        <Button
+          aria-label={`Month: ${format.month(current)}`}
+          className="-me-[0.675rem] shrink-0 gap-1.5 px-2 font-normal"
+          size="sm"
+          variant="ghost"
+        />
+      }
+    >
+      <span className="grid justify-items-end overflow-hidden">
+        <AnimatePresence custom={direction} initial={false}>
+          <motion.span
+            key={current}
+            animate="shown"
+            className="col-start-1 row-start-1 whitespace-nowrap"
+            custom={direction}
+            exit="leave"
+            initial="enter"
+            variants={LABEL}
+          >
+            {/* Phones get the short name, so the title keeps room. */}
+            <span className="sm:hidden">{format.monthShort(current)}</span>
+            <span className="max-sm:hidden">{format.month(current)}</span>
+          </motion.span>
+        </AnimatePresence>
+      </span>
+      <span className="text-muted-foreground">
+        <Chevron />
+      </span>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="min-w-60">
       <DropdownMenuRadioGroup

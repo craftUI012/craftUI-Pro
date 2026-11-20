@@ -195,17 +195,13 @@ export const DocsCopyPage = ({
           Copy Page
         </CopyButton>
         <DropdownMenu sounds>
-          <DropdownMenuTrigger asChild className="hidden sm:flex">
-            {trigger}
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger className="hidden sm:flex" render={trigger} />
           <DropdownMenuContent
             align="end"
             className="animate-none! rounded-lg shadow-none"
           >
             {MENU_ITEMS.map(([key, render]) => (
-              <DropdownMenuItem key={key} asChild sound="click">
-                {render(url)}
-              </DropdownMenuItem>
+              <DropdownMenuItem key={key} sound="click" render={render(url)} />
             ))}
           </DropdownMenuContent>
         </DropdownMenu>

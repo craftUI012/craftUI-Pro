@@ -982,13 +982,13 @@ const CellMenuTrigger = ({
   children: React.ReactNode;
 }) => (
   <DropdownMenuTrigger
-    className="group/cell hover:bg-muted focus-visible:ring-ring/50 data-[state=open]:bg-muted data-popup-open:bg-muted -mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 outline-none focus-visible:ring-[3px]"
+    className="group/cell hover:bg-muted focus-visible:ring-ring/50 data-popup-open:bg-muted -mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 outline-none focus-visible:ring-[3px]"
     aria-label={label}
   >
     {children}
     <ChevronDown
       aria-hidden
-      className="text-muted-foreground size-3 opacity-0 transition-opacity group-hover/cell:opacity-100 group-data-[state=open]/cell:opacity-100 group-data-popup-open/cell:opacity-100"
+      className="text-muted-foreground size-3 opacity-0 transition-opacity group-hover/cell:opacity-100 group-data-popup-open/cell:opacity-100"
     />
   </DropdownMenuTrigger>
 );
@@ -1219,7 +1219,6 @@ const FilterMenu = ({
                     status: toggleIn(filters.status, status.id),
                   })
                 }
-                onSelect={(event) => event.preventDefault()}
               >
                 <StatusIcon status={status.id} />
                 <span className="flex-1">{status.label}</span>
@@ -1246,7 +1245,6 @@ const FilterMenu = ({
                     priority: toggleIn(filters.priority, priority.id),
                   })
                 }
-                onSelect={(event) => event.preventDefault()}
               >
                 <PriorityIcon priority={priority.id} />
                 <span className="flex-1">{priority.label}</span>
@@ -1461,7 +1459,6 @@ const ViewMenu = ({
             key={col.id}
             checked={visible[col.id]}
             onCheckedChange={() => onToggleColumn(col.id)}
-            onSelect={(event) => event.preventDefault()}
           >
             {col.label}
           </DropdownMenuCheckboxItem>
@@ -1544,7 +1541,7 @@ const RowMenu = ({
       className={cn(
         buttonVariants({
           className:
-            "text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 data-popup-open:opacity-100",
+            "text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-popup-open:opacity-100",
           size: "icon-sm",
           variant: "ghost",
         })

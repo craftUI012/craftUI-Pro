@@ -127,8 +127,8 @@ const ArtMenu = ({
 
   return (
     <DropdownMenu sounds>
-      {/* Radix owns this trigger's data-state (open/closed), so the active
-          fill is a class here rather than TAB_CLASS's data-active. */}
+      {/* The menu owns this trigger's open state (data-popup-open), so the
+          active fill is a class here rather than TAB_CLASS's data-active. */}
       <DropdownMenuTrigger
         onPointerDown={() => {
           openedByPointer.current = true;
@@ -139,7 +139,7 @@ const ArtMenu = ({
         className={cn(
           TAB_CLASS,
           // The tab's base look (TabsTrigger), minus the tab-only parts.
-          "focus-visible:ring-ring/50 data-[state=open]:text-foreground inline-flex items-center gap-1 rounded-md border border-transparent py-1 font-medium whitespace-nowrap outline-none focus-visible:ring-[3px]",
+          "focus-visible:ring-ring/50 data-popup-open:text-foreground inline-flex items-center gap-1 rounded-md border border-transparent py-1 font-medium whitespace-nowrap outline-none focus-visible:ring-[3px]",
           active &&
             "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground hover:text-accent-foreground"
         )}
@@ -147,7 +147,7 @@ const ArtMenu = ({
         {ART_MENU.label}
         <ChevronDown
           aria-hidden
-          className="size-3.5 opacity-60 transition-transform duration-150 ease-out in-data-[state=open]:rotate-180"
+          className="size-3.5 opacity-60 transition-transform duration-150 ease-out in-data-popup-open:rotate-180"
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -155,11 +155,7 @@ const ArtMenu = ({
         className="min-w-56"
         // Focus goes back to the trigger on close. After a mouse pick that
         // leaves a focus ring on the tab, so only keyboard users get it back.
-        onCloseAutoFocus={(event) => {
-          if (openedByPointer.current) {
-            event.preventDefault();
-          }
-        }}
+        finalFocus={() => !openedByPointer.current}
       >
         {items.map((library) => {
           const comingSoon = library.itemCount === 0;
@@ -169,12 +165,12 @@ const ArtMenu = ({
               sound="click"
               disabled={comingSoon}
               aria-current={library.id === activeTab ? "page" : undefined}
-              onSelect={() => onTabChange(library.id)}
+              onClick={() => onTabChange(library.id)}
               className={cn(
                 NAV_TYPE,
                 "aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground justify-between gap-4",
                 // Disabled dims the label only, so the wave keeps its colour.
-                comingSoon && "data-[disabled]:opacity-100"
+                comingSoon && "data-disabled:opacity-100"
               )}
             >
               <span className={cn(comingSoon && "text-muted-foreground")}>
