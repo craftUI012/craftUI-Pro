@@ -51,14 +51,12 @@ export const SidebarPageGroup = ({
           {pages.map((page) => (
             <SidebarMenuItem key={page.url}>
               <SidebarMenuButton
-                asChild
                 className={MENU_BUTTON_CLS}
                 isActive={page.url === pathname}
+                render={<Link href={page.url} />}
               >
-                <Link href={page.url}>
-                  <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
-                  {page.name}
-                </Link>
+                <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
+                {page.name}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -93,18 +91,16 @@ export const DocsSidebar = ({
               {TOP_LEVEL_SECTIONS.map(({ name, href }) => (
                 <SidebarMenuItem key={name}>
                   <SidebarMenuButton
-                    asChild
                     className={MENU_BUTTON_CLS}
                     isActive={
                       href === ROUTES.DOCS
                         ? pathname === href
                         : pathname.startsWith(href)
                     }
+                    render={<Link href={href} />}
                   >
-                    <Link href={href}>
-                      <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
-                      {name}
-                    </Link>
+                    <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
+                    {name}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

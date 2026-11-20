@@ -279,21 +279,21 @@ const RailLink = ({
 }) => (
   <SidebarMenuItem>
     <SidebarMenuButton
-      asChild
       className={cn(MENU_BUTTON_CLS, ACTIVE_ROW_CLS)}
       isActive={isActive}
+      render={
+        <Link
+          href={href}
+          aria-current={isActive ? "page" : undefined}
+          transitionTypes={[navBack ? "nav-back" : "nav-forward"]}
+          onClick={onNavigate}
+        />
+      }
     >
-      <Link
-        href={href}
-        aria-current={isActive ? "page" : undefined}
-        transitionTypes={[navBack ? "nav-back" : "nav-forward"]}
-        onClick={onNavigate}
-      >
-        {isActive && <ActivePill mode={mode} />}
-        <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
-        <Icon aria-hidden />
-        <span>{label}</span>
-      </Link>
+      {isActive && <ActivePill mode={mode} />}
+      <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
+      <Icon aria-hidden />
+      <span>{label}</span>
     </SidebarMenuButton>
   </SidebarMenuItem>
 );
