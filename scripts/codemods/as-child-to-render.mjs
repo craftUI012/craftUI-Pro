@@ -11,7 +11,8 @@
  *
  * When the child isn't a button (Link, a, div, span …) it also adds
  * nativeButton={false}, which Base UI needs for anything rendered in place
- * of a <button>. Only elements whose tag is in --tags are touched. Anything
+ * of a <button> (NO_NATIVE=1 turns that off for non-button tags like Badge).
+ * Only elements whose tag is in --tags are touched. Anything
  * it can't rewrite safely (several children, text, a spread child…) is
  * listed so it can be done by hand. Uses the TypeScript parser, not regex.
  */
@@ -27,6 +28,8 @@ const files = argv.filter((a, i) => i !== tagsAt && i !== tagsAt + 1);
 // Children that render a real <button>: no nativeButton={false} needed.
 const BUTTONISH = new Set(["button", "Button"]);
 const DRY = process.env.DRY === "1";
+// NO_NATIVE=1 for tags that aren't buttons (Badge …): never add nativeButton.
+const NO_NATIVE = process.env.NO_NATIVE === "1";
 
 const tagName = (node) => node.tagName.getText();
 
@@ -89,7 +92,7 @@ for (const file of files) {
           manual.push(`${file}:${line} <${tag}> child kind ${ts.SyntaxKind[child.kind]}`);
           return;
         }
-        const props = [keep, native ? "nativeButton={false}" : "", `render={${render}}`]
+        const props = [keep, native && !NO_NATIVE ? "nativeButton={false}" : "", `render={${render}}`]
           .filter(Boolean)
           .join(" ");
         const out = inner.trim()

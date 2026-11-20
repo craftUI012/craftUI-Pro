@@ -110,17 +110,19 @@ const DocsArticleHeader = ({
     {links ? (
       <div className="flex items-center space-x-2 pt-4">
         {links.doc && (
-          <Badge asChild variant="secondary">
-            <Link href={links.doc} target="_blank" rel="noreferrer">
-              Docs <ArrowUpRightIcon />
-            </Link>
+          <Badge
+            variant="secondary"
+            render={<Link href={links.doc} target="_blank" rel="noreferrer" />}
+          >
+            Docs <ArrowUpRightIcon />
           </Badge>
         )}
         {links.api && (
-          <Badge asChild variant="secondary">
-            <Link href={links.api} target="_blank" rel="noreferrer">
-              API Reference <ArrowUpRightIcon />
-            </Link>
+          <Badge
+            variant="secondary"
+            render={<Link href={links.api} target="_blank" rel="noreferrer" />}
+          >
+            API Reference <ArrowUpRightIcon />
           </Badge>
         )}
       </div>
