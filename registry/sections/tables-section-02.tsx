@@ -2452,7 +2452,7 @@ const TicketSheet = ({
       {/* With reduced motion the sheet fades in and out instead of
           sliding: the translate is zeroed (important, to beat the
           primitive's state selectors) and a fade takes its place. */}
-      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md motion-reduce:[--tw-enter-translate-x:0]! motion-reduce:[--tw-exit-translate-x:0]! motion-reduce:data-[state=closed]:fade-out-0 motion-reduce:data-[state=open]:fade-in-0">
+      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md motion-reduce:[--tw-enter-translate-x:0]! motion-reduce:[--tw-exit-translate-x:0]! motion-reduce:data-closed:fade-out-0 motion-reduce:data-open:fade-in-0">
         {row && (
           <>
             <SheetHeader className="border-b">

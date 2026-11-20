@@ -775,16 +775,18 @@ export const AppShell = ({
         <header className="flex h-14 shrink-0 items-center gap-2 px-3 sm:px-4">
           {/* Phones and tablets: the sidebar opens as a sheet. */}
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Open sidebar"
-                className="text-muted-foreground hover:text-foreground lg:hidden"
-              >
-                <HugeiconsIcon icon={Menu01Icon} strokeWidth={1.75} />
-              </Button>
+            <SheetTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Open sidebar"
+                  className="text-muted-foreground hover:text-foreground lg:hidden"
+                />
+              }
+            >
+              <HugeiconsIcon icon={Menu01Icon} strokeWidth={1.75} />
             </SheetTrigger>
             {/* Override: no edge rule; the sheet's own shadow lifts it. */}
             <SheetContent
