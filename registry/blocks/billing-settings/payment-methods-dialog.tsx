@@ -118,10 +118,10 @@ const removalDetail = (wasBackup: boolean) =>
 const TILE = [
   "relative h-14 flex-1 flex-col gap-1 rounded-xl border-transparent px-2 text-xs font-normal",
   "transition-[color,background-color,box-shadow] duration-150 ease-out",
-  "data-[state=inactive]:bg-muted/60 data-[state=inactive]:text-muted-foreground dark:data-[state=inactive]:bg-muted/30",
-  "data-[state=inactive]:hover:bg-muted data-[state=inactive]:hover:text-foreground",
-  "data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:bg-muted dark:data-[state=active]:border-transparent",
-  "data-[state=active]:shadow-[0_1px_2px_0_oklch(0_0_0/0.05),0_2px_8px_-2px_oklch(0_0_0/0.08),0_8px_24px_-8px_oklch(0_0_0/0.08)] dark:data-[state=active]:shadow-none",
+  "not-data-active:bg-muted/60 not-data-active:text-muted-foreground dark:not-data-active:bg-muted/30",
+  "not-data-active:hover:bg-muted not-data-active:hover:text-foreground",
+  "data-active:bg-background data-active:text-foreground dark:data-active:bg-muted dark:data-active:border-transparent",
+  "data-active:shadow-[0_1px_2px_0_oklch(0_0_0/0.05),0_2px_8px_-2px_oklch(0_0_0/0.08),0_8px_24px_-8px_oklch(0_0_0/0.08)] dark:data-active:shadow-none",
 ].join(" ");
 
 const MethodTabs = ({
@@ -375,7 +375,7 @@ export const PaymentMethodsDialog = ({
             // Start on the method switcher: pick what to work on first.
             event.preventDefault();
             (event.currentTarget as HTMLElement)
-              .querySelector<HTMLElement>("[role=tab][data-state=active]")
+              .querySelector<HTMLElement>("[role=tab][data-active]")
               ?.focus();
           }}
           onAnimationEnd={(event) => {
@@ -441,8 +441,14 @@ export const PaymentMethodsDialog = ({
               >
                 <div ref={ref} className="relative p-3">
                   <AnimatePresence initial={false} mode="popLayout">
-                    <TabsContent key={method} value={method} forceMount asChild>
-                      <motion.div {...swapStep}>
+                    <motion.div key={method} {...swapStep}>
+                      {/* keepMounted + hidden={false}: the leaving panel stays
+                          visible while it fades out (Base UI would hide it). */}
+                      <TabsContent
+                        value={method}
+                        keepMounted
+                        render={(props) => <div {...props} hidden={false} />}
+                      >
                         {method === "cards" ? (
                           cardsPanel
                         ) : (
@@ -457,8 +463,8 @@ export const PaymentMethodsDialog = ({
                             }
                           />
                         )}
-                      </motion.div>
-                    </TabsContent>
+                      </TabsContent>
+                    </motion.div>
                   </AnimatePresence>
                 </div>
               </motion.div>

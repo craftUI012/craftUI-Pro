@@ -66,7 +66,7 @@ const NAV_TYPE = TYPE.cardLabel;
 // trigger, so the dropdown reads as one more tab.
 const TAB_CLASS = cn(
   NAV_TYPE,
-  "text-muted-foreground hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground dark:data-[state=active]:bg-accent dark:data-[state=active]:text-accent-foreground dark:text-muted-foreground h-8 flex-none px-3 transition-[color,background-color,box-shadow] duration-150 ease-out data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+  "text-muted-foreground hover:text-foreground data-active:bg-accent data-active:text-accent-foreground dark:data-active:bg-accent dark:data-active:text-accent-foreground dark:text-muted-foreground h-8 flex-none px-3 transition-[color,background-color,box-shadow] duration-150 ease-out data-active:shadow-none dark:data-active:border-transparent"
 );
 
 // Libraries that share one navbar dropdown instead of a tab each, in menu
@@ -128,7 +128,7 @@ const ArtMenu = ({
   return (
     <DropdownMenu sounds>
       {/* Radix owns this trigger's data-state (open/closed), so the active
-          fill is a class here rather than TAB_CLASS's data-[state=active]. */}
+          fill is a class here rather than TAB_CLASS's data-active. */}
       <DropdownMenuTrigger
         onPointerDown={() => {
           openedByPointer.current = true;
