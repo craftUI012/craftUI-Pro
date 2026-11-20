@@ -24,4 +24,4 @@
 
 - Billing preview: Manage payment methods opens with focus on the active tab; switch tabs, height eases; Escape, Cancel and the backdrop close it; focus returns to the button.
 - Security settings: Sign out of all other sessions → confirm dialog focuses Cancel; 2FA Turn on → Escape returns focus to Turn on.
-- Not verified here: the ⌘K command menu (lives in `SiteHeader`, which no page renders now) and the pricing exit survey.
+- Verified on a temporary route and /pricing: ⌘K opens with the input focused, filters, Enter navigates; Escape returns focus to the trigger. The pricing exit survey opens after its 10s dwell, its toggle groups work (multi-select), Escape closes it.

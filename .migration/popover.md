@@ -21,6 +21,6 @@
 
 ## Verify by hand
 
-- Not verified headlessly: the site settings popover (inside the browse rail) and the docs copy menu (its mobile trigger sits in a `hidden sm:block` wrapper, so it never shows). Open site settings from the rail: sound plays, Escape closes it, focus returns.
+- Verified on a temporary route (since removed): the site settings popover opens and closes; the docs copy menu at 390px opens anchored to the button group (left edges match, 4px below), no sideways scroll. In the live docs the copy menu's mobile trigger sits in a `hidden sm:block` wrapper, so it never shows there.
 - Phone field (profile 02): open the country list near the bottom of the screen: it flips above and grows from the button; type "ind", Enter: it closes and focus goes to the number.
 - Profile 03: Edit handle / Change email / Change phone: focus moves in, Escape closes, focus returns to the link.

@@ -131,7 +131,10 @@ const MethodTabs = ({
   cardCount: number;
   wallets: WalletState;
 }) => (
-  <TabsList className="grid h-auto w-full grid-cols-4 gap-2 bg-transparent p-0">
+  <TabsList
+    activateOnFocus
+    className="grid h-auto w-full grid-cols-4 gap-2 bg-transparent p-0"
+  >
     {METHODS.map((each) => (
       <TabsTrigger key={each} value={each} className={TILE}>
         {each === "cards" ? (

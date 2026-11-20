@@ -436,7 +436,12 @@ const useHistory = (
     const all = (movements ?? DEMO)
       .map(changeOf)
       .toSorted((a, b) => a.time - b.time);
-    const today = toTime(now ?? (isDemo ? DEMO_NOW : Date.now()));
+    // Real data without a `now` uses the clock once mounted (passed in as
+    // `now`); before that, the last change stands in, so the first render
+    // never reads the clock (Next 16 cacheComponents rejects it).
+    const today = toTime(
+      now ?? (isDemo ? DEMO_NOW : (all.at(-1)?.time ?? DEMO_NOW))
+    );
     const months = [...new Set(all.map((change) => monthStart(change.time)))];
     const current = monthStart(today);
     if (months.length === 0 || current > (months.at(-1) ?? 0)) {
@@ -1464,7 +1469,7 @@ const MonthPicker = ({
         value={String(current)}
       >
         {history.months.toReversed().map((month) => (
-          <DropdownMenuRadioItem key={month} value={String(month)}>
+          <DropdownMenuRadioItem closeOnClick key={month} value={String(month)}>
             <span className="flex-1">{format.month(month)}</span>
             <span className="text-muted-foreground font-mono text-xs tabular-nums">
               {format.signed(history.nets[month] ?? 0)}
@@ -1548,7 +1553,15 @@ export const MrrMovements = ({
   title = "MRR movements",
   ...props
 }: MrrMovementsProps) => {
-  const history = useHistory(movements, now);
+  // The clock, read after mount only: real data without a `now` runs to
+  // today, which only the browser knows.
+  const [clock, setClock] = useState<number>();
+  useEffect(() => {
+    if (now === undefined && movements !== undefined) {
+      setClock(Date.now());
+    }
+  }, [now, movements]);
+  const history = useHistory(movements, now ?? clock);
   const { current, direction, pick } = useMonth({
     defaultMonth,
     history,

@@ -18,4 +18,4 @@
 
 ## Verify by hand
 
-- Not verified here: the code wrapper renders only for unlocked source. On a docs page with unlocked code: the closed block shows ~16rem with the fade; "Expand" opens it and the label flips to "Collapse"; "Collapse" returns it.
+- Verified on a temporary route (since removed): closed 256px, Expand → 992px with the label "Collapse", Collapse → 256px; both triggers are real buttons. On a docs page with unlocked code: the closed block shows ~16rem with the fade; "Expand" opens it and the label flips to "Collapse"; "Collapse" returns it.

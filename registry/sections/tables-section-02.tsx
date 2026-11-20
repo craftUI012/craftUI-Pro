@@ -1009,7 +1009,7 @@ const StatusItems = ({
     onValueChange={(next) => onChange(next as TicketStatus)}
   >
     {STATUSES.map((status) => (
-      <DropdownMenuRadioItem key={status.id} value={status.id}>
+      <DropdownMenuRadioItem closeOnClick key={status.id} value={status.id}>
         <StatusIcon status={status.id} />
         {status.label}
       </DropdownMenuRadioItem>
@@ -1029,7 +1029,7 @@ const PriorityItems = ({
     onValueChange={(next) => onChange(next as TicketPriority)}
   >
     {PRIORITIES.map((priority) => (
-      <DropdownMenuRadioItem key={priority.id} value={priority.id}>
+      <DropdownMenuRadioItem closeOnClick key={priority.id} value={priority.id}>
         <PriorityIcon priority={priority.id} />
         {priority.label}
       </DropdownMenuRadioItem>
@@ -1052,9 +1052,11 @@ const AssigneeItems = ({
     value={value ?? UNASSIGNED}
     onValueChange={(next) => onChange(next === UNASSIGNED ? null : next)}
   >
-    <DropdownMenuRadioItem value={UNASSIGNED}>Unassigned</DropdownMenuRadioItem>
+    <DropdownMenuRadioItem closeOnClick value={UNASSIGNED}>
+      Unassigned
+    </DropdownMenuRadioItem>
     {agents.map((agent) => (
-      <DropdownMenuRadioItem key={agent} value={agent}>
+      <DropdownMenuRadioItem closeOnClick key={agent} value={agent}>
         {agent}
       </DropdownMenuRadioItem>
     ))}
@@ -1122,6 +1124,7 @@ const ViewTabs = ({
         width (flex-none overrides the shadcn trigger's flex-1), so nothing
         stretches or wraps; the scrollbar is hidden. */}
     <TabsList
+      activateOnFocus
       aria-label="Ticket views"
       className="w-full justify-start overflow-x-auto [scrollbar-width:none] sm:w-fit [&::-webkit-scrollbar]:hidden"
     >
@@ -1269,12 +1272,14 @@ const FilterMenu = ({
               value={filters.assignee}
               onValueChange={(assignee) => onChange({ ...filters, assignee })}
             >
-              <DropdownMenuRadioItem value="all">Anyone</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value={UNASSIGNED}>
+              <DropdownMenuRadioItem closeOnClick value="all">
+                Anyone
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem closeOnClick value={UNASSIGNED}>
                 Unassigned
               </DropdownMenuRadioItem>
               {agents.map((agent) => (
-                <DropdownMenuRadioItem key={agent} value={agent}>
+                <DropdownMenuRadioItem closeOnClick key={agent} value={agent}>
                   {agent}
                 </DropdownMenuRadioItem>
               ))}
@@ -1449,7 +1454,7 @@ const ViewMenu = ({
           onValueChange={(column) => onSortColumn(column as SortColumn)}
         >
           {SORTS.map((item) => (
-            <DropdownMenuRadioItem key={item.id} value={item.id}>
+            <DropdownMenuRadioItem closeOnClick key={item.id} value={item.id}>
               {item.label}
             </DropdownMenuRadioItem>
           ))}
@@ -2094,7 +2099,11 @@ const TicketsFooter = ({
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
               {PAGE_SIZES.map((size) => (
-                <DropdownMenuRadioItem key={size} value={String(size)}>
+                <DropdownMenuRadioItem
+                  closeOnClick
+                  key={size}
+                  value={String(size)}
+                >
                   {size}
                 </DropdownMenuRadioItem>
               ))}

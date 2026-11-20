@@ -20,7 +20,7 @@
 
 ## Behavior changes
 
-- **Flag:** radio items no longer close the menu on pick (Base UI default `closeOnClick=false`; Radix closed). Affects the MRR month picker and the tables status/priority pickers. `closeOnClick` on the item restores it.
+- Radio items: Base UI keeps the menu open after a pick by default. Restored to the Radix behaviour (2026-11-20, at the user's request): `closeOnClick` is the wrapper default and is set on every registry call site (MRR month picker, tables pickers), so buyers on stock shadcn get it too.
 - **Flag:** `DropdownMenuLabel` must sit inside `DropdownMenuGroup` now.
 
 ## Verify by hand
@@ -28,4 +28,4 @@
 - Home: UI kits menu: click Isometrics → URL `?library=isometrics`, menu closes; Enter opens with focus on the first item, Escape returns focus to the trigger.
 - Tables section 02: Filter → hover Status (submenu opens to the right), tick a status: it checks and the menu stays open.
 - Profile settings 02: switch workspace from the workspace menu.
-- MRR movements: pick another month (the chart changes; menu stays open, see flag).
+- MRR movements: pick another month: the chart changes and the menu closes.

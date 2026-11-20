@@ -15,13 +15,13 @@
 ## Left alone
 
 - cmdk (`command`), vaul (`drawer`), sonner, input-otp, react-day-picker, recharts: not Radix wrappers, untouched.
-- `components.json` style stays `new-york`. **Flag:** to the shadcn CLI that style still means Radix, so `shadcn add <component>` here would deliver Radix variants. Either switch the style to a `base-*` one (which restyles anything re-added) or add new components by hand.
-- `registry/blocks/mrr-movements.tsx`: with real data and no `now` prop it reads `Date.now()` inside a `useMemo` during render (the demo uses a fixed date). Same class of issue as the tables; not hit by the demo, not changed.
+- `components.json` style switched `new-york` → `base-nova` (2026-11-20), so `shadcn add` now delivers Base UI components. Existing files are unchanged; anything added later arrives in base-nova's look and may need restyling to match.
+- Fixed after the run: `registry/blocks/mrr-movements.tsx` read `Date.now()` during render with real data and no `now`; the clock is now read after mount (the last change stands in for the first render).
 
 ## Behavior changes
 
-- Tabs: manual activation (arrow keys move focus, Enter/Space selects).
-- Menus: radio items stay open after a pick (MRR month picker, tables status/priority pickers); a `DropdownMenuLabel` must sit inside a `DropdownMenuGroup`.
+- Tabs and menu radio items: Base UI's defaults differ (manual activation; radio items stay open). Both restored to the Radix behaviour in the wrappers and at every registry call site, verified on the site and in the buyer project.
+- A `DropdownMenuLabel` must sit inside a `DropdownMenuGroup`.
 - Accordion: arrow keys no longer move between headers; single mode is always collapsible.
 - Dialog: no `aria-modal`; the outside is made inert instead.
 - Separator: always `role="separator"`.
@@ -30,5 +30,5 @@
 
 ## Verify by hand
 
-- Not reachable headlessly during the run: ⌘K command menu (lives in `SiteHeader`, which no page renders), site settings popover (inside the commented-out browse rail), docs copy menu's mobile trigger, code-block Expand/Collapse (unlocked source only), pricing exit survey.
+- The parts no page renders (⌘K menu, site settings popover, docs copy menu, code-block expand) were mounted on a temporary route and click-tested, then the route was removed; the pricing exit survey was triggered on /pricing. The browse rail and docs sidebar are still unused; their sidebar links share the component verified on /docs-admin.
 - Everything else was click-tested in the site and in the buyer project; see each component's report.

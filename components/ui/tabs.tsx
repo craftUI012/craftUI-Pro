@@ -14,9 +14,16 @@ const Tabs = ({ className, ...props }: TabsPrimitive.Root.Props) => (
   />
 );
 
-const TabsList = ({ className, ...props }: TabsPrimitive.List.Props) => (
+// Arrow keys select the tab they move to (automatic activation), as Radix
+// did; Base UI's default is manual. Pass activateOnFocus={false} to opt out.
+const TabsList = ({
+  className,
+  activateOnFocus = true,
+  ...props
+}: TabsPrimitive.List.Props) => (
   <TabsPrimitive.List
     data-slot="tabs-list"
+    activateOnFocus={activateOnFocus}
     className={cn(
       "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-0.75",
       className

@@ -491,9 +491,13 @@ const KeysToolbar = ({
               onStatusFilterChange(value as "all" | ApiKeyStatus)
             }
           >
-            <DropdownMenuRadioItem value="all">All keys</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="active">Active</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="disabled">
+            <DropdownMenuRadioItem closeOnClick value="all">
+              All keys
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem closeOnClick value="active">
+              Active
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem closeOnClick value="disabled">
               Disabled
             </DropdownMenuRadioItem>
           </MenuRadioGroup>
@@ -518,9 +522,11 @@ const KeysToolbar = ({
           <DropdownMenuLabel>Filter by user</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <MenuRadioGroup value={userFilter} onValueChange={onUserFilterChange}>
-            <DropdownMenuRadioItem value="all">All users</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem closeOnClick value="all">
+              All users
+            </DropdownMenuRadioItem>
             {users.map((user) => (
-              <DropdownMenuRadioItem key={user} value={user}>
+              <DropdownMenuRadioItem closeOnClick key={user} value={user}>
                 {user}
               </DropdownMenuRadioItem>
             ))}
@@ -990,7 +996,11 @@ const KeysFooter = ({
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
               {PAGE_SIZES.map((size) => (
-                <DropdownMenuRadioItem key={size} value={String(size)}>
+                <DropdownMenuRadioItem
+                  closeOnClick
+                  key={size}
+                  value={String(size)}
+                >
                   {size}
                 </DropdownMenuRadioItem>
               ))}

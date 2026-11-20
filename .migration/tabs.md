@@ -16,11 +16,11 @@
 
 ## Behavior changes
 
-- **Flag:** Base UI tabs use manual activation: arrow keys move focus, Enter/Space selects. Radix selected on focus. Not patched (`activateOnFocus` would restore it).
+- Base UI tabs default to manual activation. Restored to the Radix behaviour (2026-11-20, at the user's request): `TabsList` defaults `activateOnFocus` to true, and the registry call sites (billing dialog, tables-section-02) set it, so buyers get it too. Verified: ArrowRight selects the next tab on the site and in a Base UI buyer project.
 - Base UI selects the first tab when no default is given (Radix selected none); every consumer passes a value.
 
 ## Verify by hand
 
 - Browse top bar: click Blocks; the URL becomes `?library=blocks` and only that panel shows.
 - /docs/installation: switch pnpm → npm; the command changes.
-- Billing preview, Manage payment methods: switch Cards → PayPal (cross-fade, height glides); arrow keys move focus, Enter selects.
+- Billing preview, Manage payment methods: switch Cards → PayPal (cross-fade, height glides); arrow keys select tabs.
