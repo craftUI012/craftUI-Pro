@@ -21,6 +21,11 @@ It runs `scripts/build-registry.mjs`, which copies `registry.json` to `node_modu
 shadcn build node_modules/.cache/registry/registry.json --output ./public/r
 ```
 
+Before building, it stops with a list of problems if an item breaks a rule:
+
+- Browse metadata (categories, types, styles) must match `constants/taxonomy.ts`.
+- Items are Base UI only (since November 2026): no `radix-ui` or `@radix-ui/*` import or dependency, no `asChild` (use `render`), no Radix state selectors such as `data-[state=open]` (use `data-open`, `data-checked`, `data-active`…), and no `--radix-*` CSS variables. Buyers install on a `base-*` shadcn style, so Radix code would break for them. An item's own `data-state` values (like `data-state="run"`) are fine.
+
 The committed `registry.json` is never modified. See [Changing the domain](/docs-admin/guides/changing-the-domain).
 
 ### What `shadcn build` does
