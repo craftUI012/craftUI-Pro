@@ -256,7 +256,7 @@ export const PricingSurvey = () => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="gap-6 data-[state=closed]:duration-150 sm:max-w-[26rem]"
+        className="gap-6 data-closed:duration-150 sm:max-w-[26rem]"
       >
         {status === "sent" ? (
           <DialogHeader>

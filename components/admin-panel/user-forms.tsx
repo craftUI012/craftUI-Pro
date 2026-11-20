@@ -68,9 +68,7 @@ export const AddUserDialog = ({ items }: { items: ItemOption[] }) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm">Add user</Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button size="sm" />}>Add user</DialogTrigger>
       <DialogContent>
         <form className="grid gap-4" onSubmit={submit}>
           <DialogHeader>
@@ -109,10 +107,8 @@ export const AddUserDialog = ({ items }: { items: ItemOption[] }) => {
             <GrantFields items={items} value={grant} onChange={setGrant} />
           )}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
+            <DialogClose render={<Button type="button" variant="outline" />}>
+              Cancel
             </DialogClose>
             <Button type="submit" disabled={pending}>
               {pending ? "Adding…" : "Add user"}
@@ -213,10 +209,8 @@ export const DeleteUserDialog = ({ user }: { user: AdminUser }) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          Delete user and all records
-        </Button>
+      <DialogTrigger render={<Button variant="destructive" size="sm" />}>
+        Delete user and all records
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -238,8 +232,8 @@ export const DeleteUserDialog = ({ user }: { user: AdminUser }) => {
           />
         </div>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+          <DialogClose render={<Button variant="outline" />}>
+            Cancel
           </DialogClose>
           <Button
             variant="destructive"

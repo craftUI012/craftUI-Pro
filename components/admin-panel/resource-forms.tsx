@@ -49,7 +49,7 @@ export const ResourceDialog = ({
   knownTags: string[];
   resource?: ResourceDoc;
   // "Add resource" (filled) or "Edit" (ghost, in a table row). Built here:
-  // a server page can't hand an element to the trigger's asChild without
+  // a server page can't hand an element to the trigger's render prop without
   // breaking hydration.
   trigger?: "add" | "edit";
 }) => {
@@ -85,15 +85,17 @@ export const ResourceDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger === "edit" ? (
-          <Button size="sm" variant="ghost">
-            Edit
-          </Button>
-        ) : (
-          <Button size="sm">Add resource</Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          trigger === "edit" ? (
+            <Button size="sm" variant="ghost">
+              Edit
+            </Button>
+          ) : (
+            <Button size="sm">Add resource</Button>
+          )
+        }
+      />
       <DialogContent>
         <form className="grid gap-4" onSubmit={submit}>
           <DialogHeader>
@@ -169,10 +171,8 @@ export const ResourceDialog = ({
             )}
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
+            <DialogClose render={<Button type="button" variant="outline" />}>
+              Cancel
             </DialogClose>
             <Button type="submit" disabled={pending}>
               {pending ? "Saving…" : "Save"}
@@ -194,10 +194,12 @@ export const DeleteResourceButton = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="text-destructive">
-          Delete
-        </Button>
+      <DialogTrigger
+        render={
+          <Button size="sm" variant="ghost" className="text-destructive" />
+        }
+      >
+        Delete
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -207,8 +209,8 @@ export const DeleteResourceButton = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+          <DialogClose render={<Button variant="outline" />}>
+            Cancel
           </DialogClose>
           <Button
             variant="destructive"

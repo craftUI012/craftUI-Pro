@@ -190,10 +190,10 @@ export const EmailEditor = ({
         </p>
         {saved && (
           <Dialog open={resetOpen} onOpenChange={setResetOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="ghost" disabled={pending}>
-                Reset to default
-              </Button>
+            <DialogTrigger
+              render={<Button size="sm" variant="ghost" disabled={pending} />}
+            >
+              Reset to default
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -205,8 +205,8 @@ export const EmailEditor = ({
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                <DialogClose render={<Button variant="outline" />}>
+                  Cancel
                 </DialogClose>
                 <Button
                   variant="destructive"
